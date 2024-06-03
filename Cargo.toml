@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "rpc-state-reader",
+    "replay",
+]
+
+
+# Explicitly set the resolver to the default for edition >= 2021
+# https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
+resolver = "2"
