@@ -1,4 +1,5 @@
-use cairo_vm::vm::runners::{
+use blockifier::block_context::GasPrices;
+use cairo_vm_blockifier::vm::runners::{
     builtin_runner::{
         BITWISE_BUILTIN_NAME, EC_OP_BUILTIN_NAME, HASH_BUILTIN_NAME, KECCAK_BUILTIN_NAME,
         OUTPUT_BUILTIN_NAME, POSEIDON_BUILTIN_NAME, RANGE_CHECK_BUILTIN_NAME,
@@ -18,7 +19,6 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use starknet_in_rust::definitions::block_context::{GasPrices, StarknetChainId};
 use std::{collections::HashMap, env, fmt::Display};
 
 use crate::{rpc_state_errors::RpcStateError, utils};
@@ -29,16 +29,6 @@ pub enum RpcChain {
     MainNet,
     TestNet,
     TestNet2,
-}
-
-impl From<RpcChain> for StarknetChainId {
-    fn from(network: RpcChain) -> StarknetChainId {
-        match network {
-            RpcChain::MainNet => StarknetChainId::MainNet,
-            RpcChain::TestNet => StarknetChainId::TestNet,
-            RpcChain::TestNet2 => StarknetChainId::TestNet2,
-        }
-    }
 }
 
 impl fmt::Display for RpcChain {
@@ -463,7 +453,10 @@ impl RpcState {
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("gas_price".to_string()))?;
 
-        Ok(GasPrices::new(gas_price_eth, gas_price_strk))
+        Ok(GasPrices {
+            eth_l1_gas_price: gas_price_eth,
+            strk_l1_gas_price: gas_price_strk,
+        })
     }
 
     pub fn get_chain_name(&self) -> ChainId {

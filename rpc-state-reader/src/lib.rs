@@ -2,19 +2,13 @@ pub mod rpc_state;
 pub mod rpc_state_errors;
 pub mod utils;
 
-// only export the sir_state_reader module when the starknet_in_rust feature
-// is enabled.
-#[cfg(feature = "starknet_in_rust")]
-mod sir_state_reader;
-#[cfg(feature = "starknet_in_rust")]
-pub use sir_state_reader::{
-    execute_tx, execute_tx_configurable, execute_tx_configurable_with_state,
-    execute_tx_without_validate, get_transaction_hashes, RpcStateReader,
-};
+mod blockifier_state_reader;
 
 #[cfg(test)]
 mod tests {
-    use cairo_vm::Felt252;
+    use blockifier::transaction::{
+        account_transaction::AccountTransaction, transactions::InvokeTransaction,
+    };
     use pretty_assertions_sorted::{assert_eq, assert_eq_sorted};
     use starknet_api::{
         class_hash,
@@ -24,7 +18,6 @@ mod tests {
         state::StorageKey,
         transaction::{Transaction as SNTransaction, TransactionHash},
     };
-    use starknet_in_rust::transaction::InvokeFunction;
 
     use crate::rpc_state::*;
 
@@ -110,13 +103,16 @@ mod tests {
 
         let tx = rpc_state.get_transaction(&tx_hash).unwrap();
         match tx {
-            SNTransaction::Invoke(tx) => InvokeFunction::from_invoke_transaction(
-                tx,
-                Felt252::from_bytes_be_slice(tx_hash.0.bytes()),
-            ),
+            SNTransaction::Invoke(tx) => {
+                let invoke = InvokeTransaction {
+                    tx,
+                    tx_hash,
+                    only_query: false,
+                };
+                AccountTransaction::Invoke(invoke)
+            }
             _ => unreachable!(),
-        }
-        .unwrap();
+        };
     }
 
     #[test]

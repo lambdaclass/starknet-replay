@@ -3,11 +3,6 @@ name = "rpc-state-reader"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = ["starknet_in_rust"]
-starknet_in_rust = []
-cairo-native = ["starknet_in_rust/cairo-native"]
-
 [dependencies]
 ureq = { version = "2.7.1", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -23,10 +18,8 @@ thiserror = { workspace = true }
 flate2 = "1.0.25"
 serde_with = "3.0.0"
 dotenv = "0.15.0"
-cairo-vm = { git = "https://github.com/lambdaclass/cairo-vm", rev = "3547089579dd74f815edbc2d1caa91e00fc8a2f7", features = ["cairo-1-hints"] }
 cairo-vm-blockifier = { package = "cairo-vm", version = "0.9.1" }
 blockifier = "=0.5.0-dev.0"
-starknet_in_rust = {git = "https://github.com/lambdaclass/starknet_in_rust", rev = "99c7b3b29a78cf8a27cc61bcdc029ed4255817ad" } 
 
 [dev-dependencies]
 pretty_assertions_sorted = "1.2.3"
