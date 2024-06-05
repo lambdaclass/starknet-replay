@@ -3,7 +3,7 @@ use std::{
     io::{self, Read},
 };
 
-use cairo_lang_starknet::contract_class::ContractEntryPoints;
+use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};

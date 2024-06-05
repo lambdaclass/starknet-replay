@@ -1,5 +1,5 @@
-use blockifier::block_context::GasPrices;
-use cairo_vm_blockifier::vm::runners::{
+use blockifier::blockifier::block::GasPrices;
+use cairo_vm::vm::runners::{
     builtin_runner::{
         BITWISE_BUILTIN_NAME, EC_OP_BUILTIN_NAME, HASH_BUILTIN_NAME, KECCAK_BUILTIN_NAME,
         OUTPUT_BUILTIN_NAME, POSEIDON_BUILTIN_NAME, RANGE_CHECK_BUILTIN_NAME,
@@ -19,7 +19,7 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use std::{collections::HashMap, env, fmt::Display};
+use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
 
 use crate::{rpc_state_errors::RpcStateError, utils};
 
@@ -397,6 +397,10 @@ impl RpcState {
         &self,
         hash: &TransactionHash,
     ) -> Result<TransactionTrace, RpcStateError> {
+        dbg!(&self.rpc_call::<serde_json::Value>(
+            "starknet_traceTransaction",
+            &json!([hash.to_string()])
+        ));
         let result = self
             .rpc_call::<serde_json::Value>("starknet_traceTransaction", &json!([hash.to_string()]))?
             .get("result")
@@ -415,11 +419,18 @@ impl RpcState {
             .get("result")
             .ok_or(RpcStateError::MissingRpcResponseField("result".into()))?
             .clone();
+
+        dbg!(&result);
         utils::deserialize_transaction_json(result).map_err(RpcStateError::SerdeJson)
     }
 
     /// Gets the gas price of a given block.
     pub fn get_gas_price(&self, block_number: u64) -> Result<GasPrices, RpcStateError> {
+        // dbg!(self
+        //     .rpc_call::<serde_json::Value>(
+        //         "starknet_getBlockWithTxHashes",
+        //         &json!({"block_id" : { "block_number": block_number }}),
+        //     )?);
         let res = self
             .rpc_call::<serde_json::Value>(
                 "starknet_getBlockWithTxHashes",
@@ -428,6 +439,8 @@ impl RpcState {
             .get("result")
             .ok_or(RpcStateError::MissingRpcResponseField("result".into()))?
             .clone();
+
+        dbg!(1);
 
         let gas_price_eth = u128::from_str_radix(
             res.get("l1_gas_price")
@@ -441,6 +454,8 @@ impl RpcState {
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("gas_price".to_string()))?;
 
+        dbg!(2);
+
         let gas_price_strk = u128::from_str_radix(
             res.get("l1_gas_price")
                 .and_then(|gp| gp.get("price_in_fri"))
@@ -453,9 +468,46 @@ impl RpcState {
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("gas_price".to_string()))?;
 
+        dbg!(3);
+
+        let l1_data_gas_price_strk = u128::from_str_radix(
+            res.get("l1_data_gas_price")
+                .and_then(|gp| gp.get("price_in_fri"))
+                .and_then(|gp| gp.as_str())
+                .ok_or(RpcStateError::MissingRpcResponseField(
+                    "l1_data_gas_price.price_in_fri".to_string(),
+                ))?
+                .trim_start_matches("0x"),
+            16,
+        )
+        .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
+
+        dbg!(4);
+
+        let l1_data_gas_price_wei = u128::from_str_radix(
+            res.get("l1_data_gas_price")
+                .and_then(|gp| gp.get("price_in_wei"))
+                .and_then(|gp| gp.as_str())
+                .ok_or(RpcStateError::MissingRpcResponseField(
+                    "l1_data_gas_price.l1_data_gas_price_wei".to_string(),
+                ))?
+                .trim_start_matches("0x"),
+            16,
+        )
+        .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
+
+        dbg!(5);
+
+        // TODO check 0 wei/strk
         Ok(GasPrices {
-            eth_l1_gas_price: gas_price_eth,
-            strk_l1_gas_price: gas_price_strk,
+            eth_l1_gas_price: NonZeroU128::new(gas_price_eth)
+                .unwrap_or(NonZeroU128::new(1).unwrap()),
+            strk_l1_gas_price: NonZeroU128::new(gas_price_strk)
+                .unwrap_or(NonZeroU128::new(1).unwrap()),
+            eth_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_wei)
+                .unwrap_or(NonZeroU128::new(1).unwrap()),
+            strk_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_strk)
+                .unwrap_or(NonZeroU128::new(1).unwrap()),
         })
     }
 

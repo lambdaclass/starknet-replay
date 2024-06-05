@@ -1,14 +1,14 @@
 use blockifier::{
-    block_context::{BlockContext, FeeTokenAddresses, GasPrices},
-    execution::{
-        call_info::CallInfo,
-        contract_class::{
-            ContractClass as BlockifierContractClass, ContractClassV0, ContractClassV0Inner,
-        },
+    blockifier::block::BlockInfo,
+    context::{BlockContext, ChainInfo, FeeTokenAddresses},
+    execution::contract_class::{
+        ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner, SierraContractClassV1,
+        SierraContractClassV1Inner,
     },
     state::{
-        cached_state::{CachedState, GlobalContractCache},
+        cached_state::CachedState,
         errors::StateError,
+        global_cache::GlobalContractCache,
         state_api::{StateReader, StateResult},
     },
     transaction::{
@@ -19,11 +19,10 @@ use blockifier::{
             L1HandlerTransaction,
         },
     },
+    versioned_constants::VersionedConstants,
 };
-use cairo_lang_starknet::{
-    casm_contract_class::CasmContractClass, contract_class::ContractClass as SierraContractClass,
-};
-use cairo_vm_blockifier::types::program::Program;
+use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
+use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
@@ -54,27 +53,27 @@ impl RpcStateReader {
 
 impl StateReader for RpcStateReader {
     fn get_storage_at(
-        &mut self,
+        &self,
         contract_address: starknet_api::core::ContractAddress,
         key: StorageKey,
     ) -> StateResult<StarkFelt> {
         Ok(self.0.get_storage_at(&contract_address, &key))
     }
 
-    fn get_nonce_at(&mut self, contract_address: ContractAddress) -> StateResult<Nonce> {
+    fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
         Ok(Nonce(self.0.get_nonce_at(&contract_address)))
     }
 
-    fn get_class_hash_at(&mut self, contract_address: ContractAddress) -> StateResult<ClassHash> {
+    fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
         Ok(self.0.get_class_hash_at(&contract_address))
     }
 
     /// Returns the contract class of the given class hash.
     fn get_compiled_contract_class(
-        &mut self,
-        class_hash: &ClassHash,
-    ) -> StateResult<BlockifierContractClass> {
-        Ok(match self.0.get_contract_class(class_hash) {
+        &self,
+        class_hash: starknet_api::core::ClassHash,
+    ) -> StateResult<ContractClass> {
+        Ok(match self.0.get_contract_class(&class_hash) {
             Some(SNContractClass::Legacy(compressed_legacy_cc)) => {
                 let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
                 let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();
@@ -85,29 +84,34 @@ impl StateReader for RpcStateReader {
                     program,
                     entry_points_by_type,
                 });
-                BlockifierContractClass::V0(ContractClassV0(inner))
+                ContractClass::V0(ContractClassV0(inner))
             }
             Some(SNContractClass::Sierra(flattened_sierra_cc)) => {
                 let middle_sierra: utils::MiddleSierraContractClass = {
                     let v = serde_json::to_value(flattened_sierra_cc).unwrap();
                     serde_json::from_value(v).unwrap()
                 };
-                let sierra_cc = SierraContractClass {
+                let sierra_cc = cairo_lang_starknet_classes::contract_class::ContractClass {
                     sierra_program: middle_sierra.sierra_program,
                     contract_class_version: middle_sierra.contract_class_version,
                     entry_points_by_type: middle_sierra.entry_points_by_type,
                     sierra_program_debug_info: None,
                     abi: None,
                 };
-                let casm_cc = CasmContractClass::from_contract_class(sierra_cc, false).unwrap();
-                BlockifierContractClass::V1(casm_cc.try_into().unwrap())
+                let casm_cc =
+                    CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+                ContractClass::V1(casm_cc.try_into().unwrap())
             }
-            None => return Err(StateError::UndeclaredClassHash(*class_hash)),
+            None => {
+                return Err(StateError::UndeclaredClassHash(
+                    starknet_api::core::ClassHash(*class_hash),
+                ))
+            }
         })
     }
 
     /// Returns the compiled class hash of the given class hash.
-    fn get_compiled_class_hash(&mut self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
+    fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
         Ok(CompiledClassHash(
             self.0
                 .get_class_hash_at(&ContractAddress(class_hash.0.try_into().unwrap()))
@@ -144,12 +148,12 @@ pub fn execute_tx(
     let tx_hash = TransactionHash(stark_felt!(tx_hash));
     let sn_api_tx = rpc_reader.0.get_transaction(&tx_hash);
 
+    dbg!(&rpc_reader.0.get_transaction_trace(&tx_hash));
     let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = rpc_reader.0.get_transaction_receipt(&tx_hash).unwrap();
 
     // Create state from RPC reader
-    let global_cache = GlobalContractCache::default();
-    let mut state = CachedState::new(rpc_reader, global_cache);
+    let mut state = CachedState::new(rpc_reader);
 
     let fee_token_address =
         contract_address!("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7");
@@ -171,30 +175,48 @@ pub fn execute_tx(
         ("keccak_builtin".to_string(), N_STEPS_FEE_WEIGHT * 2048.0), // 2**11
     ]));
 
-    let block_context = BlockContext {
-        chain_id,
+    let block_info = BlockInfo {
         block_number,
         block_timestamp,
         sequencer_address,
-        // TODO: Add strk token address when updated
-        fee_token_addresses: FeeTokenAddresses {
-            strk_fee_token_address: fee_token_address,
-            eth_fee_token_address: fee_token_address,
-        },
-        vm_resource_fee_cost,
-        // TODO: Add strk l1 gas price when updated
-        gas_prices: GasPrices {
-            eth_l1_gas_price: gas_price.eth_l1_gas_price,
-            strk_l1_gas_price: gas_price.strk_l1_gas_price,
-        },
-        invoke_tx_max_n_steps: 1_000_000,
-        validate_max_n_steps: 1_000_000,
-        max_recursion_depth: 500,
+        // TODO: Check gas_prices and use_kzg_da
+        gas_prices: gas_price,
+        use_kzg_da: false,
     };
 
+    let chain_info = ChainInfo {
+        chain_id,
+        fee_token_addresses: FeeTokenAddresses::default(),
+    };
+
+    let block_context =
+        BlockContext::new_unchecked(&block_info, &chain_info, &VersionedConstants::default());
+    // let block_context = BlockContext {
+    //     chain_id,
+    //     block_number,
+    //     block_timestamp,
+    //     sequencer_address,
+    //     // TODO: Add strk token address when updated
+    //     fee_token_addresses: FeeTokenAddresses {
+    //         strk_fee_token_address: fee_token_address,
+    //         eth_fee_token_address: fee_token_address,
+    //     },
+    //     vm_resource_fee_cost,
+    //     // TODO: Add strk l1 gas price when updated
+    //     gas_prices: GasPrices {
+    //         eth_l1_gas_price: gas_price.eth_l1_gas_price,
+    //         strk_l1_gas_price: gas_price.strk_l1_gas_price,
+    //     },
+    //     invoke_tx_max_n_steps: 1_000_000,
+    //     validate_max_n_steps: 1_000_000,
+    //     max_recursion_depth: 500,
+    // };
+
     // Map starknet_api transaction to blockifier's
-    let blockifier_tx = match sn_api_tx.unwrap() {
+    dbg!(&sn_api_tx);
+    let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
         SNTransaction::Invoke(tx) => {
+            dbg!(&tx);
             let invoke = InvokeTransaction {
                 tx,
                 tx_hash,
@@ -219,13 +241,16 @@ pub fn execute_tx(
         }
         SNTransaction::Declare(tx) => {
             // Fetch the contract_class from the next block (as we don't have it in the previous one)
-            let mut next_block_state_reader =
-                RpcStateReader(RpcState::new_rpc(network, (block_number.next()).into()).unwrap());
+            let mut next_block_state_reader = RpcStateReader(
+                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
+            );
             let contract_class = next_block_state_reader
-                .get_compiled_contract_class(&tx.class_hash())
+                .get_compiled_contract_class(tx.class_hash())
                 .unwrap();
 
-            let declare = DeclareTransaction::new(tx, tx_hash, contract_class).unwrap();
+            let class_info = calculate_class_info_for_testing(contract_class);
+
+            let declare = DeclareTransaction::new(tx, tx_hash, class_info).unwrap();
             AccountTransaction::Declare(declare)
         }
         SNTransaction::L1Handler(tx) => {
@@ -255,8 +280,18 @@ pub fn execute_tx(
     )
 }
 
+fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo {
+    let sierra_program_length = match contract_class {
+        ContractClass::V0(_) => 0,
+        ContractClass::V1(_) => 100,
+        ContractClass::V1Sierra(_) => todo!("should this also be 100?"),
+    };
+    ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
+}
 #[cfg(test)]
 mod tests {
+
+    use std::num::NonZeroU128;
 
     use crate::rpc_state::BlockValue;
 
@@ -268,7 +303,10 @@ mod tests {
         let rpc_state = RpcState::new_rpc(RpcChain::MainNet, block).unwrap();
 
         let price = rpc_state.get_gas_price(169928).unwrap();
-        assert_eq!(price.eth_l1_gas_price, 22804578690);
+        assert_eq!(
+            price.eth_l1_gas_price,
+            NonZeroU128::new(22804578690).unwrap()
+        );
     }
 
     #[test]
@@ -287,19 +325,19 @@ mod tests {
         } = tx_info;
 
         let CallInfo {
-            vm_resources,
+            resources,
             inner_calls,
             ..
         } = execute_call_info.unwrap();
 
         assert_eq!(actual_fee.0, receipt.actual_fee.amount);
         assert_eq!(
-            vm_resources.n_memory_holes,
+            resources.n_memory_holes,
             receipt.execution_resources.n_memory_holes
         );
-        assert_eq!(vm_resources.n_steps, receipt.execution_resources.n_steps);
+        assert_eq!(resources.n_steps, receipt.execution_resources.n_steps);
         assert_eq!(
-            vm_resources.builtin_instance_counter,
+            resources.builtin_instance_counter,
             receipt.execution_resources.builtin_instance_counter
         );
         assert_eq!(
@@ -392,7 +430,7 @@ mod tests {
 )]
     // Argent X (v5.7.0)
     #[test_case(
-    "0x039683c034f8e67cfb4af6e3109cefb3c170ee15ceacf07ee2d926915c4620e5",
+    "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
     475945, // real block 475946
     RpcChain::MainNet
 )]
@@ -405,7 +443,7 @@ mod tests {
         } = tx_info;
 
         let CallInfo {
-            vm_resources,
+            resources,
             inner_calls,
             ..
         } = execute_call_info.unwrap();
@@ -424,12 +462,12 @@ mod tests {
         }
 
         assert_eq!(
-            vm_resources.n_memory_holes,
+            resources.n_memory_holes,
             receipt.execution_resources.n_memory_holes
         );
-        assert_eq!(vm_resources.n_steps, receipt.execution_resources.n_steps);
+        assert_eq!(resources.n_steps, receipt.execution_resources.n_steps);
         assert_eq!(
-            vm_resources.builtin_instance_counter,
+            resources.builtin_instance_counter,
             receipt.execution_resources.builtin_instance_counter
         );
 
@@ -595,14 +633,16 @@ mod tests {
 )]
     // Argent X (v5.7.0)
     #[test_case(
-    "0x039683c034f8e67cfb4af6e3109cefb3c170ee15ceacf07ee2d926915c4620e5",
-    475945, // real block 475946
+    "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
+    638866, // real block 475946
     RpcChain::MainNet
 )]
     #[cfg(not(feature = "cairo-native"))]
     // todo: check this tests
     fn starknet_in_rust_vs_blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
+
+        use blockifier::execution::call_info::CallInfo;
         let (blockifier_tx_info, _, _) = execute_tx(hash, chain, BlockNumber(block_number));
 
         let (blockifier_fee, blockifier_resources) = {
@@ -611,8 +651,8 @@ mod tests {
                 execute_call_info,
                 ..
             } = blockifier_tx_info;
-            let CallInfo { vm_resources, .. } = execute_call_info.unwrap();
-            (actual_fee.0, vm_resources)
+            let CallInfo { resources, .. } = execute_call_info.unwrap();
+            (actual_fee.0, resources)
         };
 
         // // Compare sir vs blockifier fee & resources
