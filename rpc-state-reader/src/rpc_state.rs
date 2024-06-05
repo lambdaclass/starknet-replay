@@ -397,10 +397,6 @@ impl RpcState {
         &self,
         hash: &TransactionHash,
     ) -> Result<TransactionTrace, RpcStateError> {
-        dbg!(&self.rpc_call::<serde_json::Value>(
-            "starknet_traceTransaction",
-            &json!([hash.to_string()])
-        ));
         let result = self
             .rpc_call::<serde_json::Value>("starknet_traceTransaction", &json!([hash.to_string()]))?
             .get("result")
@@ -420,17 +416,11 @@ impl RpcState {
             .ok_or(RpcStateError::MissingRpcResponseField("result".into()))?
             .clone();
 
-        dbg!(&result);
         utils::deserialize_transaction_json(result).map_err(RpcStateError::SerdeJson)
     }
 
     /// Gets the gas price of a given block.
     pub fn get_gas_price(&self, block_number: u64) -> Result<GasPrices, RpcStateError> {
-        // dbg!(self
-        //     .rpc_call::<serde_json::Value>(
-        //         "starknet_getBlockWithTxHashes",
-        //         &json!({"block_id" : { "block_number": block_number }}),
-        //     )?);
         let res = self
             .rpc_call::<serde_json::Value>(
                 "starknet_getBlockWithTxHashes",
@@ -439,8 +429,6 @@ impl RpcState {
             .get("result")
             .ok_or(RpcStateError::MissingRpcResponseField("result".into()))?
             .clone();
-
-        dbg!(1);
 
         let gas_price_eth = u128::from_str_radix(
             res.get("l1_gas_price")
@@ -454,8 +442,6 @@ impl RpcState {
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("gas_price".to_string()))?;
 
-        dbg!(2);
-
         let gas_price_strk = u128::from_str_radix(
             res.get("l1_gas_price")
                 .and_then(|gp| gp.get("price_in_fri"))
@@ -467,8 +453,6 @@ impl RpcState {
             16,
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("gas_price".to_string()))?;
-
-        dbg!(3);
 
         let l1_data_gas_price_strk = u128::from_str_radix(
             res.get("l1_data_gas_price")
@@ -482,8 +466,6 @@ impl RpcState {
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
 
-        dbg!(4);
-
         let l1_data_gas_price_wei = u128::from_str_radix(
             res.get("l1_data_gas_price")
                 .and_then(|gp| gp.get("price_in_wei"))
@@ -495,8 +477,6 @@ impl RpcState {
             16,
         )
         .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
-
-        dbg!(5);
 
         // TODO check 0 wei/strk
         Ok(GasPrices {

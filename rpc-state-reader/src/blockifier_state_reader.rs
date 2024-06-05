@@ -148,7 +148,6 @@ pub fn execute_tx(
     let tx_hash = TransactionHash(stark_felt!(tx_hash));
     let sn_api_tx = rpc_reader.0.get_transaction(&tx_hash);
 
-    dbg!(&rpc_reader.0.get_transaction_trace(&tx_hash));
     let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = rpc_reader.0.get_transaction_receipt(&tx_hash).unwrap();
 
@@ -213,10 +212,8 @@ pub fn execute_tx(
     // };
 
     // Map starknet_api transaction to blockifier's
-    dbg!(&sn_api_tx);
     let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
         SNTransaction::Invoke(tx) => {
-            dbg!(&tx);
             let invoke = InvokeTransaction {
                 tx,
                 tx_hash,
@@ -296,6 +293,7 @@ mod tests {
     use crate::rpc_state::BlockValue;
 
     use super::*;
+    use blockifier::execution::call_info::CallInfo;
     use test_case::test_case;
     #[test]
     fn test_get_gas_price() {
@@ -641,8 +639,6 @@ mod tests {
     // todo: check this tests
     fn starknet_in_rust_vs_blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-
-        use blockifier::execution::call_info::CallInfo;
         let (blockifier_tx_info, _, _) = execute_tx(hash, chain, BlockNumber(block_number));
 
         let (blockifier_fee, blockifier_resources) = {
