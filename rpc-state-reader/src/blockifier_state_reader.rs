@@ -188,8 +188,12 @@ pub fn execute_tx(
         fee_token_addresses: FeeTokenAddresses::default(),
     };
 
-    let block_context =
-        BlockContext::new_unchecked(&block_info, &chain_info, &VersionedConstants::default());
+    // TODO: Check BlockContext::new_unchecked
+    let block_context = BlockContext::new_unchecked(
+        &block_info,
+        &chain_info,
+        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    );
     // let block_context = BlockContext {
     //     chain_id,
     //     block_number,
@@ -269,8 +273,9 @@ pub fn execute_tx(
     };
 
     (
+        // Change charge_fee: true
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
@@ -633,6 +638,11 @@ mod tests {
     #[test_case(
     "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
     638866, // real block 475946
+    RpcChain::MainNet
+)]
+    #[test_case(
+    "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
+    641975, // real block 475946
     RpcChain::MainNet
 )]
     #[cfg(not(feature = "cairo-native"))]
