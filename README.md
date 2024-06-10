@@ -1,7 +1,7 @@
 # starknet-replay
 Provides a way of reading a real Starknet State, so you can re-execute an existing transaction in any of the Starknet networks in an easy way
 
-### Cairo Native setup
+### Cairo Native Setup
 
 Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/lambdaclass/cairo_native), which makes the execution of sierra programs possible through native machine code. To use it, the following needs to be setup:
 
