@@ -7,7 +7,7 @@ Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/l
 
 - LLVM `18` needs to be installed and the `MLIR_SYS_180_PREFIX` and `TABLEGEN_180_PREFIX` environment variable needs to point to said installation. In macOS, run
   ```
-  brew install llvm@17
+  brew install llvm@18
   export MLIR_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
   export LLVM_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
   export TABLEGEN_180_PREFIX=/opt/homebrew/opt/llvm@18
