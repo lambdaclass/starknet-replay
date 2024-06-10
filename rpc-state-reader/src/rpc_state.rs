@@ -10,7 +10,7 @@ use cairo_vm::vm::runners::{
 use core::fmt;
 use dotenv::dotenv;
 use serde::{Deserialize, Deserializer};
-use serde_json::json;
+use serde_json::{json, Value};
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, BlockTimestamp},
@@ -407,7 +407,7 @@ impl RpcState {
 
     /// Requests the given transaction to the Feeder Gateway API.
     pub fn get_transaction(&self, hash: &TransactionHash) -> Result<SNTransaction, RpcStateError> {
-        let result = self
+        let mut result = self
             .rpc_call::<serde_json::Value>(
                 "starknet_getTransactionByHash",
                 &json!([hash.to_string()]),
@@ -415,6 +415,17 @@ impl RpcState {
             .get("result")
             .ok_or(RpcStateError::MissingRpcResponseField("result".into()))?
             .clone();
+
+        if let Some(resource_bounds) = result.get_mut("resource_bounds") {
+            if let Some(l1_gas) = resource_bounds.get_mut("l1_gas") {
+                resource_bounds["L1_GAS"] = l1_gas.clone();
+                resource_bounds.as_object_mut().unwrap().remove("l1_gas");
+            }
+            if let Some(l2_gas) = resource_bounds.get_mut("l2_gas") {
+                resource_bounds["L2_GAS"] = l2_gas.clone();
+                resource_bounds.as_object_mut().unwrap().remove("l2_gas");
+            }
+        }
 
         utils::deserialize_transaction_json(result).map_err(RpcStateError::SerdeJson)
     }
