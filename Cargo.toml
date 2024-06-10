@@ -8,3 +8,7 @@ members = [
 # Explicitly set the resolver to the default for edition >= 2021
 # https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
 resolver = "2"
+
+[workspace.dependencies]
+thiserror = "1.0.32"
+
