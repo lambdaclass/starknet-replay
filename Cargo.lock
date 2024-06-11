@@ -442,7 +442,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.7.0-dev.1"
-source = "git+https://github.com/NethermindEth/blockifier?rev=3844200855dab89ea24f80588c21edb065401123#3844200855dab89ea24f80588c21edb065401123"
+source = "git+https://github.com/NethermindEth/blockifier?rev=3b16c2a3601b9a594c94c325d3c64552b2061a95#3b16c2a3601b9a594c94c325d3c64552b2061a95"
 dependencies = [
  "anyhow",
  "ark-ec",

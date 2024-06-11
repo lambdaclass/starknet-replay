@@ -20,7 +20,7 @@ flate2 = "1.0.25"
 serde_with = "3.0.0"
 dotenv = "0.15.0"
 cairo-vm = "0.9.2"
-blockifier = { git = "https://github.com/NethermindEth/blockifier", rev = "3844200855dab89ea24f80588c21edb065401123" }
+blockifier = { git = "https://github.com/NethermindEth/blockifier", rev = "3b16c2a3601b9a594c94c325d3c64552b2061a95" }
 
 
 [dev-dependencies]
