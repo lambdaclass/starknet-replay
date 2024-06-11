@@ -273,7 +273,7 @@ pub fn execute_tx(
     (
         // TODO Change charge_fee: true
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
@@ -284,7 +284,7 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     let sierra_program_length = match contract_class {
         ContractClass::V0(_) => 0,
         ContractClass::V1(_) => 100,
-        ContractClass::V1Sierra(_) => todo!("should this also be 100?"),
+        ContractClass::V1Sierra(_) => 100,
     };
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
