@@ -293,10 +293,11 @@ mod tests {
 
     use std::num::NonZeroU128;
 
-    use crate::rpc_state::BlockValue;
+    use crate::rpc_state::{BlockValue, RpcCallInfo};
 
     use super::*;
     use blockifier::execution::call_info::CallInfo;
+    use pretty_assertions_sorted::assert_eq_sorted;
     use test_case::test_case;
     #[test]
     fn test_get_gas_price() {
@@ -643,32 +644,36 @@ mod tests {
     641975, // real block 475946
     RpcChain::MainNet
 )]
-    #[cfg(not(feature = "cairo-native"))]
-    // todo: check this tests
-    fn starknet_in_rust_vs_blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
+    fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-        let (blockifier_tx_info, _, _) = execute_tx(hash, chain, BlockNumber(block_number));
+        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
 
-        let (blockifier_fee, blockifier_resources) = {
-            let TransactionExecutionInfo {
-                actual_fee,
-                execute_call_info,
-                ..
-            } = blockifier_tx_info;
-            let CallInfo { resources, .. } = execute_call_info.unwrap();
-            (actual_fee.0, resources)
-        };
+        // We cannot currently check fee & resources
 
-        // // Compare sir vs blockifier fee & resources
-        // assert_eq!(sir_fee, blockifier_fee);
-        // assert_eq!(sir_resources.n_steps, blockifier_resources.n_steps);
-        // assert_eq!(
-        //     sir_resources.n_memory_holes,
-        //     blockifier_resources.n_memory_holes
-        // );
-        // assert_eq!(
-        //     sir_resources.builtin_instance_counter,
-        //     blockifier_resources.builtin_instance_counter
-        // );
+        // Compare tx CallInfos against trace RpcCallInfos
+        // Note: This will check calldata, retdata, internal calls and make sure the tx is not reverted.
+        // It will not chekced accessed or modified storage, messanges, and events (as they are not currenlty part of the RpcCallInfo)
+        assert_eq_sorted!(
+            tx_info.validate_call_info.map(|ref ci| ci.into()),
+            trace.validate_invocation
+        );
+        assert_eq_sorted!(
+            tx_info.execute_call_info.map(|ref ci| ci.into()),
+            trace.execute_invocation
+        );
+        //assert_eq!(tx_info.fee_transfer_call_info.map(|ref ci| ci.into()), trace.fee_transfer_invocation); TODO: fix charge_fee
+    }
+
+    // Impl conversion for easier checking against RPC data
+    impl From<&CallInfo> for RpcCallInfo {
+        fn from(value: &CallInfo) -> Self {
+            Self {
+                retdata: Some(value.execution.retdata.0.clone()),
+                calldata: Some((*value.call.calldata.0).clone()),
+                internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
+                // We don't have the revert reason string in the trace so we just make sure it doesn't revert
+                revert_reason: value.execution.failed.then_some("Default String".into()),
+            }
+        }
     }
 }
