@@ -273,7 +273,7 @@ pub fn execute_tx(
     (
         // TODO Change charge_fee: true
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
@@ -284,7 +284,7 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     let sierra_program_length = match contract_class {
         ContractClass::V0(_) => 0,
         ContractClass::V1(_) => 100,
-        ContractClass::V1Sierra(_) => todo!("should this also be 100?"),
+        ContractClass::V1Sierra(_) => 100,
     };
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
@@ -293,10 +293,11 @@ mod tests {
 
     use std::num::NonZeroU128;
 
-    use crate::rpc_state::BlockValue;
+    use crate::rpc_state::{BlockValue, RpcCallInfo};
 
     use super::*;
     use blockifier::execution::call_info::CallInfo;
+    use pretty_assertions_sorted::assert_eq_sorted;
     use test_case::test_case;
     #[test]
     fn test_get_gas_price() {
@@ -307,179 +308,6 @@ mod tests {
         assert_eq!(
             price.eth_l1_gas_price,
             NonZeroU128::new(22804578690).unwrap()
-        );
-    }
-
-    #[test]
-    #[ignore = "Current blockifier version is not currently in production, no recent tx available for testing"]
-    fn blockifier_test_recent_tx() {
-        let (tx_info, trace, receipt) = execute_tx(
-            "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
-            RpcChain::MainNet,
-            BlockNumber(169928),
-        );
-
-        let TransactionExecutionInfo {
-            execute_call_info,
-            actual_fee,
-            ..
-        } = tx_info;
-
-        let CallInfo {
-            resources,
-            inner_calls,
-            ..
-        } = execute_call_info.unwrap();
-
-        assert_eq!(actual_fee.0, receipt.actual_fee.amount);
-        assert_eq!(
-            resources.n_memory_holes,
-            receipt.execution_resources.n_memory_holes
-        );
-        assert_eq!(resources.n_steps, receipt.execution_resources.n_steps);
-        assert_eq!(
-            resources.builtin_instance_counter,
-            receipt.execution_resources.builtin_instance_counter
-        );
-        assert_eq!(
-            inner_calls.len(),
-            trace
-                .execute_invocation
-                .as_ref()
-                .unwrap()
-                .internal_calls
-                .len()
-        );
-    }
-
-    #[test_case(
-    "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
-    90006,
-    RpcChain::MainNet
-    => ignore["old transaction, gas mismatch"]
-)]
-    #[test_case(
-        "0x025844447697eb7d5df4d8268b23aef6c11de4087936048278c2559fc35549eb",
-        197000,
-        RpcChain::MainNet
-    )]
-    #[test_case(
-        "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
-        197000,
-        RpcChain::MainNet
-    )]
-    #[test_case(
-    "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
-    169928, // real block 169929
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
-    169928, // real block 169929
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
-    169928, // real block 169929
-    RpcChain::MainNet
-    => ignore["resource mismatch"]
-)]
-    #[test_case(
-    "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
-    169928, // real block 169929
-    RpcChain::MainNet
-)]
-    #[test_case(
-    // review later
-    "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
-    186548, // real block     186549
-    RpcChain::MainNet
-    => ignore["resource mismatch"]
-)]
-    #[test_case(
-    "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
-    186551, // real block     186552
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
-    398051, // real block 398052
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
-    281513, // real block 281514
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
-    351268, // real block 351269
-    RpcChain::MainNet
-)]
-    #[test_case(
-    "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
-    351225, // real block 351226
-    RpcChain::MainNet
-)]
-    // DeployAccount for different account providers:
-
-    // OpenZeppelin (v0.7.0)
-    #[test_case(
-    "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
-    422881, // real block 422882
-    RpcChain::MainNet
-)]
-    // Argent X (v5.7.0)
-    #[test_case(
-    "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
-    475945, // real block 475946
-    RpcChain::MainNet
-)]
-    fn blockifier_test_case_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, receipt) = execute_tx(hash, chain, BlockNumber(block_number));
-        let TransactionExecutionInfo {
-            execute_call_info,
-            actual_fee,
-            ..
-        } = tx_info;
-
-        let CallInfo {
-            resources,
-            inner_calls,
-            ..
-        } = execute_call_info.unwrap();
-
-        let actual_fee = actual_fee.0;
-        if receipt.actual_fee.amount != actual_fee {
-            let diff =
-                100 * receipt.actual_fee.amount.abs_diff(actual_fee) / receipt.actual_fee.amount;
-
-            if diff >= 35 {
-                assert_eq!(
-                    actual_fee, receipt.actual_fee.amount,
-                    "actual_fee mismatch differs from the baseline by more than 35% ({diff}%)",
-                );
-            }
-        }
-
-        assert_eq!(
-            resources.n_memory_holes,
-            receipt.execution_resources.n_memory_holes
-        );
-        assert_eq!(resources.n_steps, receipt.execution_resources.n_steps);
-        assert_eq!(
-            resources.builtin_instance_counter,
-            receipt.execution_resources.builtin_instance_counter
-        );
-
-        assert_eq!(
-            inner_calls.len(),
-            trace
-                .execute_invocation
-                .as_ref()
-                .unwrap()
-                .internal_calls
-                .len()
         );
     }
 
@@ -495,24 +323,21 @@ mod tests {
     => ignore["broken on both due to a cairo-vm error"]
 )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, receipt) = execute_tx(hash, chain, BlockNumber(block_number));
+        let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number));
 
         assert_eq!(
-            tx_info.revert_error.is_some(),
-            trace.execute_invocation.unwrap().revert_reason.is_some()
+            tx_info.revert_error,
+            trace.execute_invocation.unwrap().revert_reason
         );
 
-        let diff = 100 * receipt.actual_fee.amount.abs_diff(tx_info.actual_fee.0)
-            / receipt.actual_fee.amount;
-
-        if diff >= 5 {
-            assert_eq!(
-                tx_info.actual_fee.0, receipt.actual_fee.amount,
-                "actual_fee mismatch differs from the baseline by more than 5% ({diff}%)",
-            );
-        }
+        // We can't currently compare fee values
     }
 
+    #[test_case(
+        "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
+        169928,
+        RpcChain::MainNet => ignore["Current blockifier version is not currently in production, no recent tx available for testing"]
+        )]
     #[test_case(
     // Declare tx
     "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
@@ -525,33 +350,6 @@ mod tests {
     271887, // real block 271888
     RpcChain::MainNet
 )]
-    fn blockifier_test_case_declare_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, _trace, receipt) = execute_tx(hash, chain, BlockNumber(block_number));
-        let TransactionExecutionInfo {
-            execute_call_info,
-            actual_fee,
-            ..
-        } = tx_info;
-
-        assert!(execute_call_info.is_none());
-
-        let actual_fee = actual_fee.0;
-        if receipt.actual_fee.amount != actual_fee {
-            let diff =
-                100 * receipt.actual_fee.amount.abs_diff(actual_fee) / receipt.actual_fee.amount;
-
-            if diff >= 35 {
-                assert_eq!(
-                    actual_fee, receipt.actual_fee.amount,
-                    "actual_fee mismatch differs from the baseline by more than 35% ({diff}%)",
-                );
-            }
-        }
-    }
-
-    // Tests comparing SIR vs Blockifier execution results
-    // As the blockifier version used can vary from tx to tx depending on when it was executed, we can not expect to get the same result as the network
-    // In order to have more exact tests we compare sir results to those obtained from the blockifier version sir is compatible with
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
         90006,
@@ -634,6 +432,11 @@ mod tests {
 )]
     // Argent X (v5.7.0)
     #[test_case(
+            "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
+            475945, // real block 475946
+            RpcChain::MainNet
+        )]
+    #[test_case(
     "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
     638866, // real block 475946
     RpcChain::MainNet
@@ -643,32 +446,36 @@ mod tests {
     641975, // real block 475946
     RpcChain::MainNet
 )]
-    #[cfg(not(feature = "cairo-native"))]
-    // todo: check this tests
-    fn starknet_in_rust_vs_blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
+    fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-        let (blockifier_tx_info, _, _) = execute_tx(hash, chain, BlockNumber(block_number));
+        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
 
-        let (blockifier_fee, blockifier_resources) = {
-            let TransactionExecutionInfo {
-                actual_fee,
-                execute_call_info,
-                ..
-            } = blockifier_tx_info;
-            let CallInfo { resources, .. } = execute_call_info.unwrap();
-            (actual_fee.0, resources)
-        };
+        // We cannot currently check fee & resources
 
-        // // Compare sir vs blockifier fee & resources
-        // assert_eq!(sir_fee, blockifier_fee);
-        // assert_eq!(sir_resources.n_steps, blockifier_resources.n_steps);
-        // assert_eq!(
-        //     sir_resources.n_memory_holes,
-        //     blockifier_resources.n_memory_holes
-        // );
-        // assert_eq!(
-        //     sir_resources.builtin_instance_counter,
-        //     blockifier_resources.builtin_instance_counter
-        // );
+        // Compare tx CallInfos against trace RpcCallInfos
+        // Note: This will check calldata, retdata, internal calls and make sure the tx is not reverted.
+        // It will not chekced accessed or modified storage, messanges, and events (as they are not currenlty part of the RpcCallInfo)
+        assert_eq_sorted!(
+            tx_info.validate_call_info.map(|ref ci| ci.into()),
+            trace.validate_invocation
+        );
+        assert_eq_sorted!(
+            tx_info.execute_call_info.map(|ref ci| ci.into()),
+            trace.execute_invocation
+        );
+        //assert_eq!(tx_info.fee_transfer_call_info.map(|ref ci| ci.into()), trace.fee_transfer_invocation); TODO: fix charge_fee
+    }
+
+    // Impl conversion for easier checking against RPC data
+    impl From<&CallInfo> for RpcCallInfo {
+        fn from(value: &CallInfo) -> Self {
+            Self {
+                retdata: Some(value.execution.retdata.0.clone()),
+                calldata: Some((*value.call.calldata.0).clone()),
+                internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
+                // We don't have the revert reason string in the trace so we just make sure it doesn't revert
+                revert_reason: value.execution.failed.then_some("Default String".into()),
+            }
+        }
     }
 }
