@@ -442,7 +442,6 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.7.0-dev.1"
-source = "git+https://github.com/NethermindEth/blockifier?rev=3b16c2a3601b9a594c94c325d3c64552b2061a95#3b16c2a3601b9a594c94c325d3c64552b2061a95"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1036,8 +1035,7 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.1.0"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=cd75446#cd75446a486f2200a0af8c8a8a6f374636f21660"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "bumpalo",
@@ -1063,7 +1061,7 @@ dependencies = [
  "colored",
  "educe",
  "id-arena",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "k256",
  "keccak",
  "lazy_static",
@@ -1077,6 +1075,7 @@ dependencies = [
  "p256",
  "sec1",
  "starknet-types-core 0.1.2",
+ "stats_alloc",
  "tempfile",
  "thiserror",
  "tracing",
@@ -1085,8 +1084,7 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.1.0"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=cd75446#cd75446a486f2200a0af8c8a8a6f374636f21660"
+version = "0.2.0"
 dependencies = [
  "cairo-lang-runner",
  "cairo-lang-sierra-gas",
@@ -2314,6 +2312,15 @@ name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
 dependencies = [
  "either",
 ]
@@ -4093,6 +4100,12 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "stats_alloc"
+version = "0.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c0e04424e733e69714ca1bbb9204c1a57f09f5493439520f9f68c132ad25eec"
 
 [[package]]
 name = "string_cache"

@@ -446,6 +446,11 @@ mod tests {
     641975, // real block 475946
     RpcChain::MainNet
 )]
+#[test_case(
+    "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
+    648461,
+    RpcChain::MainNet
+)]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
         let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
