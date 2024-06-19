@@ -13,7 +13,7 @@ use blockifier::{
     },
     transaction::{
         account_transaction::AccountTransaction,
-        objects::TransactionExecutionInfo,
+        objects::{TransactionExecutionInfo, TransactionExecutionResult},
         transactions::{
             DeclareTransaction, DeployAccountTransaction, ExecutableTransaction, InvokeTransaction,
             L1HandlerTransaction,
@@ -288,6 +288,137 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     };
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
+
+pub fn execute_tx_configurable_with_state(
+    tx_hash: &TransactionHash,
+    tx: SNTransaction,
+    network: RpcChain,
+    block_info: BlockInfo,
+    skip_validate: bool,
+    skip_nonce_check: bool,
+    state: &mut CachedState<RpcStateReader>,
+) -> TransactionExecutionResult<TransactionExecutionInfo> {
+    let fee_token_address = FeeTokenAddresses {
+        strk_fee_token_address: ContractAddress::default(),
+        eth_fee_token_address: ContractAddress(starknet_api::patricia_key!(
+            "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+        )),
+    };
+
+    // Get values for block context before giving ownership of the reader
+    let chain_id = state.state.0.get_chain_name();
+
+    let chain_info = ChainInfo {
+        chain_id,
+        fee_token_addresses: FeeTokenAddresses::default(),
+    };
+
+    let block_context = BlockContext::new_unchecked(
+        &block_info,
+        &chain_info,
+        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    );
+
+    // Get transaction before giving ownership of the reader
+    let blockifier_tx: AccountTransaction = match tx {
+        SNTransaction::Invoke(tx) => {
+            let invoke = InvokeTransaction {
+                tx,
+                tx_hash: *tx_hash,
+                only_query: false,
+            };
+            AccountTransaction::Invoke(invoke)
+        }
+        SNTransaction::DeployAccount(tx) => {
+            let contract_address = calculate_contract_address(
+                tx.contract_address_salt(),
+                tx.class_hash(),
+                &tx.constructor_calldata(),
+                ContractAddress::default(),
+            )
+            .unwrap();
+            AccountTransaction::DeployAccount(DeployAccountTransaction {
+                only_query: false,
+                tx,
+                tx_hash: *tx_hash,
+                contract_address,
+            })
+        }
+        SNTransaction::Declare(tx) => {
+            let contract_class = state
+                .state
+                .get_compiled_contract_class(tx.class_hash())
+                .unwrap();
+
+            let class_info = calculate_class_info_for_testing(contract_class);
+
+            let declare = DeclareTransaction::new(tx, *tx_hash, class_info).unwrap();
+            AccountTransaction::Declare(declare)
+        }
+        SNTransaction::L1Handler(tx) => {
+            // As L1Hanlder is not an account transaction we execute it here and return the result
+            let blockifier_tx = L1HandlerTransaction {
+                tx,
+                tx_hash: *tx_hash,
+                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
+            };
+            return blockifier_tx.execute(state, &block_context, true, true);
+        }
+        _ => unimplemented!(),
+    };
+
+    #[cfg(not(feature = "cairo-native"))]
+    let sir_execution = blockifier_tx.execute(state, &block_context, false, true);
+
+    sir_execution
+    // Ok(sir_execution)
+}
+
+pub fn execute_tx_configurable(
+    tx_hash: &str,
+    network: RpcChain,
+    block_number: BlockNumber,
+    skip_validate: bool,
+    skip_nonce_check: bool,
+) -> TransactionExecutionResult<(
+    TransactionExecutionInfo,
+    TransactionTrace,
+    RpcTransactionReceipt,
+)> {
+    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
+    let mut state = CachedState::new(rpc_reader);
+    let tx_hash =
+        TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
+    let tx = state.state.0.get_transaction(&tx_hash).unwrap();
+    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
+    let RpcBlockInfo {
+        block_timestamp,
+        sequencer_address,
+        ..
+    } = state.state.0.get_block_info().unwrap();
+
+    let block_info = BlockInfo {
+        block_number,
+        block_timestamp,
+        sequencer_address,
+        // TODO: Check gas_prices and use_kzg_da
+        gas_prices: gas_price,
+        use_kzg_da: false,
+    };
+    let sir_exec_info = execute_tx_configurable_with_state(
+        &tx_hash,
+        tx,
+        network,
+        block_info,
+        skip_validate,
+        skip_nonce_check,
+        &mut state,
+    )?;
+    let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
+    let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
+    Ok((sir_exec_info, trace, receipt))
+}
+
 #[cfg(test)]
 mod tests {
 

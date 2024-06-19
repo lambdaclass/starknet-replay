@@ -26,3 +26,11 @@ CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libca
 
 If you don't do this you will get a linker error when using AOT.
 
+## replay
+You can use the replay crate to execute transactions or blocks via the CLI. For example:
+
+```bash
+* cargo run tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461
+* cargo run block mainnet 648655
+* cargo run block-range 90000 90002 mainnet
+```
