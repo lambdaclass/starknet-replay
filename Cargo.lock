@@ -456,7 +456,49 @@ dependencies = [
  "cairo-lang-starknet",
  "cairo-lang-starknet-classes",
  "cairo-lang-utils",
- "cairo-native",
+ "cairo-native 0.2.0",
+ "cairo-vm",
+ "derive_more",
+ "indexmap 2.2.6",
+ "itertools 0.10.5",
+ "keccak",
+ "log",
+ "num-bigint",
+ "num-integer",
+ "num-rational",
+ "num-traits 0.2.19",
+ "once_cell",
+ "phf",
+ "serde",
+ "serde_json",
+ "sha3",
+ "starknet-crypto 0.6.2",
+ "starknet-types-core 0.1.2",
+ "starknet_api",
+ "strum",
+ "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "blockifier"
+version = "0.7.0-dev.1"
+source = "git+https://github.com/NethermindEth/blockifier?rev=3b16c2a3601b9a594c94c325d3c64552b2061a95#3b16c2a3601b9a594c94c325d3c64552b2061a95"
+dependencies = [
+ "anyhow",
+ "ark-ec",
+ "ark-ff",
+ "ark-secp256k1",
+ "ark-secp256r1",
+ "cached",
+ "cairo-felt",
+ "cairo-lang-casm",
+ "cairo-lang-runner",
+ "cairo-lang-sierra",
+ "cairo-lang-starknet",
+ "cairo-lang-starknet-classes",
+ "cairo-lang-utils",
+ "cairo-native 0.1.0",
  "cairo-vm",
  "derive_more",
  "indexmap 2.2.6",
@@ -1035,6 +1077,55 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/cairo_native?rev=cd75446#cd75446a486f2200a0af8c8a8a6f374636f21660"
+dependencies = [
+ "anyhow",
+ "bumpalo",
+ "cairo-felt",
+ "cairo-lang-compiler",
+ "cairo-lang-defs",
+ "cairo-lang-diagnostics",
+ "cairo-lang-filesystem",
+ "cairo-lang-lowering",
+ "cairo-lang-runner",
+ "cairo-lang-semantic",
+ "cairo-lang-sierra",
+ "cairo-lang-sierra-ap-change",
+ "cairo-lang-sierra-gas",
+ "cairo-lang-sierra-generator",
+ "cairo-lang-starknet",
+ "cairo-lang-starknet-classes",
+ "cairo-lang-test-plugin",
+ "cairo-lang-utils",
+ "cairo-native-runtime 0.1.0",
+ "cc",
+ "clap",
+ "colored",
+ "educe",
+ "id-arena",
+ "itertools 0.12.1",
+ "k256",
+ "keccak",
+ "lazy_static",
+ "libc",
+ "libloading",
+ "llvm-sys",
+ "melior",
+ "mlir-sys",
+ "num-bigint",
+ "num-traits 0.2.19",
+ "p256",
+ "sec1",
+ "starknet-types-core 0.1.2",
+ "tempfile",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "cairo-native"
 version = "0.2.0"
 dependencies = [
  "anyhow",
@@ -1055,7 +1146,7 @@ dependencies = [
  "cairo-lang-starknet-classes",
  "cairo-lang-test-plugin",
  "cairo-lang-utils",
- "cairo-native-runtime",
+ "cairo-native-runtime 0.2.0",
  "cc",
  "clap",
  "colored",
@@ -1080,6 +1171,20 @@ dependencies = [
  "thiserror",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "cairo-native-runtime"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/cairo_native?rev=cd75446#cd75446a486f2200a0af8c8a8a6f374636f21660"
+dependencies = [
+ "cairo-lang-runner",
+ "cairo-lang-sierra-gas",
+ "lazy_static",
+ "libc",
+ "starknet-crypto 0.6.2",
+ "starknet-curve 0.4.2",
+ "starknet-types-core 0.1.2",
 ]
 
 [[package]]
@@ -1251,6 +1356,19 @@ dependencies = [
  "slug",
  "typed-arena",
  "unicode_categories",
+]
+
+[[package]]
+name = "console"
+version = "0.15.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e1f83fc076bd6dd27517eacdf25fef6c4dfe5f1d7448bafaaf3a26f13b5e4eb"
+dependencies = [
+ "encode_unicode",
+ "lazy_static",
+ "libc",
+ "unicode-width",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1665,6 +1783,12 @@ checksum = "3d248bdd43ce613d87415282f69b9bb99d947d290b10962dd6c56233312c2ad5"
 dependencies = [
  "log",
 ]
+
+[[package]]
+name = "encode_unicode"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
 name = "encoding_rs"
@@ -2254,6 +2378,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "indicatif"
+version = "0.17.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "763a5a8f45087d6bcea4222e7b72c291a054edf80e4ef6efd2a4979878c7bea3"
+dependencies = [
+ "console",
+ "instant",
+ "number_prefix",
+ "portable-atomic",
+ "unicode-width",
+]
+
+[[package]]
 name = "indoc"
 version = "2.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2765,6 +2902,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "number_prefix"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
+
+[[package]]
 name = "object"
 version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3012,6 +3155,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "portable-atomic"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
+
+[[package]]
 name = "powerfmt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3239,6 +3388,16 @@ checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
 [[package]]
 name = "replay"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blockifier 0.7.0-dev.1 (git+https://github.com/NethermindEth/blockifier?rev=3b16c2a3601b9a594c94c325d3c64552b2061a95)",
+ "clap",
+ "indicatif",
+ "rpc-state-reader",
+ "starknet_api",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "reqwest"
@@ -3320,7 +3479,7 @@ dependencies = [
 name = "rpc-state-reader"
 version = "0.1.0"
 dependencies = [
- "blockifier",
+ "blockifier 0.7.0-dev.1",
  "cairo-lang-starknet",
  "cairo-lang-starknet-classes",
  "cairo-lang-utils",
@@ -4626,6 +4785,12 @@ name = "unicode-segmentation"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+
+[[package]]
+name = "unicode-width"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
 
 [[package]]
 name = "unicode-xid"
