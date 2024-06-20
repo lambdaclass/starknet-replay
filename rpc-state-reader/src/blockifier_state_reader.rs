@@ -2,13 +2,11 @@ use blockifier::{
     blockifier::block::BlockInfo,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     execution::contract_class::{
-        ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner, SierraContractClassV1,
-        SierraContractClassV1Inner,
+        ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner
     },
     state::{
         cached_state::CachedState,
         errors::StateError,
-        global_cache::GlobalContractCache,
         state_api::{StateReader, StateResult},
     },
     transaction::{
@@ -21,7 +19,6 @@ use blockifier::{
     },
     versioned_constants::VersionedConstants,
 };
-use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
@@ -152,11 +149,11 @@ pub fn execute_tx(
     // Create state from RPC reader
     let mut state = CachedState::new(rpc_reader);
 
-    let fee_token_address =
+    let _fee_token_address =
         contract_address!("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7");
 
     const N_STEPS_FEE_WEIGHT: f64 = 0.01;
-    let vm_resource_fee_cost = Arc::new(HashMap::from([
+    let _vm_resource_fee_cost = Arc::new(HashMap::from([
         ("n_steps".to_string(), N_STEPS_FEE_WEIGHT),
         ("output_builtin".to_string(), 0.0),
         ("pedersen_builtin".to_string(), N_STEPS_FEE_WEIGHT * 32.0),
@@ -240,7 +237,7 @@ pub fn execute_tx(
         }
         SNTransaction::Declare(tx) => {
             // Fetch the contract_class from the next block (as we don't have it in the previous one)
-            let mut next_block_state_reader = RpcStateReader(
+            let next_block_state_reader = RpcStateReader(
                 RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
             );
             let contract_class = next_block_state_reader
@@ -292,13 +289,13 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
-    network: RpcChain,
+    _network: RpcChain,
     block_info: BlockInfo,
-    skip_validate: bool,
-    skip_nonce_check: bool,
+    _skip_validate: bool,
+    _skip_nonce_check: bool,
     state: &mut CachedState<RpcStateReader>,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
-    let fee_token_address = FeeTokenAddresses {
+    let _fee_token_address = FeeTokenAddresses {
         strk_fee_token_address: ContractAddress::default(),
         eth_fee_token_address: ContractAddress(starknet_api::patricia_key!(
             "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
