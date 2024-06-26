@@ -292,7 +292,6 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
-    network: RpcChain,
     block_info: BlockInfo,
     skip_validate: bool,
     skip_nonce_check: bool,
@@ -377,7 +376,6 @@ pub fn execute_tx_configurable_with_state(
 pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
-    network: RpcChain,
     block_number: BlockNumber,
     skip_validate: bool,
     skip_nonce_check: bool,
@@ -407,7 +405,6 @@ pub fn execute_tx_configurable(
     let sir_exec_info = execute_tx_configurable_with_state(
         &tx_hash,
         tx,
-        network,
         block_info,
         skip_validate,
         skip_nonce_check,
