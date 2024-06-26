@@ -1,36 +1,42 @@
 use blockifier::transaction::objects::TransactionExecutionInfo;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
-    rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
+    rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt,RpcBlockInfo},
     rpc_state_errors::RpcStateError,
 };
 
-use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
-#[cfg(feature = "benchmark")]
-use rpc_state_reader::{
-    execute_tx_configurable_with_state,
-    rpc_state::{RpcBlockInfo, RpcState},
+use rpc_state_reader::blockifier_state_reader::{
     RpcStateReader,
+    execute_tx_configurable,
+    execute_tx_configurable_with_state,
 };
-use starknet_api::block::BlockNumber;
-#[cfg(feature = "benchmark")]
+use starknet_api::{block::BlockNumber, core::{ContractAddress, PatriciaKey}};
+//#[cfg(feature = "benchmark")]
 use starknet_api::{
     hash::StarkFelt,
     stark_felt,
     transaction::{Transaction, TransactionHash},
 };
-#[cfg(feature = "benchmark")]
-use starknet_in_rust::{
-    definitions::block_context::GasPrices,
-    state::{
-        cached_state::CachedState, contract_class_cache::PermanentContractClassCache, BlockInfo,
-    },
-    transaction::Address,
-    Felt252,
-};
-#[cfg(feature = "benchmark")]
+//#[cfg(feature = "benchmark")]
+// use starknet_in_rust::{
+//     definitions::block_context::GasPrices,
+//     state::{
+//         cached_state::CachedState, contract_class_cache::PermanentContractClassCache, BlockInfo,
+//     },
+//     transaction::Address,
+//     Felt252,
+// };
+
+use blockifier::blockifier::{block::GasPrices,block::BlockInfo};
+use blockifier::state::cached_state::{CachedState};
+use blockifier::state::global_cache::{GlobalContractCache,GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST};
+use blockifier::transaction::account_transaction::AccountTransaction;
+
+use blockifier::execution::{contract_class::ContractClass};
+
+//#[cfg(feature = "benchmark")]
 use std::ops::Div;
-#[cfg(feature = "benchmark")]
+//#[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -62,7 +68,7 @@ enum ReplayExecute {
         chain: String,
         silent: Option<bool>,
     },
-    #[cfg(feature = "benchmark")]
+    //#[cfg(feature = "benchmark")]
     #[clap(
         about = "Measures the time it takes to run all transactions in a given range of blocks.
 Caches all rpc data before the benchmark runs to provide accurate results"
@@ -120,7 +126,7 @@ fn main() {
                 }
             }
         }
-        #[cfg(feature = "benchmark")]
+        //#[cfg(feature = "benchmark")]
         ReplayExecute::BenchBlockRange {
             block_start,
             block_end,
@@ -130,16 +136,17 @@ fn main() {
             println!("Filling up Cache");
             let network = parse_network(&chain);
             // Create a single class_cache for all states
-            let class_cache = Arc::new(PermanentContractClassCache::default());
+            //let class_cache = Arc::new(PermanentContractClassCache::default());
+            let class_cache = Arc::new(GlobalContractCache::new(GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST));
             // HashMaps to cache tx data & states
             let mut transactions =
                 HashMap::<BlockNumber, Vec<(TransactionHash, Transaction)>>::new();
             let mut cached_states = HashMap::<
                 BlockNumber,
-                CachedState<RpcStateReader, PermanentContractClassCache>,
+                CachedState<RpcStateReader>,
             >::new();
             let mut block_timestamps = HashMap::<BlockNumber, u64>::new();
-            let mut sequencer_addresses = HashMap::<BlockNumber, Address>::new();
+            let mut sequencer_addresses = HashMap::<BlockNumber, ContractAddress>::new();
             let mut gas_prices = HashMap::<BlockNumber, GasPrices>::new();
             for block_number in block_start..=block_end {
                 // For each block:
@@ -147,20 +154,26 @@ fn main() {
                 // Create a cached state
                 let rpc_reader =
                     RpcStateReader::new(RpcState::new_rpc(network, block_number.into()).unwrap());
-                let mut state = CachedState::new(Arc::new(rpc_reader), class_cache.clone());
+                let mut state = CachedState::new(rpc_reader);
                 // Fetch block timestamps & sequencer address
                 let RpcBlockInfo {
                     block_timestamp,
                     sequencer_address,
                     ..
-                } = state.state_reader.0.get_block_info().unwrap();
+                } = rpc_reader.0.get_block_info().unwrap();
                 block_timestamps.insert(block_number, block_timestamp.0);
-                let sequencer_address = Address(Felt252::from_bytes_be_slice(
-                    sequencer_address.0.key().bytes(),
-                ));
+                
+                // let sequencer_address = Address(Felt252::from_bytes_be_slice(
+                //     sequencer_address.0.key().bytes(),
+                // ));
+
+                let sequencer_address = ContractAddress(
+                    sequencer_address.0
+                );
+
                 sequencer_addresses.insert(block_number, sequencer_address.clone());
                 // Fetch gas price
-                let gas_price = state.state_reader.0.get_gas_price(block_number.0).unwrap();
+                let gas_price = rpc_reader.0.get_gas_price(block_number.0).unwrap();
                 gas_prices.insert(block_number, gas_price.clone());
 
                 // Fetch txs for the block
@@ -170,7 +183,7 @@ fn main() {
                 for tx_hash in transaction_hashes {
                     // Fetch tx and add it to txs_in_block cache
                     let tx_hash = TransactionHash(stark_felt!(tx_hash.strip_prefix("0x").unwrap()));
-                    let tx = state.state_reader.0.get_transaction(&tx_hash).unwrap();
+                    let tx = rpc_reader.0.get_transaction(&tx_hash).unwrap();
                     txs_in_block.push((tx_hash, tx.clone()));
                     // First execution to fill up cache values
                     let _ = execute_tx_configurable_with_state(
@@ -178,10 +191,11 @@ fn main() {
                         tx.clone(),
                         network,
                         BlockInfo {
-                            block_number: block_number.0,
-                            block_timestamp: block_timestamp.0,
-                            gas_price: gas_price.clone(),
+                            block_number,
+                            block_timestamp,
                             sequencer_address: sequencer_address.clone(),
+                            gas_prices: gas_price.clone(),
+                            use_kzg_da: false,
                         },
                         false,
                         true,
@@ -191,6 +205,7 @@ fn main() {
                 // Add the txs from the current block to the transactions cache
                 transactions.insert(block_number, txs_in_block);
                 // Clean writes from cached_state
+                let cache_writes = &mut state.cache.get_mut()
                 state.cache_mut().storage_writes_mut().clear();
                 state.cache_mut().class_hash_writes_mut().clear();
                 state.cache_mut().nonce_writes_mut().clear();
