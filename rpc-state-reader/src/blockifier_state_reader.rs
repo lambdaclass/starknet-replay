@@ -43,7 +43,7 @@ use crate::{
     utils,
 };
 
-pub struct RpcStateReader(RpcState);
+pub struct RpcStateReader(pub RpcState);
 
 impl RpcStateReader {
     pub fn new(state: RpcState) -> Self {
