@@ -296,14 +296,20 @@ fn show_execution_data(
     }
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (tx_info, _trace, receipt) =
-        match execute_tx_configurable(&tx_hash, rpc_chain, previous_block_number, false, true) {
-            Ok(x) => x,
-            Err(error_reason) => {
-                println!("Error: {}", error_reason);
-                return;
-            }
-        };
+    let (tx_info, _trace, receipt) = match execute_tx_configurable(
+        state,
+        &tx_hash,
+        rpc_chain,
+        previous_block_number,
+        false,
+        true,
+    ) {
+        Ok(x) => x,
+        Err(error_reason) => {
+            println!("Error: {}", error_reason);
+            return;
+        }
+    };
     let TransactionExecutionInfo {
         revert_error,
         actual_fee,

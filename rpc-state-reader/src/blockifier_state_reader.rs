@@ -375,6 +375,7 @@ pub fn execute_tx_configurable_with_state(
 }
 
 pub fn execute_tx_configurable(
+    state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
     network: RpcChain,
     block_number: BlockNumber,
@@ -385,8 +386,6 @@ pub fn execute_tx_configurable(
     TransactionTrace,
     RpcTransactionReceipt,
 )> {
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
-    let mut state = CachedState::new(rpc_reader);
     let tx_hash =
         TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
@@ -412,7 +411,7 @@ pub fn execute_tx_configurable(
         block_info,
         skip_validate,
         skip_nonce_check,
-        &mut state,
+        state,
     )?;
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
