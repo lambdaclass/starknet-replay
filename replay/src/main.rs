@@ -10,7 +10,7 @@ use rpc_state_reader::blockifier_state_reader::{
     execute_tx_configurable,
     execute_tx_configurable_with_state,
 };
-use starknet_api::{block::BlockNumber, core::{ContractAddress, PatriciaKey}};
+use starknet_api::{block::{BlockNumber, BlockTimestamp}, core::{ContractAddress, PatriciaKey}};
 //#[cfg(feature = "benchmark")]
 use starknet_api::{
     hash::StarkFelt,
@@ -137,7 +137,7 @@ fn main() {
             let network = parse_network(&chain);
             // Create a single class_cache for all states
             //let class_cache = Arc::new(PermanentContractClassCache::default());
-            let class_cache = Arc::new(GlobalContractCache::new(GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST));
+            //let class_cache = Arc::new(GlobalContractCache::new(GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST));
             // HashMaps to cache tx data & states
             let mut transactions =
                 HashMap::<BlockNumber, Vec<(TransactionHash, Transaction)>>::new();
@@ -154,7 +154,7 @@ fn main() {
                 // Create a cached state
                 let rpc_reader =
                     RpcStateReader::new(RpcState::new_rpc(network, block_number.into()).unwrap());
-                let mut state = CachedState::new(rpc_reader);
+                let mut state = CachedState::new(rpc_reader.clone());
                 // Fetch block timestamps & sequencer address
                 let RpcBlockInfo {
                     block_timestamp,
@@ -205,10 +205,11 @@ fn main() {
                 // Add the txs from the current block to the transactions cache
                 transactions.insert(block_number, txs_in_block);
                 // Clean writes from cached_state
-                let cache_writes = &mut state.cache.get_mut()
-                state.cache_mut().storage_writes_mut().clear();
-                state.cache_mut().class_hash_writes_mut().clear();
-                state.cache_mut().nonce_writes_mut().clear();
+                
+                // state.cache_mut().storage_writes_mut().clear();
+                // state.cache_mut().class_hash_writes_mut().clear();
+                // state.cache_mut().nonce_writes_mut().clear();
+
                 // Add the cached state for the current block to the cached_states cache
                 cached_states.insert(block_number, state);
             }
@@ -239,10 +240,11 @@ fn main() {
                             tx.clone(),
                             network,
                             BlockInfo {
-                                block_number: block_number.0,
-                                block_timestamp,
-                                gas_price: gas_price.clone(),
+                                block_number,
+                                block_timestamp: BlockTimestamp(block_timestamp),
                                 sequencer_address: sequencer_address.clone(),
+                                gas_prices: gas_price.clone(),
+                                use_kzg_da: false,
                             },
                             false,
                             true,
