@@ -100,7 +100,7 @@ fn main() {
 
             let mut state = build_cached_state(&chain, block_number);
 
-            let transaction_hashes = get_transaction_hashes(block_number, &chain)
+            let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
 
             for tx_hash in transaction_hashes {
@@ -118,7 +118,7 @@ fn main() {
             for block_number in block_start..=block_end {
                 let mut state = build_cached_state(&chain, block_number);
 
-                let transaction_hashes = get_transaction_hashes(block_number, &chain)
+                let transaction_hashes = get_transaction_hashes(&chain, block_number)
                     .expect("Unable to fetch the transaction hashes.");
 
                 for tx_hash in transaction_hashes {
@@ -324,7 +324,7 @@ fn show_execution_data(
     }
 }
 
-fn get_transaction_hashes(block_number: u64, network: &str) -> Result<Vec<String>, RpcStateError> {
+fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
     let network = parse_network(network);
     let block_value = BlockValue::Number(BlockNumber(block_number));
     let rpc_state = RpcState::new_rpc(network, block_value)?;
