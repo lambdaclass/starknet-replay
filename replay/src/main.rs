@@ -23,7 +23,7 @@ use {
     blockifier::blockifier::{block::GasPrices,block::BlockInfo},
     blockifier::state::cached_state::CachedState,
     std::ops::Div,
-    std::{collections::HashMap,time::Instant,sync::Arc,rc::Rc,cell::RefCell},
+    std::{collections::HashMap,time::Instant},
 };
 
 #[derive(Debug, Parser)]
