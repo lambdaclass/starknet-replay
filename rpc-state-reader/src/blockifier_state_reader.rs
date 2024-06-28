@@ -43,7 +43,7 @@ use crate::{
     utils,
 };
 
-pub struct RpcStateReader(RpcState);
+pub struct RpcStateReader(pub RpcState);
 
 impl RpcStateReader {
     pub fn new(state: RpcState) -> Self {
@@ -292,7 +292,6 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
-    network: RpcChain,
     block_info: BlockInfo,
     skip_validate: bool,
     skip_nonce_check: bool,
@@ -374,8 +373,8 @@ pub fn execute_tx_configurable_with_state(
 }
 
 pub fn execute_tx_configurable(
+    state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
-    network: RpcChain,
     block_number: BlockNumber,
     skip_validate: bool,
     skip_nonce_check: bool,
@@ -384,8 +383,6 @@ pub fn execute_tx_configurable(
     TransactionTrace,
     RpcTransactionReceipt,
 )> {
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
-    let mut state = CachedState::new(rpc_reader);
     let tx_hash =
         TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
@@ -407,11 +404,10 @@ pub fn execute_tx_configurable(
     let blockifier_exec_info = execute_tx_configurable_with_state(
         &tx_hash,
         tx,
-        network,
         block_info,
         skip_validate,
         skip_nonce_check,
-        &mut state,
+        state,
     )?;
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
