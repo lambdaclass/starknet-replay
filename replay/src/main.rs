@@ -202,16 +202,12 @@ fn main() {
                     let state = cached_states.get_mut(&block_number).unwrap();
                     // Fetch txs
                     let block_txs = transactions.get(&block_number).unwrap();
-                    println!("block_txs: {:?}", block_txs.len());
                     // Fetch timestamp
                     let block_timestamp = *block_timestamps.get(&block_number).unwrap();
-                    println!("block_timestamp: {:?}", block_timestamp);
                     // Fetch sequencer address
                     let sequencer_address = sequencer_addresses.get(&block_number).unwrap();
-                    println!("sequencer_address: {:?}", sequencer_address);
                     // Fetch gas price
                     let gas_price = gas_prices.get(&block_number).unwrap();
-                    println!("gas_price: {:?}", gas_price);
                     // Run txs
                     for (tx_hash, tx) in block_txs {
                         let _ = execute_tx_configurable_with_state(
