@@ -367,10 +367,9 @@ pub fn execute_tx_configurable_with_state(
     };
 
     #[cfg(not(feature = "cairo-native"))]
-    let sir_execution = blockifier_tx.execute(state, &block_context, false, true);
+    let blockifier_execution = blockifier_tx.execute(state, &block_context, false, true);
 
-    sir_execution
-    // Ok(sir_execution)
+    blockifier_execution
 }
 
 pub fn execute_tx_configurable(
@@ -402,7 +401,7 @@ pub fn execute_tx_configurable(
         gas_prices: gas_price,
         use_kzg_da: false,
     };
-    let sir_exec_info = execute_tx_configurable_with_state(
+    let blockifier_exec_info = execute_tx_configurable_with_state(
         &tx_hash,
         tx,
         block_info,
@@ -412,7 +411,7 @@ pub fn execute_tx_configurable(
     )?;
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
-    Ok((sir_exec_info, trace, receipt))
+    Ok((blockifier_exec_info, trace, receipt))
 }
 
 #[cfg(test)]
