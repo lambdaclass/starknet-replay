@@ -33,8 +33,12 @@ use starknet_in_rust::{
 };
 #[cfg(feature = "benchmark")]
 use std::ops::Div;
+use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
+use tracing::info;
+use tracing_subscriber::filter::Directive;
+use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -79,8 +83,9 @@ Caches all rpc data before the benchmark runs to provide accurate results"
 }
 
 fn main() {
-    let cli = ReplayCLI::parse();
+    set_global_subscriber();
 
+    let cli = ReplayCLI::parse();
     match cli.subcommand {
         ReplayExecute::Tx {
             tx_hash,
@@ -96,7 +101,7 @@ fn main() {
             chain,
             silent,
         } => {
-            println!("Executing block number: {}", block_number);
+            info!("executing block {number}", number = block_number);
 
             let mut state = build_cached_state(&chain, block_number);
 
@@ -329,4 +334,17 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
     let block_value = BlockValue::Number(BlockNumber(block_number));
     let rpc_state = RpcState::new_rpc(network, block_value)?;
     rpc_state.get_transaction_hashes()
+}
+
+fn set_global_subscriber() {
+    let default_directive = Directive::from_str("replay=info").expect("should be valid");
+
+    tracing_subscriber::fmt()
+        .with_env_filter({
+            EnvFilter::builder()
+                .with_default_directive(default_directive)
+                .from_env_lossy()
+        })
+        .finish()
+        .init();
 }
