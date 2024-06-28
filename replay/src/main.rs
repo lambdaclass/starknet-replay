@@ -281,7 +281,7 @@ fn show_execution_data(tx_hash: String, chain: &str, block_number: u64, silent: 
         ..
     } = tx_info;
 
-    let sir_actual_fee = actual_fee;
+    let blockifier_actual_fee = actual_fee;
 
     let RpcTransactionReceipt {
         actual_fee,
@@ -292,13 +292,13 @@ fn show_execution_data(tx_hash: String, chain: &str, block_number: u64, silent: 
     if silent.is_none() || !silent.unwrap() {
         println!("[RPC] Execution status: {:?}", execution_status);
         if let Some(revert_error) = revert_error {
-            println!("[SIR] Revert error: {}", revert_error);
+            println!("[Blockifier] Revert error: {}", revert_error);
         }
         println!(
             "[RPC] Actual fee: {} {}",
             actual_fee.amount, actual_fee.unit
         );
-        println!("[SIR] Actual fee: {:?} wei", sir_actual_fee);
+        println!("[Blockifier] Actual fee: {:?} wei", blockifier_actual_fee);
     }
 }
 
