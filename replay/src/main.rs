@@ -1,10 +1,10 @@
 use blockifier::{
-    state::cached_state::CachedState, transaction::objects::TransactionExecutionInfo,
+    execution, state::cached_state::CachedState, transaction::objects::TransactionExecutionInfo,
 };
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
     blockifier_state_reader::RpcStateReader,
-    rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
+    rpc_state::{self, BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
     rpc_state_errors::RpcStateError,
 };
 
@@ -36,7 +36,7 @@ use std::ops::Div;
 use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
-use tracing::{error, info, info_span};
+use tracing::{error, field, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -93,7 +93,7 @@ fn main() {
             block_number,
             chain,
         } => {
-            info!("executing block {}", block_number);
+            let _block_span = info_span!("block", number = block_number).entered();
 
             let mut state = build_cached_state(&chain, block_number - 1);
 
@@ -111,6 +111,8 @@ fn main() {
             info!("executing block range: {} - {}", block_start, block_end);
 
             for block_number in block_start..=block_end {
+                let _block_span = info_span!("block", number = block_number).entered();
+
                 let mut state = build_cached_state(&chain, block_number);
 
                 let transaction_hashes = get_transaction_hashes(&chain, block_number)
@@ -276,47 +278,44 @@ fn show_execution_data(
     chain: &str,
     block_number: u64,
 ) {
-    let _transaction_execution_span = info_span!(
-        "transaction execution",
-        hash = tx_hash,
-        block_number = block_number,
-        chain = chain
-    )
-    .entered();
+    let transaction_execution_span =
+        info_span!("transaction", hash = tx_hash, chain, status = field::Empty).entered();
+
+    info!("starting execution");
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (tx_info, _trace, receipt) =
+    let (execution_info, _trace, rpc_receipt) =
         match execute_tx_configurable(state, &tx_hash, previous_block_number, false, true) {
             Ok(x) => x,
             Err(error_reason) => {
-                error!("transaction execution failed: {}", error_reason);
+                error!("execution failed unexpectedly: {}", error_reason);
                 return;
             }
         };
-    let TransactionExecutionInfo {
-        revert_error,
-        actual_fee,
-        ..
-    } = tx_info;
 
-    let blockifier_actual_fee = actual_fee;
+    let execution_status = match &execution_info.revert_error {
+        Some(_) => "REVERTED",
+        None => "SUCCEEDED",
+    };
+    let rpc_status = rpc_receipt.execution_status;
+    let status_matches = execution_status == rpc_status;
+    transaction_execution_span.record("status", execution_status);
 
-    let RpcTransactionReceipt {
-        actual_fee,
-        execution_status,
-        ..
-    } = receipt;
+    info!(execution_status, rpc_status, "execution finished");
 
-    info!("[RPC] Execution status: {:?}", execution_status);
-    if let Some(revert_error) = revert_error {
-        error!("[Blockifier] Revert error: {}", revert_error);
+    // let execution_gas = execution_info.actual_fee;
+    // let rpc_gas = rpc_receipt.actual_fee;
+    // info!(?execution_gas, ?rpc_gas, "execution actual fee");
+
+    if !status_matches {
+        let execution_error_message = execution_info.revert_error.unwrap_or_default();
+        // todo: if logging is filtered by error level, then the transaction span is not shown.
+        // it should also log the transaction span
+        error!(execution_error_message, "rpc and execution status diverged")
+    } else if let Some(revert_reason) = execution_info.revert_error {
+        info!(revert_reason, "blockifier transaction reverted");
     }
-    info!(
-        "[RPC] Actual fee: {} {}",
-        actual_fee.amount, actual_fee.unit
-    );
-    info!("[Blockifier] Actual fee: {:?} wei", blockifier_actual_fee);
 }
 
 fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
@@ -335,6 +334,9 @@ fn set_global_subscriber() {
                 .with_default_directive(default_directive)
                 .from_env_lossy()
         })
+        // .pretty()
+        .with_file(false)
+        .with_line_number(false)
         .finish()
         .init();
 }
