@@ -36,7 +36,7 @@ use std::ops::Div;
 use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
-use tracing::info;
+use tracing::{error, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -93,9 +93,9 @@ fn main() {
             block_number,
             chain,
         } => {
-            info!("executing block {number}", number = block_number);
+            info!("executing block {}", block_number);
 
-            let mut state = build_cached_state(&chain, block_number);
+            let mut state = build_cached_state(&chain, block_number - 1);
 
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
@@ -108,7 +108,7 @@ fn main() {
             block_end,
             chain,
         } => {
-            println!("Executing block range: {} - {}", block_start, block_end);
+            info!("executing block range: {} - {}", block_start, block_end);
 
             for block_number in block_start..=block_end {
                 let mut state = build_cached_state(&chain, block_number);
@@ -259,8 +259,8 @@ fn parse_network(network: &str) -> RpcChain {
     }
 }
 
-fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
-    let previous_block_number = BlockNumber(current_block_number - 1);
+fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
+    let previous_block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(&network);
     let rpc_reader = RpcStateReader(
         RpcState::new_rpc(rpc_chain, previous_block_number.into())
@@ -276,9 +276,13 @@ fn show_execution_data(
     chain: &str,
     block_number: u64,
 ) {
-    println!("Executing transaction with hash: {}", tx_hash);
-    println!("Block number: {}", block_number);
-    println!("Chain: {}", chain);
+    let _transaction_execution_span = info_span!(
+        "transaction execution",
+        hash = tx_hash,
+        block_number = block_number,
+        chain = chain
+    )
+    .entered();
 
     let previous_block_number = BlockNumber(block_number - 1);
 
@@ -286,7 +290,7 @@ fn show_execution_data(
         match execute_tx_configurable(state, &tx_hash, previous_block_number, false, true) {
             Ok(x) => x,
             Err(error_reason) => {
-                println!("Error: {}", error_reason);
+                error!("transaction execution failed: {}", error_reason);
                 return;
             }
         };
@@ -304,15 +308,15 @@ fn show_execution_data(
         ..
     } = receipt;
 
-    println!("[RPC] Execution status: {:?}", execution_status);
+    info!("[RPC] Execution status: {:?}", execution_status);
     if let Some(revert_error) = revert_error {
-        println!("[Blockifier] Revert error: {}", revert_error);
+        error!("[Blockifier] Revert error: {}", revert_error);
     }
-    println!(
+    info!(
         "[RPC] Actual fee: {} {}",
         actual_fee.amount, actual_fee.unit
     );
-    println!("[Blockifier] Actual fee: {:?} wei", blockifier_actual_fee);
+    info!("[Blockifier] Actual fee: {:?} wei", blockifier_actual_fee);
 }
 
 fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
