@@ -54,20 +54,14 @@ enum ReplayExecute {
         tx_hash: String,
         chain: String,
         block_number: u64,
-        silent: Option<bool>,
     },
     #[clap(about = "Execute all the transactions in a given block.")]
-    Block {
-        chain: String,
-        block_number: u64,
-        silent: Option<bool>,
-    },
+    Block { chain: String, block_number: u64 },
     #[clap(about = "Execute all the transactions in a given range of blocks.")]
     BlockRange {
         block_start: u64,
         block_end: u64,
         chain: String,
-        silent: Option<bool>,
     },
     #[cfg(feature = "benchmark")]
     #[clap(
@@ -91,15 +85,13 @@ fn main() {
             tx_hash,
             chain,
             block_number,
-            silent,
         } => {
             let mut state = build_cached_state(&chain, block_number);
-            show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+            show_execution_data(&mut state, tx_hash, &chain, block_number);
         }
         ReplayExecute::Block {
             block_number,
             chain,
-            silent,
         } => {
             info!("executing block {number}", number = block_number);
 
@@ -107,16 +99,14 @@ fn main() {
 
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
-
             for tx_hash in transaction_hashes {
-                show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+                show_execution_data(&mut state, tx_hash, &chain, block_number);
             }
         }
         ReplayExecute::BlockRange {
             block_start,
             block_end,
             chain,
-            silent,
         } => {
             println!("Executing block range: {} - {}", block_start, block_end);
 
@@ -127,7 +117,7 @@ fn main() {
                     .expect("Unable to fetch the transaction hashes.");
 
                 for tx_hash in transaction_hashes {
-                    show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+                    show_execution_data(&mut state, tx_hash, &chain, block_number);
                 }
             }
         }
@@ -285,13 +275,11 @@ fn show_execution_data(
     tx_hash: String,
     chain: &str,
     block_number: u64,
-    silent: Option<bool>,
 ) {
-    if silent.is_none() || !silent.unwrap() {
-        println!("Executing transaction with hash: {}", tx_hash);
-        println!("Block number: {}", block_number);
-        println!("Chain: {}", chain);
-    }
+    println!("Executing transaction with hash: {}", tx_hash);
+    println!("Block number: {}", block_number);
+    println!("Chain: {}", chain);
+
     let previous_block_number = BlockNumber(block_number - 1);
 
     let (tx_info, _trace, receipt) =
@@ -316,17 +304,15 @@ fn show_execution_data(
         ..
     } = receipt;
 
-    if silent.is_none() || !silent.unwrap() {
-        println!("[RPC] Execution status: {:?}", execution_status);
-        if let Some(revert_error) = revert_error {
-            println!("[SIR] Revert error: {}", revert_error);
-        }
-        println!(
-            "[RPC] Actual fee: {} {}",
-            actual_fee.amount, actual_fee.unit
-        );
-        println!("[SIR] Actual fee: {:?} wei", sir_actual_fee);
+    println!("[RPC] Execution status: {:?}", execution_status);
+    if let Some(revert_error) = revert_error {
+        println!("[SIR] Revert error: {}", revert_error);
     }
+    println!(
+        "[RPC] Actual fee: {} {}",
+        actual_fee.amount, actual_fee.unit
+    );
+    println!("[SIR] Actual fee: {:?} wei", sir_actual_fee);
 }
 
 fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
