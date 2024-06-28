@@ -10,34 +10,19 @@ use rpc_state_reader::blockifier_state_reader::{
     execute_tx_configurable,
     execute_tx_configurable_with_state,
 };
-use starknet_api::{block::{BlockNumber, BlockTimestamp}, core::{ContractAddress, PatriciaKey}};
-//#[cfg(feature = "benchmark")]
+use starknet_api::{block::{BlockNumber, BlockTimestamp}, core::ContractAddress};
+
 use starknet_api::{
     hash::StarkFelt,
     stark_felt,
     transaction::{Transaction, TransactionHash},
 };
-//#[cfg(feature = "benchmark")]
-// use starknet_in_rust::{
-//     definitions::block_context::GasPrices,
-//     state::{
-//         cached_state::CachedState, contract_class_cache::PermanentContractClassCache, BlockInfo,
-//     },
-//     transaction::Address,
-//     Felt252,
-// };
 
 use blockifier::blockifier::{block::GasPrices,block::BlockInfo};
-use blockifier::state::cached_state::{CachedState};
-use blockifier::state::global_cache::{GlobalContractCache,GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST};
-use blockifier::transaction::account_transaction::AccountTransaction;
+use blockifier::state::cached_state::CachedState;
 
-use blockifier::execution::{contract_class::ContractClass};
-
-//#[cfg(feature = "benchmark")]
 use std::ops::Div;
-//#[cfg(feature = "benchmark")]
-use std::{collections::HashMap, sync::Arc, time::Instant};
+use std::{collections::HashMap,time::Instant};
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -135,10 +120,6 @@ fn main() {
         } => {
             println!("Filling up Cache");
             let network = parse_network(&chain);
-            // Create a single class_cache for all states
-            //let class_cache = Arc::new(PermanentContractClassCache::default());
-            //let class_cache = Arc::new(GlobalContractCache::new(GLOBAL_CONTRACT_CACHE_SIZE_FOR_TEST));
-            // HashMaps to cache tx data & states
             let mut transactions =
                 HashMap::<BlockNumber, Vec<(TransactionHash, Transaction)>>::new();
             let mut cached_states = HashMap::<
@@ -149,6 +130,7 @@ fn main() {
             let mut sequencer_addresses = HashMap::<BlockNumber, ContractAddress>::new();
             let mut gas_prices = HashMap::<BlockNumber, GasPrices>::new();
             for block_number in block_start..=block_end {
+                println!("Executing block: {}", block_number);
                 // For each block:
                 let block_number = BlockNumber(block_number);
                 // Create a cached state
@@ -163,10 +145,6 @@ fn main() {
                 } = rpc_reader.0.get_block_info().unwrap();
                 block_timestamps.insert(block_number, block_timestamp.0);
                 
-                // let sequencer_address = Address(Felt252::from_bytes_be_slice(
-                //     sequencer_address.0.key().bytes(),
-                // ));
-
                 let sequencer_address = ContractAddress(
                     sequencer_address.0
                 );
@@ -180,6 +158,7 @@ fn main() {
                 let transaction_hashes = get_transaction_hashes(block_number, network)
                     .expect("Unable to fetch the transaction hashes.");
                 let mut txs_in_block = Vec::<(TransactionHash, Transaction)>::new();
+                
                 for tx_hash in transaction_hashes {
                     // Fetch tx and add it to txs_in_block cache
                     let tx_hash = TransactionHash(stark_felt!(tx_hash.strip_prefix("0x").unwrap()));
@@ -204,17 +183,10 @@ fn main() {
                 }
                 // Add the txs from the current block to the transactions cache
                 transactions.insert(block_number, txs_in_block);
-                // Clean writes from cached_state
-                
-                // state.cache_mut().storage_writes_mut().clear();
-                // state.cache_mut().class_hash_writes_mut().clear();
-                // state.cache_mut().nonce_writes_mut().clear();
-
                 // Add the cached state for the current block to the cached_states cache
                 cached_states.insert(block_number, state);
             }
             // Benchmark run should make no api requests as all data is cached
-
             println!(
                 "Executing block range: {} - {} {} times",
                 block_start, block_end, n_runs
