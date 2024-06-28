@@ -23,7 +23,7 @@ use {
     blockifier::blockifier::{block::GasPrices,block::BlockInfo},
     blockifier::state::cached_state::CachedState,
     std::ops::Div,
-    std::{collections::HashMap,time::Instant,sync::Arc},
+    std::{collections::HashMap,time::Instant,sync::Arc,rc::Rc,cell::RefCell},
 };
 
 #[derive(Debug, Parser)]
@@ -136,24 +136,24 @@ fn main() {
                 // For each block:
                 let block_number = BlockNumber(block_number);
                 // Create a cached state
-                let rpc_state = Arc::new(RpcState::new_rpc(network, block_number.into()).unwrap());
-                let rpc_reader = RpcStateReader::new(rpc_state.clone());
-                let mut state = CachedState::new(rpc_reader.clone());
+                let rpc_state = RpcState::new_rpc(network, block_number.into()).unwrap();
+                let rpc_reader = RpcStateReader::new(rpc_state);
+                let mut state = CachedState::new(rpc_reader);
                 // Fetch block timestamps & sequencer address
                 let RpcBlockInfo {
                     block_timestamp,
                     sequencer_address,
                     ..
-                } = rpc_reader.0.get_block_info().unwrap();
+                } = state.state.0.get_block_info().unwrap();
+   
                 block_timestamps.insert(block_number, block_timestamp.0);
                 
                 let sequencer_address = ContractAddress(
                     sequencer_address.0
                 );
-
                 sequencer_addresses.insert(block_number, sequencer_address.clone());
                 // Fetch gas price
-                let gas_price = rpc_reader.0.get_gas_price(block_number.0).unwrap();
+                let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
                 gas_prices.insert(block_number, gas_price.clone());
 
                 // Fetch txs for the block
@@ -165,7 +165,7 @@ fn main() {
                     println!("Executing tx: {}", tx_hash);
                     // Fetch tx and add it to txs_in_block cache
                     let tx_hash = TransactionHash(stark_felt!(tx_hash.strip_prefix("0x").unwrap()));
-                    let tx = rpc_reader.0.get_transaction(&tx_hash).unwrap();
+                    let tx = state.state.0.get_transaction(&tx_hash).unwrap();
                     txs_in_block.push((tx_hash, tx.clone()));
                     // First execution to fill up cache values
                     let _ = execute_tx_configurable_with_state(
