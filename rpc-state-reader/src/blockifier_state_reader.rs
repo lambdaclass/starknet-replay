@@ -43,11 +43,11 @@ use crate::{
     utils,
 };
 #[derive(Clone)]
-pub struct RpcStateReader(pub RpcState);
+pub struct RpcStateReader(pub Arc<RpcState>);
 
 impl RpcStateReader {
-    pub fn new(state: RpcState) -> Self {
-        Self(state)
+    pub fn new(rpc_state: Arc<RpcState>) -> Self {
+        Self(rpc_state)
     }
 }
 
@@ -130,7 +130,7 @@ pub fn execute_tx(
     let tx_hash = tx_hash.strip_prefix("0x").unwrap();
 
     // Instantiate the RPC StateReader and the CachedState
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
+    let rpc_reader = RpcStateReader(Arc::new(RpcState::new_rpc(network, block_number.into()).unwrap()));
     let gas_price = rpc_reader.0.get_gas_price(block_number.0).unwrap();
 
     // Get values for block context before giving ownership of the reader
@@ -241,7 +241,7 @@ pub fn execute_tx(
         SNTransaction::Declare(tx) => {
             // Fetch the contract_class from the next block (as we don't have it in the previous one)
             let mut next_block_state_reader = RpcStateReader(
-                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
+                Arc::new(RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap()),
             );
             let contract_class = next_block_state_reader
                 .get_compiled_contract_class(tx.class_hash())
@@ -385,7 +385,7 @@ pub fn execute_tx_configurable(
     TransactionTrace,
     RpcTransactionReceipt,
 )> {
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
+    let rpc_reader = RpcStateReader(Arc::new(RpcState::new_rpc(network, block_number.into()).unwrap()));
     let mut state = CachedState::new(rpc_reader);
     let tx_hash =
         TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());

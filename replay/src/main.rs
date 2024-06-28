@@ -18,11 +18,13 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 
-use blockifier::blockifier::{block::GasPrices,block::BlockInfo};
-use blockifier::state::cached_state::CachedState;
-
-use std::ops::Div;
-use std::{collections::HashMap,time::Instant};
+#[cfg(feature = "benchmark")]
+use {
+    blockifier::blockifier::{block::GasPrices,block::BlockInfo},
+    blockifier::state::cached_state::CachedState,
+    std::ops::Div,
+    std::{collections::HashMap,time::Instant,sync::Arc},
+};
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -53,7 +55,7 @@ enum ReplayExecute {
         chain: String,
         silent: Option<bool>,
     },
-    //#[cfg(feature = "benchmark")]
+    #[cfg(feature = "benchmark")]
     #[clap(
         about = "Measures the time it takes to run all transactions in a given range of blocks.
 Caches all rpc data before the benchmark runs to provide accurate results"
@@ -111,7 +113,7 @@ fn main() {
                 }
             }
         }
-        //#[cfg(feature = "benchmark")]
+        #[cfg(feature = "benchmark")]
         ReplayExecute::BenchBlockRange {
             block_start,
             block_end,
@@ -134,8 +136,8 @@ fn main() {
                 // For each block:
                 let block_number = BlockNumber(block_number);
                 // Create a cached state
-                let rpc_reader =
-                    RpcStateReader::new(RpcState::new_rpc(network, block_number.into()).unwrap());
+                let rpc_state = Arc::new(RpcState::new_rpc(network, block_number.into()).unwrap());
+                let rpc_reader = RpcStateReader::new(rpc_state.clone());
                 let mut state = CachedState::new(rpc_reader.clone());
                 // Fetch block timestamps & sequencer address
                 let RpcBlockInfo {
@@ -160,6 +162,7 @@ fn main() {
                 let mut txs_in_block = Vec::<(TransactionHash, Transaction)>::new();
                 
                 for tx_hash in transaction_hashes {
+                    println!("Executing tx: {}", tx_hash);
                     // Fetch tx and add it to txs_in_block cache
                     let tx_hash = TransactionHash(stark_felt!(tx_hash.strip_prefix("0x").unwrap()));
                     let tx = rpc_reader.0.get_transaction(&tx_hash).unwrap();
@@ -199,12 +202,16 @@ fn main() {
                     let state = cached_states.get_mut(&block_number).unwrap();
                     // Fetch txs
                     let block_txs = transactions.get(&block_number).unwrap();
+                    println!("block_txs: {:?}", block_txs.len());
                     // Fetch timestamp
                     let block_timestamp = *block_timestamps.get(&block_number).unwrap();
+                    println!("block_timestamp: {:?}", block_timestamp);
                     // Fetch sequencer address
                     let sequencer_address = sequencer_addresses.get(&block_number).unwrap();
+                    println!("sequencer_address: {:?}", sequencer_address);
                     // Fetch gas price
                     let gas_price = gas_prices.get(&block_number).unwrap();
+                    println!("gas_price: {:?}", gas_price);
                     // Run txs
                     for (tx_hash, tx) in block_txs {
                         let _ = execute_tx_configurable_with_state(
