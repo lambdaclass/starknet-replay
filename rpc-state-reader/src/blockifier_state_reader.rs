@@ -42,12 +42,11 @@ use crate::{
     rpc_state::{RpcBlockInfo, RpcChain, RpcState, RpcTransactionReceipt, TransactionTrace},
     utils,
 };
-
-pub struct RpcStateReader(RpcState);
+pub struct RpcStateReader(pub RpcState);
 
 impl RpcStateReader {
-    pub fn new(state: RpcState) -> Self {
-        Self(state)
+    pub fn new(rpc_state: RpcState) -> Self {
+        Self(rpc_state)
     }
 }
 

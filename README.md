@@ -34,3 +34,10 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run block mainnet 648655
 * cargo run block-range 90000 90002 mainnet
 ```
+##  Benchmarking
+
+You can algo use the replay crate to run the bench-block-range command, just execute:
+
+```bash
+* cargo run --features benchmark -- bench-block-range <block_start> <block_end> <network> <number_of_runs>
+```
