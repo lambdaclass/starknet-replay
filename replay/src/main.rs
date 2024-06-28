@@ -334,7 +334,7 @@ fn set_global_subscriber() {
                 .with_default_directive(default_directive)
                 .from_env_lossy()
         })
-        // .pretty()
+        .pretty()
         .with_file(false)
         .with_line_number(false)
         .finish()
