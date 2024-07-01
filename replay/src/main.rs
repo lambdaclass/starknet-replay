@@ -1,19 +1,15 @@
-use blockifier::{
-    execution, state::cached_state::CachedState, transaction::objects::TransactionExecutionInfo,
-};
+use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
     blockifier_state_reader::RpcStateReader,
-    rpc_state::{self, BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
+    rpc_state::{BlockValue, RpcChain, RpcState},
     rpc_state_errors::RpcStateError,
 };
 
 use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
 #[cfg(feature = "benchmark")]
 use rpc_state_reader::{
-    execute_tx_configurable_with_state,
-    rpc_state::{RpcBlockInfo, RpcState},
-    RpcStateReader,
+    execute_tx_configurable_with_state, rpc_state::RpcBlockInfo, RpcStateReader,
 };
 use starknet_api::block::BlockNumber;
 #[cfg(feature = "benchmark")]
@@ -36,7 +32,7 @@ use std::ops::Div;
 use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
-use tracing::{debug, error, field, info, info_span, span};
+use tracing::{debug, error, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -263,7 +259,7 @@ fn parse_network(network: &str) -> RpcChain {
 
 fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
     let previous_block_number = BlockNumber(block_number);
-    let rpc_chain = parse_network(&network);
+    let rpc_chain = parse_network(network);
     let rpc_reader = RpcStateReader(
         RpcState::new_rpc(rpc_chain, previous_block_number.into())
             .expect("failed to create state reader"),
