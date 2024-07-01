@@ -430,7 +430,8 @@ mod tests {
     #[test_case(
         "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
         200303, // real block     200304
-        RpcChain::MainNet => ignore["Doesn't revert in newest blockifier version"]
+        RpcChain::MainNet
+        => ignore["Doesn't revert in newest blockifier version"]
     )]
     #[test_case(
         "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
@@ -449,12 +450,6 @@ mod tests {
         // We can't currently compare fee values
     }
 
-    #[test_case(
-        "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
-        169928,
-        RpcChain::MainNet
-        => ignore["Current blockifier version is not currently in production, no recent tx available for testing"]
-    )]
     #[test_case(
         // Declare tx
         "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
