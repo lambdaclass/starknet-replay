@@ -10,7 +10,7 @@ use cairo_vm::vm::runners::{
 use core::fmt;
 use dotenv::dotenv;
 use serde::{Deserialize, Deserializer};
-use serde_json::{json, Value};
+use serde_json::json;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, BlockTimestamp},

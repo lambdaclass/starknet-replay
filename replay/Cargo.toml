@@ -8,15 +8,13 @@ benchmark = []
 
 [dependencies]
 # starknet specific crates
-blockifier = {workspace = true}
+blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 # CLI specific crates
 clap = { version = "4.4.6", features = ["derive"] }
-indicatif = "0.17.7"
 # logs
-tracing = "0.1"
-tracing-subscriber = "0.3.17"
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 # error handling
 anyhow = "1.0"
-
