@@ -297,14 +297,15 @@ fn show_execution_data(
         Some(_) => "REVERTED",
         None => "SUCCEEDED",
     };
-    let rpc_status = rpc_receipt.execution_status;
-    let status_matches = execution_status == rpc_status;
+    let rpc_execution_status = rpc_receipt.execution_status;
+    let status_matches = execution_status == rpc_execution_status;
 
     if !status_matches {
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
+            rpc_execution_status,
             execution_error_message = execution_info.revert_error,
             "rpc and execution status diverged"
         )
@@ -313,6 +314,7 @@ fn show_execution_data(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
+            rpc_execution_status,
             execution_error_message = execution_info.revert_error,
             "execution finished successfully"
         );
