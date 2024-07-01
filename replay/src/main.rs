@@ -36,7 +36,7 @@ use std::ops::Div;
 use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
-use tracing::{error, field, info, info_span};
+use tracing::{debug, error, field, info, info_span, span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -278,8 +278,7 @@ fn show_execution_data(
     chain: &str,
     block_number: u64,
 ) {
-    let transaction_execution_span =
-        info_span!("transaction", hash = tx_hash, chain, status = field::Empty).entered();
+    let _transaction_execution_span = info_span!("transaction", hash = tx_hash, chain).entered();
 
     info!("starting execution");
 
@@ -300,22 +299,28 @@ fn show_execution_data(
     };
     let rpc_status = rpc_receipt.execution_status;
     let status_matches = execution_status == rpc_status;
-    transaction_execution_span.record("status", execution_status);
-
-    info!(execution_status, rpc_status, "execution finished");
-
-    // let execution_gas = execution_info.actual_fee;
-    // let rpc_gas = rpc_receipt.actual_fee;
-    // info!(?execution_gas, ?rpc_gas, "execution actual fee");
 
     if !status_matches {
-        let execution_error_message = execution_info.revert_error.unwrap_or_default();
-        // todo: if logging is filtered by error level, then the transaction span is not shown.
-        // it should also log the transaction span
-        error!(execution_error_message, "rpc and execution status diverged")
-    } else if let Some(revert_reason) = execution_info.revert_error {
-        info!(revert_reason, "blockifier transaction reverted");
+        error!(
+            transaction_hash = tx_hash,
+            chain = chain,
+            execution_status,
+            execution_error_message = execution_info.revert_error,
+            "rpc and execution status diverged"
+        )
+    } else {
+        info!(
+            transaction_hash = tx_hash,
+            chain = chain,
+            execution_status,
+            execution_error_message = execution_info.revert_error,
+            "execution finished successfully"
+        );
     }
+
+    let execution_gas = execution_info.actual_fee;
+    let rpc_gas = rpc_receipt.actual_fee;
+    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
 
 fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
