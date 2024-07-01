@@ -118,7 +118,7 @@ impl StateReader for RpcStateReader {
     }
 }
 
-pub fn execute_tx(
+pub fn _execute_tx(
     tx_hash: &str,
     network: RpcChain,
     block_number: BlockNumber,
@@ -289,7 +289,8 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
 
-pub fn execute_tx_configurable_with_state(
+/// Executes the trasaction the returns its execution information
+pub fn execute_tx(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
     block_info: BlockInfo,
@@ -372,6 +373,7 @@ pub fn execute_tx_configurable_with_state(
     blockifier_execution
 }
 
+/// Returns the trace, receipt and execution info asociated to a transaction
 pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
@@ -401,7 +403,7 @@ pub fn execute_tx_configurable(
         gas_prices: gas_price,
         use_kzg_da: false,
     };
-    let blockifier_exec_info = execute_tx_configurable_with_state(
+    let blockifier_exec_info = execute_tx(
         &tx_hash,
         tx,
         block_info,
@@ -412,6 +414,26 @@ pub fn execute_tx_configurable(
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
     Ok((blockifier_exec_info, trace, receipt))
+}
+
+pub fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
+    let previous_block_number = BlockNumber(current_block_number - 1);
+    let rpc_chain = parse_network(&network);
+    let rpc_reader = RpcStateReader(
+        RpcState::new_rpc(rpc_chain, previous_block_number.into())
+            .expect("failed to create state reader"),
+    );
+
+    CachedState::new(rpc_reader)
+}
+
+pub fn parse_network(network: &str) -> RpcChain {
+    match network.to_lowercase().as_str() {
+        "mainnet" => RpcChain::MainNet,
+        "testnet" => RpcChain::TestNet,
+        "testnet2" => RpcChain::TestNet2,
+        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
+    }
 }
 
 #[cfg(test)]
@@ -449,7 +471,8 @@ mod tests {
     => ignore["broken on both due to a cairo-vm error"]
 )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number));
+        let mut state = build_cached_state(&chain.to_string(), block_number);
+        let (tx_info, trace, _) = execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false).unwrap();
 
         assert_eq!(
             tx_info.revert_error,
@@ -574,7 +597,7 @@ mod tests {
 )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
+        let (tx_info, trace, _receipt) = (hash, chain, BlockNumber(block_number));
 
         // We cannot currently check fee & resources
 

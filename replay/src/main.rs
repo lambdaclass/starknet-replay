@@ -3,7 +3,7 @@ use blockifier::{
 };
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
-    blockifier_state_reader::RpcStateReader,
+    blockifier_state_reader::{build_cached_state, parse_network, RpcStateReader},
     rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
     rpc_state_errors::RpcStateError,
 };
@@ -253,26 +253,6 @@ fn main() {
             );
         }
     }
-}
-
-fn parse_network(network: &str) -> RpcChain {
-    match network.to_lowercase().as_str() {
-        "mainnet" => RpcChain::MainNet,
-        "testnet" => RpcChain::TestNet,
-        "testnet2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
-    }
-}
-
-fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
-    let previous_block_number = BlockNumber(current_block_number - 1);
-    let rpc_chain = parse_network(&network);
-    let rpc_reader = RpcStateReader(
-        RpcState::new_rpc(rpc_chain, previous_block_number.into())
-            .expect("failed to create state reader"),
-    );
-
-    CachedState::new(rpc_reader)
 }
 
 fn show_execution_data(
