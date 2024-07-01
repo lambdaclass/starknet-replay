@@ -13,7 +13,6 @@ rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 # CLI specific crates
 clap = { version = "4.4.6", features = ["derive"] }
-indicatif = "0.17.7"
 # logs
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
