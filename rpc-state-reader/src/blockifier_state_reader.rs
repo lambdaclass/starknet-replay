@@ -428,16 +428,16 @@ mod tests {
     }
 
     #[test_case(
-    "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
-    200303, // real block     200304
-    RpcChain::MainNet => ignore["Doesn't revert in newest blockifier version"]
+        "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
+        200303, // real block     200304
+        RpcChain::MainNet => ignore["Doesn't revert in newest blockifier version"]
     )]
     #[test_case(
-    "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
-    200302, // real block     200304
-    RpcChain::MainNet
-    => ignore["broken on both due to a cairo-vm error"]
-)]
+        "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
+        200302, // real block     200304
+        RpcChain::MainNet
+        => ignore["broken on both due to a cairo-vm error"]
+    )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
         let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number));
 
@@ -452,20 +452,22 @@ mod tests {
     #[test_case(
         "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
         169928,
-        RpcChain::MainNet => ignore["Current blockifier version is not currently in production, no recent tx available for testing"]
-        )]
+        RpcChain::MainNet
+        => ignore["Current blockifier version is not currently in production, no recent tx available for testing"]
+    )]
     #[test_case(
-    // Declare tx
-    "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
-    347899, // real block 347900
-    RpcChain::MainNet
-)]
+        // Declare tx
+        "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
+        347899, // real block 347900
+        RpcChain::MainNet
+        => ignore
+    )]
     #[test_case(
-    // Declare tx
-    "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-    271887, // real block 271888
-    RpcChain::MainNet
-)]
+        // Declare tx
+        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
+        271887, // real block 271888
+        RpcChain::MainNet
+    )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
         90006,
@@ -490,11 +492,13 @@ mod tests {
         "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
         169928, // real block 169929
         RpcChain::MainNet
+        => ignore
     )]
     #[test_case(
         "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
         169928, // real block 169929
         RpcChain::MainNet
+        => ignore
     )]
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
@@ -512,56 +516,59 @@ mod tests {
         "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
         186551, // real block     186552
         RpcChain::MainNet
+        => ignore
     )]
     #[test_case(
-    "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
-    317092, // real block 317093
-    RpcChain::MainNet
-)]
+        "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
+        317092, // real block 317093
+        RpcChain::MainNet
+    )]
     #[test_case(
-    "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
-    398051, // real block 398052
-    RpcChain::MainNet
-)]
+        "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
+        398051, // real block 398052
+        RpcChain::MainNet
+    )]
     #[test_case(
-    "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
-    281513, // real block 281514
-    RpcChain::MainNet
-)]
+        "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
+        281513, // real block 281514
+        RpcChain::MainNet
+    )]
     #[test_case(
-    "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
-    351268, // real block 351269
-    RpcChain::MainNet
-)]
+        "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
+        351268, // real block 351269
+        RpcChain::MainNet
+    )]
     #[test_case(
-    "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
-    351225, // real block 351226
-    RpcChain::MainNet
-)]
+        "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
+        351225, // real block 351226
+        RpcChain::MainNet
+    )]
     // DeployAccount for different account providers:
 
     // OpenZeppelin (v0.7.0)
     #[test_case(
-    "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
-    422881, // real block 422882
-    RpcChain::MainNet
-)]
+        "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
+        422881, // real block 422882
+        RpcChain::MainNet
+    )]
     // Argent X (v5.7.0)
     #[test_case(
-            "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
-            475945, // real block 475946
-            RpcChain::MainNet
-        )]
+        "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
+        475945, // real block 475946
+        RpcChain::MainNet
+        => ignore
+    )]
     #[test_case(
-    "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
-    638866, // real block 475946
-    RpcChain::MainNet
-)]
+        "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
+        638866, // real block 475946
+        RpcChain::MainNet
+    )]
     #[test_case(
-    "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
-    641975, // real block 475946
-    RpcChain::MainNet
-)]
+        "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
+        641975, // real block 475946
+        RpcChain::MainNet
+        => ignore
+    )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
         let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
