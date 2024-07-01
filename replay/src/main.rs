@@ -134,9 +134,10 @@ fn main() {
             for block_number in block_start..=block_end {
                 println!("Executing block: {}", block_number);
                 // For each block:
+                let previous_block_number = BlockNumber(block_number - 1);
                 let block_number = BlockNumber(block_number);
                 // Create a cached state
-                let rpc_state = RpcState::new_rpc(network, block_number.into()).unwrap();
+                let rpc_state = RpcState::new_rpc(network, previous_block_number.into()).unwrap();
                 let rpc_reader = RpcStateReader::new(rpc_state);
                 let mut state = CachedState::new(rpc_reader);
                 // Fetch block timestamps & sequencer address
@@ -168,7 +169,7 @@ fn main() {
                     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
                     txs_in_block.push((tx_hash, tx.clone()));
                     // First execution to fill up cache values
-                    let _ = execute_tx_configurable_with_state(
+                    let exec_result = execute_tx_configurable_with_state(
                         &tx_hash,
                         tx.clone(),
                         network,
