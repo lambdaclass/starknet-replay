@@ -254,7 +254,7 @@ pub fn execute_tx_configurable(
     Ok((blockifier_exec_info, trace, receipt))
 }
 
-fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
+pub fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
     let previous_block_number = BlockNumber(current_block_number - 1);
     let rpc_chain = parse_network(&network);
     let rpc_reader = RpcStateReader(
@@ -265,7 +265,7 @@ fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<R
     CachedState::new(rpc_reader)
 }
 
-fn parse_network(network: &str) -> RpcChain {
+pub fn parse_network(network: &str) -> RpcChain {
     match network.to_lowercase().as_str() {
         "mainnet" => RpcChain::MainNet,
         "testnet" => RpcChain::TestNet,

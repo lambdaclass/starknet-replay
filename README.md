@@ -24,6 +24,12 @@ Currently cairo-native with AOT needs a runtime library in a known place. For th
 CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libcairo_native_runtime.a
 ```
 
+After that must run this command in your cairo_native project:
+
+```bash
+  make runtime
+```
+
 If you don't do this you will get a linker error when using AOT.
 
 ## replay

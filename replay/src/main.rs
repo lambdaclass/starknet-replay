@@ -3,7 +3,7 @@ use blockifier::{
 };
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
-    blockifier_state_reader::RpcStateReader,
+    blockifier_state_reader::{build_cached_state, parse_network, RpcStateReader},
     rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
     rpc_state_errors::RpcStateError,
 };
@@ -11,7 +11,7 @@ use rpc_state_reader::{
 use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
 #[cfg(feature = "benchmark")]
 use rpc_state_reader::{
-    execute_tx_configurable_with_state,
+    get_tx_execution_info,
     rpc_state::{RpcBlockInfo, RpcState},
     RpcStateReader,
 };
@@ -179,7 +179,7 @@ fn main() {
                     let tx = state.state_reader.0.get_transaction(&tx_hash).unwrap();
                     txs_in_block.push((tx_hash, tx.clone()));
                     // First execution to fill up cache values
-                    let _ = execute_tx_configurable_with_state(
+                    let _ = get_tx_execution_info(
                         &tx_hash,
                         tx.clone(),
                         network,
@@ -225,7 +225,7 @@ fn main() {
                     let gas_price = gas_prices.get(&block_number).unwrap();
                     // Run txs
                     for (tx_hash, tx) in block_txs {
-                        let _ = execute_tx_configurable_with_state(
+                        let _ = get_tx_execution_info(
                             tx_hash,
                             tx.clone(),
                             network,
@@ -253,26 +253,6 @@ fn main() {
             );
         }
     }
-}
-
-fn parse_network(network: &str) -> RpcChain {
-    match network.to_lowercase().as_str() {
-        "mainnet" => RpcChain::MainNet,
-        "testnet" => RpcChain::TestNet,
-        "testnet2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
-    }
-}
-
-fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
-    let previous_block_number = BlockNumber(current_block_number - 1);
-    let rpc_chain = parse_network(&network);
-    let rpc_reader = RpcStateReader(
-        RpcState::new_rpc(rpc_chain, previous_block_number.into())
-            .expect("failed to create state reader"),
-    );
-
-    CachedState::new(rpc_reader)
 }
 
 fn show_execution_data(
