@@ -429,13 +429,13 @@ mod tests {
 
     #[test_case(
         "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
-        200303, // real block     200304
+        200303, // real block 200304
         RpcChain::MainNet
         => ignore["Doesn't revert in newest blockifier version"]
     )]
     #[test_case(
         "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
-        200302, // real block     200304
+        200302, // real block 200303
         RpcChain::MainNet
         => ignore["broken on both due to a cairo-vm error"]
     )]
@@ -465,17 +465,17 @@ mod tests {
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
-        90006,
+        90006, // real block 90007
         RpcChain::MainNet
     )]
     #[test_case(
         "0x025844447697eb7d5df4d8268b23aef6c11de4087936048278c2559fc35549eb",
-        197000,
+        197000, // real block 197001
         RpcChain::MainNet
     )]
     #[test_case(
         "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
-        197000,
+        197000, // real block 197001
         RpcChain::MainNet
     )]
     #[test_case(
@@ -503,13 +503,13 @@ mod tests {
     #[test_case(
         // review later
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
-        186548, // real block     186549
+        186548, // real block 186549
         RpcChain::MainNet
     )]
     #[test_case(
         // fails in blockifier
         "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
-        186551, // real block     186552
+        186551, // real block 186552
         RpcChain::MainNet
         => ignore
     )]
@@ -555,12 +555,12 @@ mod tests {
     )]
     #[test_case(
         "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
-        638866, // real block 475946
+        638866, // real block 638867
         RpcChain::MainNet
     )]
     #[test_case(
         "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
-        641975, // real block 475946
+        641975, // real block 641976
         RpcChain::MainNet
         => ignore
     )]
