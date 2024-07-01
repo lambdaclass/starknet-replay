@@ -118,168 +118,6 @@ impl StateReader for RpcStateReader {
     }
 }
 
-pub fn execute_tx(
-    tx_hash: &str,
-    network: RpcChain,
-    block_number: BlockNumber,
-) -> (
-    TransactionExecutionInfo,
-    TransactionTrace,
-    RpcTransactionReceipt,
-) {
-    let tx_hash = tx_hash.strip_prefix("0x").unwrap();
-
-    // Instantiate the RPC StateReader and the CachedState
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
-    let gas_price = rpc_reader.0.get_gas_price(block_number.0).unwrap();
-
-    // Get values for block context before giving ownership of the reader
-    let chain_id = rpc_reader.0.get_chain_name();
-    let RpcBlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        ..
-    } = rpc_reader.0.get_block_info().unwrap();
-
-    // Get transaction before giving ownership of the reader
-    let tx_hash = TransactionHash(stark_felt!(tx_hash));
-    let sn_api_tx = rpc_reader.0.get_transaction(&tx_hash);
-
-    let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
-    let receipt = rpc_reader.0.get_transaction_receipt(&tx_hash).unwrap();
-
-    // Create state from RPC reader
-    let mut state = CachedState::new(rpc_reader);
-
-    let fee_token_address =
-        contract_address!("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7");
-
-    const N_STEPS_FEE_WEIGHT: f64 = 0.01;
-    let vm_resource_fee_cost = Arc::new(HashMap::from([
-        ("n_steps".to_string(), N_STEPS_FEE_WEIGHT),
-        ("output_builtin".to_string(), 0.0),
-        ("pedersen_builtin".to_string(), N_STEPS_FEE_WEIGHT * 32.0),
-        ("range_check_builtin".to_string(), N_STEPS_FEE_WEIGHT * 16.0),
-        ("ecdsa_builtin".to_string(), N_STEPS_FEE_WEIGHT * 2048.0),
-        ("bitwise_builtin".to_string(), N_STEPS_FEE_WEIGHT * 64.0),
-        ("ec_op_builtin".to_string(), N_STEPS_FEE_WEIGHT * 1024.0),
-        ("poseidon_builtin".to_string(), N_STEPS_FEE_WEIGHT * 32.0),
-        (
-            "segment_arena_builtin".to_string(),
-            N_STEPS_FEE_WEIGHT * 10.0,
-        ),
-        ("keccak_builtin".to_string(), N_STEPS_FEE_WEIGHT * 2048.0), // 2**11
-    ]));
-
-    let block_info = BlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        // TODO: Check gas_prices and use_kzg_da
-        gas_prices: gas_price,
-        use_kzg_da: false,
-    };
-
-    let chain_info = ChainInfo {
-        chain_id,
-        fee_token_addresses: FeeTokenAddresses::default(),
-    };
-
-    // TODO: Check BlockContext::new_unchecked
-    let block_context = BlockContext::new_unchecked(
-        &block_info,
-        &chain_info,
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
-    );
-    // let block_context = BlockContext {
-    //     chain_id,
-    //     block_number,
-    //     block_timestamp,
-    //     sequencer_address,
-    //     // TODO: Add strk token address when updated
-    //     fee_token_addresses: FeeTokenAddresses {
-    //         strk_fee_token_address: fee_token_address,
-    //         eth_fee_token_address: fee_token_address,
-    //     },
-    //     vm_resource_fee_cost,
-    //     // TODO: Add strk l1 gas price when updated
-    //     gas_prices: GasPrices {
-    //         eth_l1_gas_price: gas_price.eth_l1_gas_price,
-    //         strk_l1_gas_price: gas_price.strk_l1_gas_price,
-    //     },
-    //     invoke_tx_max_n_steps: 1_000_000,
-    //     validate_max_n_steps: 1_000_000,
-    //     max_recursion_depth: 500,
-    // };
-
-    // Map starknet_api transaction to blockifier's
-    let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
-        SNTransaction::Invoke(tx) => {
-            let invoke = InvokeTransaction {
-                tx,
-                tx_hash,
-                only_query: false,
-            };
-            AccountTransaction::Invoke(invoke)
-        }
-        SNTransaction::DeployAccount(tx) => {
-            let contract_address = calculate_contract_address(
-                tx.contract_address_salt(),
-                tx.class_hash(),
-                &tx.constructor_calldata(),
-                ContractAddress::default(),
-            )
-            .unwrap();
-            AccountTransaction::DeployAccount(DeployAccountTransaction {
-                only_query: false,
-                tx,
-                tx_hash,
-                contract_address,
-            })
-        }
-        SNTransaction::Declare(tx) => {
-            // Fetch the contract_class from the next block (as we don't have it in the previous one)
-            let mut next_block_state_reader = RpcStateReader(
-                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
-            );
-            let contract_class = next_block_state_reader
-                .get_compiled_contract_class(tx.class_hash())
-                .unwrap();
-
-            let class_info = calculate_class_info_for_testing(contract_class);
-
-            let declare = DeclareTransaction::new(tx, tx_hash, class_info).unwrap();
-            AccountTransaction::Declare(declare)
-        }
-        SNTransaction::L1Handler(tx) => {
-            // As L1Hanlder is not an account transaction we execute it here and return the result
-            let blockifier_tx = L1HandlerTransaction {
-                tx,
-                tx_hash,
-                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
-            };
-            return (
-                blockifier_tx
-                    .execute(&mut state, &block_context, true, true)
-                    .unwrap(),
-                trace,
-                receipt,
-            );
-        }
-        _ => unimplemented!(),
-    };
-
-    (
-        // TODO Change charge_fee: true
-        blockifier_tx
-            .execute(&mut state, &block_context, false, true)
-            .unwrap(),
-        trace,
-        receipt,
-    )
-}
-
 fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo {
     let sierra_program_length = match contract_class {
         ContractClass::V0(_) => 0,
@@ -289,7 +127,8 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
 
-pub fn execute_tx_configurable_with_state(
+/// Returns the execution information of a given transaction
+pub fn get_tx_execution_info(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
     block_info: BlockInfo,
@@ -372,6 +211,7 @@ pub fn execute_tx_configurable_with_state(
     blockifier_execution
 }
 
+/// executes a transaction and returns its trace, receipt and execution information
 pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
@@ -401,7 +241,7 @@ pub fn execute_tx_configurable(
         gas_prices: gas_price,
         use_kzg_da: false,
     };
-    let blockifier_exec_info = execute_tx_configurable_with_state(
+    let blockifier_exec_info = get_tx_execution_info(
         &tx_hash,
         tx,
         block_info,
@@ -412,6 +252,26 @@ pub fn execute_tx_configurable(
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
     Ok((blockifier_exec_info, trace, receipt))
+}
+
+fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
+    let previous_block_number = BlockNumber(current_block_number - 1);
+    let rpc_chain = parse_network(&network);
+    let rpc_reader = RpcStateReader(
+        RpcState::new_rpc(rpc_chain, previous_block_number.into())
+            .expect("failed to create state reader"),
+    );
+
+    CachedState::new(rpc_reader)
+}
+
+fn parse_network(network: &str) -> RpcChain {
+    match network.to_lowercase().as_str() {
+        "mainnet" => RpcChain::MainNet,
+        "testnet" => RpcChain::TestNet,
+        "testnet2" => RpcChain::TestNet2,
+        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
+    }
 }
 
 #[cfg(test)]
@@ -449,7 +309,8 @@ mod tests {
     => ignore["broken on both due to a cairo-vm error"]
 )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number));
+        let mut state = build_cached_state(&chain.to_string(), block_number);
+        let (tx_info, trace, _) = execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false).unwrap();
 
         assert_eq!(
             tx_info.revert_error,
@@ -574,7 +435,8 @@ mod tests {
 )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
+        let mut state = build_cached_state(&chain.to_string(), block_number);
+        let (tx_info, trace, _) = execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false).unwrap();
 
         // We cannot currently check fee & resources
 
