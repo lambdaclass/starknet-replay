@@ -564,6 +564,56 @@ mod tests {
         RpcChain::MainNet
         => ignore
     )]
+    #[test_case(
+        "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
+        654000, // real block 654001
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
+        654000, // real block 654001
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
+        654000, // real block 654001
+        RpcChain::MainNet
+        => ignore
+    )]
+    #[test_case(
+        "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
+        654000, // real block 654001
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
+        654000, // real block 653001
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
+        653000, // real block 653001
+        RpcChain::MainNet
+        => ignore
+    )]
+    #[test_case(
+        "0x5a030fd81f14a1cf29a2e5259d3f2c9960018ade2d135269760e6fb4802ac02",
+        653000, // real block 653001
+        RpcChain::MainNet
+        => ignore
+    )]
+    #[test_case(
+        "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
+        653000, // real block 653001
+        RpcChain::MainNet
+        => ignore
+    )]
+    #[test_case(
+        "0x3330b29e8b99dedef79f5c7cdc2b510c590155add29dcc5e2f92d176d8e19d",
+        653000, // real block 653001
+        RpcChain::MainNet
+        => ignore
+    )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
         let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
