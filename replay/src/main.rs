@@ -82,7 +82,7 @@ fn main() {
             chain,
             block_number,
         } => {
-            let mut state = build_cached_state(&chain, block_number);
+            let mut state = build_cached_state(&chain, block_number - 1);
             show_execution_data(&mut state, tx_hash, &chain, block_number);
         }
         ReplayExecute::Block {
@@ -109,7 +109,7 @@ fn main() {
             for block_number in block_start..=block_end {
                 let _block_span = info_span!("block", number = block_number).entered();
 
-                let mut state = build_cached_state(&chain, block_number);
+                let mut state = build_cached_state(&chain, block_number - 1);
 
                 let transaction_hashes = get_transaction_hashes(&chain, block_number)
                     .expect("Unable to fetch the transaction hashes.");
@@ -293,14 +293,15 @@ fn show_execution_data(
         Some(_) => "REVERTED",
         None => "SUCCEEDED",
     };
-    let rpc_status = rpc_receipt.execution_status;
-    let status_matches = execution_status == rpc_status;
+    let rpc_execution_status = rpc_receipt.execution_status;
+    let status_matches = execution_status == rpc_execution_status;
 
     if !status_matches {
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
+            rpc_execution_status,
             execution_error_message = execution_info.revert_error,
             "rpc and execution status diverged"
         )
@@ -309,6 +310,7 @@ fn show_execution_data(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
+            rpc_execution_status,
             execution_error_message = execution_info.revert_error,
             "execution finished successfully"
         );
