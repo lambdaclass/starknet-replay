@@ -578,7 +578,6 @@ mod tests {
         "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
         654000, // real block 654001
         RpcChain::MainNet
-        => ignore
     )]
     #[test_case(
         "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
@@ -594,13 +593,13 @@ mod tests {
         "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
         653000, // real block 653001
         RpcChain::MainNet
-        => ignore
+        => ignore["takes to long"]
     )]
     #[test_case(
         "0x5a030fd81f14a1cf29a2e5259d3f2c9960018ade2d135269760e6fb4802ac02",
         653000, // real block 653001
         RpcChain::MainNet
-        => ignore
+        => ignore["halts execution"]
     )]
     #[test_case(
         "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
