@@ -86,7 +86,7 @@ fn main() {
             chain,
             block_number,
         } => {
-            let mut state = build_cached_state(&chain, block_number);
+            let mut state = build_cached_state(&chain, block_number - 1);
             show_execution_data(&mut state, tx_hash, &chain, block_number);
         }
         ReplayExecute::Block {
