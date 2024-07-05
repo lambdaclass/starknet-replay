@@ -442,7 +442,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.7.0-dev.1"
-source = "git+https://github.com/lambdaclass/blockifier?branch=native2.6.3-update#73c8798e979c6e4b51f8b83efa469dba5eb4281b"
+source = "git+https://github.com/lambdaclass/blockifier?rev=73c8798e979c6e4b51f8b83efa469dba5eb4281b#73c8798e979c6e4b51f8b83efa469dba5eb4281b"
 dependencies = [
  "anyhow",
  "ark-ec",
