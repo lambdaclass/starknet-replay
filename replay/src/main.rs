@@ -316,7 +316,7 @@ fn show_execution_data(
         );
     }
 
-    let execution_gas = execution_info.actual_fee;
+    let execution_gas = execution_info.execute_call_info.unwrap().execution.gas_consumed;
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }

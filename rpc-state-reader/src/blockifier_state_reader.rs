@@ -1,21 +1,16 @@
 use blockifier::{
-    blockifier::block::BlockInfo,
-    context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::{ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner},
-    state::{
+    blockifier::block::BlockInfo, bouncer::BouncerConfig, context::{BlockContext, ChainInfo, FeeTokenAddresses}, execution::contract_class::{ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner}, state::{
         cached_state::CachedState,
         errors::StateError,
         state_api::{StateReader, StateResult},
-    },
-    transaction::{
+    }, transaction::{
         account_transaction::AccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
         transactions::{
             DeclareTransaction, DeployAccountTransaction, ExecutableTransaction, InvokeTransaction,
             L1HandlerTransaction,
         },
-    },
-    versioned_constants::VersionedConstants,
+    }, versioned_constants::VersionedConstants
 };
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
@@ -177,10 +172,12 @@ pub fn execute_tx(
     };
 
     // TODO: Check BlockContext::new_unchecked
-    let block_context = BlockContext::new_unchecked(
-        &block_info,
-        &chain_info,
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    let block_context = BlockContext::new(
+        block_info,
+        chain_info,
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        BouncerConfig::empty(),
+        false
     );
     // let block_context = BlockContext {
     //     chain_id,
@@ -302,10 +299,12 @@ pub fn execute_tx_configurable_with_state(
         fee_token_addresses: FeeTokenAddresses::default(),
     };
 
-    let block_context = BlockContext::new_unchecked(
-        &block_info,
-        &chain_info,
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    let block_context = BlockContext::new(
+        block_info,
+        chain_info,
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        BouncerConfig::empty(),
+        false
     );
 
     // Get transaction before giving ownership of the reader
