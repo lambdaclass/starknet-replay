@@ -319,7 +319,7 @@ fn show_execution_data(
     // if it is a declare tx then there's no execute call info
     let execution_gas = match execution_info.execute_call_info {
         Some(ci) => ci.execution.gas_consumed,
-        None => 0
+        None => 0,
     };
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");

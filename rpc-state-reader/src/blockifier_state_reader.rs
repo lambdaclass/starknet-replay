@@ -1,16 +1,22 @@
 use blockifier::{
-    blockifier::block::BlockInfo, bouncer::BouncerConfig, context::{BlockContext, ChainInfo, FeeTokenAddresses}, execution::contract_class::{ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner}, state::{
+    blockifier::block::BlockInfo,
+    bouncer::BouncerConfig,
+    context::{BlockContext, ChainInfo, FeeTokenAddresses},
+    execution::contract_class::{ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner},
+    state::{
         cached_state::CachedState,
         errors::StateError,
         state_api::{StateReader, StateResult},
-    }, transaction::{
+    },
+    transaction::{
         account_transaction::AccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
         transactions::{
             DeclareTransaction, DeployAccountTransaction, ExecutableTransaction, InvokeTransaction,
             L1HandlerTransaction,
         },
-    }, versioned_constants::VersionedConstants
+    },
+    versioned_constants::VersionedConstants,
 };
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
@@ -177,7 +183,7 @@ pub fn execute_tx(
         chain_info,
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
         BouncerConfig::empty(),
-        false
+        false,
     );
     // let block_context = BlockContext {
     //     chain_id,
@@ -304,7 +310,7 @@ pub fn execute_tx_configurable_with_state(
         chain_info,
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
         BouncerConfig::empty(),
-        false
+        false,
     );
 
     // Get transaction before giving ownership of the reader
