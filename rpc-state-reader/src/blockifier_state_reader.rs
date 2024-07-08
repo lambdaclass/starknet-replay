@@ -440,7 +440,9 @@ mod tests {
         => ignore["broken on both due to a cairo-vm error"]
     )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number - 1));
+        // To reexecute a transaction, we must use the state from its previous block
+        let previous_block = BlockNumber(block_number - 1);
+        let (tx_info, trace, _) = execute_tx(hash, chain, previous_block);
 
         assert_eq!(
             tx_info.revert_error,
@@ -614,8 +616,9 @@ mod tests {
         => ignore
     )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        // Execute using blockifier
-        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number - 1));
+        // To reexecute a transaction, we must use the state from its previous block
+        let previous_block = BlockNumber(block_number - 1);
+        let (tx_info, trace, _receipt) = execute_tx(hash, chain, previous_block);
 
         // We cannot currently check fee & resources
 
