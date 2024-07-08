@@ -51,6 +51,11 @@ In order to create a flamegraph you first need to install [cargo-flamegraph](htt
 cargo install flamegraph
 ```
 
+To produce a flamegraph of a transaction execution run:
+```bash
+cargo flamegraph --root --dev -- tx <tx_hash> <network> <block_number - 1>
+```
+
 #### Example 
 
 Producing a flamegraph of a tx execution would look like this:
