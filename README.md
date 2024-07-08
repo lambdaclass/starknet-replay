@@ -53,12 +53,5 @@ cargo install flamegraph
 
 To produce a flamegraph of a transaction execution run:
 ```bash
-cargo flamegraph --root --dev -- tx <tx_hash> <network> <block_number - 1>
-```
-
-#### Example 
-
-Producing a flamegraph of a tx execution would look like this:
-```bash
 cargo flamegraph --root --dev -- tx 0x1b84bb4760a05c88ceab90a4fb9f37e2f518c822a655abe46361a61a88200fa mainnet 656535
 ```
