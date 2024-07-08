@@ -9,5 +9,5 @@ resolver = "2"
 [workspace.dependencies]
 thiserror = "1.0.32"
 starknet_api = "=0.12.0-dev.1"
-blockifier = { git = "https://github.com/lambdaclass/blockifier", rev = "73c8798e979c6e4b51f8b83efa469dba5eb4281b" }
+blockifier = { git = "https://github.com/lambdaclass/blockifier", rev = "cca77ec508f715c46f2170ac8245fb89084e152c" }
 tracing = "0.1"
