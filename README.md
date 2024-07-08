@@ -56,7 +56,7 @@ then use this command to create one by running a transaction:
 cargo flamegraph --root --dev -- <tx_hash> <network> <block_number - 1>
 ```
 
-## Example 
+#### Example 
 
 ```bash
 cargo flamegraph --root --dev -- 0x1b84bb4760a05c88ceab90a4fb9f37e2f518c822a655abe46361a61a88200fa mainnet 656535
