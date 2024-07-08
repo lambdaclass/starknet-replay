@@ -43,3 +43,21 @@ As an example, to show only error messages from the replay crate, run:
 ```bash
 RUST_LOG=replay=error cargo run block mainnet 648461
 ```
+
+### Flamegraph
+
+In order to create a flamegraph you first need to install `cargo-flamegraph`:
+```bash
+  cargo install flamegraph
+```
+
+then use this command to create one by running a transaction:
+```bash
+cargo flamegraph --root --dev -- <tx_hash> <network> <block_number - 1>
+```
+
+## Example 
+
+```bash
+cargo flamegraph --root --dev -- 0x1b84bb4760a05c88ceab90a4fb9f37e2f518c822a655abe46361a61a88200fa mainnet 656535
+```
