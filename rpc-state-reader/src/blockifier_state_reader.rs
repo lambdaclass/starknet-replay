@@ -302,7 +302,9 @@ mod tests {
     )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
         let mut state = build_cached_state(&chain.to_string(), block_number);
-        let (tx_info, trace, _) = execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false).unwrap();
+        let (tx_info, trace, _) =
+            execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false)
+                .unwrap();
 
         assert_eq!(
             tx_info.revert_error,
@@ -478,7 +480,9 @@ mod tests {
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
         let mut state = build_cached_state(&chain.to_string(), block_number);
-        let (tx_info, trace, _) = execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false).unwrap();
+        let (tx_info, trace, _) =
+            execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false)
+                .unwrap();
 
         // We cannot currently check fee & resources
 
