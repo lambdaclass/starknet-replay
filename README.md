@@ -46,7 +46,7 @@ RUST_LOG=replay=error cargo run block mainnet 648461
 
 ### Flamegraph
 
-In order to create a flamegraph you first need to install `cargo-flamegraph`:
+In order to create a flamegraph you first need to install [cargo-flamegraph](https://github.com/killercup/cargo-flamegraph):
 ```bash
   cargo install flamegraph
 ```
