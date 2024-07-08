@@ -23,8 +23,8 @@ This project is integrated with Cairo Native, see [Cairo Native Setup](#cairo-na
 Some environment variable are needed, you can automatically set them by sourcing `env.sh`. If the script doesn't adjust to your specific environment you can `cp` it into `.env` or `.envrc` and modify it.
 ```bash
 # Cairo Native
+export LLVM_SYS_181_PREFIX=/path/to/llvm-18
 export MLIR_SYS_180_PREFIX=/path/to/llvm-18
-export LLVM_SYS_180_PREFIX=/path/to/llvm-18
 export TABLEGEN_180_PREFIX=/path/to/llvm-18
 export CAIRO_NATIVE_RUNTIME_LIBRARY=/path/to/cairo_native/target/release/libcairo_native_runtime.a
 # RPC
@@ -44,10 +44,10 @@ Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/l
 
 - On mac with brew, running `make deps` should have installed LLVM 18 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
 
-- The `LLVM_SYS_180_PREFIX`, `MLIR_SYS_180_PREFIX` and `TABLEGEN_180_PREFIX` environment variable needs to point to said installation. In macOS, run:
+- The `LLVM_SYS_181_PREFIX`, `MLIR_SYS_180_PREFIX` and `TABLEGEN_180_PREFIX` environment variable needs to point to said installation. In macOS, run:
   ```
   export LLVM_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
-  export MLIR_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
+  export MLIR_SYS_181_PREFIX=/opt/homebrew/opt/llvm@18
   export TABLEGEN_180_PREFIX=/opt/homebrew/opt/llvm@18
   ```
   and you're set.
