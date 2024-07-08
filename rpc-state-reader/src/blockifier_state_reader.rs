@@ -619,7 +619,7 @@ mod tests {
         let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
 
         // We cannot currently check fee & resources
-
+        
         // Compare tx CallInfos against trace RpcCallInfos
         // Note: This will check calldata, retdata, internal calls and make sure the tx is not reverted.
         // It will not chekced accessed or modified storage, messanges, and events (as they are not currenlty part of the RpcCallInfo)
@@ -643,13 +643,13 @@ mod tests {
                 internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
-                events: value.execution.events.iter().map(|e| e.into()).collect(),
-                l2_l1_messages: value
+                events: Some(value.execution.events.iter().map(|e| e.into()).collect()),
+                l2_l1_messages: Some(value
                     .execution
                     .l2_to_l1_messages
                     .iter()
                     .map(|llm| llm.into())
-                    .collect(),
+                    .collect()),
             }
         }
     }

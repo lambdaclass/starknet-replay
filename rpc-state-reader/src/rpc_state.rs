@@ -202,8 +202,8 @@ pub struct RpcCallInfo {
     pub calldata: Option<Vec<StarkFelt>>,
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
-    pub events: Vec<Event>,
-    pub l2_l1_messages: Vec<L2ToL1Msg>,
+    pub events: Option<Vec<Event>>,
+    pub l2_l1_messages: Option<Vec<L2ToL1Msg>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -374,8 +374,8 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
             calldata,
             internal_calls,
             revert_reason: None,
-            events,
-            l2_l1_messages,
+            events: Some(events),
+            l2_l1_messages: Some(l2_l1_messages),
         })
     }
 }
