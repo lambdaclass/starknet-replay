@@ -23,7 +23,6 @@ use starknet_api::{
     block::BlockNumber,
     core::{calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     hash::StarkFelt,
-    stark_felt,
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
@@ -247,7 +246,7 @@ pub fn execute_tx_configurable(
 
 pub fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
     let previous_block_number = BlockNumber(current_block_number - 1);
-    let rpc_chain = parse_network(&network);
+    let rpc_chain = parse_network(network);
     let rpc_reader = RpcStateReader(
         RpcState::new_rpc(rpc_chain, previous_block_number.into())
             .expect("failed to create state reader"),
@@ -258,9 +257,9 @@ pub fn build_cached_state(network: &str, current_block_number: u64) -> CachedSta
 
 pub fn parse_network(network: &str) -> RpcChain {
     match network.to_lowercase().as_str() {
-        "mainnet" => RpcChain::MainNet,
-        "testnet" => RpcChain::TestNet,
-        "testnet2" => RpcChain::TestNet2,
+        "starknet-mainnet" => RpcChain::MainNet,
+        "starknet-testnet" => RpcChain::TestNet,
+        "starknet-testnet2" => RpcChain::TestNet2,
         _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
     }
 }

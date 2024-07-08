@@ -2,7 +2,7 @@ use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
     blockifier_state_reader::{build_cached_state, parse_network, RpcStateReader},
-    rpc_state::{BlockValue, RpcChain, RpcState, RpcTransactionReceipt},
+    rpc_state::{BlockValue, RpcState},
     rpc_state_errors::RpcStateError,
 };
 
