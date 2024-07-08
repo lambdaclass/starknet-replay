@@ -42,11 +42,12 @@ make test
 
 Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/lambdaclass/cairo_native), which makes the execution of sierra programs possible through native machine code. To use it, the following needs to be setup:
 
-- LLVM `18` needs to be installed and the `MLIR_SYS_180_PREFIX` and `TABLEGEN_180_PREFIX` environment variable needs to point to said installation. In macOS, run
+- On mac with brew, running `make deps` should have installed LLVM 18 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
+
+- The `LLVM_SYS_180_PREFIX`, `MLIR_SYS_180_PREFIX` and `TABLEGEN_180_PREFIX` environment variable needs to point to said installation. In macOS, run:
   ```
-  brew install llvm@18
-  export MLIR_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
   export LLVM_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
+  export MLIR_SYS_180_PREFIX=/opt/homebrew/opt/llvm@18
   export TABLEGEN_180_PREFIX=/opt/homebrew/opt/llvm@18
   ```
   and you're set.
