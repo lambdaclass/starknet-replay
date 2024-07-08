@@ -10,11 +10,11 @@ serde_json = { version = "1.0", features = [
   "arbitrary_precision",
   "raw_value",
 ] }
-starknet_api = { workspace = true }
-cairo-lang-starknet = "=2.6.3"
-cairo-lang-starknet-classes = "=2.6.3"
-cairo-lang-utils = "=2.6.3"
-starknet = "0.7.0"
+starknet_api = {workspace = true}
+cairo-lang-starknet = "=2.6.4"
+cairo-lang-starknet-classes = "=2.6.4"
+cairo-lang-utils = "=2.6.4"
+starknet = "0.7.0" 
 thiserror = { workspace = true }
 flate2 = "1.0.25"
 dotenv = "0.15.0"
