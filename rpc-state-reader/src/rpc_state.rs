@@ -1,4 +1,7 @@
-use blockifier::blockifier::block::GasPrices;
+use blockifier::{
+    blockifier::block::GasPrices,
+    execution::call_info::{OrderedEvent, OrderedL2ToL1Message},
+};
 use cairo_vm::vm::runners::{
     builtin_runner::{
         BITWISE_BUILTIN_NAME, EC_OP_BUILTIN_NAME, HASH_BUILTIN_NAME, KECCAK_BUILTIN_NAME,
@@ -14,10 +17,10 @@ use serde_json::json;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, BlockTimestamp},
-    core::{ChainId, ClassHash, ContractAddress},
+    core::{ChainId, ClassHash, ContractAddress, EthAddress},
     hash::{StarkFelt, StarkHash},
     state::StorageKey,
-    transaction::{Transaction as SNTransaction, TransactionHash},
+    transaction::{EventContent, L2ToL1Payload, Transaction as SNTransaction, TransactionHash},
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
 
@@ -95,6 +98,38 @@ pub enum BlockValue {
     Hash(StarkHash),
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+pub struct Event {
+    pub order: usize,
+    pub event: EventContent
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+pub struct L2ToL1Msg {
+    pub order: usize,
+    pub to_address: EthAddress,
+    pub payload: L2ToL1Payload,
+}
+
+impl From<&OrderedL2ToL1Message> for L2ToL1Msg {
+    fn from(value: &OrderedL2ToL1Message) -> Self {
+        Self {
+            order: value.order,
+            to_address: value.message.to_address,
+            payload: value.message.payload.clone(),
+        }
+    }
+}
+
+impl From<&OrderedEvent> for Event {
+    fn from(value: &OrderedEvent) -> Self {
+        Self {
+            order: value.order,
+            event: value.event.clone(),
+        }
+    }
+}
+
 impl From<BlockTag> for BlockValue {
     fn from(value: BlockTag) -> Self {
         BlockValue::Tag(value)
@@ -167,6 +202,8 @@ pub struct RpcCallInfo {
     pub calldata: Option<Vec<StarkFelt>>,
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
+    pub events: Vec<Event>,
+    pub l2_l1_messages: Vec<L2ToL1Msg>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -303,11 +340,42 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
                 .push(serde_json::from_value(call.clone()).map_err(serde::de::Error::custom)?);
         }
 
+        let events_value = value
+            .get("events")
+            .ok_or(serde::de::Error::custom(
+                RpcStateError::MissingRpcResponseField("events".to_string()),
+            ))?
+            .clone();
+        let mut events = vec![];
+
+        for event in events_value.as_array().ok_or(serde::de::Error::custom(
+            RpcStateError::RpcResponseWrongType("events".to_string()),
+        ))? {
+            events.push(serde_json::from_value(event.clone()).map_err(serde::de::Error::custom)?)
+        }
+
+        let msg_l1_l2_value = value
+            .get("l2_l1_messages")
+            .ok_or(serde::de::Error::custom(
+                RpcStateError::MissingRpcResponseField("l2_l1_messages".to_string()),
+            ))?
+            .clone();
+        let mut l2_l1_messages = vec![];
+
+        for msg in msg_l1_l2_value.as_array().ok_or(serde::de::Error::custom(
+            RpcStateError::RpcResponseWrongType("l2_l1_messages".to_string()),
+        ))? {
+            l2_l1_messages
+                .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
+        }
+
         Ok(RpcCallInfo {
             retdata,
             calldata,
             internal_calls,
             revert_reason: None,
+            events,
+            l2_l1_messages,
         })
     }
 }

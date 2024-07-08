@@ -409,10 +409,11 @@ mod tests {
 
     use std::num::NonZeroU128;
 
-    use crate::rpc_state::{BlockValue, RpcCallInfo};
+    use crate::rpc_state::{BlockValue, L2ToL1Msg, RpcCallInfo};
 
     use super::*;
     use blockifier::execution::call_info::CallInfo;
+    use cairo_lang_starknet_classes::abi::Event;
     use pretty_assertions_sorted::assert_eq_sorted;
     use test_case::test_case;
     #[test]
@@ -642,6 +643,13 @@ mod tests {
                 internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
+                events: value.execution.events.iter().map(|e| e.into()).collect(),
+                l2_l1_messages: value
+                    .execution
+                    .l2_to_l1_messages
+                    .iter()
+                    .map(|llm| llm.into())
+                    .collect(),
             }
         }
     }
