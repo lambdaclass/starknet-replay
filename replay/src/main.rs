@@ -1,6 +1,4 @@
-use blockifier::{
-    state::cached_state::CachedState, transaction::objects::TransactionExecutionInfo,
-};
+use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
     blockifier_state_reader::{build_cached_state, parse_network, RpcStateReader},
@@ -33,8 +31,12 @@ use starknet_in_rust::{
 };
 #[cfg(feature = "benchmark")]
 use std::ops::Div;
+use std::str::FromStr;
 #[cfg(feature = "benchmark")]
 use std::{collections::HashMap, sync::Arc, time::Instant};
+use tracing::{debug, error, info, info_span};
+use tracing_subscriber::filter::Directive;
+use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -50,20 +52,14 @@ enum ReplayExecute {
         tx_hash: String,
         chain: String,
         block_number: u64,
-        silent: Option<bool>,
     },
     #[clap(about = "Execute all the transactions in a given block.")]
-    Block {
-        chain: String,
-        block_number: u64,
-        silent: Option<bool>,
-    },
+    Block { chain: String, block_number: u64 },
     #[clap(about = "Execute all the transactions in a given range of blocks.")]
     BlockRange {
         block_start: u64,
         block_end: u64,
         chain: String,
-        silent: Option<bool>,
     },
     #[cfg(feature = "benchmark")]
     #[clap(
@@ -79,50 +75,49 @@ Caches all rpc data before the benchmark runs to provide accurate results"
 }
 
 fn main() {
-    let cli = ReplayCLI::parse();
+    set_global_subscriber();
 
+    let cli = ReplayCLI::parse();
     match cli.subcommand {
         ReplayExecute::Tx {
             tx_hash,
             chain,
             block_number,
-            silent,
         } => {
-            let mut state = build_cached_state(&chain, block_number);
-            show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+            let mut state = build_cached_state(&chain, block_number - 1);
+            show_execution_data(&mut state, tx_hash, &chain, block_number);
         }
         ReplayExecute::Block {
             block_number,
             chain,
-            silent,
         } => {
-            println!("Executing block number: {}", block_number);
+            let _block_span = info_span!("block", number = block_number).entered();
 
-            let mut state = build_cached_state(&chain, block_number);
+            let mut state = build_cached_state(&chain, block_number - 1);
 
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
-
             for tx_hash in transaction_hashes {
-                show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+                show_execution_data(&mut state, tx_hash, &chain, block_number);
             }
         }
         ReplayExecute::BlockRange {
             block_start,
             block_end,
             chain,
-            silent,
         } => {
-            println!("Executing block range: {} - {}", block_start, block_end);
+            info!("executing block range: {} - {}", block_start, block_end);
 
             for block_number in block_start..=block_end {
-                let mut state = build_cached_state(&chain, block_number);
+                let _block_span = info_span!("block", number = block_number).entered();
+
+                let mut state = build_cached_state(&chain, block_number - 1);
 
                 let transaction_hashes = get_transaction_hashes(&chain, block_number)
                     .expect("Unable to fetch the transaction hashes.");
 
                 for tx_hash in transaction_hashes {
-                    show_execution_data(&mut state, tx_hash, &chain, block_number, silent);
+                    show_execution_data(&mut state, tx_hash, &chain, block_number);
                 }
             }
         }
@@ -260,48 +255,52 @@ fn show_execution_data(
     tx_hash: String,
     chain: &str,
     block_number: u64,
-    silent: Option<bool>,
 ) {
-    if silent.is_none() || !silent.unwrap() {
-        println!("Executing transaction with hash: {}", tx_hash);
-        println!("Block number: {}", block_number);
-        println!("Chain: {}", chain);
-    }
+    let _transaction_execution_span = info_span!("transaction", hash = tx_hash, chain).entered();
+
+    info!("starting execution");
+
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (tx_info, _trace, receipt) =
+    let (execution_info, _trace, rpc_receipt) =
         match execute_tx_configurable(state, &tx_hash, previous_block_number, false, true) {
             Ok(x) => x,
             Err(error_reason) => {
-                println!("Error: {}", error_reason);
+                error!("execution failed unexpectedly: {}", error_reason);
                 return;
             }
         };
-    let TransactionExecutionInfo {
-        revert_error,
-        actual_fee,
-        ..
-    } = tx_info;
 
-    let blockifier_actual_fee = actual_fee;
+    let execution_status = match &execution_info.revert_error {
+        Some(_) => "REVERTED",
+        None => "SUCCEEDED",
+    };
+    let rpc_execution_status = rpc_receipt.execution_status;
+    let status_matches = execution_status == rpc_execution_status;
 
-    let RpcTransactionReceipt {
-        actual_fee,
-        execution_status,
-        ..
-    } = receipt;
-
-    if silent.is_none() || !silent.unwrap() {
-        println!("[RPC] Execution status: {:?}", execution_status);
-        if let Some(revert_error) = revert_error {
-            println!("[Blockifier] Revert error: {}", revert_error);
-        }
-        println!(
-            "[RPC] Actual fee: {} {}",
-            actual_fee.amount, actual_fee.unit
+    if !status_matches {
+        error!(
+            transaction_hash = tx_hash,
+            chain = chain,
+            execution_status,
+            rpc_execution_status,
+            execution_error_message = execution_info.revert_error,
+            "rpc and execution status diverged"
+        )
+    } else {
+        info!(
+            transaction_hash = tx_hash,
+            chain = chain,
+            execution_status,
+            rpc_execution_status,
+            execution_error_message = execution_info.revert_error,
+            "execution finished successfully"
         );
-        println!("[Blockifier] Actual fee: {:?} wei", blockifier_actual_fee);
     }
+
+    let execution_gas = execution_info.actual_fee;
+    let rpc_gas = rpc_receipt.actual_fee;
+    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
 
 fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
@@ -309,4 +308,20 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
     let block_value = BlockValue::Number(BlockNumber(block_number));
     let rpc_state = RpcState::new_rpc(network, block_value)?;
     rpc_state.get_transaction_hashes()
+}
+
+fn set_global_subscriber() {
+    let default_directive = Directive::from_str("replay=info").expect("should be valid");
+
+    tracing_subscriber::fmt()
+        .with_env_filter({
+            EnvFilter::builder()
+                .with_default_directive(default_directive)
+                .from_env_lossy()
+        })
+        .pretty()
+        .with_file(false)
+        .with_line_number(false)
+        .finish()
+        .init();
 }

@@ -56,3 +56,12 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run block mainnet 648655
 * cargo run block-range 90000 90002 mainnet
 ```
+
+### Logging
+
+This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
+
+As an example, to show only error messages from the replay crate, run:
+```bash
+RUST_LOG=replay=error cargo run block mainnet 648461
+```
