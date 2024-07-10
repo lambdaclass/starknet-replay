@@ -117,8 +117,6 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                     "tx execution failed"
                 ),
             }
-
-            break;
         }
     }
 }
