@@ -565,6 +565,21 @@ mod tests {
         => ignore
     )]
     #[test_case(
+        "0xaa8c451a3f231f3eeba8bc48236eecd5fe42cc1513f175c7d52b41d35ecba2",
+        657074, // real block 657075
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x2101910b5baddb23888337377872e08e01d75070486f010373b48d7c8366f11",
+        657069, // real block 657070
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x7b41f9942a4d4641e6118a00e0629880845215e4445221139b5d32fa3ab7766",
+        657043, // real block 657044
+        RpcChain::MainNet
+    )]
+    #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654000, // real block 654001
         RpcChain::MainNet
