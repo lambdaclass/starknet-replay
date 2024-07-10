@@ -20,7 +20,10 @@ use starknet_api::{
     core::{ChainId, ClassHash, ContractAddress, EthAddress},
     hash::{StarkFelt, StarkHash},
     state::StorageKey,
-    transaction::{EventContent, EventData, EventKey, L2ToL1Payload, Transaction as SNTransaction, TransactionHash},
+    transaction::{
+        EventData, EventKey, L2ToL1Payload, Transaction as SNTransaction,
+        TransactionHash,
+    },
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
 
@@ -127,7 +130,7 @@ impl From<&OrderedEvent> for Event {
         Self {
             order: value.order,
             keys: value.event.keys.clone(),
-            data: value.event.data.clone()
+            data: value.event.data.clone(),
         }
     }
 }
@@ -205,7 +208,7 @@ pub struct RpcCallInfo {
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
     pub events: Vec<Event>,
-    // pub l2_l1_messages: Option<Vec<L2ToL1Msg>>,
+    pub messages: Vec<L2ToL1Msg>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -353,24 +356,23 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
         for event in events_value.as_array().ok_or(serde::de::Error::custom(
             RpcStateError::RpcResponseWrongType("events".to_string()),
         ))? {
-            dbg!(event);
             events.push(serde_json::from_value(event.clone()).map_err(serde::de::Error::custom)?)
         }
 
-        // let msg_l1_l2_value = value
-        //     .get("l2_l1_messages")
-        //     .ok_or(serde::de::Error::custom(
-        //         RpcStateError::MissingRpcResponseField("l2_l1_messages".to_string()),
-        //     ))?
-        //     .clone();
-        // let mut l2_l1_messages = vec![];
+        let messages_value = value
+            .get("messages")
+            .ok_or(serde::de::Error::custom(
+                RpcStateError::MissingRpcResponseField("messages".to_string()),
+            ))?
+            .clone();
+        let mut messages = vec![];
 
-        // for msg in msg_l1_l2_value.as_array().ok_or(serde::de::Error::custom(
-        //     RpcStateError::RpcResponseWrongType("l2_l1_messages".to_string()),
-        // ))? {
-        //     l2_l1_messages
-        //         .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
-        // }
+        for msg in messages_value.as_array().ok_or(serde::de::Error::custom(
+            RpcStateError::RpcResponseWrongType("messages".to_string()),
+        ))? {
+            messages
+                .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
+        }
 
         Ok(RpcCallInfo {
             retdata,
@@ -378,7 +380,7 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
             internal_calls,
             revert_reason: None,
             events,
-            // l2_l1_messages: l2_l1_messages,
+            messages,
         })
     }
 }

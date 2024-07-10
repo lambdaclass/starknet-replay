@@ -637,8 +637,6 @@ mod tests {
     // Impl conversion for easier checking against RPC data
     impl From<&CallInfo> for RpcCallInfo {
         fn from(value: &CallInfo) -> Self {
-            dbg!("Msgs num: {}", &value.execution.l2_to_l1_messages);
-
             Self {
                 retdata: Some(value.execution.retdata.0.clone()),
                 calldata: Some((*value.call.calldata.0).clone()),
@@ -646,12 +644,12 @@ mod tests {
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
                 events: value.execution.events.iter().map(|e| e.into()).collect(),
-                // l2_l1_messages: value
-                //     .execution
-                //     .l2_to_l1_messages
-                //     .iter()
-                //     .map(|llm| llm.into())
-                //     .collect(),
+                messages: value
+                    .execution
+                    .l2_to_l1_messages
+                    .iter()
+                    .map(|llm| llm.into())
+                    .collect(),
             }
         }
     }
