@@ -21,8 +21,7 @@ use starknet_api::{
     hash::{StarkFelt, StarkHash},
     state::StorageKey,
     transaction::{
-        EventData, EventKey, L2ToL1Payload, Transaction as SNTransaction,
-        TransactionHash,
+        EventData, EventKey, L2ToL1Payload, Transaction as SNTransaction, TransactionHash,
     },
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
@@ -370,8 +369,7 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
         for msg in messages_value.as_array().ok_or(serde::de::Error::custom(
             RpcStateError::RpcResponseWrongType("messages".to_string()),
         ))? {
-            messages
-                .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
+            messages.push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
         }
 
         Ok(RpcCallInfo {

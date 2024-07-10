@@ -409,11 +409,10 @@ mod tests {
 
     use std::num::NonZeroU128;
 
-    use crate::rpc_state::{BlockValue, L2ToL1Msg, RpcCallInfo};
+    use crate::rpc_state::{BlockValue, RpcCallInfo};
 
     use super::*;
     use blockifier::execution::call_info::CallInfo;
-    use cairo_lang_starknet_classes::abi::Event;
     use pretty_assertions_sorted::assert_eq_sorted;
     use test_case::test_case;
     #[test]
