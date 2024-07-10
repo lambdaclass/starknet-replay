@@ -126,7 +126,7 @@ fn main() {
                     // Internally, this fetches all the needed information and caches it
                     let result = execute_tx_configurable(
                         &mut state,
-                        &transaction_hash,
+                        transaction_hash,
                         BlockNumber(block_number),
                         false,
                         false,
@@ -166,7 +166,7 @@ fn main() {
                         // We use the same state from the previous execution
                         let result = execute_tx_configurable(
                             state,
-                            &transaction_hash,
+                            transaction_hash,
                             BlockNumber(*block_number),
                             false,
                             false,
