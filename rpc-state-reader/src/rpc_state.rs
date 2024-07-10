@@ -20,7 +20,7 @@ use starknet_api::{
     core::{ChainId, ClassHash, ContractAddress, EthAddress},
     hash::{StarkFelt, StarkHash},
     state::StorageKey,
-    transaction::{EventContent, L2ToL1Payload, Transaction as SNTransaction, TransactionHash},
+    transaction::{EventContent, EventData, EventKey, L2ToL1Payload, Transaction as SNTransaction, TransactionHash},
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
 
@@ -101,7 +101,8 @@ pub enum BlockValue {
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
 pub struct Event {
     pub order: usize,
-    pub event: EventContent
+    pub keys: Vec<EventKey>,
+    pub data: EventData,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
@@ -125,7 +126,8 @@ impl From<&OrderedEvent> for Event {
     fn from(value: &OrderedEvent) -> Self {
         Self {
             order: value.order,
-            event: value.event.clone(),
+            keys: value.event.keys.clone(),
+            data: value.event.data.clone()
         }
     }
 }
@@ -202,8 +204,8 @@ pub struct RpcCallInfo {
     pub calldata: Option<Vec<StarkFelt>>,
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
-    pub events: Option<Vec<Event>>,
-    pub l2_l1_messages: Option<Vec<L2ToL1Msg>>,
+    pub events: Vec<Event>,
+    // pub l2_l1_messages: Option<Vec<L2ToL1Msg>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -351,31 +353,32 @@ impl<'de> Deserialize<'de> for RpcCallInfo {
         for event in events_value.as_array().ok_or(serde::de::Error::custom(
             RpcStateError::RpcResponseWrongType("events".to_string()),
         ))? {
+            dbg!(event);
             events.push(serde_json::from_value(event.clone()).map_err(serde::de::Error::custom)?)
         }
 
-        let msg_l1_l2_value = value
-            .get("l2_l1_messages")
-            .ok_or(serde::de::Error::custom(
-                RpcStateError::MissingRpcResponseField("l2_l1_messages".to_string()),
-            ))?
-            .clone();
-        let mut l2_l1_messages = vec![];
+        // let msg_l1_l2_value = value
+        //     .get("l2_l1_messages")
+        //     .ok_or(serde::de::Error::custom(
+        //         RpcStateError::MissingRpcResponseField("l2_l1_messages".to_string()),
+        //     ))?
+        //     .clone();
+        // let mut l2_l1_messages = vec![];
 
-        for msg in msg_l1_l2_value.as_array().ok_or(serde::de::Error::custom(
-            RpcStateError::RpcResponseWrongType("l2_l1_messages".to_string()),
-        ))? {
-            l2_l1_messages
-                .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
-        }
+        // for msg in msg_l1_l2_value.as_array().ok_or(serde::de::Error::custom(
+        //     RpcStateError::RpcResponseWrongType("l2_l1_messages".to_string()),
+        // ))? {
+        //     l2_l1_messages
+        //         .push(serde_json::from_value(msg.clone()).map_err(serde::de::Error::custom)?)
+        // }
 
         Ok(RpcCallInfo {
             retdata,
             calldata,
             internal_calls,
             revert_reason: None,
-            events: Some(events),
-            l2_l1_messages: Some(l2_l1_messages),
+            events,
+            // l2_l1_messages: l2_l1_messages,
         })
     }
 }
