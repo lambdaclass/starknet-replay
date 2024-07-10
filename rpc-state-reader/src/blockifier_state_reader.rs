@@ -117,7 +117,7 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
 
-/// Rxecutes a given transaction returns the execution result
+/// Executes a given transaction and returns the execution result
 pub fn execute_tx(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
