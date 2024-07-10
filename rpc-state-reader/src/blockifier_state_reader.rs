@@ -117,8 +117,8 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
 
-/// Returns the execution information of a given transaction
-pub fn get_tx_execution_info(
+/// Rxecutes a given transaction returns the execution result
+pub fn execute_tx(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
     block_info: BlockInfo,
@@ -201,7 +201,7 @@ pub fn get_tx_execution_info(
     blockifier_execution
 }
 
-/// executes a transaction and returns its trace, receipt and execution information
+/// Returns transaction's trace, receipt and execution information
 pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
@@ -231,7 +231,7 @@ pub fn execute_tx_configurable(
         gas_prices: gas_price,
         use_kzg_da: false,
     };
-    let blockifier_exec_info = get_tx_execution_info(
+    let blockifier_exec_info = execute_tx(
         &tx_hash,
         tx,
         block_info,
@@ -244,14 +244,13 @@ pub fn execute_tx_configurable(
     Ok((blockifier_exec_info, trace, receipt))
 }
 
-pub fn build_cached_state(network: &str, current_block_number: u64) -> CachedState<RpcStateReader> {
-    let previous_block_number = BlockNumber(current_block_number - 1);
+pub fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
+    let block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(network);
     let rpc_reader = RpcStateReader(
-        RpcState::new_rpc(rpc_chain, previous_block_number.into())
+        RpcState::new_rpc(rpc_chain, block_number.into())
             .expect("failed to create state reader"),
     );
-
     CachedState::new(rpc_reader)
 }
 
