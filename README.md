@@ -24,7 +24,29 @@ Currently cairo-native with AOT needs a runtime library in a known place. For th
 CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libcairo_native_runtime.a
 ```
 
+After that you must run this command in your cairo_native project:
+
+```bash
+  make runtime
+```
+
 If you don't do this you will get a linker error when using AOT.
+
+### RPC State Reader
+
+[The RPC State Reader](/rpc_state_reader/) provides a way of reading the real Starknet State when using Starknet in Rust.
+So you can re-execute an existing transaction in any of the Starknet networks in an easy way, just providing the transaction hash, the block number and the network in which the transaction was executed.
+Every time it needs to read a storage value, a contract class or contract, it goes to an RPC to fetch them.
+
+Right now we are using it for internal testing but we plan to release it as a library soon.
+
+#### How to configure it
+In order to use the RPC state reader add the endpoints to a full node instance or RPC provider supporting Starknet API version 0.5.0 in a `.env` file at root:
+
+```
+RPC_ENDPOINT_TESTNET={some endpoint}
+RPC_ENDPOINT_MAINNET={some endpoint}
+```
 
 ## replay
 You can use the replay crate to execute transactions or blocks via the CLI. For example:
