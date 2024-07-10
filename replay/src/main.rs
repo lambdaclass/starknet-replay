@@ -119,6 +119,8 @@ fn main() {
             let mut block_range_data = fetch_block_range_data(block_start, block_end, &chain);
 
             info!("filling up execution cache");
+
+            // We must execute the block range once first to ensure that all required data is cached
             execute_block_range(&mut block_range_data);
 
             {
