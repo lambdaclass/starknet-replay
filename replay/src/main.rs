@@ -314,7 +314,10 @@ fn show_execution_data(
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
 
-fn get_transaction_hashes(rpc_chain: RpcChain, block_number: u64) -> Result<Vec<String>, RpcStateError> {
+fn get_transaction_hashes(
+    rpc_chain: RpcChain,
+    block_number: u64,
+) -> Result<Vec<String>, RpcStateError> {
     let block_value = BlockValue::Number(BlockNumber(block_number));
     let rpc_state = RpcState::new_rpc(rpc_chain, block_value)?;
     rpc_state.get_transaction_hashes()
