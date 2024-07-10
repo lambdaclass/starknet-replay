@@ -248,8 +248,7 @@ pub fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcSt
     let block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(network);
     let rpc_reader = RpcStateReader(
-        RpcState::new_rpc(rpc_chain, block_number.into())
-            .expect("failed to create state reader"),
+        RpcState::new_rpc(rpc_chain, block_number.into()).expect("failed to create state reader"),
     );
     CachedState::new(rpc_reader)
 }
