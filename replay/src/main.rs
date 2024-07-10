@@ -14,17 +14,13 @@ use tracing::{debug, error, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
+use crate::benchmark::{execute_block_range, fetch_block_range_data};
+
 #[cfg(feature = "benchmark")]
-use {
-    blockifier::{
-        blockifier::block::BlockInfo,
-        context::{BlockContext, ChainInfo},
-        versioned_constants::VersionedConstants,
-    },
-    rpc_state_reader::blockifier_state_reader::execute_tx_with_blockifier,
-    starknet_api::{hash::StarkFelt, transaction::TransactionHash},
-    std::{ops::Div, time::Instant},
-};
+use std::{ops::Div, time::Instant};
+
+#[cfg(feature = "benchmark")]
+mod benchmark;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -116,132 +112,37 @@ fn main() {
             chain,
             number_of_runs,
         } => {
-            info!("filling up cache");
+            let block_start = BlockNumber(block_start);
+            let block_end = BlockNumber(block_end);
 
-            let chain_id = parse_network(&chain);
+            info!("fetching block range data");
+            let mut block_range_data = fetch_block_range_data(block_start, block_end, &chain);
 
-            let mut block_caches = Vec::new();
+            info!("filling up execution cache");
+            execute_block_range(&mut block_range_data);
 
-            for block_number in block_start..=block_end {
-                // For each block
-                let block_number = BlockNumber(block_number);
+            {
+                let before_execution = Instant::now();
 
-                // Create a cached state
-                let mut state = build_cached_state(&chain, block_number.0 - 1);
+                info!("replaying with cached state");
+                // Benchmark run should make no api requests as all data is cached
 
-                // Fetch block context
-                let block_context = {
-                    let rpc_block_info = state.state.0.get_block_info().unwrap();
-
-                    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
-
-                    BlockContext::new_unchecked(
-                        &BlockInfo {
-                            block_number,
-                            block_timestamp: rpc_block_info.block_timestamp,
-                            sequencer_address: rpc_block_info.sequencer_address,
-                            gas_prices: gas_price,
-                            use_kzg_da: false,
-                        },
-                        &ChainInfo {
-                            chain_id: chain_id.into(),
-                            fee_token_addresses: Default::default(),
-                        },
-                        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
-                    )
-                };
-
-                // Fetch transactions for the block
-                let transactions = get_transaction_hashes(&chain, block_number.0)
-                    .unwrap()
-                    .into_iter()
-                    .map(|transaction_hash| {
-                        let transaction_hash = TransactionHash(
-                            StarkFelt::try_from(transaction_hash.strip_prefix("0x").unwrap())
-                                .unwrap(),
-                        );
-
-                        // Fetch transaction
-                        let transaction = state.state.0.get_transaction(&transaction_hash).unwrap();
-
-                        (transaction_hash, transaction)
-                    })
-                    .collect::<Vec<_>>();
-
-                // The transactional state is used to execute a transaction while discarding all writes to it.
-                let mut transactional_state = CachedState::create_transactional(&mut state);
-
-                for (transaction_hash, transaction) in &transactions {
-                    // Execute each transaction
-                    // Internally, this fetches all the needed information and caches it
-                    let result = execute_tx_with_blockifier(
-                        &mut transactional_state,
-                        block_context.clone(),
-                        transaction.to_owned(),
-                        transaction_hash.to_owned(),
-                    );
-
-                    match result {
-                        Ok(info) => {
-                            info!(
-                                transaction_hash = transaction_hash.to_string(),
-                                succeeded = info.revert_error.is_none(),
-                                "tx execution status"
-                            )
-                        }
-                        Err(_) => error!(
-                            transaction_hash = transaction_hash.to_string(),
-                            "tx execution failed"
-                        ),
-                    }
+                for _ in 0..number_of_runs {
+                    execute_block_range(&mut block_range_data);
                 }
 
-                block_caches.push((state, block_context, transactions));
+                let execution_time = before_execution.elapsed();
+                let total_run_time = execution_time.as_secs_f64();
+                let average_run_time = total_run_time.div(number_of_runs as f64);
+                info!(
+                    block_start = block_start.0,
+                    block_end = block_end.0,
+                    number_of_runs,
+                    total_run_time,
+                    average_run_time,
+                    "benchmark finished",
+                );
             }
-
-            let before_execution = Instant::now();
-
-            info!("replaying with cached state");
-
-            // Benchmark run should make no api requests as all data is cached
-
-            for _ in 0..number_of_runs {
-                for (state, block_context, transactions) in &mut block_caches {
-                    // The transactional state is used to execute a transaction while discarding all writes to it.
-                    let mut transactional_state = CachedState::create_transactional(state);
-
-                    for (transaction_hash, transaction) in transactions {
-                        let result = execute_tx_with_blockifier(
-                            &mut transactional_state,
-                            block_context.clone(),
-                            transaction.to_owned(),
-                            transaction_hash.to_owned(),
-                        );
-
-                        match result {
-                            Ok(info) => {
-                                info!(
-                                    transaction_hash = transaction_hash.to_string(),
-                                    succeeded = info.revert_error.is_none(),
-                                    "tx execution status"
-                                )
-                            }
-                            Err(_) => error!(
-                                transaction_hash = transaction_hash.to_string(),
-                                "tx execution failed"
-                            ),
-                        }
-                    }
-                }
-            }
-
-            let execution_time = before_execution.elapsed();
-            let total_run_time = execution_time.as_secs_f64();
-            let average_run_time = total_run_time.div(number_of_runs as f64);
-            info!(
-                block_start,
-                block_end, number_of_runs, total_run_time, average_run_time, "benchmark finished",
-            );
         }
     }
 }
