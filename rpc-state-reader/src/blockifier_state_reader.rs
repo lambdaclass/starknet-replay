@@ -244,22 +244,12 @@ pub fn execute_tx_configurable(
     Ok((blockifier_exec_info, trace, receipt))
 }
 
-pub fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
+pub fn build_cached_state(rpc_chain: RpcChain, block_number: u64) -> CachedState<RpcStateReader> {
     let block_number = BlockNumber(block_number);
-    let rpc_chain = parse_network(network);
     let rpc_reader = RpcStateReader(
         RpcState::new_rpc(rpc_chain, block_number.into()).expect("failed to create state reader"),
     );
     CachedState::new(rpc_reader)
-}
-
-pub fn parse_network(network: &str) -> RpcChain {
-    match network.to_lowercase().as_str() {
-        "starknet-mainnet" => RpcChain::MainNet,
-        "starknet-testnet" => RpcChain::TestNet,
-        "starknet-testnet2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
-    }
 }
 
 #[cfg(test)]
@@ -298,7 +288,7 @@ mod tests {
         => ignore["broken on both due to a cairo-vm error"]
     )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let mut state = build_cached_state(&chain.to_string(), block_number);
+        let mut state = build_cached_state(chain, block_number);
         let (tx_info, trace, _) =
             execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false)
                 .unwrap();
@@ -476,7 +466,7 @@ mod tests {
     )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
         // Execute using blockifier
-        let mut state = build_cached_state(&chain.to_string(), block_number);
+        let mut state = build_cached_state(chain, block_number);
         let (tx_info, trace, _) =
             execute_tx_configurable(&mut state, hash, BlockNumber(block_number), false, false)
                 .unwrap();
