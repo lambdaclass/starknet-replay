@@ -118,16 +118,15 @@ fn main() {
             info!("fetching block range data");
             let mut block_range_data = fetch_block_range_data(block_start, block_end, &chain);
 
+            // We must execute the block range once first to ensure that all data required by blockifier is chached
             info!("filling up execution cache");
-
-            // We must execute the block range once first to ensure that all required data is cached
             execute_block_range(&mut block_range_data);
 
             {
                 let before_execution = Instant::now();
 
-                info!("replaying with cached state");
                 // Benchmark run should make no api requests as all data is cached
+                info!("replaying with cached state");
 
                 for _ in 0..number_of_runs {
                     execute_block_range(&mut block_range_data);

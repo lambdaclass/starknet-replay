@@ -21,11 +21,11 @@ pub type BlockCachedData = (
 
 /// Fetches context data to execute the given block range
 ///
-/// It does not actually execute them, so not all required data will be cached.
-/// To ensure that all rpc data is cached, the block range must be execute
-/// at least once.
+/// It does not actually execute the block range, so not all data required
+/// by blockifier will be cached. To ensure that all rpc data is cached,
+/// the block range must be executed once.
 ///
-/// See `execute_block_range`
+/// See `execute_block_range` to execute the block range
 pub fn fetch_block_range_data(
     block_start: BlockNumber,
     block_end: BlockNumber,
@@ -88,12 +88,12 @@ fn fetch_block_context(
     )
 }
 
-/// Executes the given block range and discards any state changes
+/// Executes the given block range, discarding any state changes applied to it
 ///
-/// Can be used to fill up the cache
+/// Can also be used to fill up the cache
 pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
     for (state, block_context, transactions) in block_range_data {
-        // The transactional state is used to execute a transaction while discarding all writes to it.
+        // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
 
         for (transaction_hash, transaction) in transactions {
