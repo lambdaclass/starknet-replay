@@ -115,18 +115,24 @@ fn main() {
         } => {
             let block_start = BlockNumber(block_start);
             let block_end = BlockNumber(block_end);
+            let chain = parse_network(&chain);
 
             info!("fetching block range data");
-            let mut block_range_data = fetch_block_range_data(block_start, block_end, &chain);
+            let mut block_range_data = fetch_block_range_data(block_start, block_end, chain);
 
             // We must execute the block range once first to ensure that all data required by blockifier is chached
             info!("filling up execution cache");
             execute_block_range(&mut block_range_data);
 
+            // Benchmark run should make no api requests as all data is cached
+            // To ensure this, we disable the inner StateReader
+            for (cached_state, ..) in &mut block_range_data {
+                cached_state.state.disable();
+            }
+
             {
                 let before_execution = Instant::now();
 
-                // Benchmark run should make no api requests as all data is cached
                 info!("replaying with cached state");
 
                 for _ in 0..number_of_runs {

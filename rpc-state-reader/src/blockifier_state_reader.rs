@@ -376,7 +376,7 @@ pub fn execute_tx_configurable(
     let tx_hash =
         TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
-    let block_context = fetch_block_context(state, block_number);
+    let block_context = fetch_block_context(&state.state.0, block_number);
     let blockifier_exec_info = execute_tx_with_blockifier(state, block_context, tx, tx_hash)?;
 
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
@@ -446,12 +446,9 @@ pub fn execute_tx_with_blockifier(
     account_transaction.execute(state, &context, false, true)
 }
 
-pub fn fetch_block_context(
-    state: &CachedState<RpcStateReader>,
-    block_number: BlockNumber,
-) -> BlockContext {
-    let rpc_block_info = state.state.0.get_block_info().unwrap();
-    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
+pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
+    let rpc_block_info = state.get_block_info().unwrap();
+    let gas_price = state.get_gas_price(block_number.0).unwrap();
 
     BlockContext::new_unchecked(
         &BlockInfo {
@@ -462,7 +459,7 @@ pub fn fetch_block_context(
             use_kzg_da: false,
         },
         &ChainInfo {
-            chain_id: state.state.0.get_chain_name(),
+            chain_id: state.get_chain_name(),
             fee_token_addresses: Default::default(),
         },
         &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
