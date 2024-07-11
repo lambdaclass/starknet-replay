@@ -406,8 +406,11 @@ pub fn execute_tx_configurable(
 
 /// Executes a transaction with blockifier
 ///
-/// Unlike execute_transaction_configurable, it does not depend on our state reader
+/// Unlike execute_tx_configurable, it does not depend on our state reader
 /// and can be used with any cached state.
+///
+/// It does not make any query to the state, besides of the ones blockifier
+/// internally makes.
 pub fn execute_tx_with_blockifier(
     state: &mut CachedState<impl StateReader>,
     context: BlockContext,
