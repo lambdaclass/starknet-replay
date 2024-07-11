@@ -366,8 +366,8 @@ pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
     block_number: BlockNumber,
-    skip_validate: bool,
-    skip_nonce_check: bool,
+    _skip_validate: bool,
+    _skip_nonce_check: bool,
 ) -> TransactionExecutionResult<(
     TransactionExecutionInfo,
     TransactionTrace,
@@ -376,29 +376,9 @@ pub fn execute_tx_configurable(
     let tx_hash =
         TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
-    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
-    let RpcBlockInfo {
-        block_timestamp,
-        sequencer_address,
-        ..
-    } = state.state.0.get_block_info().unwrap();
+    let block_context = fetch_block_context(state, block_number);
+    let blockifier_exec_info = execute_tx_with_blockifier(state, block_context, tx, tx_hash)?;
 
-    let block_info = BlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        // TODO: Check gas_prices and use_kzg_da
-        gas_prices: gas_price,
-        use_kzg_da: false,
-    };
-    let blockifier_exec_info = execute_tx_configurable_with_state(
-        &tx_hash,
-        tx,
-        block_info,
-        skip_validate,
-        skip_nonce_check,
-        state,
-    )?;
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
     Ok((blockifier_exec_info, trace, receipt))
@@ -406,11 +386,9 @@ pub fn execute_tx_configurable(
 
 /// Executes a transaction with blockifier
 ///
-/// Unlike execute_tx_configurable, it does not depend on our state reader
-/// and can be used with any cached state.
-///
-/// It does not make any query to the state, besides of the ones blockifier
-/// internally makes.
+/// Unlike `execute_tx_configurable`, it does not depend on our state reader
+/// and can be used with any cached state. It already receives all context information
+/// needed to execute the transaction.
 pub fn execute_tx_with_blockifier(
     state: &mut CachedState<impl StateReader>,
     context: BlockContext,
@@ -466,6 +444,29 @@ pub fn execute_tx_with_blockifier(
     };
 
     account_transaction.execute(state, &context, false, true)
+}
+
+pub fn fetch_block_context(
+    state: &CachedState<RpcStateReader>,
+    block_number: BlockNumber,
+) -> BlockContext {
+    let rpc_block_info = state.state.0.get_block_info().unwrap();
+    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
+
+    BlockContext::new_unchecked(
+        &BlockInfo {
+            block_number,
+            block_timestamp: rpc_block_info.block_timestamp,
+            sequencer_address: rpc_block_info.sequencer_address,
+            gas_prices: gas_price,
+            use_kzg_da: false,
+        },
+        &ChainInfo {
+            chain_id: state.state.0.get_chain_name(),
+            fee_token_addresses: Default::default(),
+        },
+        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    )
 }
 
 #[cfg(test)]
