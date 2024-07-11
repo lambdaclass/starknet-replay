@@ -14,10 +14,11 @@ use tracing::{debug, error, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-use crate::benchmark::{execute_block_range, fetch_block_range_data};
-
 #[cfg(feature = "benchmark")]
-use std::{ops::Div, time::Instant};
+use {
+    crate::benchmark::{execute_block_range, fetch_block_range_data},
+    std::{ops::Div, time::Instant},
+};
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
