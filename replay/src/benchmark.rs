@@ -93,10 +93,13 @@ fn fetch_block_context(
 /// Can also be used to fill up the cache
 pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
     for (state, block_context, transactions) in block_range_data {
+        // For each block
+
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
 
         for (transaction_hash, transaction) in transactions {
+            // Execute each transaction
             let result = execute_tx_with_blockifier(
                 &mut transactional_state,
                 block_context.clone(),
