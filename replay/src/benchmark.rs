@@ -109,7 +109,7 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData<impl State
 
 /// An implementation of StateReader that can be disabled, panicking if atempted to be read from
 ///
-/// Use to ensure that no requests are been made.
+/// Used to ensure that no requests are made after disabling it.
 pub struct OptionalStateReader<S: StateReader>(pub Option<S>);
 
 impl<S: StateReader> OptionalStateReader<S> {
