@@ -13,8 +13,8 @@ use starknet_api::{
 };
 use tracing::{error, info};
 
-pub type BlockCachedData<T> = (
-    CachedState<T>,
+pub type BlockCachedData = (
+    CachedState<OptionalStateReader<RpcStateReader>>,
     BlockContext,
     Vec<(TransactionHash, SNTransaction)>,
 );
@@ -30,7 +30,7 @@ pub fn fetch_block_range_data(
     block_start: BlockNumber,
     block_end: BlockNumber,
     chain: RpcChain,
-) -> Vec<BlockCachedData<OptionalStateReader<RpcStateReader>>> {
+) -> Vec<BlockCachedData> {
     let mut block_caches = Vec::new();
 
     for block_number in block_start.0..=block_end.0 {
@@ -74,7 +74,7 @@ pub fn fetch_block_range_data(
 /// Executes the given block range, discarding any state changes applied to it
 ///
 /// Can also be used to fill up the cache
-pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData<impl StateReader>>) {
+pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
     for (state, block_context, transactions) in block_range_data {
         // For each block
 
