@@ -404,6 +404,88 @@ pub fn execute_tx_configurable(
     Ok((blockifier_exec_info, trace, receipt))
 }
 
+/// Executes a transaction with blockifier
+///
+/// Unlike `execute_tx_configurable`, it does not depend on our state reader
+/// and can be used with any cached state. It already receives all context information
+/// needed to execute the transaction.
+pub fn execute_tx_with_blockifier(
+    state: &mut CachedState<impl StateReader>,
+    context: BlockContext,
+    transaction: SNTransaction,
+    transaction_hash: TransactionHash,
+) -> TransactionExecutionResult<TransactionExecutionInfo> {
+    let account_transaction: AccountTransaction = match transaction {
+        SNTransaction::Invoke(tx) => {
+            let invoke = InvokeTransaction {
+                tx,
+                tx_hash: transaction_hash,
+                only_query: false,
+            };
+            AccountTransaction::Invoke(invoke)
+        }
+        SNTransaction::DeployAccount(tx) => {
+            let contract_address = calculate_contract_address(
+                tx.contract_address_salt(),
+                tx.class_hash(),
+                &tx.constructor_calldata(),
+                ContractAddress::default(),
+            )
+            .unwrap();
+            AccountTransaction::DeployAccount(DeployAccountTransaction {
+                only_query: false,
+                tx,
+                tx_hash: transaction_hash,
+                contract_address,
+            })
+        }
+        SNTransaction::Declare(tx) => {
+            let contract_class = state
+                .state
+                .get_compiled_contract_class(tx.class_hash())
+                .unwrap();
+
+            let class_info = calculate_class_info_for_testing(contract_class);
+
+            let declare = DeclareTransaction::new(tx, transaction_hash, class_info).unwrap();
+            AccountTransaction::Declare(declare)
+        }
+        SNTransaction::L1Handler(tx) => {
+            // As L1Hanlder is not an account transaction we execute it here and return the result
+            let account_transaction = L1HandlerTransaction {
+                tx,
+                tx_hash: transaction_hash,
+                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
+            };
+
+            return account_transaction.execute(state, &context, true, true);
+        }
+        _ => unimplemented!(),
+    };
+
+    account_transaction.execute(state, &context, false, true)
+}
+
+pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
+    let rpc_block_info = state.get_block_info().unwrap();
+    let gas_price = state.get_gas_price(block_number.0).unwrap();
+
+    BlockContext::new_unchecked(
+        &BlockInfo {
+            block_number,
+            block_timestamp: rpc_block_info.block_timestamp,
+            sequencer_address: rpc_block_info.sequencer_address,
+            gas_prices: gas_price,
+            use_kzg_da: false,
+        },
+        &ChainInfo {
+            chain_id: state.get_chain_name(),
+            fee_token_addresses: Default::default(),
+        },
+        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    )
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -429,18 +511,20 @@ mod tests {
 
     #[test_case(
         "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
-        200303, // real block 200304
+        200304,
         RpcChain::MainNet
         => ignore["Doesn't revert in newest blockifier version"]
     )]
     #[test_case(
         "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
-        200302, // real block 200303
+        200303,
         RpcChain::MainNet
         => ignore["broken on both due to a cairo-vm error"]
     )]
     fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, _) = execute_tx(hash, chain, BlockNumber(block_number));
+        // To reexecute a transaction, we must use the state from its previous block
+        let previous_block = BlockNumber(block_number - 1);
+        let (tx_info, trace, _) = execute_tx(hash, chain, previous_block);
 
         assert_eq!(
             tx_info.revert_error,
@@ -453,89 +537,89 @@ mod tests {
     #[test_case(
         // Declare tx
         "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
-        347899, // real block 347900
+        347900,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         // Declare tx
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-        271887, // real block 271888
+        271888,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
-        90006, // real block 90007
+        90007,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x025844447697eb7d5df4d8268b23aef6c11de4087936048278c2559fc35549eb",
-        197000, // real block 197001
+        197001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
-        197000, // real block 197001
+        197001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
-        169928, // real block 169929
+        169929,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
-        169928, // real block 169929
+        169929,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
-        169928, // real block 169929
+        169929,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
-        169928, // real block 169929
+        169929,
         RpcChain::MainNet
     )]
     #[test_case(
         // review later
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
-        186548, // real block 186549
+        186549,
         RpcChain::MainNet
     )]
     #[test_case(
         // fails in blockifier
         "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
-        186551, // real block 186552
+        186552,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
-        317092, // real block 317093
+        317093,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
-        398051, // real block 398052
+        398052,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
-        281513, // real block 281514
+        281514,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
-        351268, // real block 351269
+        351269,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
-        351225, // real block 351226
+        351226,
         RpcChain::MainNet
     )]
     // DeployAccount for different account providers:
@@ -543,79 +627,80 @@ mod tests {
     // OpenZeppelin (v0.7.0)
     #[test_case(
         "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
-        422881, // real block 422882
+        422882,
         RpcChain::MainNet
     )]
     // Argent X (v5.7.0)
     #[test_case(
         "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
-        475945, // real block 475946
+        475946,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
-        638866, // real block 638867
+        638867,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
-        641975, // real block 641976
+        641976,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
-        654000, // real block 654001
+        654001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
-        654000, // real block 654001
+        654001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
-        654000, // real block 654001
+        654001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
-        654000, // real block 654001
+        654001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
-        654000, // real block 653001
+        654001,
         RpcChain::MainNet
     )]
     #[test_case(
         "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
-        653000, // real block 653001
+        653001,
         RpcChain::MainNet
         => ignore["takes to long"]
     )]
     #[test_case(
         "0x5a030fd81f14a1cf29a2e5259d3f2c9960018ade2d135269760e6fb4802ac02",
-        653000, // real block 653001
+        653001,
         RpcChain::MainNet
         => ignore["halts execution"]
     )]
     #[test_case(
         "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
-        653000, // real block 653001
+        653001,
         RpcChain::MainNet
         => ignore
     )]
     #[test_case(
         "0x3330b29e8b99dedef79f5c7cdc2b510c590155add29dcc5e2f92d176d8e19d",
-        653000, // real block 653001
+        653001,
         RpcChain::MainNet
         => ignore
     )]
     fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
-        // Execute using blockifier
-        let (tx_info, trace, _receipt) = execute_tx(hash, chain, BlockNumber(block_number));
+        // To reexecute a transaction, we must use the state from its previous block
+        let previous_block = BlockNumber(block_number - 1);
+        let (tx_info, trace, _receipt) = execute_tx(hash, chain, previous_block);
 
         // We cannot currently check fee & resources
 

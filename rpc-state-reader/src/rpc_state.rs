@@ -20,6 +20,7 @@ use starknet_api::{
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
+use tracing::debug;
 
 use crate::{rpc_state_errors::RpcStateError, utils};
 
@@ -351,6 +352,8 @@ impl RpcState {
         method: &str,
         params: &serde_json::Value,
     ) -> Result<T, RpcStateError> {
+        debug!(method, "rpc call");
+
         let payload = serde_json::json!({
             "jsonrpc": "2.0",
             "method": method,
