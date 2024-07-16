@@ -404,6 +404,88 @@ pub fn execute_tx_configurable(
     Ok((blockifier_exec_info, trace, receipt))
 }
 
+/// Executes a transaction with blockifier
+///
+/// Unlike `execute_tx_configurable`, it does not depend on our state reader
+/// and can be used with any cached state. It already receives all context information
+/// needed to execute the transaction.
+pub fn execute_tx_with_blockifier(
+    state: &mut CachedState<impl StateReader>,
+    context: BlockContext,
+    transaction: SNTransaction,
+    transaction_hash: TransactionHash,
+) -> TransactionExecutionResult<TransactionExecutionInfo> {
+    let account_transaction: AccountTransaction = match transaction {
+        SNTransaction::Invoke(tx) => {
+            let invoke = InvokeTransaction {
+                tx,
+                tx_hash: transaction_hash,
+                only_query: false,
+            };
+            AccountTransaction::Invoke(invoke)
+        }
+        SNTransaction::DeployAccount(tx) => {
+            let contract_address = calculate_contract_address(
+                tx.contract_address_salt(),
+                tx.class_hash(),
+                &tx.constructor_calldata(),
+                ContractAddress::default(),
+            )
+            .unwrap();
+            AccountTransaction::DeployAccount(DeployAccountTransaction {
+                only_query: false,
+                tx,
+                tx_hash: transaction_hash,
+                contract_address,
+            })
+        }
+        SNTransaction::Declare(tx) => {
+            let contract_class = state
+                .state
+                .get_compiled_contract_class(tx.class_hash())
+                .unwrap();
+
+            let class_info = calculate_class_info_for_testing(contract_class);
+
+            let declare = DeclareTransaction::new(tx, transaction_hash, class_info).unwrap();
+            AccountTransaction::Declare(declare)
+        }
+        SNTransaction::L1Handler(tx) => {
+            // As L1Hanlder is not an account transaction we execute it here and return the result
+            let account_transaction = L1HandlerTransaction {
+                tx,
+                tx_hash: transaction_hash,
+                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
+            };
+
+            return account_transaction.execute(state, &context, true, true);
+        }
+        _ => unimplemented!(),
+    };
+
+    account_transaction.execute(state, &context, false, true)
+}
+
+pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
+    let rpc_block_info = state.get_block_info().unwrap();
+    let gas_price = state.get_gas_price(block_number.0).unwrap();
+
+    BlockContext::new_unchecked(
+        &BlockInfo {
+            block_number,
+            block_timestamp: rpc_block_info.block_timestamp,
+            sequencer_address: rpc_block_info.sequencer_address,
+            gas_prices: gas_price,
+            use_kzg_da: false,
+        },
+        &ChainInfo {
+            chain_id: state.get_chain_name(),
+            fee_token_addresses: Default::default(),
+        },
+        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    )
+}
+
 #[cfg(test)]
 mod tests {
 
