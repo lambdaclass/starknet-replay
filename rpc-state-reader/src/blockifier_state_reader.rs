@@ -17,6 +17,7 @@ use blockifier::{
     },
     versioned_constants::VersionedConstants,
 };
+use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
@@ -89,8 +90,10 @@ impl StateReader for RpcStateReader {
                     sierra_program_debug_info: None,
                     abi: None,
                 };
-                ContractClass::V1Sierra(sierra_cc.try_into().unwrap())
-            }
+                let casm_cc =
+                    CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+                ContractClass::V1(casm_cc.try_into().unwrap())
+                        }
             None => {
                 return Err(StateError::UndeclaredClassHash(
                     starknet_api::core::ClassHash(*class_hash),
