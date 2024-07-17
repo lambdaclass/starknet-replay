@@ -3,6 +3,11 @@ name = "rpc-state-reader"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+# The only_casm features, compiles all the sierra fetched contracts to casm.
+# We use this feature in case we want to avoid using cairo_native in the Replay crate
+only_casm = []
+
 [dependencies]
 ureq = { version = "2.7.1", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }

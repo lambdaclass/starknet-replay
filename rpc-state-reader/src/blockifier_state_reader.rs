@@ -89,7 +89,14 @@ impl StateReader for RpcStateReader {
                     sierra_program_debug_info: None,
                     abi: None,
                 };
-                ContractClass::V1Sierra(sierra_cc.try_into().unwrap())
+
+                if cfg!(feature = "only_casm") {
+                    let casm_cc =
+                    cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+                    ContractClass::V1(casm_cc.try_into().unwrap())
+                } else {
+                    ContractClass::V1Sierra(sierra_cc.try_into().unwrap())
+                }
             }
             None => {
                 return Err(StateError::UndeclaredClassHash(
