@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-# The only_casm features, compiles all the sierra fetched contracts to casm.
-# We use this feature in case we want to avoid using cairo_native in the Replay crate
+# The only_casm feature compiles all the Sierra fetched contracts to CASM.
+# We use this feature to avoid using cairo_native in the Replay crate.
 only_casm = []
 
 [dependencies]
