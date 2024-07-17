@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 benchmark = []
+only_cairo_vm = ["rpc-state-reader/only_casm"]
 
 [dependencies]
 # starknet specific crates
