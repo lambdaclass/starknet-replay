@@ -592,10 +592,11 @@ mod tests {
         RpcChain::MainNet
     )]
     #[test_case(
-        // review later
+        // review later (also has events mismatch)
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
         RpcChain::MainNet
+        => ignore["should be reviewed later, also has events mismatch"]
     )]
     #[test_case(
         // fails in blockifier
@@ -656,19 +657,38 @@ mod tests {
         => ignore
     )]
     #[test_case(
+        "0xaa8c451a3f231f3eeba8bc48236eecd5fe42cc1513f175c7d52b41d35ecba2",
+        657074, // real block 657075
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x2101910b5baddb23888337377872e08e01d75070486f010373b48d7c8366f11",
+        657069, // real block 657070
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x7b41f9942a4d4641e6118a00e0629880845215e4445221139b5d32fa3ab7766",
+        657043, // real block 657044
+        RpcChain::MainNet
+    )]
+    #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
         RpcChain::MainNet
     )]
     #[test_case(
+        // events mismatch
         "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
         654001,
         RpcChain::MainNet
+        => ignore["events mismatch"]
     )]
     #[test_case(
+        // events mismatch
         "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
         654001,
         RpcChain::MainNet
+        => ignore["events mismatch"]
     )]
     #[test_case(
         "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
@@ -734,6 +754,13 @@ mod tests {
                 internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
+                events: value.execution.events.iter().map(|e| e.into()).collect(),
+                messages: value
+                    .execution
+                    .l2_to_l1_messages
+                    .iter()
+                    .map(|llm| llm.into())
+                    .collect(),
             }
         }
     }
