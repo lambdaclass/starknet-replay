@@ -442,7 +442,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.7.0-dev.1"
-source = "git+https://github.com/lambdaclass/blockifier?rev=d458a8d64b6d31da49c447576894ce013af862c2#d458a8d64b6d31da49c447576894ce013af862c2"
+source = "git+https://github.com/lambdaclass/blockifier?rev=8eab209eabee1359bec1cc0e9d0a34542a8b65a5#8eab209eabee1359bec1cc0e9d0a34542a8b65a5"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1037,7 +1037,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=905d6959662edfec4829568f995206fcb8bf64d0#905d6959662edfec4829568f995206fcb8bf64d0"
+source = "git+https://github.com/lambdaclass/cairo_native?rev=72d10b7923cb4f97ae0b1688ea7de1d34297b0b2#72d10b7923cb4f97ae0b1688ea7de1d34297b0b2"
 dependencies = [
  "anyhow",
  "bumpalo",
@@ -1087,7 +1087,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=905d6959662edfec4829568f995206fcb8bf64d0#905d6959662edfec4829568f995206fcb8bf64d0"
+source = "git+https://github.com/lambdaclass/cairo_native?rev=72d10b7923cb4f97ae0b1688ea7de1d34297b0b2#72d10b7923cb4f97ae0b1688ea7de1d34297b0b2"
 dependencies = [
  "cairo-lang-runner",
  "cairo-lang-sierra-gas",
