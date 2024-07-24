@@ -725,6 +725,125 @@ mod tests {
         //assert_eq!(tx_info.fee_transfer_call_info.map(|ref ci| ci.into()), trace.fee_transfer_invocation); TODO: fix charge_fee
     }
 
+    #[test_case(
+        "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+        661796,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
+        661815,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x01dbee005c2948d6b4e84d1525fd308b2e421dc395e4ebfd601bdc2cea83bf4d",
+        661815,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "https://starkscan.co/tx/0x03b0b7d4e5480478308ecb3890fda3cc18d94e4415a8f3e36bb8a51d86727b03",
+        
+661815,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x054b357da9b864119241009b5a609f86baf7e4534251239d952b1615bd1f5712",
+        661815,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x0344d67bf2c751d9892bef78318248eb83b840a1eca74bc42cf64752e9488305",
+        653019,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x06b437acd81f652dd39ce33c6d479590687c4e6afb38bcb8dbd8b44e2521506f",
+        661814,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x0164011bd5609b6fed69556630ea461eba372819fbefe4775e9f6cd97822169c",
+        661813,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x04cc3fd240a3ea43bc1a69f422e11b7eb7c40068648c913893f0aa5747fc11d0",
+        66167,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x05eb04a621c6484f8703692c1a89269ca0f68517f85138bd30cb8100a8c77eee",
+        661816,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x067a3a7132137438bdd5a6b2f09529c092b4eb51531a58aa7ad44d7d8e7d5b30",
+        661812,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x035e5bd0465db43e094e380e4434f0ad9e655dbe024106c74be10e10d8611dfa",
+        661000,
+        RpcChain::MainNet
+    )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    // #[test_case(
+    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
+    //     661796,
+    //     RpcChain::MainNet
+    // )]
+    fn test_transaction_info(hash: &str, block_number: u64, chain: RpcChain) {
+        let (tx_info, trace, vm_) = execute_tx(hash, chain, BlockNumber(block_number));
+        let starknet_resources = tx_info.actual_resources.starknet_resources;
+
+        assert_eq!(
+            tx_info.revert_error,
+            trace.execute_invocation.unwrap().revert_reason
+        );
+        //assert_eq!(tx_info.da_gas, trace.execute_invocation.unwrap().);
+        //assert_eq!(starknet_resources);
+        //assert_eq!(starknet_resources.state_changes_for_fee);
+    }
+
     // Impl conversion for easier checking against RPC data
     impl From<&CallInfo> for RpcCallInfo {
         fn from(value: &CallInfo) -> Self {
