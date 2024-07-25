@@ -1074,19 +1074,20 @@ mod tests {
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
         644700,
         RpcChain::MainNet,
-        GasVector { l1_gas: 13940, l1_data_gas: 0 },
-        24,
-        4,
+        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        8,
+        2,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 10,
+            n_storage_updates: 1,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 4,
+            n_modified_contracts: 1,
         },
         true
     )]
+    #[allow(clippy::too_many_arguments)]
     fn test_transaction_info(
         hash: &str,
         block_number: u64,
@@ -1114,12 +1115,8 @@ mod tests {
             l1_handler_payload_size,
             callinfo_iter.iter(),
         );
-        let tx_reverted = match tx_info.revert_error {
-            Some(_) => true,
-            None => false,
-        };
 
-        assert_eq!(is_reverted, tx_reverted);
+        assert_eq!(is_reverted, tx_info.revert_error.is_some());
         assert_eq!(da_gas, tx_info.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
         assert_eq!(
