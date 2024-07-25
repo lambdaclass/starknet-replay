@@ -501,7 +501,11 @@ mod tests {
     use crate::rpc_state::{BlockValue, RpcCallInfo};
 
     use super::*;
-    use blockifier::execution::call_info::CallInfo;
+    use blockifier::{
+        execution::call_info::CallInfo,
+        state::cached_state::StateChangesCount,
+        transaction::objects::{GasVector, StarknetResources},
+    };
     use pretty_assertions_sorted::assert_eq_sorted;
     use test_case::test_case;
     #[test]
@@ -725,123 +729,403 @@ mod tests {
         //assert_eq!(tx_info.fee_transfer_call_info.map(|ref ci| ci.into()), trace.fee_transfer_invocation); TODO: fix charge_fee
     }
 
+    // test cairo-vm's tx execution against cairo-native, using only_cairo_vm feature
     #[test_case(
-        "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-        661796,
-        RpcChain::MainNet
+        "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
+        648462,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        7,
+        3,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 3,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
     )]
     #[test_case(
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
         661815,
-        RpcChain::MainNet
+        RpcChain::MainNet,
+        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        9,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 3,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
     )]
     #[test_case(
-        "0x01dbee005c2948d6b4e84d1525fd308b2e421dc395e4ebfd601bdc2cea83bf4d",
-        661815,
-        RpcChain::MainNet
+        "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
+        662246,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        9,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 3,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
     )]
     #[test_case(
-        "https://starkscan.co/tx/0x03b0b7d4e5480478308ecb3890fda3cc18d94e4415a8f3e36bb8a51d86727b03",
-        
-661815,
-        RpcChain::MainNet
+        "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
+        654001,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        7,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 3,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
     )]
     #[test_case(
-        "0x054b357da9b864119241009b5a609f86baf7e4534251239d952b1615bd1f5712",
-        661815,
-        RpcChain::MainNet
+        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",  
+        654770,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        7,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 3,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
     )]
     #[test_case(
-        "0x0344d67bf2c751d9892bef78318248eb83b840a1eca74bc42cf64752e9488305",
+        "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
         653019,
-        RpcChain::MainNet
+        RpcChain::MainNet,
+        GasVector { l1_gas: 11736, l1_data_gas: 0 },
+        28,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 8,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 4,
+        },
+        false
     )]
     #[test_case(
-        "0x06b437acd81f652dd39ce33c6d479590687c4e6afb38bcb8dbd8b44e2521506f",
-        661814,
-        RpcChain::MainNet
+        "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
+        650558,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 6538, l1_data_gas: 0 },
+        24,
+        3,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 4,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 3,
+        },
+        false
     )]
     #[test_case(
-        "0x0164011bd5609b6fed69556630ea461eba372819fbefe4775e9f6cd97822169c",
-        661813,
-        RpcChain::MainNet
+        "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
+        351226,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        3,
+        0,
+        0,
+        Some(3),
+        StateChangesCount {
+            n_storage_updates: 2,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
     )]
     #[test_case(
-        "0x04cc3fd240a3ea43bc1a69f422e11b7eb7c40068648c913893f0aa5747fc11d0",
-        66167,
-        RpcChain::MainNet
+        "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
+        317093,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        6,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 1,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
     )]
     #[test_case(
-        "0x05eb04a621c6484f8703692c1a89269ca0f68517f85138bd30cb8100a8c77eee",
-        661816,
-        RpcChain::MainNet
+        "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
+        169929,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        8,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 1,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
     )]
     #[test_case(
-        "0x067a3a7132137438bdd5a6b2f09529c092b4eb51531a58aa7ad44d7d8e7d5b30",
-        661812,
-        RpcChain::MainNet
+        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
+        271888,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        0,
+        2,
+        42564,
+        None,
+        StateChangesCount {
+            n_storage_updates: 1,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
     )]
     #[test_case(
-        "0x035e5bd0465db43e094e380e4434f0ad9e655dbe024106c74be10e10d8611dfa",
-        661000,
-        RpcChain::MainNet
+        "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
+        654001,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        5,
+        0,
+        0,
+        Some(5),
+        StateChangesCount {
+            n_storage_updates: 2,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
     )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    // #[test_case(
-    //     "0x04bf67b6a33d59fd2ac80d47db5c1a0dbc9e343f820ff4871acf8f76d1c28d80",
-    //     661796,
-    //     RpcChain::MainNet
-    // )]
-    fn test_transaction_info(hash: &str, block_number: u64, chain: RpcChain) {
-        let (tx_info, trace, vm_) = execute_tx(hash, chain, BlockNumber(block_number));
+    #[test_case(
+        "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
+        186549,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 5748, l1_data_gas: 0 },
+        7,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 4,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
+    )]
+    #[test_case(
+        "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
+        662252,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 6850, l1_data_gas: 0 },
+        18,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 5,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
+    )]
+    #[test_case(
+        "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
+        662250,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        10,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 1,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
+    )]
+    #[test_case(
+        "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
+        662251,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 3544, l1_data_gas: 0 },
+        12,
+        5,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 2,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
+    )]
+    #[test_case(
+        "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
+        351269,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        3,
+        0,
+        0,
+        Some(3),
+        StateChangesCount {
+            n_storage_updates: 2,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 1,
+        },
+        false
+    )]
+    #[test_case(
+        "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
+        662249,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 9844, l1_data_gas: 0 },
+        37,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 7,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 3,
+        },
+        false
+    )]
+    #[test_case(
+        "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
+        662248,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 5748, l1_data_gas: 0 },
+        4,
+        2,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 4,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 2,
+        },
+        false
+    )]
+    #[test_case(
+        "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
+        536893,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 13940, l1_data_gas: 0 },
+        24,
+        4,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 10,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 4,
+        },
+        false
+    )]
+    #[test_case(
+        "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
+        644700,
+        RpcChain::MainNet,
+        GasVector { l1_gas: 13940, l1_data_gas: 0 },
+        24,
+        4,
+        0,
+        None,
+        StateChangesCount {
+            n_storage_updates: 10,
+            n_class_hash_updates: 0,
+            n_compiled_class_hash_updates: 0,
+            n_modified_contracts: 4,
+        },
+        true
+    )]
+    fn test_transaction_info(
+        hash: &str,
+        block_number: u64,
+        chain: RpcChain,
+        da_gas: GasVector,
+        calldata_length: usize,
+        signature_length: usize,
+        code_size: usize,
+        l1_handler_payload_size: Option<usize>,
+        starknet_chg: StateChangesCount,
+        is_reverted: bool,
+    ) {
+        let previous_block = BlockNumber(block_number - 1);
+        let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
         let starknet_resources = tx_info.actual_resources.starknet_resources;
-
-        assert_eq!(
-            tx_info.revert_error,
-            trace.execute_invocation.unwrap().revert_reason
+        let callinfo_iter = match tx_info.execute_call_info {
+            Some(c) => vec![c],
+            None => vec![CallInfo::default()], // there's no call info, so we take the default value to have all of it's atributes set to 0
+        };
+        let starknet_rsc = StarknetResources::new(
+            calldata_length,
+            signature_length,
+            code_size,
+            starknet_chg,
+            l1_handler_payload_size,
+            callinfo_iter.iter(),
         );
-        //assert_eq!(tx_info.da_gas, trace.execute_invocation.unwrap().);
-        //assert_eq!(starknet_resources);
-        //assert_eq!(starknet_resources.state_changes_for_fee);
+        let tx_reverted = match tx_info.revert_error {
+            Some(_) => true,
+            None => false,
+        };
+
+        assert_eq!(is_reverted, tx_reverted);
+        assert_eq!(da_gas, tx_info.da_gas);
+        assert_eq!(starknet_rsc, starknet_resources);
+        assert_eq!(
+            starknet_rsc.state_changes_for_fee,
+            starknet_resources.state_changes_for_fee
+        );
     }
 
     // Impl conversion for easier checking against RPC data

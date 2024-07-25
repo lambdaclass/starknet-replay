@@ -196,6 +196,12 @@ fn show_execution_data(
             }
         };
 
+    dbg!("---DA-GAS {} ---", &execution_info.da_gas);
+    dbg!(
+        "---STKN-RESOURCES {} ---",
+        &execution_info.actual_resources.starknet_resources
+    );
+
     let execution_status = match &execution_info.revert_error {
         Some(_) => "REVERTED",
         None => "SUCCEEDED",
