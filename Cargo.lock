@@ -3261,6 +3261,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "blockifier",
+ "cairo-vm",
  "clap",
  "rpc-state-reader",
  "starknet_api",
