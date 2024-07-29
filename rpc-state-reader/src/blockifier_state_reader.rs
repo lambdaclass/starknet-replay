@@ -82,13 +82,22 @@ impl StateReader for RpcStateReader {
                     let v = serde_json::to_value(flattened_sierra_cc).unwrap();
                     serde_json::from_value(v).unwrap()
                 };
+                let abi_value = serde_json::from_str(&middle_sierra.abi).unwrap();
                 let sierra_cc = cairo_lang_starknet_classes::contract_class::ContractClass {
                     sierra_program: middle_sierra.sierra_program,
                     contract_class_version: middle_sierra.contract_class_version,
                     entry_points_by_type: middle_sierra.entry_points_by_type,
                     sierra_program_debug_info: None,
-                    abi: None,
+                    abi: Some(serde_json::from_value(abi_value).unwrap()),
                 };
+
+                {
+                    let dir = std::path::Path::new("target/contracts");
+                    std::fs::create_dir_all(dir).unwrap();
+                    let path = dir.join(class_hash.to_string());
+                    let file = std::fs::File::create(path).unwrap();
+                    serde_json::to_writer_pretty(file, &sierra_cc).unwrap();
+                }
 
                 if cfg!(feature = "only_casm") {
                     let casm_cc =

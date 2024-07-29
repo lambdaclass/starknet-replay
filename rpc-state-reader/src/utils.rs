@@ -19,6 +19,7 @@ pub struct MiddleSierraContractClass {
     pub sierra_program: Vec<BigUintAsHex>,
     pub contract_class_version: String,
     pub entry_points_by_type: ContractEntryPoints,
+    pub abi: String,
 }
 
 pub fn map_entry_points_by_type_legacy(
