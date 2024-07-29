@@ -1119,10 +1119,6 @@ mod tests {
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
         assert_eq!(da_gas, tx_info.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
-        assert_eq!(
-            starknet_rsc.state_changes_for_fee,
-            starknet_resources.state_changes_for_fee
-        );
     }
 
     // Impl conversion for easier checking against RPC data
