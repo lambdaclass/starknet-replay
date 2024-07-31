@@ -20,3 +20,14 @@ tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 # error handling
 anyhow = "1.0"
+# serde
+serde_json = { version = "1.0", features = [
+  "arbitrary_precision",
+  "raw_value",
+] }
+lazy_static = "1.5.0"
+
+[[bench]]
+path = "bench/yas.rs"
+name = "yas"
+harness = false
