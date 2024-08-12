@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use blockifier::{
     context::BlockContext,
     state::{cached_state::CachedState, state_api::StateReader},
@@ -11,7 +13,7 @@ use starknet_api::{
     hash::StarkFelt,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use tracing::{error, info};
+use tracing::{error, info, info_span};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
@@ -77,23 +79,37 @@ pub fn fetch_block_range_data(
 pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
     for (state, block_context, transactions) in block_range_data {
         // For each block
+        let _block_span = info_span!(
+            "block execution",
+            block_number = block_context.block_info().block_number.0,
+        )
+        .entered();
+        info!("starting block execution");
 
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
 
         for (transaction_hash, transaction) in transactions {
             // Execute each transaction
+            let _tx_span = info_span!(
+                "tx execution",
+                transaction_hash = transaction_hash.to_string(),
+            )
+            .entered();
+            info!("starting tx execution");
+
+            let pre_execution_instant = Instant::now();
             let result = execute_tx_with_blockifier(
                 &mut transactional_state,
                 block_context.clone(),
                 transaction.to_owned(),
                 transaction_hash.to_owned(),
             );
+            let execution_time = pre_execution_instant.elapsed();
 
             match result {
                 Ok(info) => {
                     info!(
-                        transaction_hash = transaction_hash.to_string(),
                         succeeded = info.revert_error.is_none(),
                         "tx execution status"
                     )
@@ -103,6 +119,8 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                     "tx execution failed"
                 ),
             }
+
+            info!(time = ?execution_time, "finished tx execution");
         }
     }
 }
