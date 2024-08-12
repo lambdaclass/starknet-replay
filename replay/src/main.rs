@@ -238,15 +238,20 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
 fn set_global_subscriber() {
     let default_directive = Directive::from_str("replay=info").expect("should be valid");
 
-    tracing_subscriber::fmt()
+    let subscriber = tracing_subscriber::fmt()
         .with_env_filter({
             EnvFilter::builder()
                 .with_default_directive(default_directive)
                 .from_env_lossy()
         })
-        .pretty()
         .with_file(false)
-        .with_line_number(false)
-        .finish()
-        .init();
+        .with_line_number(false);
+
+    #[cfg(feature = "benchmark")]
+    let subscriber = subscriber.json();
+
+    #[cfg(not(feature = "benchmark"))]
+    let subscriber = subscriber.pretty();
+
+    subscriber.finish().init();
 }
