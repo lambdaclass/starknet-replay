@@ -1,7 +1,10 @@
 use blockifier::{
     blockifier::block::BlockInfo,
+    bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::{ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner},
+    execution::contract_class::{
+        ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
+    },
     state::{
         cached_state::CachedState,
         errors::StateError,
@@ -17,13 +20,13 @@ use blockifier::{
     },
     versioned_constants::VersionedConstants,
 };
+
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
     core::{calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, Nonce},
-    hash::StarkFelt,
-    stark_felt,
+    hash::StarkHash,
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
@@ -31,7 +34,7 @@ use std::sync::Arc;
 
 use crate::{
     rpc_state::{RpcBlockInfo, RpcChain, RpcState, RpcTransactionReceipt, TransactionTrace},
-    utils,
+    utils::{self, get_native_executor},
 };
 
 pub struct RpcStateReader(pub RpcState);
@@ -47,7 +50,7 @@ impl StateReader for RpcStateReader {
         &self,
         contract_address: starknet_api::core::ContractAddress,
         key: StorageKey,
-    ) -> StateResult<StarkFelt> {
+    ) -> StateResult<StarkHash> {
         Ok(self.0.get_storage_at(&contract_address, &key))
     }
 
@@ -95,7 +98,12 @@ impl StateReader for RpcStateReader {
                     cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
                     ContractClass::V1(casm_cc.try_into().unwrap())
                 } else {
-                    ContractClass::V1Sierra(sierra_cc.try_into().unwrap())
+                    let program = sierra_cc.extract_sierra_program().unwrap();
+                    let executor = get_native_executor(program, class_hash);
+
+                    ContractClass::V1Native(
+                        NativeContractClassV1::new(executor, sierra_cc).unwrap(),
+                    )
                 }
             }
             None => {
@@ -141,7 +149,7 @@ pub fn execute_tx(
     } = rpc_reader.0.get_block_info().unwrap();
 
     // Get transaction before giving ownership of the reader
-    let tx_hash = TransactionHash(stark_felt!(tx_hash));
+    let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
     let sn_api_tx = rpc_reader.0.get_transaction(&tx_hash);
 
     let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
@@ -184,10 +192,11 @@ pub fn execute_tx(
     };
 
     // TODO: Check BlockContext::new_unchecked
-    let block_context = BlockContext::new_unchecked(
-        &block_info,
-        &chain_info,
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    let block_context = BlockContext::new(
+        block_info,
+        chain_info,
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        BouncerConfig::empty(),
     );
     // let block_context = BlockContext {
     //     chain_id,
@@ -281,7 +290,7 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     let sierra_program_length = match contract_class {
         ContractClass::V0(_) => 0,
         ContractClass::V1(_) => 100,
-        ContractClass::V1Sierra(_) => 100,
+        ContractClass::V1Native(_) => 100,
     };
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
@@ -309,10 +318,11 @@ pub fn execute_tx_configurable_with_state(
         fee_token_addresses: FeeTokenAddresses::default(),
     };
 
-    let block_context = BlockContext::new_unchecked(
-        &block_info,
-        &chain_info,
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+    let block_context = BlockContext::new(
+        block_info,
+        chain_info,
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        BouncerConfig::empty(),
     );
 
     // Get transaction before giving ownership of the reader
@@ -380,8 +390,7 @@ pub fn execute_tx_configurable(
     TransactionTrace,
     RpcTransactionReceipt,
 )> {
-    let tx_hash =
-        TransactionHash(StarkFelt::try_from(tx_hash.strip_prefix("0x").unwrap()).unwrap());
+    let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
     let tx = state.state.0.get_transaction(&tx_hash).unwrap();
     let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
     let RpcBlockInfo {
@@ -477,19 +486,20 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
     let rpc_block_info = state.get_block_info().unwrap();
     let gas_price = state.get_gas_price(block_number.0).unwrap();
 
-    BlockContext::new_unchecked(
-        &BlockInfo {
+    BlockContext::new(
+        BlockInfo {
             block_number,
             block_timestamp: rpc_block_info.block_timestamp,
             sequencer_address: rpc_block_info.sequencer_address,
             gas_prices: gas_price,
             use_kzg_da: false,
         },
-        &ChainInfo {
+        ChainInfo {
             chain_id: state.get_chain_name(),
             fee_token_addresses: Default::default(),
         },
-        &VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        BouncerConfig::empty(),
     )
 }
 
@@ -1102,7 +1112,8 @@ mod tests {
     ) {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
-        let starknet_resources = tx_info.actual_resources.starknet_resources;
+        let tx_receipt = tx_info.transaction_receipt;
+        let starknet_resources = tx_receipt.resources.starknet_resources;
         let callinfo_iter = match tx_info.execute_call_info {
             Some(c) => vec![c],
             None => vec![CallInfo::default()], // there's no call info, so we take the default value to have all of it's atributes set to 0
@@ -1117,7 +1128,7 @@ mod tests {
         );
 
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
-        assert_eq!(da_gas, tx_info.da_gas);
+        assert_eq!(da_gas, tx_receipt.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
     }
 

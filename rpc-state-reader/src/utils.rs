@@ -1,16 +1,21 @@
 use std::{
     collections::HashMap,
     io::{self, Read},
+    sync::Arc,
 };
 
+use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
+use cairo_native::{
+    cache::AotProgramCache, context::NativeContext, executor::AotNativeExecutor, OptLevel,
+};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    core::EntryPointSelector,
+    core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
-    hash::{StarkFelt, StarkHash},
+    hash::StarkHash,
     transaction::{DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction},
 };
 
@@ -34,7 +39,7 @@ pub fn map_entry_points_by_type_legacy(
     ]);
 
     let to_contract_entry_point = |entrypoint: &LegacyContractEntryPoint| -> EntryPoint {
-        let felt: StarkFelt = StarkHash::new(entrypoint.selector.to_bytes_be()).unwrap();
+        let felt: StarkHash = StarkHash::from_bytes_be(&entrypoint.selector.to_bytes_be());
         EntryPoint {
             offset: EntryPointOffset(entrypoint.offset as usize),
             selector: EntryPointSelector(felt),
@@ -118,4 +123,16 @@ pub fn deserialize_transaction_json(
             "unimplemented transaction type deserialization: {x}"
         ))),
     }
+}
+
+static NATIVE_CONTEXT: std::sync::OnceLock<cairo_native::context::NativeContext> =
+    std::sync::OnceLock::new();
+
+pub fn get_native_executor(program: Program, class_hash: ClassHash) -> AotNativeExecutor {
+    let mut cache = AotProgramCache::new(NATIVE_CONTEXT.get_or_init(NativeContext::new));
+    let executor = match cache.get(&class_hash) {
+        Some(ex) => ex,
+        None => cache.compile_and_insert(class_hash, &program, OptLevel::Default),
+    };
+    Arc::try_unwrap(executor).unwrap()
 }

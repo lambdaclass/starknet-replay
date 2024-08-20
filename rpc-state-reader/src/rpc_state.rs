@@ -1,11 +1,7 @@
 use blockifier::blockifier::block::GasPrices;
-use cairo_vm::vm::runners::{
-    builtin_runner::{
-        BITWISE_BUILTIN_NAME, EC_OP_BUILTIN_NAME, HASH_BUILTIN_NAME, KECCAK_BUILTIN_NAME,
-        OUTPUT_BUILTIN_NAME, POSEIDON_BUILTIN_NAME, RANGE_CHECK_BUILTIN_NAME,
-        SIGNATURE_BUILTIN_NAME,
-    },
-    cairo_runner::ExecutionResources as VmExecutionResources,
+use cairo_vm::{
+    types::builtin_name::BuiltinName,
+    vm::runners::cairo_runner::ExecutionResources as VmExecutionResources,
 };
 use core::fmt;
 use dotenv::dotenv;
@@ -15,7 +11,7 @@ use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, BlockTimestamp},
     core::{ChainId, ClassHash, ContractAddress},
-    hash::{StarkFelt, StarkHash},
+    hash::StarkHash,
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
@@ -44,11 +40,11 @@ impl fmt::Display for RpcChain {
 
 impl From<RpcChain> for ChainId {
     fn from(value: RpcChain) -> Self {
-        ChainId(match value {
-            RpcChain::MainNet => "alpha-mainnet".to_string(),
-            RpcChain::TestNet => "alpha4".to_string(),
-            RpcChain::TestNet2 => "alpha4-2".to_string(),
-        })
+        match value {
+            RpcChain::MainNet => ChainId::Mainnet,
+            RpcChain::TestNet => ChainId::IntegrationSepolia,
+            RpcChain::TestNet2 => ChainId::Sepolia
+        }
     }
 }
 
@@ -164,8 +160,8 @@ pub struct RpcExecutionResources {
 
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct RpcCallInfo {
-    pub retdata: Option<Vec<StarkFelt>>,
-    pub calldata: Option<Vec<StarkFelt>>,
+    pub retdata: Option<Vec<StarkHash>>,
+    pub calldata: Option<Vec<StarkHash>>,
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
 }
@@ -222,24 +218,24 @@ where
         0
     };
     // Parse builtin instance counter
-    const BUILTIN_NAMES: [&str; 8] = [
-        OUTPUT_BUILTIN_NAME,
-        RANGE_CHECK_BUILTIN_NAME,
-        HASH_BUILTIN_NAME,
-        SIGNATURE_BUILTIN_NAME,
-        KECCAK_BUILTIN_NAME,
-        BITWISE_BUILTIN_NAME,
-        EC_OP_BUILTIN_NAME,
-        POSEIDON_BUILTIN_NAME,
+    let builtn_names: [BuiltinName; 8] = [
+        BuiltinName::output,
+        BuiltinName::range_check,
+        BuiltinName::pedersen,
+        BuiltinName::ecdsa,
+        BuiltinName::keccak,
+        BuiltinName::bitwise,
+        BuiltinName::ec_op,
+        BuiltinName::poseidon,
     ];
     let mut builtin_instance_counter = HashMap::new();
-    for name in BUILTIN_NAMES {
+    for name in builtn_names {
         let builtin_counter: Option<usize> = value
-            .get(format!("{}_applications", name))
+            .get(format!("{}_applications", name.to_str()))
             .and_then(|a| serde_json::from_value(a.clone()).ok());
         if let Some(builtin_counter) = builtin_counter {
             if builtin_counter > 0 {
-                builtin_instance_counter.insert(name.to_string(), builtin_counter);
+                builtin_instance_counter.insert(name, builtin_counter);
             }
         };
     }
@@ -514,7 +510,7 @@ impl RpcState {
             .rpc_call("starknet_getBlockWithTxs", &json!([self.block.to_value()?]))
             .map_err(|e| RpcStateError::RpcCall(e.to_string()))?;
 
-        let sequencer_address: StarkFelt = block_info
+        let sequencer_address: StarkHash = block_info
             .get("result")
             .and_then(|result| result.get("sequencer_address"))
             .and_then(|sa| serde_json::from_value(sa.clone()).ok())
@@ -593,7 +589,7 @@ impl RpcState {
         ClassHash(hash)
     }
 
-    pub fn get_nonce_at(&self, contract_address: &ContractAddress) -> StarkFelt {
+    pub fn get_nonce_at(&self, contract_address: &ContractAddress) -> StarkHash {
         self.block
             .to_value()
             .ok()
@@ -612,7 +608,7 @@ impl RpcState {
         &self,
         contract_address: &ContractAddress,
         key: &StorageKey,
-    ) -> StarkFelt {
+    ) -> StarkHash {
         let contract_address = contract_address.0.key();
         let key = key.0.key();
         self.block

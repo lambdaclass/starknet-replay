@@ -10,7 +10,7 @@ use rpc_state_reader::{
 };
 use starknet_api::{
     block::BlockNumber,
-    hash::StarkFelt,
+    hash::StarkHash,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 use tracing::{error, info, info_span};
@@ -50,9 +50,8 @@ pub fn fetch_block_range_data(
             .unwrap()
             .into_iter()
             .map(|transaction_hash| {
-                let transaction_hash = TransactionHash(
-                    StarkFelt::try_from(transaction_hash.strip_prefix("0x").unwrap()).unwrap(),
-                );
+                let transaction_hash =
+                    TransactionHash(StarkHash::from_hex(&transaction_hash).unwrap());
 
                 // Fetch transaction
                 let transaction = rpc_state.get_transaction(&transaction_hash).unwrap();
@@ -151,7 +150,7 @@ impl<S: StateReader> StateReader for OptionalStateReader<S> {
         &self,
         contract_address: starknet_api::core::ContractAddress,
         key: starknet_api::state::StorageKey,
-    ) -> blockifier::state::state_api::StateResult<StarkFelt> {
+    ) -> blockifier::state::state_api::StateResult<StarkHash> {
         self.get_inner().get_storage_at(contract_address, key)
     }
 
