@@ -40,11 +40,11 @@ impl fmt::Display for RpcChain {
 
 impl From<RpcChain> for ChainId {
     fn from(value: RpcChain) -> Self {
-        match value {
-            RpcChain::MainNet => ChainId::Mainnet,
-            RpcChain::TestNet => ChainId::Sepolia,
-            RpcChain::TestNet2 => ChainId::IntegrationSepolia,
-        }
+        ChainId::Other(match value {
+            RpcChain::MainNet => "alpha-mainnet".to_string(),
+            RpcChain::TestNet => "alpha4".to_string(),
+            RpcChain::TestNet2 => "alpha4-2".to_string(),
+        })
     }
 }
 
