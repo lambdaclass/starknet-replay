@@ -42,8 +42,8 @@ impl From<RpcChain> for ChainId {
     fn from(value: RpcChain) -> Self {
         match value {
             RpcChain::MainNet => ChainId::Mainnet,
-            RpcChain::TestNet => ChainId::IntegrationSepolia,
-            RpcChain::TestNet2 => ChainId::Sepolia
+            RpcChain::TestNet => ChainId::Sepolia,
+            RpcChain::TestNet2 => ChainId::IntegrationSepolia,
         }
     }
 }
