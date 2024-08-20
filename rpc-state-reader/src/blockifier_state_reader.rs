@@ -279,7 +279,7 @@ pub fn execute_tx(
     (
         // TODO Change charge_fee: true
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
