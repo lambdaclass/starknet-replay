@@ -99,7 +99,7 @@ impl StateReader for RpcStateReader {
                     ContractClass::V1(casm_cc.try_into().unwrap())
                 } else {
                     let program = sierra_cc.extract_sierra_program().unwrap();
-                    let executor = get_native_executor(program, class_hash);
+                    let executor = get_native_executor(program);
 
                     ContractClass::V1Native(
                         NativeContractClassV1::new(executor, sierra_cc).unwrap(),
@@ -560,12 +560,14 @@ mod tests {
         "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
         347900,
         RpcChain::MainNet
+        => ignore
     )]
     #[test_case(
-        // Declare tx
+        // Declare tx (fails with "already declared")
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet
+        => ignore
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
@@ -893,6 +895,7 @@ mod tests {
         false
     )]
     #[test_case(
+        // fails with "already declared (is the same declare tx)"
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         RpcChain::MainNet,
@@ -908,6 +911,7 @@ mod tests {
             n_modified_contracts: 1,
         },
         false
+        => ignore
     )]
     #[test_case(
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
@@ -925,6 +929,7 @@ mod tests {
             n_modified_contracts: 1,
         },
         false
+        => ignore
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",

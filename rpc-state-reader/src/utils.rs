@@ -1,19 +1,18 @@
 use std::{
     collections::HashMap,
     io::{self, Read},
-    sync::Arc,
 };
 
 use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{
-    cache::AotProgramCache, context::NativeContext, executor::AotNativeExecutor, OptLevel,
+    context::NativeContext, executor::AotNativeExecutor,
 };
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    core::{ClassHash, EntryPointSelector},
+    core::EntryPointSelector,
     deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
     hash::StarkHash,
     transaction::{DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction},
@@ -125,14 +124,12 @@ pub fn deserialize_transaction_json(
     }
 }
 
-static NATIVE_CONTEXT: std::sync::OnceLock<cairo_native::context::NativeContext> =
-    std::sync::OnceLock::new();
-
-pub fn get_native_executor(program: Program, class_hash: ClassHash) -> AotNativeExecutor {
-    let mut cache = AotProgramCache::new(NATIVE_CONTEXT.get_or_init(NativeContext::new));
-    let executor = match cache.get(&class_hash) {
-        Some(ex) => ex,
-        None => cache.compile_and_insert(class_hash, &program, OptLevel::Default),
-    };
-    Arc::try_unwrap(executor).unwrap()
+pub fn get_native_executor(program: Program) -> AotNativeExecutor {
+    let native_context: NativeContext = NativeContext::new();
+    let native_program = native_context.compile(&program).unwrap();
+    
+    AotNativeExecutor::from_native_module(
+        native_program,
+        cairo_native::OptLevel::Default,
+    )
 }
