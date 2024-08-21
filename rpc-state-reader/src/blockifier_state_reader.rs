@@ -361,8 +361,7 @@ pub fn execute_tx_configurable_with_state(
             let network = parse_to_rpc_chain(&chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
             let next_block_state_reader = RpcStateReader(
-                RpcState::new_rpc(network, (block_number.next()).unwrap().into())
-                    .unwrap(),
+                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
             );
             let contract_class = next_block_state_reader
                 .get_compiled_contract_class(tx.class_hash())
@@ -498,7 +497,7 @@ fn parse_to_rpc_chain(network: &str) -> RpcChain {
         "alpha-mainnet" => RpcChain::MainNet,
         "alpha4" => RpcChain::TestNet,
         "alpha4-2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name {}", network)
+        _ => panic!("Invalid network name {}", network),
     }
 }
 
