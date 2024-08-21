@@ -190,12 +190,15 @@ pub fn execute_tx(
         chain_id,
         fee_token_addresses: FeeTokenAddresses::default(),
     };
+    let mut versioned_constants =
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+    versioned_constants.disable_cairo0_redeclaration = false;
 
     // TODO: Check BlockContext::new_unchecked
     let block_context = BlockContext::new(
         block_info,
         chain_info,
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        versioned_constants,
         BouncerConfig::empty(),
     );
     // let block_context = BlockContext {
@@ -314,14 +317,17 @@ pub fn execute_tx_configurable_with_state(
     let chain_id = state.state.0.get_chain_name();
 
     let chain_info = ChainInfo {
-        chain_id,
+        chain_id: chain_id.clone(),
         fee_token_addresses: FeeTokenAddresses::default(),
     };
+    let mut versioned_constants =
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+    versioned_constants.disable_cairo0_redeclaration = false;
 
     let block_context = BlockContext::new(
         block_info,
         chain_info,
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        versioned_constants,
         BouncerConfig::empty(),
     );
 
@@ -351,11 +357,15 @@ pub fn execute_tx_configurable_with_state(
             })
         }
         SNTransaction::Declare(tx) => {
-            let contract_class = state
-                .state
+            let block_number = block_context.block_info().block_number;
+            // we need to retrieve the next block in order to get the contract_class
+            let next_block_state_reader = RpcStateReader(
+                RpcState::new_rpc(RpcChain::MainNet, (block_number.next()).unwrap().into())
+                    .unwrap(),
+            );
+            let contract_class = next_block_state_reader
                 .get_compiled_contract_class(tx.class_hash())
                 .unwrap();
-
             let class_info = calculate_class_info_for_testing(contract_class);
 
             let declare = DeclareTransaction::new(tx, *tx_hash, class_info).unwrap();
@@ -485,6 +495,9 @@ pub fn execute_tx_with_blockifier(
 pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
     let rpc_block_info = state.get_block_info().unwrap();
     let gas_price = state.get_gas_price(block_number.0).unwrap();
+    let mut versioned_constants =
+        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+    versioned_constants.disable_cairo0_redeclaration = false;
 
     BlockContext::new(
         BlockInfo {
@@ -498,7 +511,7 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
             chain_id: state.get_chain_name(),
             fee_token_addresses: Default::default(),
         },
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX),
+        versioned_constants,
         BouncerConfig::empty(),
     )
 }
@@ -567,7 +580,6 @@ mod tests {
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet
-        => ignore
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
@@ -911,7 +923,6 @@ mod tests {
             n_modified_contracts: 1,
         },
         false
-        => ignore
     )]
     #[test_case(
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
@@ -929,7 +940,6 @@ mod tests {
             n_modified_contracts: 1,
         },
         false
-        => ignore
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
