@@ -2,6 +2,7 @@ pub mod rpc_state;
 pub mod rpc_state_errors;
 pub mod utils;
 
+pub use blockifier;
 pub mod blockifier_state_reader;
 
 #[cfg(test)]

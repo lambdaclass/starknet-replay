@@ -6,9 +6,7 @@ use std::{
 use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
-use cairo_native::{
-    context::NativeContext, executor::AotNativeExecutor,
-};
+use cairo_native::{context::NativeContext, executor::AotNativeExecutor};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
@@ -127,9 +125,6 @@ pub fn deserialize_transaction_json(
 pub fn get_native_executor(program: Program) -> AotNativeExecutor {
     let native_context: NativeContext = NativeContext::new();
     let native_program = native_context.compile(&program).unwrap();
-    
-    AotNativeExecutor::from_native_module(
-        native_program,
-        cairo_native::OptLevel::Default,
-    )
+
+    AotNativeExecutor::from_native_module(native_program, cairo_native::OptLevel::Default)
 }

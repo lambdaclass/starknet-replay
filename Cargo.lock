@@ -448,7 +448,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.8.0-rc.1"
-source = "git+https://github.com/lambdaclass/blockifier?branch=sierra_emu#61c1a9d9a80a38307cca55ff69742c8ad4af9efe"
+source = "git+https://github.com/lambdaclass/blockifier?branch=sierra_emu#ed2a4d89260d23f79b4cfa0b9ebad5c4463823a6"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1107,7 +1107,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=cairo-lang2.7.0-rc.3#a40dc168b343eebbce36a817d44a2a250f18caa0"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=cairo-lang2.7.0-rc.3#f3d29265b8592745003d90f668f2a0aa5fca02b4"
 dependencies = [
  "anyhow",
  "bumpalo",
@@ -1157,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=cairo-lang2.7.0-rc.3#a40dc168b343eebbce36a817d44a2a250f18caa0"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=cairo-lang2.7.0-rc.3#f3d29265b8592745003d90f668f2a0aa5fca02b4"
 dependencies = [
  "cairo-lang-sierra-gas",
  "lazy_static",
@@ -3404,7 +3404,6 @@ name = "replay"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "blockifier",
  "clap",
  "rpc-state-reader",
  "starknet_api",

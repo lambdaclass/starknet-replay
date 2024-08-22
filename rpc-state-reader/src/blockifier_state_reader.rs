@@ -373,10 +373,7 @@ pub fn execute_tx_configurable_with_state(
         _ => unimplemented!(),
     };
 
-    #[cfg(not(feature = "cairo-native"))]
-    let blockifier_execution = blockifier_tx.execute(state, &block_context, false, true);
-
-    blockifier_execution
+    blockifier_tx.execute(state, &block_context, false, true)
 }
 
 pub fn execute_tx_configurable(
@@ -810,7 +807,7 @@ mod tests {
         false
     )]
     #[test_case(
-        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",  
+        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
         654770,
         RpcChain::MainNet,
         GasVector { l1_gas: 4646, l1_data_gas: 0 },

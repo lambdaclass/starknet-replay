@@ -7,6 +7,7 @@ edition = "2021"
 # The only_casm feature compiles all the Sierra fetched contracts to CASM.
 # We use this feature to avoid using cairo_native in the Replay crate.
 only_casm = []
+use-sierra-emu = ["blockifier/use-sierra-emu"]
 
 [dependencies]
 ureq = { version = "2.7.1", features = ["json"] }
@@ -26,8 +27,8 @@ thiserror = { workspace = true }
 flate2 = "1.0.25"
 dotenv = "0.15.0"
 cairo-vm = "1.0.0-rc5"
-blockifier = { workspace = true }
 tracing = { workspace = true }
+blockifier = { git = "https://github.com/lambdaclass/blockifier", branch= "sierra_emu"}
 
 [dev-dependencies]
 pretty_assertions_sorted = "1.2.3"

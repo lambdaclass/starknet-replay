@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
+use rpc_state_reader::blockifier::state::cached_state::CachedState;
 use rpc_state_reader::{
     blockifier_state_reader::RpcStateReader,
     rpc_state::{BlockValue, RpcChain, RpcState},
@@ -63,6 +63,13 @@ fn main() {
     set_global_subscriber();
 
     let cli = ReplayCLI::parse();
+
+    if cfg!(feature = "use-sierra-emu") {
+        info!("Using the sierra-emu blockifier");
+    } else {
+        info!("Using the cairo native blockifier");
+    }
+
     match cli.subcommand {
         ReplayExecute::Tx {
             tx_hash,
