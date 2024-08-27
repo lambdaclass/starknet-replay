@@ -585,7 +585,7 @@ mod tests {
         => ignore
     )]
     #[test_case(
-        // Declare tx (fails with "already declared")
+        // Declare tx 
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet
@@ -916,7 +916,6 @@ mod tests {
         false
     )]
     #[test_case(
-        // fails with "already declared (is the same declare tx)"
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         RpcChain::MainNet,
