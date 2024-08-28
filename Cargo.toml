@@ -10,7 +10,3 @@ resolver = "2"
 thiserror = "1.0.32"
 starknet_api = "0.13.0-rc.0"
 tracing = "0.1"
-
-
-[patch."https://github.com/lambdaclass/sierra-emu"]
-sierra-emu = { path = "/Users/edgar/Documents/sierra-emu"}
