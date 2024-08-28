@@ -1,16 +1,24 @@
 use std::{
     collections::HashMap,
     io::{self, Read},
+    sync::{Arc, OnceLock, RwLock},
 };
 
+use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
+use cairo_native::{
+    cache::{AotProgramCache, ProgramCache},
+    context::NativeContext,
+    executor::AotNativeExecutor,
+    OptLevel,
+};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    core::EntryPointSelector,
+    core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
-    hash::{StarkFelt, StarkHash},
+    hash::StarkHash,
     transaction::{DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction},
 };
 
@@ -20,6 +28,11 @@ pub struct MiddleSierraContractClass {
     pub contract_class_version: String,
     pub entry_points_by_type: ContractEntryPoints,
 }
+
+static NATIVE_CONTEXT: std::sync::OnceLock<cairo_native::context::NativeContext> =
+    std::sync::OnceLock::new();
+
+static AOT_PROGRAM_CACHE: OnceLock<RwLock<ProgramCache<'static, ClassHash>>> = OnceLock::new();
 
 pub fn map_entry_points_by_type_legacy(
     entry_points_by_type: LegacyEntryPointsByType,
@@ -34,7 +47,7 @@ pub fn map_entry_points_by_type_legacy(
     ]);
 
     let to_contract_entry_point = |entrypoint: &LegacyContractEntryPoint| -> EntryPoint {
-        let felt: StarkFelt = StarkHash::new(entrypoint.selector.to_bytes_be()).unwrap();
+        let felt: StarkHash = StarkHash::from_bytes_be(&entrypoint.selector.to_bytes_be());
         EntryPoint {
             offset: EntryPointOffset(entrypoint.offset as usize),
             selector: EntryPointSelector(felt),
@@ -117,5 +130,27 @@ pub fn deserialize_transaction_json(
         x => Err(serde::de::Error::custom(format!(
             "unimplemented transaction type deserialization: {x}"
         ))),
+    }
+}
+
+pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotNativeExecutor> {
+    let program_cache = AOT_PROGRAM_CACHE.get_or_init(|| {
+        RwLock::new(ProgramCache::Aot(AotProgramCache::new(
+            NATIVE_CONTEXT.get_or_init(NativeContext::new),
+        )))
+    });
+    let native_executor = match &*program_cache.read().unwrap() {
+        ProgramCache::Aot(program_cache) => program_cache.get(&class_hash),
+        _ => panic!("JIT is not supported"),
+    };
+
+    match native_executor {
+        Some(native_executor) => native_executor,
+        None => match &mut *program_cache.write().unwrap() {
+            ProgramCache::Aot(program_cache) => {
+                program_cache.compile_and_insert(class_hash, &program, OptLevel::Default)
+            }
+            _ => panic!("JIT is not supported"),
+        },
     }
 }

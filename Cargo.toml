@@ -8,6 +8,6 @@ resolver = "2"
 
 [workspace.dependencies]
 thiserror = "1.0.32"
-starknet_api = "=0.12.0-dev.1"
-blockifier = { git = "https://github.com/lambdaclass/blockifier", rev = "0e47bbe66ccd8003dcd0aa1380485daa07ea95e4" }
+starknet_api = "0.13.0-rc.0"
+blockifier = { git = "https://github.com/lambdaclass/blockifier", branch= "native2.7.x-adapt" }
 tracing = "0.1"
