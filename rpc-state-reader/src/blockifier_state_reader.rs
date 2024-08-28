@@ -582,7 +582,7 @@ mod tests {
         => ignore
     )]
     #[test_case(
-        // Declare tx 
+        // Declare tx
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet
