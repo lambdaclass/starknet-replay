@@ -462,7 +462,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.8.0-rc.1"
-source = "git+https://github.com/lambdaclass/blockifier?branch=sierra_emu#2ceb3e57a919410db3fccd6c9ed564cc31b89c09"
+source = "git+https://github.com/lambdaclass/blockifier?branch=no_tail_rec#4372c26673cae7df92dc998160e457f19f5de888"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1115,7 +1115,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0#8db42c9abb7d6bf7bf45f15bf4ded0883ede9349"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0-no-tailrec#ac85cf1d1ba8d8b1c8a52e4fcc0f8d37f64cf2eb"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1164,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0#8db42c9abb7d6bf7bf45f15bf4ded0883ede9349"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0-no-tailrec#ac85cf1d1ba8d8b1c8a52e4fcc0f8d37f64cf2eb"
 dependencies = [
  "cairo-lang-sierra-gas",
  "lazy_static",
