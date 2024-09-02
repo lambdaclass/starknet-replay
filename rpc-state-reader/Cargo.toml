@@ -17,15 +17,15 @@ serde_json = { version = "1.0", features = [
   "raw_value",
 ] }
 starknet_api = {workspace = true}
-cairo-lang-starknet = "^2.7.1"
-cairo-lang-sierra = "^2.7.1"
-cairo-lang-starknet-classes = "^2.7.1"
-cairo-lang-utils = "^2.7.1"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "c3291daa8880df5c2b4027f9bcd8e83c6fbb6c7d"} # main
+cairo-lang-starknet = "2.8.0"
+cairo-lang-sierra = "2.8.0"
+cairo-lang-starknet-classes = "2.8.0"
+cairo-lang-utils = "2.8.0"
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", branch="native2.8.0" } # main
 starknet = "0.7.0"
 thiserror = { workspace = true }
 flate2 = "1.0.25"
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 cairo-vm = "1.0.0-rc5"
 tracing = { workspace = true }
 blockifier = { git = "https://github.com/lambdaclass/blockifier", branch="sierra_emu"}
