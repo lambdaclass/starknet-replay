@@ -1,8 +1,9 @@
-use std::time::Instant;
+use std::{collections::HashMap, time::Instant};
 
 use blockifier::{
     context::BlockContext,
     state::{cached_state::CachedState, state_api::StateReader},
+    transaction::objects::TransactionExecutionInfo,
 };
 use rpc_state_reader::{
     blockifier_state_reader::{execute_tx_with_blockifier, fetch_block_context, RpcStateReader},
@@ -10,6 +11,7 @@ use rpc_state_reader::{
 };
 use starknet_api::{
     block::BlockNumber,
+    core::ClassHash,
     hash::StarkHash,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
@@ -85,6 +87,8 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
         .entered();
         info!("starting block execution");
 
+        let mut called_class_hashes: HashMap<ClassHash, u16> = HashMap::new();
+
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
 
@@ -95,8 +99,8 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                 transaction_hash = transaction_hash.to_string(),
             )
             .entered();
-            info!("starting tx execution");
 
+            info!("starting tx execution");
             let pre_execution_instant = Instant::now();
             let result = execute_tx_with_blockifier(
                 &mut transactional_state,
@@ -111,7 +115,12 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                     info!(
                         succeeded = info.revert_error.is_none(),
                         "tx execution status"
-                    )
+                    );
+
+                    // match get_clash_hash_calls(info) {
+                    //     Some(calls) => /* info! calls and their counts */,
+                    //     None => /* info! no calls */
+                    // }
                 }
                 Err(_) => error!(
                     transaction_hash = transaction_hash.to_string(),
@@ -122,6 +131,31 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
             info!(time = ?execution_time, "finished tx execution");
         }
     }
+}
+
+fn get_clash_hash_calls(info: TransactionExecutionInfo) -> Option<HashMap<ClassHash, u32>> {
+    let mut class_hash_calls: HashMap<ClassHash, u32> = HashMap::new();
+
+    if let Some(call) = info.execute_call_info {
+        // the first call should always be some
+        let class_hash = call.call.class_hash.unwrap();
+        class_hash_calls.insert(class_hash, 1);
+
+        for inner in call.inner_calls {
+            if let Some(hash) = inner.call.class_hash {
+                match class_hash_calls.get_mut(&hash) {
+                    Some(count) => *count += 1,
+                    None => {
+                        class_hash_calls.insert(hash, 1);
+                    }
+                };
+            }
+        }
+
+        return Some(class_hash_calls);
+    }
+
+    None
 }
 
 /// An implementation of StateReader that can be disabled, panicking if atempted to be read from

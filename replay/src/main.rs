@@ -123,7 +123,7 @@ fn main() {
                 info!("fetching block range data");
                 let mut block_range_data = fetch_block_range_data(block_start, block_end, chain);
 
-                // We must execute the block range once first to ensure that all data required by blockifier is chached
+                // We must execute the block range once first to ensure that all data required by blockifier is cached
                 info!("filling up execution cache");
                 execute_block_range(&mut block_range_data);
 
