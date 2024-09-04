@@ -131,7 +131,7 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
     let block_context = fetch_block_context(&rpc_state, block);
 
     // Fetch transactions for the block
-    let transaction_hash = TransactionHash(StarkHash::from_hex(&tx).unwrap());
+    let transaction_hash = TransactionHash(StarkHash::from_hex(tx).unwrap());
     let transaction = rpc_state.get_transaction(&transaction_hash).unwrap();
     let transactions = vec![(transaction_hash, transaction)];
 
