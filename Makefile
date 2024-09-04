@@ -11,17 +11,14 @@ usage:
 	@echo "    clean:      Cleans the built artifacts."
 
 build:
-	cargo build --release
-	# cargo build --release --all-features
+	cargo build --release --all-features
 
 check:
 	cargo fmt --all -- --check
-	cargo clippy --all-targets -- -D warnings
-	# cargo clippy --all-targets --all-features -- -D warnings
+	cargo clippy --all-targets --all-features -- -D warnings
 
 test:
-	cargo test
-	# cargo test --profile ci --all-features
+	cargo test --all-features
 
 clean:
 	cargo clean
