@@ -108,22 +108,26 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
 
             match result {
                 Ok(info) => {
-                    info!(
-                        succeeded = info.revert_error.is_none(),
-                        "tx execution status"
-                    );
-                    
-                    // if it is a delare tx, there'll be no call info
                     match info.execute_call_info {
                         Some(call) => {
-                            let class_hash = call.call.class_hash.unwrap().0.to_string();
-                            let entry_point = call.call.entry_point_selector.0.to_string();
+                            let class_hash = call.call.class_hash.unwrap().to_hex_string();
+                            let entry_point = call.call.entry_point_selector.0.to_hex_string();
 
-                            info!(class_hash = class_hash, entry_point = entry_point, "class_hash_call");
-                        },
-                        None => {info!(class_hash = "none", entry_point = "none", "class_hash_call");}
+                            info!(
+                                succeeded = info.revert_error.is_none(),
+                                class_hash_called = class_hash,
+                                entry_point_used = entry_point,
+                                "tx execution summary"
+                            );
+                        }
+                        None => info!(
+                            succeeded = info.revert_error.is_none(),
+                            class_hash_called = "none",
+                            entry_point_used = "none",
+                            "tx execution summary"
+                        ),
                     };
-                },
+                }
                 Err(_) => error!(
                     transaction_hash = transaction_hash.to_string(),
                     "tx execution failed"
