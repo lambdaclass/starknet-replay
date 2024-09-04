@@ -462,7 +462,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.8.0-rc.1"
-source = "git+https://github.com/lambdaclass/blockifier?branch=sierra_emu#2ceb3e57a919410db3fccd6c9ed564cc31b89c09"
+source = "git+https://github.com/lambdaclass/blockifier?branch=sierra_emu#1f13f1f4753da94fad9eec90b689ef0f0e24143c"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1115,7 +1115,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0#8db42c9abb7d6bf7bf45f15bf4ded0883ede9349"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=remove_var_callee#3ee83efaaa11c7cc0f8b7b0569e9b1b996c3f410"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1164,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass/cairo_native?branch=native2.8.0#8db42c9abb7d6bf7bf45f15bf4ded0883ede9349"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=remove_var_callee#3ee83efaaa11c7cc0f8b7b0569e9b1b996c3f410"
 dependencies = [
  "cairo-lang-sierra-gas",
  "lazy_static",
@@ -3951,7 +3951,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sierra-emu"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/sierra-emu.git?branch=upd#1ecf37981f66dc4e1cfef593a1feea7a7c8aa89c"
+source = "git+https://github.com/lambdaclass/sierra-emu.git?branch=upd#14a2c1876fde482044976258368289ef2f948353"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-sierra-ap-change",

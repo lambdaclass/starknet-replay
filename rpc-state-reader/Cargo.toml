@@ -21,7 +21,7 @@ cairo-lang-starknet = "2.8.0"
 cairo-lang-sierra = "2.8.0"
 cairo-lang-starknet-classes = "2.8.0"
 cairo-lang-utils = "2.8.0"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", branch="native2.8.0" } # main
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", branch="remove_var_callee" } # main
 starknet = "0.7.0"
 thiserror = { workspace = true }
 flate2 = "1.0.25"
