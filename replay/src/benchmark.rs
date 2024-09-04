@@ -124,6 +124,25 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
     }
 }
 
+pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
+    let rpc_state = RpcState::new_rpc(chain, block.into()).unwrap();
+
+    // Fetch block context
+    let block_context = fetch_block_context(&rpc_state, block);
+
+    // Fetch transactions for the block
+    let transaction_hash = TransactionHash(StarkHash::from_hex(&tx).unwrap());
+    let transaction = rpc_state.get_transaction(&transaction_hash).unwrap();
+    let transactions = vec![(transaction_hash, transaction)];
+
+    // Create cached state
+    let previous_rpc_state = RpcState::new_rpc(chain, block.prev().unwrap().into()).unwrap();
+    let previous_rpc_state_reader = RpcStateReader::new(previous_rpc_state);
+    let cached_state = CachedState::new(OptionalStateReader::new(previous_rpc_state_reader));
+
+    (cached_state, block_context, transactions)
+}
+
 /// An implementation of StateReader that can be disabled, panicking if atempted to be read from
 ///
 /// Used to ensure that no requests are made after disabling it.
