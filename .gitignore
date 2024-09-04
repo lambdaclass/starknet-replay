@@ -5,3 +5,7 @@ target/
 .envrc
 
 traces/
+
+*.mlir
+*.ll
+program.sierra
