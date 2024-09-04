@@ -11,7 +11,7 @@ usage:
 	@echo "    clean:      Cleans the built artifacts."
 
 build:
-	cargo build --release --all-features
+	cargo build --release --features benchmark
 
 check:
 	cargo fmt --all -- --check
