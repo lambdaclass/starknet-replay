@@ -383,9 +383,7 @@ pub fn execute_tx_configurable_with_state(
         _ => unimplemented!(),
     };
 
-    let blockifier_execution = blockifier_tx.execute(state, &block_context, false, true);
-
-    blockifier_execution
+    blockifier_tx.execute(state, &block_context, false, true)
 }
 
 pub fn execute_tx_configurable(
