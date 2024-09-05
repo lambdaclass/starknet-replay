@@ -21,7 +21,7 @@ jobs:
       TABLEGEN_180_PREFIX: /usr/lib/llvm-18/
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
@@ -86,12 +86,12 @@ jobs:
       MLIR_SYS_180_PREFIX: /usr/lib/llvm-18/
       LLVM_SYS_180_PREFIX: /usr/lib/llvm-18/
       TABLEGEN_180_PREFIX: /usr/lib/llvm-18/
-      RUSTUP_TOOLCHAIN: nightly-2024-02-01  # udeps needs nightly
+      RUSTUP_TOOLCHAIN: nightly  # udeps needs nightly
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
-          toolchain: nightly-2024-02-01
+          toolchain: nightly
           components: rustfmt
 
       - name: Add llvm deb repository
@@ -139,7 +139,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           df -h
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.79.0
+        uses: dtolnay/rust-toolchain@1.80.0
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Add LLVM Debian repository
