@@ -226,8 +226,7 @@ pub fn execute_tx(
     let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
         SNTransaction::Invoke(tx) => {
             let invoke = InvokeTransaction {
-                tx,
-                tx_hash,
+                tx: starknet_api::executable_transaction::InvokeTransaction { tx, tx_hash },
                 only_query: false,
             };
             AccountTransaction::Invoke(invoke)
@@ -242,9 +241,11 @@ pub fn execute_tx(
             .unwrap();
             AccountTransaction::DeployAccount(DeployAccountTransaction {
                 only_query: false,
-                tx,
-                tx_hash,
-                contract_address,
+                tx: starknet_api::executable_transaction::DeployAccountTransaction {
+                    tx,
+                    tx_hash,
+                    contract_address,
+                },
             })
         }
         SNTransaction::Declare(tx) => {
@@ -335,8 +336,10 @@ pub fn execute_tx_configurable_with_state(
     let blockifier_tx: AccountTransaction = match tx {
         SNTransaction::Invoke(tx) => {
             let invoke = InvokeTransaction {
-                tx,
-                tx_hash: *tx_hash,
+                tx: starknet_api::executable_transaction::InvokeTransaction {
+                    tx,
+                    tx_hash: *tx_hash,
+                },
                 only_query: false,
             };
             AccountTransaction::Invoke(invoke)
@@ -351,9 +354,11 @@ pub fn execute_tx_configurable_with_state(
             .unwrap();
             AccountTransaction::DeployAccount(DeployAccountTransaction {
                 only_query: false,
-                tx,
-                tx_hash: *tx_hash,
-                contract_address,
+                tx: starknet_api::executable_transaction::DeployAccountTransaction {
+                    tx,
+                    tx_hash: *tx_hash,
+                    contract_address,
+                },
             })
         }
         SNTransaction::Declare(tx) => {
@@ -441,8 +446,10 @@ pub fn execute_tx_with_blockifier(
     let account_transaction: AccountTransaction = match transaction {
         SNTransaction::Invoke(tx) => {
             let invoke = InvokeTransaction {
-                tx,
-                tx_hash: transaction_hash,
+                tx: starknet_api::executable_transaction::InvokeTransaction {
+                    tx,
+                    tx_hash: transaction_hash,
+                },
                 only_query: false,
             };
             AccountTransaction::Invoke(invoke)
@@ -457,9 +464,11 @@ pub fn execute_tx_with_blockifier(
             .unwrap();
             AccountTransaction::DeployAccount(DeployAccountTransaction {
                 only_query: false,
-                tx,
-                tx_hash: transaction_hash,
-                contract_address,
+                tx: starknet_api::executable_transaction::DeployAccountTransaction {
+                    tx,
+                    tx_hash: transaction_hash,
+                    contract_address,
+                },
             })
         }
         SNTransaction::Declare(tx) => {
@@ -544,7 +553,7 @@ mod tests {
 
         let price = rpc_state.get_gas_price(169928).unwrap();
         assert_eq!(
-            price.eth_l1_gas_price,
+            price.get_l1_gas_price_by_fee_type(&blockifier::transaction::objects::FeeType::Eth),
             NonZeroU128::new(22804578690).unwrap()
         );
     }
@@ -763,7 +772,7 @@ mod tests {
         "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
         648462,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
         7,
         3,
         0,
@@ -780,7 +789,7 @@ mod tests {
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
         661815,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
         9,
         2,
         0,
@@ -797,7 +806,7 @@ mod tests {
         "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
         662246,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
         9,
         2,
         0,
@@ -814,7 +823,7 @@ mod tests {
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
         7,
         2,
         0,
@@ -831,7 +840,7 @@ mod tests {
         "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",  
         654770,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0 },
+        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
         7,
         2,
         0,
@@ -848,7 +857,7 @@ mod tests {
         "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
         653019,
         RpcChain::MainNet,
-        GasVector { l1_gas: 11736, l1_data_gas: 0 },
+        GasVector { l1_gas: 11736, l1_data_gas: 0, l2_gas: 0 },
         28,
         2,
         0,
@@ -865,7 +874,7 @@ mod tests {
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
         650558,
         RpcChain::MainNet,
-        GasVector { l1_gas: 6538, l1_data_gas: 0 },
+        GasVector { l1_gas: 6538, l1_data_gas: 0, l2_gas: 0 },
         24,
         3,
         0,
@@ -882,7 +891,7 @@ mod tests {
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
         351226,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
         3,
         0,
         0,
@@ -899,7 +908,7 @@ mod tests {
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
         317093,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
         6,
         2,
         0,
@@ -916,7 +925,7 @@ mod tests {
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
         8,
         2,
         0,
@@ -933,7 +942,7 @@ mod tests {
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
         0,
         2,
         42564,
@@ -950,7 +959,7 @@ mod tests {
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
         5,
         0,
         0,
@@ -967,7 +976,7 @@ mod tests {
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
         RpcChain::MainNet,
-        GasVector { l1_gas: 5748, l1_data_gas: 0 },
+        GasVector { l1_gas: 5748, l1_data_gas: 0, l2_gas: 0 },
         7,
         2,
         0,
@@ -984,7 +993,7 @@ mod tests {
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
         662252,
         RpcChain::MainNet,
-        GasVector { l1_gas: 6850, l1_data_gas: 0 },
+        GasVector { l1_gas: 6850, l1_data_gas: 0, l2_gas: 0 },
         18,
         2,
         0,
@@ -1001,7 +1010,7 @@ mod tests {
         "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
         662250,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
         10,
         2,
         0,
@@ -1018,7 +1027,7 @@ mod tests {
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
         662251,
         RpcChain::MainNet,
-        GasVector { l1_gas: 3544, l1_data_gas: 0 },
+        GasVector { l1_gas: 3544, l1_data_gas: 0, l2_gas: 0 },
         12,
         5,
         0,
@@ -1035,7 +1044,7 @@ mod tests {
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
         351269,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0 },
+        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
         3,
         0,
         0,
@@ -1052,7 +1061,7 @@ mod tests {
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
         RpcChain::MainNet,
-        GasVector { l1_gas: 9844, l1_data_gas: 0 },
+        GasVector { l1_gas: 9844, l1_data_gas: 0, l2_gas: 0 },
         37,
         2,
         0,
@@ -1069,7 +1078,7 @@ mod tests {
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
         662248,
         RpcChain::MainNet,
-        GasVector { l1_gas: 5748, l1_data_gas: 0 },
+        GasVector { l1_gas: 5748, l1_data_gas: 0, l2_gas: 0 },
         4,
         2,
         0,
@@ -1086,7 +1095,7 @@ mod tests {
         "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
         536893,
         RpcChain::MainNet,
-        GasVector { l1_gas: 13940, l1_data_gas: 0 },
+        GasVector { l1_gas: 13940, l1_data_gas: 0, l2_gas: 0 },
         24,
         4,
         0,
@@ -1103,7 +1112,7 @@ mod tests {
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
         644700,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0 },
+        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
         8,
         2,
         0,
@@ -1131,7 +1140,7 @@ mod tests {
     ) {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
-        let tx_receipt = tx_info.transaction_receipt;
+        let tx_receipt = tx_info.receipt;
         let starknet_resources = tx_receipt.resources.starknet_resources;
         let callinfo_iter = match tx_info.execute_call_info {
             Some(c) => vec![c],

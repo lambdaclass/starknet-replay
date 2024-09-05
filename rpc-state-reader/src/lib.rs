@@ -114,8 +114,7 @@ mod tests {
         match tx {
             SNTransaction::Invoke(tx) => {
                 let invoke = InvokeTransaction {
-                    tx,
-                    tx_hash,
+                    tx: starknet_api::executable_transaction::InvokeTransaction { tx, tx_hash },
                     only_query: false,
                 };
                 AccountTransaction::Invoke(invoke)
