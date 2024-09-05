@@ -13,11 +13,7 @@ use starknet_api::{
     hash::StarkHash,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use tracing::{
-    error,
-    field,
-    info, info_span,
-};
+use tracing::{error, field, info, info_span};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
