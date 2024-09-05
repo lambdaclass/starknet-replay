@@ -15,7 +15,7 @@ use starknet_api::{
 };
 use tracing::{
     error,
-    field::{self, ValueSet},
+    field,
     info, info_span,
 };
 
