@@ -383,10 +383,7 @@ pub fn execute_tx_configurable_with_state(
         _ => unimplemented!(),
     };
 
-    #[cfg(not(feature = "cairo-native"))]
-    let blockifier_execution = blockifier_tx.execute(state, &block_context, false, true);
-
-    blockifier_execution
+    blockifier_tx.execute(state, &block_context, false, true)
 }
 
 pub fn execute_tx_configurable(
