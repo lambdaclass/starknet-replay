@@ -208,6 +208,31 @@ fn show_execution_data(
     let rpc_execution_status = rpc_receipt.execution_status;
     let status_matches = execution_status == rpc_execution_status;
 
+    let da_gas = &execution_info.transaction_receipt.da_gas;
+    let da_gas_str = format!(
+        "{{ l1_da_gas: {}, l1_gas: {} }}",
+        da_gas.l1_data_gas, da_gas.l1_gas
+    );
+
+    let resources = &execution_info
+        .transaction_receipt
+        .resources
+        .starknet_resources;
+    let resources_str = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        resources.n_events,
+        resources.message_cost_info.l2_to_l1_payload_lengths.len(),
+    );
+
+    let state_changes = resources.state_changes_for_fee;
+    let state_changes_for_fee_str = format!(
+        "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
+        state_changes.n_class_hash_updates,
+        state_changes.n_compiled_class_hash_updates,
+        state_changes.n_modified_contracts,
+        state_changes.n_storage_updates
+    );
+
     if !status_matches {
         error!(
             transaction_hash = tx_hash,
@@ -215,6 +240,9 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            da_gas = da_gas_str,
+            starknet_events_and_messages = resources_str,
+            state_changes_for_fee = state_changes_for_fee_str,
             "rpc and execution status diverged"
         )
     } else {
@@ -224,6 +252,9 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            da_gas = da_gas_str,
+            starknet_resources = resources_str,
+            state_changes_for_fee = state_changes_for_fee_str,
             "execution finished successfully"
         );
     }
