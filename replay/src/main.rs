@@ -63,8 +63,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         It only works if the transaction doesn't depend on another transaction in the same block")]
     BenchTx {
         tx: String,
-        block: u64,
         chain: String,
+        block: u64,
         number_of_runs: usize,
     },
 }
