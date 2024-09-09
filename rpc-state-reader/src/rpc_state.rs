@@ -193,7 +193,7 @@ pub struct FeePayment {
 pub struct Event {
     from_address: StarkHash,
     keys: Vec<StarkHash>,
-    data: Vec<StarkHash>
+    data: Vec<StarkHash>,
 }
 
 #[allow(unused)]
@@ -201,7 +201,7 @@ pub struct Event {
 pub struct ToL1Msg {
     from_address: StarkHash,
     to_address: StarkHash,
-    payload: Vec<StarkHash>
+    payload: Vec<StarkHash>,
 }
 
 fn fee_amount_deser<'de, D>(deserializer: D) -> Result<u128, D::Error>

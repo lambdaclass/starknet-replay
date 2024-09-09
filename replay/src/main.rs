@@ -208,16 +208,13 @@ fn show_execution_data(
     let rpc_execution_status = rpc_receipt.execution_status;
     let status_matches = execution_status == rpc_execution_status;
 
-    let da_gas = &execution_info.transaction_receipt.da_gas;
+    let da_gas = &execution_info.receipt.da_gas;
     let da_gas_str = format!(
         "{{ l1_da_gas: {}, l1_gas: {} }}",
         da_gas.l1_data_gas, da_gas.l1_gas
     );
 
-    let exec_rsc = &execution_info
-        .transaction_receipt
-        .resources
-        .starknet_resources;
+    let exec_rsc = &execution_info.receipt.resources.starknet_resources;
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
