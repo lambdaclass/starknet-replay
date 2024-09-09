@@ -214,24 +214,30 @@ fn show_execution_data(
         da_gas.l1_data_gas, da_gas.l1_gas
     );
 
-    let resources = &execution_info
+    let exec_rsc = &execution_info
         .transaction_receipt
         .resources
         .starknet_resources;
-    let resources_str = format!(
+
+    let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
-        resources.n_events,
-        resources.message_cost_info.l2_to_l1_payload_lengths.len(),
+        exec_rsc.n_events,
+        exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
+    );
+    let rpc_events_and_msgs = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        rpc_receipt.events.len(),
+        rpc_receipt.messages_sent.len(),
     );
 
-    let state_changes = resources.state_changes_for_fee;
-    let state_changes_for_fee_str = format!(
-        "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
-        state_changes.n_class_hash_updates,
-        state_changes.n_compiled_class_hash_updates,
-        state_changes.n_modified_contracts,
-        state_changes.n_storage_updates
-    );
+    // let state_changes = resources.state_changes_for_fee;
+    // let state_changes_for_fee_str = format!(
+    //     "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
+    //     state_changes.n_class_hash_updates,
+    //     state_changes.n_compiled_class_hash_updates,
+    //     state_changes.n_modified_contracts,
+    //     state_changes.n_storage_updates
+    // );
 
     if !status_matches {
         error!(
@@ -240,9 +246,9 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            events_and_messages = events_and_msgs,
+            rpc_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
-            starknet_events_and_messages = resources_str,
-            state_changes_for_fee = state_changes_for_fee_str,
             "rpc and execution status diverged"
         )
     } else {
@@ -252,9 +258,9 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            n_eventsevents_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
-            starknet_resources = resources_str,
-            state_changes_for_fee = state_changes_for_fee_str,
             "execution finished successfully"
         );
     }
