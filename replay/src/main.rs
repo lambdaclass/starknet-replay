@@ -227,14 +227,14 @@ fn show_execution_data(
         rpc_receipt.messages_sent.len(),
     );
 
-    // let state_changes = resources.state_changes_for_fee;
-    // let state_changes_for_fee_str = format!(
-    //     "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
-    //     state_changes.n_class_hash_updates,
-    //     state_changes.n_compiled_class_hash_updates,
-    //     state_changes.n_modified_contracts,
-    //     state_changes.n_storage_updates
-    // );
+    let state_changes = exec_rsc.state_changes_for_fee;
+    let state_changes_for_fee_str = format!(
+        "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
+        state_changes.n_class_hash_updates,
+        state_changes.n_compiled_class_hash_updates,
+        state_changes.n_modified_contracts,
+        state_changes.n_storage_updates
+    );
 
     if !status_matches {
         error!(
@@ -246,6 +246,7 @@ fn show_execution_data(
             events_and_messages = events_and_msgs,
             rpc_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "rpc and execution status diverged"
         )
     } else {
@@ -258,6 +259,7 @@ fn show_execution_data(
             n_eventsevents_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "execution finished successfully"
         );
     }
