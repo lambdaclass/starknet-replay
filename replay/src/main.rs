@@ -243,8 +243,8 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
-            events_and_messages = events_and_msgs,
-            rpc_events_and_msgs = rpc_events_and_msgs,
+            n_events_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
             "rpc and execution status diverged"
