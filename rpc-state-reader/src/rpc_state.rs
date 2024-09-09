@@ -507,16 +507,14 @@ impl RpcState {
         .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
 
         // TODO check 0 wei/strk
-        Ok(GasPrices {
-            eth_l1_gas_price: NonZeroU128::new(gas_price_eth)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            strk_l1_gas_price: NonZeroU128::new(gas_price_strk)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            eth_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_wei)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            strk_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_strk)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-        })
+        Ok(GasPrices::new(
+            NonZeroU128::new(gas_price_eth).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(gas_price_strk).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(l1_data_gas_price_wei).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(l1_data_gas_price_strk).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(1).unwrap(),
+            NonZeroU128::new(1).unwrap(),
+        ))
     }
 
     pub fn get_chain_name(&self) -> ChainId {
