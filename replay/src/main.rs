@@ -228,7 +228,7 @@ fn show_execution_data(
         );
     }
 
-    let execution_gas = execution_info.transaction_receipt.fee;
+    let execution_gas = execution_info.receipt.fee;
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
