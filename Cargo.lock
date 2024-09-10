@@ -462,7 +462,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.8.0-rc.1"
-source = "git+https://github.com/lambdaclass/blockifier?branch=native2.8.x-adapt#30be79624894e4c6d2277dfd8c010e9f5408a748"
+source = "git+https://github.com/lambdaclass/blockifier?branch=trace-dump#1cb132fd0e7f9847b05c17d34610a283337eb0ed"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -493,11 +493,14 @@ dependencies = [
  "serde_json",
  "sha2",
  "sha3",
+ "sierra-emu",
  "starknet-types-core",
  "starknet_api",
  "strum",
  "strum_macros",
  "thiserror",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -1112,7 +1115,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=4355357697e9ab57ab88ae3a4282aac61455619e#4355357697e9ab57ab88ae3a4282aac61455619e"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=add-trace-dump-contracts#dd2258ede9e7f88f14fe66f07bf864078e3c7199"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1149,6 +1152,7 @@ dependencies = [
  "num-traits 0.2.19",
  "p256",
  "sec1",
+ "serde_json",
  "sha2",
  "starknet-types-core",
  "stats_alloc",
@@ -1161,12 +1165,17 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=4355357697e9ab57ab88ae3a4282aac61455619e#4355357697e9ab57ab88ae3a4282aac61455619e"
+source = "git+https://github.com/lambdaclass/cairo_native?branch=add-trace-dump-contracts#dd2258ede9e7f88f14fe66f07bf864078e3c7199"
 dependencies = [
+ "cairo-lang-sierra",
  "cairo-lang-sierra-gas",
+ "cairo-lang-utils",
  "lazy_static",
  "libc",
+ "num-bigint",
+ "num-traits 0.2.19",
  "rand",
+ "sierra-emu",
  "starknet-crypto 0.7.1",
  "starknet-curve 0.5.0",
  "starknet-types-core",
@@ -3787,18 +3796,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.208"
+version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cff085d2cb684faa248efb494c39b68e522822ac0de72ccf08109abde717cfb2"
+checksum = "c8e3592472072e6e22e0a54d5904d9febf8508f65fb8552499a1abc7d1078c3a"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.208"
+version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24008e81ff7613ed8e5ba0cfaf24e2c2f1e5b8a0495711e44fcd4882fca62bcf"
+checksum = "243902eda00fad750862fc144cea25caca5e20d615af0a81bee94ca738f1df1f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3818,9 +3827,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.125"
+version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83c8e735a073ccf5be70aa8066aa984eaf2fa000db6c8d0100ae605b366d31ed"
+checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
  "itoa",
  "memchr",
@@ -3934,6 +3943,35 @@ name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
+
+[[package]]
+name = "sierra-emu"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/sierra-emu#2b612d56db15a1002bb78827aa3fb2f66db4cc81"
+dependencies = [
+ "cairo-lang-sierra",
+ "cairo-lang-sierra-ap-change",
+ "cairo-lang-sierra-gas",
+ "cairo-lang-utils",
+ "clap",
+ "k256",
+ "keccak",
+ "num-bigint",
+ "num-traits 0.2.19",
+ "p256",
+ "rand",
+ "sec1",
+ "serde",
+ "serde_json",
+ "sha2",
+ "smallvec",
+ "starknet-crypto 0.7.1",
+ "starknet-curve 0.5.0",
+ "starknet-types-core",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "signature"
