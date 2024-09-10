@@ -174,7 +174,7 @@ jobs:
       MLIR_SYS_180_PREFIX: /opt/homebrew/opt/llvm@18
       LLVM_SYS_181_PREFIX: /opt/homebrew/opt/llvm@18
       TABLEGEN_180_PREFIX: /opt/homebrew/opt/llvm@18
-      PC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
+      RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
       RUST_LOG: debug,replay=trace,rpc-state-reader=trace
     steps:
