@@ -170,6 +170,7 @@ jobs:
     name: Test (macOS, Apple silicon)
     runs-on: macos-14
     env:
+      LIBRARY_PATH: /opt/homebrew/lib
       MLIR_SYS_180_PREFIX: /opt/homebrew/opt/llvm@18
       LLVM_SYS_181_PREFIX: /opt/homebrew/opt/llvm@18
       TABLEGEN_180_PREFIX: /opt/homebrew/opt/llvm@18
