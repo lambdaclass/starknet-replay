@@ -8,6 +8,9 @@ benchmark = []
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
 only_cairo_vm = ["rpc-state-reader/only_casm"]
 
+use-sierra-emu = ["blockifier/use-sierra-emu"]
+with-trace-dump = ["blockifier/with-trace-dump"]
+
 [dependencies]
 # starknet specific crates
 blockifier = { workspace = true }
