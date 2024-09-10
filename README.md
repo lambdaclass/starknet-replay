@@ -73,6 +73,17 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run block-range 90000 90002 mainnet
 ```
 
+### Benchmarks
+
+To run benchmarks with the replay crate, you can use either `bench-block-range` or `bench-tx` commands. These make sure to cache all needed information (including cairo native compilation) before the actual execution. To use it you must compile the binary under the benchmark flag.
+
+```bash
+* cargo run --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1
+* cargo run --features benchmark bench-block-range 90000 90002 mainnet 1
+```
+
+These commands are like `tx` and `block-range` commands, but with the number of runs to execute as their last argument.
+
 ### Logging
 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
