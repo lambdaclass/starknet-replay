@@ -165,3 +165,33 @@ jobs:
           echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
         run: cargo test --all-features
+
+  test_macos:
+    name: Test (macOS, Apple silicon)
+    runs-on: macos-14
+    env:
+      MLIR_SYS_180_PREFIX: /opt/homebrew/opt/llvm@18
+      LLVM_SYS_181_PREFIX: /opt/homebrew/opt/llvm@18
+      TABLEGEN_180_PREFIX: /opt/homebrew/opt/llvm@18
+      PC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
+      RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
+      RUST_LOG: debug,replay=trace,rpc-state-reader=trace
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup rust env
+        uses: dtolnay/rust-toolchain@1.80.0
+      - name: Retreive cached dependecies
+        uses: Swatinem/rust-cache@v2
+      - name: Checkout cairo_native
+        uses: actions/checkout@v4
+        with:
+          repository: lambdaclass/cairo_native
+          ref: 4355357697e9ab57ab88ae3a4282aac61455619e
+          path: cairo_native
+      - name: Build Cairo Native Runtime Library
+        run: |
+          cd cairo_native
+          make runtime
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
+      - name: Test
+        run: cargo test --all-features
