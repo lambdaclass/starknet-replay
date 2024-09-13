@@ -95,7 +95,8 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                 transaction_hash = transaction_hash.to_string(),
             )
             .entered();
-            info!("starting tx execution");
+
+            info!("tx execution started");
 
             let pre_execution_instant = Instant::now();
             let result = execute_tx_with_blockifier(
@@ -109,17 +110,16 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
             match result {
                 Ok(info) => {
                     info!(
+                        time = ?execution_time,
                         succeeded = info.revert_error.is_none(),
-                        "tx execution status"
+                        "tx execution finished"
                     )
                 }
                 Err(_) => error!(
-                    transaction_hash = transaction_hash.to_string(),
-                    "tx execution failed"
+                    time = ?execution_time,
+                    "tx execution failed unexpectedly"
                 ),
             }
-
-            info!(time = ?execution_time, "finished tx execution");
         }
     }
 }
