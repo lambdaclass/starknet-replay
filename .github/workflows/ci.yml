@@ -21,7 +21,7 @@ jobs:
       TABLEGEN_180_PREFIX: /usr/lib/llvm-18/
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.79.0
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
@@ -86,12 +86,12 @@ jobs:
       MLIR_SYS_180_PREFIX: /usr/lib/llvm-18/
       LLVM_SYS_180_PREFIX: /usr/lib/llvm-18/
       TABLEGEN_180_PREFIX: /usr/lib/llvm-18/
-      RUSTUP_TOOLCHAIN: nightly-2024-02-01  # udeps needs nightly
+      RUSTUP_TOOLCHAIN: nightly  # udeps needs nightly
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@1.80.0
         with:
-          toolchain: nightly-2024-02-01
+          toolchain: nightly
           components: rustfmt
 
       - name: Add llvm deb repository
@@ -139,7 +139,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           df -h
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.79.0
+        uses: dtolnay/rust-toolchain@1.80.0
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Add LLVM Debian repository
@@ -155,10 +155,46 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: 66e9b5e053faf3b2a9129de5b15205d1cfe686eb
+          ref: 4355357697e9ab57ab88ae3a4282aac61455619e
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         shell: bash
+        run: |
+          cd cairo_native
+          make runtime
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
+      - name: Test
+        run: cargo test --all-features
+
+  test_macos:
+    name: Test (macOS, Apple silicon)
+    runs-on: macos-14
+    env:
+      LIBRARY_PATH: /opt/homebrew/lib
+      MLIR_SYS_180_PREFIX: /opt/homebrew/opt/llvm@18
+      LLVM_SYS_181_PREFIX: /opt/homebrew/opt/llvm@18
+      TABLEGEN_180_PREFIX: /opt/homebrew/opt/llvm@18
+      RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
+      RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
+      RUST_LOG: debug,replay=trace,rpc-state-reader=trace
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup rust env
+        uses: dtolnay/rust-toolchain@1.80.0
+      - name: Rust `$PATH` workaround.
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - uses: Homebrew/actions/setup-homebrew@master
+      - name: Retreive cached dependecies
+        uses: Swatinem/rust-cache@v2
+      - name: Install LLVM
+        run: brew install llvm@18 --quiet
+      - name: Checkout cairo_native
+        uses: actions/checkout@v4
+        with:
+          repository: lambdaclass/cairo_native
+          ref: 4355357697e9ab57ab88ae3a4282aac61455619e
+          path: cairo_native
+      - name: Build Cairo Native Runtime Library
         run: |
           cd cairo_native
           make runtime

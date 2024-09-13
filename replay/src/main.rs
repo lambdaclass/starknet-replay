@@ -16,7 +16,7 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
 use {
-    crate::benchmark::{execute_block_range, fetch_block_range_data},
+    crate::benchmark::{execute_block_range, fetch_block_range_data, fetch_transaction_data},
     std::{ops::Div, time::Instant},
 };
 
@@ -55,6 +55,16 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_start: u64,
         block_end: u64,
         chain: String,
+        number_of_runs: usize,
+    },
+    #[cfg(feature = "benchmark")]
+    #[clap(about = "Measures the time it takes to run a single transaction.
+        Caches all rpc data before the benchmark runs to provide accurate results.
+        It only works if the transaction doesn't depend on another transaction in the same block")]
+    BenchTx {
+        tx: String,
+        chain: String,
+        block: u64,
         number_of_runs: usize,
     },
 }
@@ -157,6 +167,59 @@ fn main() {
                 );
             }
         }
+        #[cfg(feature = "benchmark")]
+        ReplayExecute::BenchTx {
+            tx,
+            block,
+            chain,
+            number_of_runs,
+        } => {
+            let chain = parse_network(&chain);
+            let block = BlockNumber(block);
+
+            let mut block_range_data = {
+                let _caching_span = info_span!("caching block range").entered();
+
+                info!("fetching transaction data");
+                let transaction_data = fetch_transaction_data(&tx, block, chain);
+
+                // We insert it into a vector so that we can reuse `execute_block_range`
+                let mut block_range_data = vec![transaction_data];
+
+                // We must execute the block range once first to ensure that all data required by blockifier is chached
+                info!("filling up execution cache");
+                execute_block_range(&mut block_range_data);
+
+                // Benchmark run should make no api requests as all data is cached
+                // To ensure this, we disable the inner StateReader
+                for (cached_state, ..) in &mut block_range_data {
+                    cached_state.state.disable();
+                }
+
+                block_range_data
+            };
+
+            {
+                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let before_execution = Instant::now();
+
+                for _ in 0..number_of_runs {
+                    execute_block_range(&mut block_range_data);
+                }
+
+                let execution_time = before_execution.elapsed();
+                let total_run_time = execution_time.as_secs_f64();
+                let average_run_time = total_run_time.div(number_of_runs as f64);
+                info!(
+                    tx = tx,
+                    block = block.0,
+                    number_of_runs,
+                    total_run_time,
+                    average_run_time,
+                    "benchmark finished",
+                );
+            }
+        }
     }
 }
 
@@ -228,7 +291,7 @@ fn show_execution_data(
         );
     }
 
-    let execution_gas = execution_info.transaction_receipt.fee;
+    let execution_gas = execution_info.receipt.fee;
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
