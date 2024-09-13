@@ -290,6 +290,12 @@ fn show_execution_data(
         rpc_receipt.messages_sent.len(),
     );
 
+    let events_match = exec_rsc.n_events == rpc_receipt.events.len();
+    let msgs_match = rpc_receipt.messages_sent.len()
+        == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
+
+    let events_msgs_match = events_match && msgs_match;
+
     let state_changes = exec_rsc.state_changes_for_fee;
     let state_changes_for_fee_str = format!(
         "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
@@ -299,7 +305,7 @@ fn show_execution_data(
         state_changes.n_storage_updates
     );
 
-    if !status_matches {
+    if !status_matches || !events_msgs_match {
         error!(
             transaction_hash = tx_hash,
             chain = chain,
