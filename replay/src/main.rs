@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
@@ -11,7 +9,6 @@ use rpc_state_reader::{
 use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
 use starknet_api::block::BlockNumber;
 use tracing::{debug, error, info, info_span};
-use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
@@ -304,14 +301,13 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
 }
 
 fn set_global_subscriber() {
-    let default_directive = Directive::from_str("replay=info").expect("should be valid");
+    let default_env_filter =
+        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info")
+            .expect("hard-coded env filter should be valid");
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);
 
     let subscriber = tracing_subscriber::fmt()
-        .with_env_filter({
-            EnvFilter::builder()
-                .with_default_directive(default_directive)
-                .from_env_lossy()
-        })
+        .with_env_filter(env_filter)
         .with_file(false)
         .with_line_number(false);
 
