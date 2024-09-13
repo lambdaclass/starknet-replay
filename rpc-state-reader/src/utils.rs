@@ -2,6 +2,7 @@ use std::{
     collections::HashMap,
     io::{self, Read},
     sync::{Arc, OnceLock, RwLock},
+    time::Instant,
 };
 
 use cairo_lang_sierra::program::Program;
@@ -148,7 +149,18 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotNa
         Some(native_executor) => native_executor,
         None => match &mut *program_cache.write().unwrap() {
             ProgramCache::Aot(program_cache) => {
-                program_cache.compile_and_insert(class_hash, &program, OptLevel::Default)
+                let pre_compilation_instant = Instant::now();
+                let executor =
+                    program_cache.compile_and_insert(class_hash, &program, OptLevel::Default);
+                let compilation_time = pre_compilation_instant.elapsed();
+
+                tracing::info!(
+                    time = ?compilation_time,
+                    class_hash = ?class_hash,
+                    "native compilation finished"
+                );
+
+                executor
             }
             _ => panic!("JIT is not supported"),
         },
