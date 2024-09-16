@@ -156,7 +156,7 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotNa
 
                 tracing::info!(
                     time = compilation_time,
-                    class_hash = ?class_hash,
+                    class_hash = class_hash.to_string(),
                     "native compilation finished"
                 );
 
