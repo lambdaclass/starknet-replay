@@ -172,6 +172,8 @@ pub struct RpcTransactionReceipt {
     pub block_hash: StarkHash,
     pub block_number: u64,
     pub execution_status: String,
+    pub events: Vec<Event>,
+    pub messages_sent: Vec<ToL1Msg>,
     #[serde(rename = "type")]
     pub tx_type: String,
     #[serde(deserialize_with = "vm_execution_resources_deser")]
@@ -184,6 +186,22 @@ pub struct FeePayment {
     #[serde(deserialize_with = "fee_amount_deser")]
     pub amount: u128,
     pub unit: String,
+}
+
+#[allow(unused)]
+#[derive(Debug, Deserialize)]
+pub struct Event {
+    from_address: StarkHash,
+    keys: Vec<StarkHash>,
+    data: Vec<StarkHash>,
+}
+
+#[allow(unused)]
+#[derive(Debug, Deserialize)]
+pub struct ToL1Msg {
+    from_address: StarkHash,
+    to_address: StarkHash,
+    payload: Vec<StarkHash>,
 }
 
 fn fee_amount_deser<'de, D>(deserializer: D) -> Result<u128, D::Error>

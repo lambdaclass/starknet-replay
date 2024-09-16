@@ -271,13 +271,51 @@ fn show_execution_data(
     let rpc_execution_status = rpc_receipt.execution_status;
     let status_matches = execution_status == rpc_execution_status;
 
-    if !status_matches {
+    let da_gas = &execution_info.receipt.da_gas;
+    let da_gas_str = format!(
+        "{{ l1_da_gas: {}, l1_gas: {} }}",
+        da_gas.l1_data_gas, da_gas.l1_gas
+    );
+
+    let exec_rsc = &execution_info.receipt.resources.starknet_resources;
+
+    let events_and_msgs = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        exec_rsc.n_events,
+        exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
+    );
+    let rpc_events_and_msgs = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        rpc_receipt.events.len(),
+        rpc_receipt.messages_sent.len(),
+    );
+
+    let events_match = exec_rsc.n_events == rpc_receipt.events.len();
+    let msgs_match = rpc_receipt.messages_sent.len()
+        == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
+
+    let events_msgs_match = events_match && msgs_match;
+
+    let state_changes = exec_rsc.state_changes_for_fee;
+    let state_changes_for_fee_str = format!(
+        "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
+        state_changes.n_class_hash_updates,
+        state_changes.n_compiled_class_hash_updates,
+        state_changes.n_modified_contracts,
+        state_changes.n_storage_updates
+    );
+
+    if !status_matches || !events_msgs_match {
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            n_events_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
+            da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "rpc and execution status diverged"
         )
     } else {
@@ -287,6 +325,10 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            n_events_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
+            da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "execution finished successfully"
         );
     }
