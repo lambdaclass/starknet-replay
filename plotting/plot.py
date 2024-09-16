@@ -13,11 +13,11 @@ datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series
 datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
 
 def canonicalize_execution_time_by_contract_class(event):
-    # skip: caching logs
+    # skip caching logs
     if find_span(event, "benchmarking block range") == None:
         return None
 
-    # keep: native contract execution finished logs
+    # keep contract execution finished logs
     if "contract execution finished" not in event["fields"]["message"]:
         return None
 
@@ -33,7 +33,7 @@ def find_span(event, name):
     return None
 
 def format_hash(class_hash):
-    return f"0x{class_hash[:5]}..."
+    return f"0x{class_hash[:6]}..."
 
 datasetNative = datasetNative.map(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
 datasetVM = datasetVM.map(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
