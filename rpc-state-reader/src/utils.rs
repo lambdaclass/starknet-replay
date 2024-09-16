@@ -152,10 +152,10 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotNa
                 let pre_compilation_instant = Instant::now();
                 let executor =
                     program_cache.compile_and_insert(class_hash, &program, OptLevel::Default);
-                let compilation_time = pre_compilation_instant.elapsed();
+                let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
                 tracing::info!(
-                    time = ?compilation_time,
+                    time = compilation_time,
                     class_hash = ?class_hash,
                     "native compilation finished"
                 );
