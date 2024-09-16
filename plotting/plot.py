@@ -48,6 +48,8 @@ sns.set_color_codes("bright")
 sns.barplot(ax=ax, y="class hash", x="time", data=datasetVM, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
 sns.barplot(ax=ax, y="class hash", x="time", data=datasetNative, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
 
-ax.set(xlabel="Mean Time (ms)", ylabel="Class Hash")
+ax.set_xlabel("Mean Time (ms)")
+ax.set_ylabel("Class Hash")
+ax.set_title("Native vs. VM by Contract Class")
 
 plt.show()
