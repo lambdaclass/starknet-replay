@@ -462,7 +462,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc#219f78f987dfe41fed5965e81902d3b9998f87e1"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#c6d9373cc9910a1f706b099f2fe8323e0b0581c2"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -500,6 +500,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "toml",
+ "tracing",
 ]
 
 [[package]]
@@ -2996,7 +2997,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc#219f78f987dfe41fed5965e81902d3b9998f87e1"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#c6d9373cc9910a1f706b099f2fe8323e0b0581c2"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4336,7 +4337,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc#219f78f987dfe41fed5965e81902d3b9998f87e1"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#c6d9373cc9910a1f706b099f2fe8323e0b0581c2"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
