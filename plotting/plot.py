@@ -1,23 +1,24 @@
 from argparse import ArgumentParser
 
 argument_parser = ArgumentParser('Stress Test Plotter')
-argument_parser.add_argument("logs_path")
+argument_parser.add_argument("native_logs_path")
+argument_parser.add_argument("vm_logs_path")
 arguments = argument_parser.parse_args()
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-dataset = pd.read_json(arguments.logs_path, lines=True, typ="series")
-
+datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
+datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
 
 def canonicalize_execution_time_by_contract_class(event):
     # skip: caching logs
-    if find_span(event, "caching_block_range") != None:
+    if find_span(event, "benchmarking block range") == None:
         return None
 
     # keep: native contract execution finished logs
-    if event["fields"]["message"] != "native contract execution finished":
+    if "contract execution finished" not in event["fields"]["message"]:
         return None
 
     return {
@@ -34,10 +35,19 @@ def find_span(event, name):
 def format_hash(class_hash):
     return f"0x{class_hash[:5]}..."
 
-dataset = dataset.map(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+datasetNative = datasetNative.map(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+datasetVM = datasetVM.map(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+
+datasetNative = datasetNative.groupby("class hash").mean()
+datasetVM = datasetVM.groupby("class hash").mean()
 
 figure, ax = plt.subplots()
 
-sns.boxplot(ax=ax, y="class hash", x="time", data=dataset, formatter=format_hash) # type: ignore
+sns.set_color_codes("bright")
+
+sns.barplot(ax=ax, y="class hash", x="time", data=datasetVM, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
+sns.barplot(ax=ax, y="class hash", x="time", data=datasetNative, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
+
+ax.set(xlabel="Mean Time (ms)", ylabel="Class Hash")
 
 plt.show()
