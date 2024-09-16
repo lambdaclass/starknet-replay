@@ -31,8 +31,6 @@ def format_hash(class_hash):
 
 dataset = dataset.map(canonicalize_compilation_time).dropna().apply(pd.Series)
 
-print(dataset)
-
 figure, ax = plt.subplots()
 
 sns.set_color_codes("bright")
