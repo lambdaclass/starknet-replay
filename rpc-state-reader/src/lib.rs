@@ -13,8 +13,9 @@ mod tests {
     use starknet_api::{
         class_hash,
         core::{ClassHash, ContractAddress, PatriciaKey},
-        hash::{StarkFelt, StarkHash},
-        patricia_key, stark_felt,
+        felt,
+        hash::StarkHash,
+        patricia_key,
         state::StorageKey,
         transaction::{Transaction as SNTransaction, TransactionHash},
     };
@@ -71,7 +72,10 @@ mod tests {
         // this test.
         let address =
             contract_address!("07185f2a350edcc7ea072888edb4507247de23e710cbd56084c356d265626bea");
-        assert_eq!(rpc_state.get_nonce_at(&address), stark_felt!("0x0"));
+        assert_eq!(
+            rpc_state.get_nonce_at(&address),
+            StarkHash::from_hex("0x0").unwrap()
+        );
     }
 
     #[test]
@@ -81,15 +85,19 @@ mod tests {
             contract_address!("00b081f7ba1efc6fe98770b09a827ae373ef2baa6116b3d2a0bf5154136573a9");
         let key = StorageKey(patricia_key!(0u128));
 
-        assert_eq_sorted!(rpc_state.get_storage_at(&address, &key), stark_felt!("0x0"));
+        assert_eq_sorted!(
+            rpc_state.get_storage_at(&address, &key),
+            StarkHash::from_hex("0x0").unwrap()
+        );
     }
 
     #[test]
     fn test_get_transaction() {
         let rpc_state = RpcState::new_rpc(RpcChain::MainNet, BlockTag::Latest.into()).unwrap();
-        let tx_hash = TransactionHash(stark_felt!(
-            "06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955"
-        ));
+        let tx_hash = TransactionHash(
+            StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
+                .unwrap(),
+        );
 
         assert!(rpc_state.get_transaction(&tx_hash).is_ok());
     }
@@ -97,16 +105,16 @@ mod tests {
     #[test]
     fn test_try_from_invoke() {
         let rpc_state = RpcState::new_rpc(RpcChain::MainNet, BlockTag::Latest.into()).unwrap();
-        let tx_hash = TransactionHash(stark_felt!(
-            "06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955"
-        ));
+        let tx_hash = TransactionHash(
+            StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
+                .unwrap(),
+        );
 
         let tx = rpc_state.get_transaction(&tx_hash).unwrap();
         match tx {
             SNTransaction::Invoke(tx) => {
                 let invoke = InvokeTransaction {
-                    tx,
-                    tx_hash,
+                    tx: starknet_api::executable_transaction::InvokeTransaction { tx, tx_hash },
                     only_query: false,
                 };
                 AccountTransaction::Invoke(invoke)
@@ -128,31 +136,49 @@ mod tests {
     fn test_get_transaction_trace() {
         let rpc_state = RpcState::new_rpc(RpcChain::MainNet, BlockTag::Latest.into()).unwrap();
 
-        let tx_hash = TransactionHash(stark_felt!(
-            "0x035673e42bd485ae699c538d8502f730d1137545b22a64c094ecdaf86c59e592"
-        ));
+        let tx_hash = TransactionHash(
+            StarkHash::from_hex(
+                "0x035673e42bd485ae699c538d8502f730d1137545b22a64c094ecdaf86c59e592",
+            )
+            .unwrap(),
+        );
 
         let tx_trace = rpc_state.get_transaction_trace(&tx_hash).unwrap();
 
         assert_eq!(
             tx_trace.validate_invocation.as_ref().unwrap().calldata,
             Some(vec![
-                stark_felt!("1"),
-                stark_felt!("0x45dc42889b6292c540de9def0341364bd60c2d8ccced459fac8b1bfc24fa1f5"),
-                stark_felt!("0xb758361d5e84380ef1e632f89d8e76a8677dbc3f4b93a4f9d75d2a6048f312"),
-                stark_felt!("0"),
-                stark_felt!("0xa"),
-                stark_felt!("0xa"),
-                stark_felt!("0x3fed4"),
-                stark_felt!("0"),
-                stark_felt!("0xdf6aedb"),
-                stark_felt!("0"),
-                stark_felt!("0"),
-                stark_felt!("0"),
-                stark_felt!("0x47c5f10d564f1623566b940a61fe54754bfff996f7536901ec969b12874f87f"),
-                stark_felt!("2"),
-                stark_felt!("0x72034953cd93dc8618123b4802003bae1f469b526bc18355250080c0f93dc17"),
-                stark_felt!("0x5f2ac628fa43d58fb8a6b7a2739de5c1edb550cb13cdcec5bc99f00135066a7"),
+                StarkHash::from_dec_str("1").unwrap(),
+                StarkHash::from_hex(
+                    "0x45dc42889b6292c540de9def0341364bd60c2d8ccced459fac8b1bfc24fa1f5"
+                )
+                .unwrap(),
+                StarkHash::from_hex(
+                    "0xb758361d5e84380ef1e632f89d8e76a8677dbc3f4b93a4f9d75d2a6048f312"
+                )
+                .unwrap(),
+                StarkHash::from_hex("0").unwrap(),
+                StarkHash::from_hex("0xa").unwrap(),
+                StarkHash::from_hex("0xa").unwrap(),
+                StarkHash::from_hex("0x3fed4").unwrap(),
+                StarkHash::from_hex("0").unwrap(),
+                StarkHash::from_hex("0xdf6aedb").unwrap(),
+                StarkHash::from_hex("0").unwrap(),
+                StarkHash::from_hex("0").unwrap(),
+                StarkHash::from_hex("0").unwrap(),
+                StarkHash::from_hex(
+                    "0x47c5f10d564f1623566b940a61fe54754bfff996f7536901ec969b12874f87f"
+                )
+                .unwrap(),
+                StarkHash::from_hex("2").unwrap(),
+                StarkHash::from_hex(
+                    "0x72034953cd93dc8618123b4802003bae1f469b526bc18355250080c0f93dc17"
+                )
+                .unwrap(),
+                StarkHash::from_hex(
+                    "0x5f2ac628fa43d58fb8a6b7a2739de5c1edb550cb13cdcec5bc99f00135066a7"
+                )
+                .unwrap(),
             ])
         );
         assert_eq!(
@@ -172,22 +198,37 @@ mod tests {
         assert_eq!(
             tx_trace.execute_invocation.as_ref().unwrap().calldata,
             Some(vec![
-                stark_felt!("0x1"),
-                stark_felt!("0x45dc42889b6292c540de9def0341364bd60c2d8ccced459fac8b1bfc24fa1f5"),
-                stark_felt!("0xb758361d5e84380ef1e632f89d8e76a8677dbc3f4b93a4f9d75d2a6048f312"),
-                stark_felt!("0x0"),
-                stark_felt!("0xa"),
-                stark_felt!("0xa"),
-                stark_felt!("0x3fed4"),
-                stark_felt!("0x0"),
-                stark_felt!("0xdf6aedb"),
-                stark_felt!("0x0"),
-                stark_felt!("0x0"),
-                stark_felt!("0x0"),
-                stark_felt!("0x47c5f10d564f1623566b940a61fe54754bfff996f7536901ec969b12874f87f"),
-                stark_felt!("0x2"),
-                stark_felt!("0x72034953cd93dc8618123b4802003bae1f469b526bc18355250080c0f93dc17"),
-                stark_felt!("0x5f2ac628fa43d58fb8a6b7a2739de5c1edb550cb13cdcec5bc99f00135066a7")
+                StarkHash::from_hex("0x1").unwrap(),
+                StarkHash::from_hex(
+                    "0x45dc42889b6292c540de9def0341364bd60c2d8ccced459fac8b1bfc24fa1f5"
+                )
+                .unwrap(),
+                StarkHash::from_hex(
+                    "0xb758361d5e84380ef1e632f89d8e76a8677dbc3f4b93a4f9d75d2a6048f312"
+                )
+                .unwrap(),
+                StarkHash::from_hex("0x0").unwrap(),
+                StarkHash::from_hex("0xa").unwrap(),
+                StarkHash::from_hex("0xa").unwrap(),
+                StarkHash::from_hex("0x3fed4").unwrap(),
+                StarkHash::from_hex("0x0").unwrap(),
+                StarkHash::from_hex("0xdf6aedb").unwrap(),
+                StarkHash::from_hex("0x0").unwrap(),
+                StarkHash::from_hex("0x0").unwrap(),
+                StarkHash::from_hex("0x0").unwrap(),
+                StarkHash::from_hex(
+                    "0x47c5f10d564f1623566b940a61fe54754bfff996f7536901ec969b12874f87f"
+                )
+                .unwrap(),
+                StarkHash::from_hex("0x2").unwrap(),
+                StarkHash::from_hex(
+                    "0x72034953cd93dc8618123b4802003bae1f469b526bc18355250080c0f93dc17"
+                )
+                .unwrap(),
+                StarkHash::from_hex(
+                    "0x5f2ac628fa43d58fb8a6b7a2739de5c1edb550cb13cdcec5bc99f00135066a7"
+                )
+                .unwrap()
             ])
         );
         assert_eq!(
@@ -219,9 +260,12 @@ mod tests {
         assert_eq!(
             tx_trace.fee_transfer_invocation.as_ref().unwrap().calldata,
             Some(vec![
-                stark_felt!("0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-                stark_felt!("0x2439e47667460"),
-                stark_felt!("0"),
+                StarkHash::from_hex(
+                    "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+                )
+                .unwrap(),
+                StarkHash::from_hex("0x2439e47667460").unwrap(),
+                StarkHash::from_hex("0").unwrap(),
             ])
         );
         assert_eq!(
@@ -242,9 +286,10 @@ mod tests {
     #[test]
     fn test_get_transaction_receipt() {
         let rpc_state = RpcState::new_rpc(RpcChain::MainNet, BlockTag::Latest.into()).unwrap();
-        let tx_hash = TransactionHash(stark_felt!(
-            "06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955"
-        ));
+        let tx_hash = TransactionHash(
+            StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
+                .unwrap(),
+        );
 
         assert!(rpc_state.get_transaction_receipt(&tx_hash).is_ok());
     }

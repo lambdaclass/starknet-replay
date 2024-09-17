@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use blockifier::state::cached_state::CachedState;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::{
@@ -7,34 +9,19 @@ use rpc_state_reader::{
 };
 
 use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
-#[cfg(feature = "benchmark")]
-use rpc_state_reader::{
-    execute_tx_configurable_with_state, rpc_state::RpcBlockInfo, RpcStateReader,
-};
 use starknet_api::block::BlockNumber;
-#[cfg(feature = "benchmark")]
-use starknet_api::{
-    hash::StarkFelt,
-    stark_felt,
-    transaction::{Transaction, TransactionHash},
-};
-#[cfg(feature = "benchmark")]
-use starknet_in_rust::{
-    definitions::block_context::GasPrices,
-    state::{
-        cached_state::CachedState, contract_class_cache::PermanentContractClassCache, BlockInfo,
-    },
-    transaction::Address,
-    Felt252,
-};
-#[cfg(feature = "benchmark")]
-use std::ops::Div;
-use std::str::FromStr;
-#[cfg(feature = "benchmark")]
-use std::{collections::HashMap, sync::Arc, time::Instant};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
+
+#[cfg(feature = "benchmark")]
+use {
+    crate::benchmark::{execute_block_range, fetch_block_range_data, fetch_transaction_data},
+    std::{ops::Div, time::Instant},
+};
+
+#[cfg(feature = "benchmark")]
+mod benchmark;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -68,7 +55,17 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_start: u64,
         block_end: u64,
         chain: String,
-        n_runs: usize,
+        number_of_runs: usize,
+    },
+    #[cfg(feature = "benchmark")]
+    #[clap(about = "Measures the time it takes to run a single transaction.
+        Caches all rpc data before the benchmark runs to provide accurate results.
+        It only works if the transaction doesn't depend on another transaction in the same block")]
+    BenchTx {
+        tx: String,
+        chain: String,
+        block: u64,
+        number_of_runs: usize,
     },
 }
 
@@ -124,126 +121,104 @@ fn main() {
             block_start,
             block_end,
             chain,
-            n_runs,
+            number_of_runs,
         } => {
-            println!("Filling up Cache");
-            let network = parse_network(&chain);
-            // Create a single class_cache for all states
-            let class_cache = Arc::new(PermanentContractClassCache::default());
-            // HashMaps to cache tx data & states
-            let mut transactions =
-                HashMap::<BlockNumber, Vec<(TransactionHash, Transaction)>>::new();
-            let mut cached_states = HashMap::<
-                BlockNumber,
-                CachedState<RpcStateReader, PermanentContractClassCache>,
-            >::new();
-            let mut block_timestamps = HashMap::<BlockNumber, u64>::new();
-            let mut sequencer_addresses = HashMap::<BlockNumber, Address>::new();
-            let mut gas_prices = HashMap::<BlockNumber, GasPrices>::new();
-            for block_number in block_start..=block_end {
-                // For each block:
-                let block_number = BlockNumber(block_number);
-                // Create a cached state
-                let rpc_reader =
-                    RpcStateReader::new(RpcState::new_rpc(network, block_number.into()).unwrap());
-                let mut state = CachedState::new(Arc::new(rpc_reader), class_cache.clone());
-                // Fetch block timestamps & sequencer address
-                let RpcBlockInfo {
-                    block_timestamp,
-                    sequencer_address,
-                    ..
-                } = state.state_reader.0.get_block_info().unwrap();
-                block_timestamps.insert(block_number, block_timestamp.0);
-                let sequencer_address = Address(Felt252::from_bytes_be_slice(
-                    sequencer_address.0.key().bytes(),
-                ));
-                sequencer_addresses.insert(block_number, sequencer_address.clone());
-                // Fetch gas price
-                let gas_price = state.state_reader.0.get_gas_price(block_number.0).unwrap();
-                gas_prices.insert(block_number, gas_price.clone());
+            let block_start = BlockNumber(block_start);
+            let block_end = BlockNumber(block_end);
+            let chain = parse_network(&chain);
 
-                // Fetch txs for the block
-                let transaction_hashes = get_transaction_hashes(block_number, network)
-                    .expect("Unable to fetch the transaction hashes.");
-                let mut txs_in_block = Vec::<(TransactionHash, Transaction)>::new();
-                for tx_hash in transaction_hashes {
-                    // Fetch tx and add it to txs_in_block cache
-                    let tx_hash = TransactionHash(stark_felt!(tx_hash.strip_prefix("0x").unwrap()));
-                    let tx = state.state_reader.0.get_transaction(&tx_hash).unwrap();
-                    txs_in_block.push((tx_hash, tx.clone()));
-                    // First execution to fill up cache values
-                    let _ = execute_tx_configurable_with_state(
-                        &tx_hash,
-                        tx.clone(),
-                        network,
-                        BlockInfo {
-                            block_number: block_number.0,
-                            block_timestamp: block_timestamp.0,
-                            gas_price: gas_price.clone(),
-                            sequencer_address: sequencer_address.clone(),
-                        },
-                        false,
-                        true,
-                        &mut state,
-                    );
-                }
-                // Add the txs from the current block to the transactions cache
-                transactions.insert(block_number, txs_in_block);
-                // Clean writes from cached_state
-                state.cache_mut().storage_writes_mut().clear();
-                state.cache_mut().class_hash_writes_mut().clear();
-                state.cache_mut().nonce_writes_mut().clear();
-                // Add the cached state for the current block to the cached_states cache
-                cached_states.insert(block_number, state);
-            }
-            // Benchmark run should make no api requests as all data is cached
+            let mut block_range_data = {
+                let _caching_span = info_span!("caching block range").entered();
 
-            println!(
-                "Executing block range: {} - {} {} times",
-                block_start, block_end, n_runs
-            );
-            let now = Instant::now();
-            for _ in 0..n_runs {
-                for block_number in block_start..=block_end {
-                    let block_number = BlockNumber(block_number);
-                    // Fetch state
-                    let state = cached_states.get_mut(&block_number).unwrap();
-                    // Fetch txs
-                    let block_txs = transactions.get(&block_number).unwrap();
-                    // Fetch timestamp
-                    let block_timestamp = *block_timestamps.get(&block_number).unwrap();
-                    // Fetch sequencer address
-                    let sequencer_address = sequencer_addresses.get(&block_number).unwrap();
-                    // Fetch gas price
-                    let gas_price = gas_prices.get(&block_number).unwrap();
-                    // Run txs
-                    for (tx_hash, tx) in block_txs {
-                        let _ = execute_tx_configurable_with_state(
-                            tx_hash,
-                            tx.clone(),
-                            network,
-                            BlockInfo {
-                                block_number: block_number.0,
-                                block_timestamp,
-                                gas_price: gas_price.clone(),
-                                sequencer_address: sequencer_address.clone(),
-                            },
-                            false,
-                            true,
-                            state,
-                        );
-                    }
+                info!("fetching block range data");
+                let mut block_range_data = fetch_block_range_data(block_start, block_end, chain);
+
+                // We must execute the block range once first to ensure that all data required by blockifier is cached
+                info!("filling up execution cache");
+                execute_block_range(&mut block_range_data);
+
+                // Benchmark run should make no api requests as all data is cached
+                // To ensure this, we disable the inner StateReader
+                for (cached_state, ..) in &mut block_range_data {
+                    cached_state.state.disable();
                 }
+
+                block_range_data
+            };
+
+            {
+                let _benchmark_span = info_span!("benchmarking block range").entered();
+                let before_execution = Instant::now();
+
+                for _ in 0..number_of_runs {
+                    execute_block_range(&mut block_range_data);
+                }
+
+                let execution_time = before_execution.elapsed();
+                let total_run_time = execution_time.as_secs_f64();
+                let average_run_time = total_run_time.div(number_of_runs as f64);
+                info!(
+                    block_start = block_start.0,
+                    block_end = block_end.0,
+                    number_of_runs,
+                    total_run_time,
+                    average_run_time,
+                    "benchmark finished",
+                );
             }
-            let elapsed_time = now.elapsed();
-            println!(
-                "Ran blocks {} - {} {} times in {} seconds. Approximately {} second(s) per run",
-                block_start,
-                block_end,
-                n_runs,
-                elapsed_time.as_secs_f64(),
-                elapsed_time.as_secs_f64().div(n_runs as f64)
-            );
+        }
+        #[cfg(feature = "benchmark")]
+        ReplayExecute::BenchTx {
+            tx,
+            block,
+            chain,
+            number_of_runs,
+        } => {
+            let chain = parse_network(&chain);
+            let block = BlockNumber(block);
+
+            let mut block_range_data = {
+                let _caching_span = info_span!("caching block range").entered();
+
+                info!("fetching transaction data");
+                let transaction_data = fetch_transaction_data(&tx, block, chain);
+
+                // We insert it into a vector so that we can reuse `execute_block_range`
+                let mut block_range_data = vec![transaction_data];
+
+                // We must execute the block range once first to ensure that all data required by blockifier is chached
+                info!("filling up execution cache");
+                execute_block_range(&mut block_range_data);
+
+                // Benchmark run should make no api requests as all data is cached
+                // To ensure this, we disable the inner StateReader
+                for (cached_state, ..) in &mut block_range_data {
+                    cached_state.state.disable();
+                }
+
+                block_range_data
+            };
+
+            {
+                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let before_execution = Instant::now();
+
+                for _ in 0..number_of_runs {
+                    execute_block_range(&mut block_range_data);
+                }
+
+                let execution_time = before_execution.elapsed();
+                let total_run_time = execution_time.as_secs_f64();
+                let average_run_time = total_run_time.div(number_of_runs as f64);
+                info!(
+                    tx = tx,
+                    block = block.0,
+                    number_of_runs,
+                    total_run_time,
+                    average_run_time,
+                    "benchmark finished",
+                );
+            }
         }
     }
 }
@@ -296,13 +271,51 @@ fn show_execution_data(
     let rpc_execution_status = rpc_receipt.execution_status;
     let status_matches = execution_status == rpc_execution_status;
 
-    if !status_matches {
+    let da_gas = &execution_info.receipt.da_gas;
+    let da_gas_str = format!(
+        "{{ l1_da_gas: {}, l1_gas: {} }}",
+        da_gas.l1_data_gas, da_gas.l1_gas
+    );
+
+    let exec_rsc = &execution_info.receipt.resources.starknet_resources;
+
+    let events_and_msgs = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        exec_rsc.n_events,
+        exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
+    );
+    let rpc_events_and_msgs = format!(
+        "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
+        rpc_receipt.events.len(),
+        rpc_receipt.messages_sent.len(),
+    );
+
+    let events_match = exec_rsc.n_events == rpc_receipt.events.len();
+    let msgs_match = rpc_receipt.messages_sent.len()
+        == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
+
+    let events_msgs_match = events_match && msgs_match;
+
+    let state_changes = exec_rsc.state_changes_for_fee;
+    let state_changes_for_fee_str = format!(
+        "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
+        state_changes.n_class_hash_updates,
+        state_changes.n_compiled_class_hash_updates,
+        state_changes.n_modified_contracts,
+        state_changes.n_storage_updates
+    );
+
+    if !status_matches || !events_msgs_match {
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            n_events_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
+            da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "rpc and execution status diverged"
         )
     } else {
@@ -312,11 +325,15 @@ fn show_execution_data(
             execution_status,
             rpc_execution_status,
             execution_error_message = execution_info.revert_error,
+            n_events_and_messages = events_and_msgs,
+            rpc_n_events_and_msgs = rpc_events_and_msgs,
+            da_gas = da_gas_str,
+            state_changes_for_fee_str,
             "execution finished successfully"
         );
     }
 
-    let execution_gas = execution_info.actual_fee;
+    let execution_gas = execution_info.receipt.fee;
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
@@ -331,15 +348,20 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
 fn set_global_subscriber() {
     let default_directive = Directive::from_str("replay=info").expect("should be valid");
 
-    tracing_subscriber::fmt()
+    let subscriber = tracing_subscriber::fmt()
         .with_env_filter({
             EnvFilter::builder()
                 .with_default_directive(default_directive)
                 .from_env_lossy()
         })
-        .pretty()
         .with_file(false)
-        .with_line_number(false)
-        .finish()
-        .init();
+        .with_line_number(false);
+
+    #[cfg(feature = "benchmark")]
+    let subscriber = subscriber.json();
+
+    #[cfg(not(feature = "benchmark"))]
+    let subscriber = subscriber.pretty();
+
+    subscriber.finish().init();
 }

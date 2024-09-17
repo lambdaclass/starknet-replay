@@ -1,2 +1,5 @@
 debug/
 target/
+
+.env
+.envrc

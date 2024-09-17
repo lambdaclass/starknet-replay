@@ -1,11 +1,7 @@
 use blockifier::blockifier::block::GasPrices;
-use cairo_vm::vm::runners::{
-    builtin_runner::{
-        BITWISE_BUILTIN_NAME, EC_OP_BUILTIN_NAME, HASH_BUILTIN_NAME, KECCAK_BUILTIN_NAME,
-        OUTPUT_BUILTIN_NAME, POSEIDON_BUILTIN_NAME, RANGE_CHECK_BUILTIN_NAME,
-        SIGNATURE_BUILTIN_NAME,
-    },
-    cairo_runner::ExecutionResources as VmExecutionResources,
+use cairo_vm::{
+    types::builtin_name::BuiltinName,
+    vm::runners::cairo_runner::ExecutionResources as VmExecutionResources,
 };
 use core::fmt;
 use dotenv::dotenv;
@@ -15,11 +11,12 @@ use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, BlockTimestamp},
     core::{ChainId, ClassHash, ContractAddress},
-    hash::{StarkFelt, StarkHash},
+    hash::StarkHash,
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 use std::{collections::HashMap, env, fmt::Display, num::NonZeroU128};
+use tracing::debug;
 
 use crate::{rpc_state_errors::RpcStateError, utils};
 
@@ -43,7 +40,7 @@ impl fmt::Display for RpcChain {
 
 impl From<RpcChain> for ChainId {
     fn from(value: RpcChain) -> Self {
-        ChainId(match value {
+        ChainId::Other(match value {
             RpcChain::MainNet => "alpha-mainnet".to_string(),
             RpcChain::TestNet => "alpha4".to_string(),
             RpcChain::TestNet2 => "alpha4-2".to_string(),
@@ -163,8 +160,8 @@ pub struct RpcExecutionResources {
 
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct RpcCallInfo {
-    pub retdata: Option<Vec<StarkFelt>>,
-    pub calldata: Option<Vec<StarkFelt>>,
+    pub retdata: Option<Vec<StarkHash>>,
+    pub calldata: Option<Vec<StarkHash>>,
     pub internal_calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
 }
@@ -175,6 +172,8 @@ pub struct RpcTransactionReceipt {
     pub block_hash: StarkHash,
     pub block_number: u64,
     pub execution_status: String,
+    pub events: Vec<Event>,
+    pub messages_sent: Vec<ToL1Msg>,
     #[serde(rename = "type")]
     pub tx_type: String,
     #[serde(deserialize_with = "vm_execution_resources_deser")]
@@ -187,6 +186,22 @@ pub struct FeePayment {
     #[serde(deserialize_with = "fee_amount_deser")]
     pub amount: u128,
     pub unit: String,
+}
+
+#[allow(unused)]
+#[derive(Debug, Deserialize)]
+pub struct Event {
+    from_address: StarkHash,
+    keys: Vec<StarkHash>,
+    data: Vec<StarkHash>,
+}
+
+#[allow(unused)]
+#[derive(Debug, Deserialize)]
+pub struct ToL1Msg {
+    from_address: StarkHash,
+    to_address: StarkHash,
+    payload: Vec<StarkHash>,
 }
 
 fn fee_amount_deser<'de, D>(deserializer: D) -> Result<u128, D::Error>
@@ -221,24 +236,24 @@ where
         0
     };
     // Parse builtin instance counter
-    const BUILTIN_NAMES: [&str; 8] = [
-        OUTPUT_BUILTIN_NAME,
-        RANGE_CHECK_BUILTIN_NAME,
-        HASH_BUILTIN_NAME,
-        SIGNATURE_BUILTIN_NAME,
-        KECCAK_BUILTIN_NAME,
-        BITWISE_BUILTIN_NAME,
-        EC_OP_BUILTIN_NAME,
-        POSEIDON_BUILTIN_NAME,
+    let builtn_names: [BuiltinName; 8] = [
+        BuiltinName::output,
+        BuiltinName::range_check,
+        BuiltinName::pedersen,
+        BuiltinName::ecdsa,
+        BuiltinName::keccak,
+        BuiltinName::bitwise,
+        BuiltinName::ec_op,
+        BuiltinName::poseidon,
     ];
     let mut builtin_instance_counter = HashMap::new();
-    for name in BUILTIN_NAMES {
+    for name in builtn_names {
         let builtin_counter: Option<usize> = value
-            .get(format!("{}_applications", name))
+            .get(format!("{}_applications", name.to_str()))
             .and_then(|a| serde_json::from_value(a.clone()).ok());
         if let Some(builtin_counter) = builtin_counter {
             if builtin_counter > 0 {
-                builtin_instance_counter.insert(name.to_string(), builtin_counter);
+                builtin_instance_counter.insert(name, builtin_counter);
             }
         };
     }
@@ -351,6 +366,8 @@ impl RpcState {
         method: &str,
         params: &serde_json::Value,
     ) -> Result<T, RpcStateError> {
+        debug!(method, "rpc call");
+
         let payload = serde_json::json!({
             "jsonrpc": "2.0",
             "method": method,
@@ -490,16 +507,14 @@ impl RpcState {
         .map_err(|_| RpcStateError::RpcResponseWrongType("l1_data_gas_price".to_string()))?;
 
         // TODO check 0 wei/strk
-        Ok(GasPrices {
-            eth_l1_gas_price: NonZeroU128::new(gas_price_eth)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            strk_l1_gas_price: NonZeroU128::new(gas_price_strk)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            eth_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_wei)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-            strk_l1_data_gas_price: NonZeroU128::new(l1_data_gas_price_strk)
-                .unwrap_or(NonZeroU128::new(1).unwrap()),
-        })
+        Ok(GasPrices::new(
+            NonZeroU128::new(gas_price_eth).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(gas_price_strk).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(l1_data_gas_price_wei).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(l1_data_gas_price_strk).unwrap_or(NonZeroU128::new(1).unwrap()),
+            NonZeroU128::new(1).unwrap(),
+            NonZeroU128::new(1).unwrap(),
+        ))
     }
 
     pub fn get_chain_name(&self) -> ChainId {
@@ -511,7 +526,7 @@ impl RpcState {
             .rpc_call("starknet_getBlockWithTxs", &json!([self.block.to_value()?]))
             .map_err(|e| RpcStateError::RpcCall(e.to_string()))?;
 
-        let sequencer_address: StarkFelt = block_info
+        let sequencer_address: StarkHash = block_info
             .get("result")
             .and_then(|result| result.get("sequencer_address"))
             .and_then(|sa| serde_json::from_value(sa.clone()).ok())
@@ -590,7 +605,7 @@ impl RpcState {
         ClassHash(hash)
     }
 
-    pub fn get_nonce_at(&self, contract_address: &ContractAddress) -> StarkFelt {
+    pub fn get_nonce_at(&self, contract_address: &ContractAddress) -> StarkHash {
         self.block
             .to_value()
             .ok()
@@ -609,7 +624,7 @@ impl RpcState {
         &self,
         contract_address: &ContractAddress,
         key: &StorageKey,
-    ) -> StarkFelt {
+    ) -> StarkHash {
         let contract_address = contract_address.0.key();
         let key = key.0.key();
         self.block
