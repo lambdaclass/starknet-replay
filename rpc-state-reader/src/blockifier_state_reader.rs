@@ -591,7 +591,7 @@ mod tests {
         => ignore
     )]
     #[test_case(
-        // Declare tx 
+        // Declare tx
         "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
         271888,
         RpcChain::MainNet
@@ -837,7 +837,7 @@ mod tests {
         false
     )]
     #[test_case(
-        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",  
+        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
         654770,
         RpcChain::MainNet,
         GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },

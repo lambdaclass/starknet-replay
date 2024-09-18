@@ -7,6 +7,7 @@ edition = "2021"
 benchmark = []
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
 only_cairo_vm = ["rpc-state-reader/only_casm"]
+use-sierra-emu = ["blockifier/use-sierra-emu"]
 
 [dependencies]
 # starknet specific crates
