@@ -315,7 +315,7 @@ fn show_execution_data(
         } else {
             "MESSAGE COUNT DIVERGED"
         };
-        
+
         error!(
             transaction_hash = tx_hash,
             chain = chain,
