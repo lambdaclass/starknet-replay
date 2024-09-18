@@ -306,11 +306,24 @@ fn show_execution_data(
     );
 
     if !status_matches || !events_msgs_match {
+        let root_of_error = if !status_matches {
+            "EXECUTION STATUS DIVERGED"
+        } else if !events_match {
+            "EVENT COUNT DIVERGED"
+        } else if !msgs_match {
+            "MESSAGE COUNT DIVERGED"
+        } else if !(events_match || msgs_match) {
+            "MESSAGE AND EVENT COUNT DIVERGED"
+        } else {
+            unreachable!()
+        };
+        
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
             rpc_execution_status,
+            root_of_error = root_of_error,
             execution_error_message = execution_info.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
