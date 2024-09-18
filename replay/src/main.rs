@@ -308,14 +308,12 @@ fn show_execution_data(
     if !status_matches || !events_msgs_match {
         let root_of_error = if !status_matches {
             "EXECUTION STATUS DIVERGED"
-        } else if !events_match {
-            "EVENT COUNT DIVERGED"
-        } else if !msgs_match {
-            "MESSAGE COUNT DIVERGED"
         } else if !(events_match || msgs_match) {
             "MESSAGE AND EVENT COUNT DIVERGED"
+        } else if !events_match {
+            "EVENT COUNT DIVERGED"
         } else {
-            unreachable!()
+            "MESSAGE COUNT DIVERGED"
         };
         
         error!(
