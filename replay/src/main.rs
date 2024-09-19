@@ -286,7 +286,7 @@ fn show_execution_data(
     );
     let rpc_events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
-        rpc_receipt.events.len(),
+        rpc_receipt.events.len() + 1,
         rpc_receipt.messages_sent.len(),
     );
 
