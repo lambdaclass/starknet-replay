@@ -73,6 +73,11 @@ fn main() {
     set_global_subscriber();
 
     let cli = ReplayCLI::parse();
+
+    if cfg!(feature = "use-sierra-emu") {
+        info!("Using sierra-emu instead of cairo-native");
+    }
+
     match cli.subcommand {
         ReplayExecute::Tx {
             tx_hash,
