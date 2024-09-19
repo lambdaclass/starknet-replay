@@ -281,7 +281,7 @@ fn show_execution_data(
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
-        exec_rsc.n_events,
+        exec_rsc.n_events + 1,
         exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
     );
     let rpc_events_and_msgs = format!(
@@ -290,7 +290,7 @@ fn show_execution_data(
         rpc_receipt.messages_sent.len(),
     );
 
-    let events_match = exec_rsc.n_events == rpc_receipt.events.len();
+    let events_match = exec_rsc.n_events + 1 == rpc_receipt.events.len();
     let msgs_match = rpc_receipt.messages_sent.len()
         == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
 
