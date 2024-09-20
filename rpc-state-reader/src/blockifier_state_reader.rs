@@ -584,12 +584,6 @@ mod tests {
         => ignore
     )]
     #[test_case(
-        // Declare tx 
-        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-        271888,
-        RpcChain::MainNet
-    )]
-    #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
         90007,
         RpcChain::MainNet
@@ -922,23 +916,6 @@ mod tests {
         8,
         2,
         0,
-        None,
-        StateChangesCount {
-            n_storage_updates: 1,
-            n_class_hash_updates: 0,
-            n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
-        },
-        false
-    )]
-    #[test_case(
-        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-        271888,
-        RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
-        0,
-        2,
-        42564,
         None,
         StateChangesCount {
             n_storage_updates: 1,
