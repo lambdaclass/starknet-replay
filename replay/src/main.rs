@@ -290,6 +290,8 @@ fn show_execution_data(
         rpc_receipt.messages_sent.len(),
     );
 
+    // currently adding 1 because the sequencer is counting only the
+    // events produced by the inner calls of a callinfo
     let events_match = exec_rsc.n_events + 1 == rpc_receipt.events.len();
     let msgs_match = rpc_receipt.messages_sent.len()
         == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
