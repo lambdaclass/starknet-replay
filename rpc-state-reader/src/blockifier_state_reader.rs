@@ -156,10 +156,6 @@ pub fn execute_tx(
     let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
     let receipt = rpc_reader.0.get_transaction_receipt(&tx_hash).unwrap();
 
-    // dbg!(&trace);
-    // dbg!(&receipt);
-    // dbg!(&sn_api_tx);
-
     // Create state from RPC reader
     let mut state = CachedState::new(rpc_reader);
 
