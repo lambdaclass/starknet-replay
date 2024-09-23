@@ -15,10 +15,15 @@ state_dump = []
 blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
+starknet-types-core.workspace = true
 # CLI specific crates
 clap = { version = "4.4.6", features = ["derive"] }
 # logs
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+# serialization
+serde.workspace = true
+serde_json.workspace = true
+serde_with.workspace = true
 # error handling
 anyhow = "1.0"
