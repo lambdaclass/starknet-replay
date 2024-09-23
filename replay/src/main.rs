@@ -22,6 +22,8 @@ use {
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
+#[cfg(feature = "state_dump")]
+mod state_dump;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -331,6 +333,17 @@ fn show_execution_data(
             state_changes_for_fee_str,
             "execution finished successfully"
         );
+    }
+
+    #[cfg(feature = "state_dump")]
+    {
+        use std::path::Path;
+        #[cfg(feature = "only_cairo_vm")]
+        let root = Path::new("state_dump/vm");
+        #[cfg(not(feature = "only_cairo_vm"))]
+        let root = Path::new("state_dump/native");
+        let path = root.join(tx_hash);
+        state_dump::dump_state_diff(state, &path).unwrap();
     }
 
     let execution_gas = execution_info.receipt.fee;
