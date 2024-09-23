@@ -343,7 +343,7 @@ fn show_execution_data(
         #[cfg(not(feature = "only_cairo_vm"))]
         let root = Path::new("state_dump/native");
         let path = root.join(tx_hash);
-        state_dump::dump_state_diff(state, &path).unwrap();
+        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
     }
 
     let execution_gas = execution_info.receipt.fee;
