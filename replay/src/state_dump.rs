@@ -7,7 +7,7 @@ use std::{
 
 use blockifier::{
     execution::{
-        call_info::{CallExecution, CallInfo, OrderedEvent, OrderedL2ToL1Message, Retdata},
+        call_info::{CallInfo, OrderedEvent, OrderedL2ToL1Message, Retdata},
         entry_point::{CallEntryPoint, CallType},
     },
     state::{
@@ -88,6 +88,7 @@ struct SerializableExecutionInfo {
     validate_call_info: Option<SerializableCallInfo>,
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
+    receipt: SerializableTransactionReceipt,
     reverted: Option<String>,
 }
 
@@ -107,6 +108,64 @@ impl SerializableExecutionInfo {
                 .clone()
                 .map(From::<CallInfo>::from),
             reverted: execution_info.revert_error.clone(),
+            receipt: SerializableTransactionReceipt {
+                resources: SerializableTransactionResources {
+                    starknet_resources: SerializableStarknetResources {
+                        calldata_length: execution_info
+                            .receipt
+                            .resources
+                            .starknet_resources
+                            .calldata_length,
+                        state_changes_for_fee: SerializableStateChangesCount {
+                            n_storage_updates: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .state_changes_for_fee
+                                .n_storage_updates,
+                            n_class_hash_updates: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .state_changes_for_fee
+                                .n_class_hash_updates,
+                            n_compiled_class_hash_updates: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .state_changes_for_fee
+                                .n_compiled_class_hash_updates,
+                            n_modified_contracts: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .state_changes_for_fee
+                                .n_modified_contracts,
+                        },
+                        message_cost_info: SerializableMessageL1CostInfo {
+                            l2_to_l1_payload_lengths: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .message_cost_info
+                                .l2_to_l1_payload_lengths
+                                .clone(),
+                            message_segment_length: execution_info
+                                .receipt
+                                .resources
+                                .starknet_resources
+                                .message_cost_info
+                                .message_segment_length,
+                        },
+                        l1_handler_payload_size: execution_info
+                            .receipt
+                            .resources
+                            .starknet_resources
+                            .l1_handler_payload_size,
+                        n_events: execution_info.receipt.resources.starknet_resources.n_events,
+                    },
+                },
+            },
         }
     }
 }
@@ -128,8 +187,22 @@ impl From<CallInfo> for SerializableCallInfo {
         accessed_storage_keys.sort();
 
         Self {
-            call: value.call.into(),
-            execution: value.execution.into(),
+            call: SerializableCallEntryPoint {
+                class_hash: value.call.class_hash,
+                code_address: value.call.code_address,
+                entry_point_type: value.call.entry_point_type,
+                entry_point_selector: value.call.entry_point_selector,
+                calldata: value.call.calldata,
+                storage_address: value.call.storage_address,
+                caller_address: value.call.caller_address,
+                call_type: value.call.call_type,
+            },
+            execution: SerializableCallExecution {
+                retdata: value.execution.retdata,
+                events: value.execution.events,
+                l2_to_l1_messages: value.execution.l2_to_l1_messages,
+                failed: value.execution.failed,
+            },
             inner_calls: value
                 .inner_calls
                 .into_iter()
@@ -180,13 +253,49 @@ struct SerializableCallExecution {
     // Ignore gas
     // pub initial_gas: u64,
 }
-impl From<CallExecution> for SerializableCallExecution {
-    fn from(value: CallExecution) -> Self {
-        Self {
-            retdata: value.retdata,
-            events: value.events,
-            l2_to_l1_messages: value.l2_to_l1_messages,
-            failed: value.failed,
-        }
-    }
+
+/// From `blockifier::fee::actual_cost::TransactionReceipt`
+#[derive(Serialize)]
+pub struct SerializableTransactionReceipt {
+    pub resources: SerializableTransactionResources,
+    // Ignore gas
+    // pub fee: Fee,
+    // pub gas: GasVector,
+    // pub da_gas: GasVector,
+}
+
+#[derive(Serialize)]
+pub struct SerializableTransactionResources {
+    pub starknet_resources: SerializableStarknetResources,
+    // Ignore only vm fields
+    // pub n_reverted_steps: usize,
+    // pub vm_resources: ExecutionResources,
+}
+
+#[derive(Serialize)]
+pub struct SerializableStarknetResources {
+    pub calldata_length: usize,
+    pub state_changes_for_fee: SerializableStateChangesCount,
+    pub message_cost_info: SerializableMessageL1CostInfo,
+    pub l1_handler_payload_size: Option<usize>,
+    pub n_events: usize,
+}
+
+#[derive(Serialize)]
+pub struct SerializableStateChangesCount {
+    pub n_storage_updates: usize,
+    pub n_class_hash_updates: usize,
+    pub n_compiled_class_hash_updates: usize,
+    pub n_modified_contracts: usize,
+    // Remaining fields where private
+    // signature_length: usize,
+    // code_size: usize,
+    // total_event_keys: u128,
+    // total_event_data_size: u128,
+}
+
+#[derive(Serialize)]
+pub struct SerializableMessageL1CostInfo {
+    pub l2_to_l1_payload_lengths: Vec<usize>,
+    pub message_segment_length: usize,
 }
