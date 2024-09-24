@@ -103,6 +103,12 @@ To compare the outputs, you can use the following scripts. Some of them required
 - `cmp_state_dump.sh`. Prints which transactions match with the VM and which differ. It moves matching transaction to another directory `good_state_dump`.
    ```bash
    > ./scripts/cmp_state_dumps.sh
+   match at 0x2216397e9d6e435b8e6e42550fc1d03906fa54efaf0fec5433df820c0abf03e.json
+   diff at 0x227cfe3edc87827dfa799ab11ac405629579df05ff53ccf16559e53abbf929.json
+   match at 0x235a801cdc27ed6c8831d3dfd858a3639a11c3aacba8a7c6a0e624bdbdd90c8.json
+   diff at 0x2396235a8e8d31d2ec5f2d156557cea89e5c338733ba2a479f81df4d68c5e14.json
+   diff at 0x26564061cbc9ba9bb7bed562f5018dd6554fbf6434d8f2a41127a472c1b4553.json
+   match at 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
    ```
 - `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with each transaction.
    ```bash
@@ -110,5 +116,5 @@ To compare the outputs, you can use the following scripts. Some of them required
    ```
 - `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with a single transaction.
    ```bash
-   > ./scripts/delta_state_dump.sh 0x603426502dc305dc38f43d28d66806f4e5117a92c48f42397b004aa4b52c4ba.json
+   > ./scripts/delta_state_dump.sh 0x227cfe3edc87827dfa799ab11ac405629579df05ff53ccf16559e53abbf929.json
    ```
