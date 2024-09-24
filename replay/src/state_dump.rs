@@ -14,7 +14,7 @@ use blockifier::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::objects::TransactionExecutionInfo,
+    transaction::objects::{GasVector, TransactionExecutionInfo},
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -165,6 +165,7 @@ impl SerializableExecutionInfo {
                         n_events: execution_info.receipt.resources.starknet_resources.n_events,
                     },
                 },
+                da_gas: execution_info.receipt.da_gas,
             },
         }
     }
@@ -258,10 +259,10 @@ struct SerializableCallExecution {
 #[derive(Serialize)]
 pub struct SerializableTransactionReceipt {
     pub resources: SerializableTransactionResources,
+    pub da_gas: GasVector,
     // Ignore gas
     // pub fee: Fee,
     // pub gas: GasVector,
-    // pub da_gas: GasVector,
 }
 
 #[derive(Serialize)]
