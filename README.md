@@ -92,3 +92,23 @@ As an example, to show only error messages from the replay crate, run:
 ```bash
 RUST_LOG=replay=error cargo run block mainnet 648461
 ```
+
+### Comparing with VM
+
+To compare Native execution with the VM, you can use the `state_dump` feature. It will save to disk the execution info and state diff of every contract executed.
+- If executing Native, the dumps will be saved at: `state_dump/native/{tx_hash}.json`
+- If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dump/vm/{tx_hash}.json`
+
+To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
+- `cmp_state_dump.sh`. Prints which transactions match with the VM and which differ. It moves matching transaction to another directory `good_state_dump`.
+   ```bash
+   > ./scripts/cmp_state_dumps.sh
+   ```
+- `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with each transaction.
+   ```bash
+   > ./scripts/delta_state_dumps.sh
+   ```
+- `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with a single transaction.
+   ```bash
+   > ./scripts/delta_state_dump.sh 0x603426502dc305dc38f43d28d66806f4e5117a92c48f42397b004aa4b52c4ba.json
+   ```
