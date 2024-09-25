@@ -160,6 +160,7 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
                 let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
+                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
                 executor.save(&path).unwrap();
 
                 let library_size = fs::metadata(path).unwrap().len();
