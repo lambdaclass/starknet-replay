@@ -8,7 +8,7 @@ use std::{
 use cairo_lang_sierra::program::Program;
 use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
 use cairo_lang_utils::bigint::BigUintAsHex;
-use cairo_native::{executor::contract::ContractExecutor, OptLevel};
+use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
@@ -25,7 +25,7 @@ pub struct MiddleSierraContractClass {
     pub entry_points_by_type: ContractEntryPoints,
 }
 
-static AOT_PROGRAM_CACHE: OnceLock<RwLock<HashMap<ClassHash, Arc<ContractExecutor>>>> =
+static AOT_PROGRAM_CACHE: OnceLock<RwLock<HashMap<ClassHash, Arc<AotContractExecutor>>>> =
     OnceLock::new();
 
 pub fn map_entry_points_by_type_legacy(
@@ -127,7 +127,7 @@ pub fn deserialize_transaction_json(
     }
 }
 
-pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<ContractExecutor> {
+pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
     let program_cache = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::with_capacity(32)));
 
     let cache = program_cache.read().unwrap();
@@ -151,9 +151,9 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<Contr
             ));
 
             let executor = Arc::new(if path.exists() {
-                ContractExecutor::load(&path).unwrap()
+                AotContractExecutor::load(&path).unwrap()
             } else {
-                let ex = ContractExecutor::new(&program, OptLevel::Default).unwrap();
+                let mut ex = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
                 ex.save(&path).unwrap();
                 ex
             });
