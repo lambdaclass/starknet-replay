@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fs,
     io::{self, Read},
     path::PathBuf,
     sync::{Arc, OnceLock, RwLock},
@@ -158,13 +159,17 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
                 let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
+                executor.save(&path).unwrap();
+
+                let library_size = fs::metadata(path).unwrap().len();
+
                 tracing::info!(
-                    time = compilation_time,
                     class_hash = class_hash.to_string(),
+                    time = compilation_time,
+                    library_size = library_size,
                     "native compilation finished"
                 );
 
-                executor.save(&path).unwrap();
                 executor
             });
 
