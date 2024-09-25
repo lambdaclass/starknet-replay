@@ -26,6 +26,7 @@ use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
     core::{calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, Nonce},
+    felt,
     hash::StarkHash,
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
@@ -158,69 +159,40 @@ pub fn execute_tx(
     // Create state from RPC reader
     let mut state = CachedState::new(rpc_reader);
 
-    // let fee_token_address =
-    //     contract_address!("049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7");
-    // const N_STEPS_FEE_WEIGHT: f64 = 0.01;
-    // let vm_resource_fee_cost = Arc::new(HashMap::from([
-    //     ("n_steps".to_string(), N_STEPS_FEE_WEIGHT),
-    //     ("output_builtin".to_string(), 0.0),
-    //     ("pedersen_builtin".to_string(), N_STEPS_FEE_WEIGHT * 32.0),
-    //     ("range_check_builtin".to_string(), N_STEPS_FEE_WEIGHT * 16.0),
-    //     ("ecdsa_builtin".to_string(), N_STEPS_FEE_WEIGHT * 2048.0),
-    //     ("bitwise_builtin".to_string(), N_STEPS_FEE_WEIGHT * 64.0),
-    //     ("ec_op_builtin".to_string(), N_STEPS_FEE_WEIGHT * 1024.0),
-    //     ("poseidon_builtin".to_string(), N_STEPS_FEE_WEIGHT * 32.0),
-    //     (
-    //         "segment_arena_builtin".to_string(),
-    //         N_STEPS_FEE_WEIGHT * 10.0,
-    //     ),
-    //     ("keccak_builtin".to_string(), N_STEPS_FEE_WEIGHT * 2048.0), // 2**11
-    // ]));
-
     let block_info = BlockInfo {
         block_number,
         block_timestamp,
         sequencer_address,
-        // TODO: Check gas_prices and use_kzg_da
         gas_prices: gas_price,
-        use_kzg_da: false,
+        use_kzg_da: true,
     };
 
+    let fee_token_addresses = FeeTokenAddresses {
+        strk_fee_token_address: ContractAddress(
+            felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+                .try_into()
+                .unwrap(),
+        ),
+        eth_fee_token_address: ContractAddress(
+            felt!("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+                .try_into()
+                .unwrap(),
+        ),
+    };
     let chain_info = ChainInfo {
         chain_id,
-        fee_token_addresses: FeeTokenAddresses::default(),
+        fee_token_addresses,
     };
     let mut versioned_constants =
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
     versioned_constants.disable_cairo0_redeclaration = false;
 
-    // TODO: Check BlockContext::new_unchecked
     let block_context = BlockContext::new(
         block_info,
         chain_info,
         versioned_constants,
         BouncerConfig::empty(),
     );
-    // let block_context = BlockContext {
-    //     chain_id,
-    //     block_number,
-    //     block_timestamp,
-    //     sequencer_address,
-    //     // TODO: Add strk token address when updated
-    //     fee_token_addresses: FeeTokenAddresses {
-    //         strk_fee_token_address: fee_token_address,
-    //         eth_fee_token_address: fee_token_address,
-    //     },
-    //     vm_resource_fee_cost,
-    //     // TODO: Add strk l1 gas price when updated
-    //     gas_prices: GasPrices {
-    //         eth_l1_gas_price: gas_price.eth_l1_gas_price,
-    //         strk_l1_gas_price: gas_price.strk_l1_gas_price,
-    //     },
-    //     invoke_tx_max_n_steps: 1_000_000,
-    //     validate_max_n_steps: 1_000_000,
-    //     max_recursion_depth: 500,
-    // };
 
     // Map starknet_api transaction to blockifier's
     let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
@@ -281,9 +253,8 @@ pub fn execute_tx(
     };
 
     (
-        // TODO Change charge_fee: true
         blockifier_tx
-            .execute(&mut state, &block_context, false, true)
+            .execute(&mut state, &block_context, true, true)
             .unwrap(),
         trace,
         receipt,
@@ -307,19 +278,25 @@ pub fn execute_tx_configurable_with_state(
     _skip_nonce_check: bool,
     state: &mut CachedState<RpcStateReader>,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
-    // let _fee_token_address = FeeTokenAddresses {
-    //     strk_fee_token_address: ContractAddress::default(),
-    //     eth_fee_token_address: ContractAddress(starknet_api::patricia_key!(
-    //         "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-    //     )),
-    // };
+    let fee_token_address = FeeTokenAddresses {
+        strk_fee_token_address: ContractAddress(
+            felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+                .try_into()
+                .unwrap(),
+        ),
+        eth_fee_token_address: ContractAddress(
+            felt!("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+                .try_into()
+                .unwrap(),
+        ),
+    };
 
     // Get values for block context before giving ownership of the reader
     let chain_id = state.state.0.get_chain_name();
 
     let chain_info = ChainInfo {
         chain_id: chain_id.clone(),
-        fee_token_addresses: FeeTokenAddresses::default(),
+        fee_token_addresses: fee_token_address,
     };
     let mut versioned_constants =
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
@@ -388,7 +365,7 @@ pub fn execute_tx_configurable_with_state(
         _ => unimplemented!(),
     };
 
-    blockifier_tx.execute(state, &block_context, false, true)
+    blockifier_tx.execute(state, &block_context, true, true)
 }
 
 pub fn execute_tx_configurable(
@@ -415,9 +392,8 @@ pub fn execute_tx_configurable(
         block_number,
         block_timestamp,
         sequencer_address,
-        // TODO: Check gas_prices and use_kzg_da
         gas_prices: gas_price,
-        use_kzg_da: false,
+        use_kzg_da: true,
     };
     let blockifier_exec_info = execute_tx_configurable_with_state(
         &tx_hash,
@@ -495,7 +471,7 @@ pub fn execute_tx_with_blockifier(
         _ => unimplemented!(),
     };
 
-    account_transaction.execute(state, &context, false, true)
+    account_transaction.execute(state, &context, true, true)
 }
 
 fn parse_to_rpc_chain(network: &str) -> RpcChain {
@@ -514,6 +490,19 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
     versioned_constants.disable_cairo0_redeclaration = false;
 
+    let fee_token_addresses = FeeTokenAddresses {
+        strk_fee_token_address: ContractAddress(
+            felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+                .try_into()
+                .unwrap(),
+        ),
+        eth_fee_token_address: ContractAddress(
+            felt!("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+                .try_into()
+                .unwrap(),
+        ),
+    };
+
     BlockContext::new(
         BlockInfo {
             block_number,
@@ -524,7 +513,7 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
         },
         ChainInfo {
             chain_id: state.get_chain_name(),
-            fee_token_addresses: Default::default(),
+            fee_token_addresses,
         },
         versioned_constants,
         BouncerConfig::empty(),
@@ -589,12 +578,6 @@ mod tests {
         347900,
         RpcChain::MainNet
         => ignore
-    )]
-    #[test_case(
-        // Declare tx 
-        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-        271888,
-        RpcChain::MainNet
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
@@ -772,16 +755,16 @@ mod tests {
         "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
         648462,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 192, l2_gas: 0 },
         7,
         3,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 3,
+            n_storage_updates: 2,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 2,
+            n_modified_contracts: 1,
         },
         false
     )]
@@ -789,7 +772,7 @@ mod tests {
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
         661815,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
         9,
         2,
         0,
@@ -806,7 +789,7 @@ mod tests {
         "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
         662246,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
         9,
         2,
         0,
@@ -823,7 +806,7 @@ mod tests {
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
         7,
         2,
         0,
@@ -837,10 +820,10 @@ mod tests {
         false
     )]
     #[test_case(
-        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",  
+        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
         654770,
         RpcChain::MainNet,
-        GasVector { l1_gas: 4646, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
         7,
         2,
         0,
@@ -857,16 +840,16 @@ mod tests {
         "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
         653019,
         RpcChain::MainNet,
-        GasVector { l1_gas: 11736, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 640, l2_gas: 0 },
         28,
         2,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 8,
+            n_storage_updates: 7,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 4,
+            n_modified_contracts: 3,
         },
         false
     )]
@@ -874,7 +857,7 @@ mod tests {
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
         650558,
         RpcChain::MainNet,
-        GasVector { l1_gas: 6538, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 448, l2_gas: 0 },
         24,
         3,
         0,
@@ -891,7 +874,7 @@ mod tests {
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
         351226,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         3,
         0,
         0,
@@ -900,7 +883,7 @@ mod tests {
             n_storage_updates: 2,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
+            n_modified_contracts: 0,
         },
         false
     )]
@@ -908,7 +891,7 @@ mod tests {
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
         317093,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         6,
         2,
         0,
@@ -925,7 +908,7 @@ mod tests {
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         8,
         2,
         0,
@@ -939,27 +922,10 @@ mod tests {
         false
     )]
     #[test_case(
-        "0x1088aa18785779e1e8eef406dc495654ad42a9729b57969ad0dbf2189c40bee",
-        271888,
-        RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
-        0,
-        2,
-        42564,
-        None,
-        StateChangesCount {
-            n_storage_updates: 1,
-            n_class_hash_updates: 0,
-            n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
-        },
-        false
-    )]
-    #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         5,
         0,
         0,
@@ -968,7 +934,7 @@ mod tests {
             n_storage_updates: 2,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
+            n_modified_contracts: 0,
         },
         false
     )]
@@ -976,7 +942,7 @@ mod tests {
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
         RpcChain::MainNet,
-        GasVector { l1_gas: 5748, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 384, l2_gas: 0 },
         7,
         2,
         0,
@@ -993,7 +959,7 @@ mod tests {
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
         662252,
         RpcChain::MainNet,
-        GasVector { l1_gas: 6850, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 448, l2_gas: 0 },
         18,
         2,
         0,
@@ -1006,11 +972,13 @@ mod tests {
         },
         false
     )]
+    // Check this tx, l1_data_gas should be 384
+    // https://starkscan.co/tx/0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e
     #[test_case(
         "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
         662250,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         10,
         2,
         0,
@@ -1027,7 +995,7 @@ mod tests {
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
         662251,
         RpcChain::MainNet,
-        GasVector { l1_gas: 3544, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 256, l2_gas: 0 },
         12,
         5,
         0,
@@ -1044,7 +1012,7 @@ mod tests {
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
         351269,
         RpcChain::MainNet,
-        GasVector { l1_gas: 2754, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         3,
         0,
         0,
@@ -1053,7 +1021,7 @@ mod tests {
             n_storage_updates: 2,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
+            n_modified_contracts: 0,
         },
         false
     )]
@@ -1061,7 +1029,7 @@ mod tests {
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
         RpcChain::MainNet,
-        GasVector { l1_gas: 9844, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 640, l2_gas: 0 },
         37,
         2,
         0,
@@ -1078,7 +1046,7 @@ mod tests {
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
         662248,
         RpcChain::MainNet,
-        GasVector { l1_gas: 5748, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 384, l2_gas: 0 },
         4,
         2,
         0,
@@ -1095,7 +1063,7 @@ mod tests {
         "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
         536893,
         RpcChain::MainNet,
-        GasVector { l1_gas: 13940, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 896, l2_gas: 0 },
         24,
         4,
         0,
@@ -1112,7 +1080,7 @@ mod tests {
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
         644700,
         RpcChain::MainNet,
-        GasVector { l1_gas: 1652, l1_data_gas: 0, l2_gas: 0 },
+        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
         8,
         2,
         0,

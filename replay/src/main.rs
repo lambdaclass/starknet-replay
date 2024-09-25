@@ -278,7 +278,7 @@ fn show_execution_data(
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
-        exec_rsc.n_events,
+        exec_rsc.n_events + 1,
         exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
     );
     let rpc_events_and_msgs = format!(
@@ -287,7 +287,9 @@ fn show_execution_data(
         rpc_receipt.messages_sent.len(),
     );
 
-    let events_match = exec_rsc.n_events == rpc_receipt.events.len();
+    // currently adding 1 because the sequencer is counting only the
+    // events produced by the inner calls of a callinfo
+    let events_match = exec_rsc.n_events + 1 == rpc_receipt.events.len();
     let msgs_match = rpc_receipt.messages_sent.len()
         == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
 
@@ -303,11 +305,22 @@ fn show_execution_data(
     );
 
     if !status_matches || !events_msgs_match {
+        let root_of_error = if !status_matches {
+            "EXECUTION STATUS DIVERGED"
+        } else if !(events_match || msgs_match) {
+            "MESSAGE AND EVENT COUNT DIVERGED"
+        } else if !events_match {
+            "EVENT COUNT DIVERGED"
+        } else {
+            "MESSAGE COUNT DIVERGED"
+        };
+
         error!(
             transaction_hash = tx_hash,
             chain = chain,
             execution_status,
             rpc_execution_status,
+            root_of_error = root_of_error,
             execution_error_message = execution_info.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,

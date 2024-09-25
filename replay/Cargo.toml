@@ -14,7 +14,7 @@ blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 # CLI specific crates
-clap = { version = "4.4.6", features = ["derive"] }
+clap = { version = "4.5.18", features = ["derive"] }
 # logs
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
