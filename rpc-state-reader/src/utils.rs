@@ -138,6 +138,7 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
     match native_executor {
         Some(executor) => Arc::clone(executor),
         None => {
+            drop(cache);
             let mut cache = program_cache.write().unwrap();
 
             let path = PathBuf::from(format!(
