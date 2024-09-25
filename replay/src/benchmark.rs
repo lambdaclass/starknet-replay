@@ -13,7 +13,7 @@ use starknet_api::{
     hash::StarkHash,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use tracing::{error, info, info_span};
+use tracing::{error, field, info, info_span};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
@@ -93,10 +93,12 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
             let _tx_span = info_span!(
                 "tx execution",
                 transaction_hash = transaction_hash.to_string(),
+                class_hash_called = field::Empty,
+                entry_point_used = field::Empty
             )
             .entered();
-            info!("starting tx execution");
 
+            info!("starting tx execution");
             let pre_execution_instant = Instant::now();
             let result = execute_tx_with_blockifier(
                 &mut transactional_state,
@@ -108,10 +110,29 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
 
             match result {
                 Ok(info) => {
-                    info!(
-                        succeeded = info.revert_error.is_none(),
-                        "tx execution status"
-                    )
+                    match info.execute_call_info {
+                        Some(call) => {
+                            let class_hash = call.call.class_hash.unwrap().to_hex_string();
+                            let entry_point = call.call.entry_point_selector.0.to_hex_string();
+
+                            _tx_span.record("class_hash_called", class_hash);
+                            _tx_span.record("entry_point_used", entry_point);
+
+                            info!(
+                                succeeded = info.revert_error.is_none(),
+                                "tx execution summary"
+                            );
+                        }
+                        None => {
+                            _tx_span.record("class_hash_called", "none");
+                            _tx_span.record("entry_point_used", "none");
+
+                            info!(
+                                succeeded = info.revert_error.is_none(),
+                                "tx execution summary"
+                            )
+                        }
+                    };
                 }
                 Err(_) => error!(
                     transaction_hash = transaction_hash.to_string(),
