@@ -155,6 +155,7 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
                 AotContractExecutor::load(&path).unwrap()
             } else {
                 let mut ex = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
                 ex.save(&path).unwrap();
                 ex
             });
