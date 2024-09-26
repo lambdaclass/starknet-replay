@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
 
-mkdir -p good_state_dump/native
-mkdir -p good_state_dump/vm
+matching=0
+diffing=0
 
-for native_dump in state_dump/native/*; do
-  base_dump=$(basename -- "$native_dump")
-  vm_dump="state_dump/vm/$base_dump"
+for vm_dump in state_dumps/vm/*/*.json; do
+  [ -f "$vm_dump" ] || continue
 
-  if ! cmp -s "$vm_dump" "$native_dump" ; then
-    echo "diff at $base_dump"
+  native_dump="${vm_dump//vm/native}"
+
+  base=$(basename "$native_dump")
+
+  if ! cmp -s "$native_dump" "$vm_dump" ; then
+    echo "diff:  $base"
+    diffing=$((diffing+1))
   else
-    echo "match at $base_dump"
-    mv "$native_dump" good_state_dump/native
-    mv "$vm_dump" good_state_dump/vm
+    echo "match: $base"
+    matching=$((matching+1))
   fi
 done
+
+echo
+echo "Finished comparison"
+echo "- Matching: $matching"
+echo "- Diffing:  $diffing"
