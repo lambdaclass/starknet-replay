@@ -7,23 +7,23 @@
 case $(uname) in
   Darwin)
     # If installed with brew
-    LLVM_SYS_181_PREFIX="$(brew --prefix llvm@18)"
-    MLIR_SYS_180_PREFIX="$(brew --prefix llvm@18)"
-    TABLEGEN_180_PREFIX="$(brew --prefix llvm@18)"
+    LLVM_SYS_191_PREFIX="$(brew --prefix llvm@19)"
+    MLIR_SYS_190_PREFIX="$(brew --prefix llvm@19)"
+    TABLEGEN_190_PREFIX="$(brew --prefix llvm@19)"
 
-    export LLVM_SYS_181_PREFIX
-    export MLIR_SYS_180_PREFIX
-    export TABLEGEN_180_PREFIX
+    export LLVM_SYS_191_PREFIX
+    export MLIR_SYS_190_PREFIX
+    export TABLEGEN_190_PREFIX
   ;;
   Linux)
     # If installed from Debian/Ubuntu repository:
-    LLVM_SYS_181_PREFIX=/usr/lib/llvm-18
-    MLIR_SYS_180_PREFIX=/usr/lib/llvm-18
-    TABLEGEN_180_PREFIX=/usr/lib/llvm-18
+    LLVM_SYS_191_PREFIX=/usr/lib/llvm-19
+    MLIR_SYS_190_PREFIX=/usr/lib/llvm-19
+    TABLEGEN_190_PREFIX=/usr/lib/llvm-19
 
-    export LLVM_SYS_181_PREFIX
-    export MLIR_SYS_180_PREFIX
-    export TABLEGEN_180_PREFIX
+    export LLVM_SYS_191_PREFIX
+    export MLIR_SYS_190_PREFIX
+    export TABLEGEN_190_PREFIX
   ;;
 esac
 
