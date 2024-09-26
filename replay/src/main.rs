@@ -371,9 +371,9 @@ fn show_execution_data(
     {
         use std::path::Path;
         #[cfg(feature = "only_cairo_vm")]
-        let root = Path::new("state_dump/vm");
+        let root = Path::new("state_dumps/vm");
         #[cfg(not(feature = "only_cairo_vm"))]
-        let root = Path::new("state_dump/native");
+        let root = Path::new("state_dumps/native");
         let root = root.join(format!("block{}", block_number));
 
         let mut path = root.join(tx_hash);
