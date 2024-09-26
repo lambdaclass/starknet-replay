@@ -130,11 +130,7 @@ pub fn deserialize_transaction_json(
 pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
     let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let executor = cache_lock
-        .read()
-        .unwrap()
-        .get(&class_hash)
-        .map(|executor| Arc::clone(executor));
+    let executor = cache_lock.read().unwrap().get(&class_hash).map(Arc::clone);
 
     match executor {
         Some(executor) => executor,
