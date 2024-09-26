@@ -374,6 +374,8 @@ fn show_execution_data(
         let root = Path::new("state_dump/vm");
         #[cfg(not(feature = "only_cairo_vm"))]
         let root = Path::new("state_dump/native");
+        let root = root.join(format!("block{}", block_number));
+
         let mut path = root.join(tx_hash);
         path.set_extension("json");
 
