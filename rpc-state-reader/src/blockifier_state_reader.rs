@@ -276,6 +276,7 @@ pub fn execute_tx_configurable_with_state(
     block_info: BlockInfo,
     _skip_validate: bool,
     _skip_nonce_check: bool,
+    charge_fee: bool,
     state: &mut CachedState<RpcStateReader>,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
     let fee_token_address = FeeTokenAddresses {
@@ -360,12 +361,12 @@ pub fn execute_tx_configurable_with_state(
                 tx_hash: *tx_hash,
                 paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
             };
-            return blockifier_tx.execute(state, &block_context, true, true);
+            return blockifier_tx.execute(state, &block_context, charge_fee, true);
         }
         _ => unimplemented!(),
     };
 
-    blockifier_tx.execute(state, &block_context, true, true)
+    blockifier_tx.execute(state, &block_context, charge_fee, true)
 }
 
 pub fn execute_tx_configurable(
@@ -374,6 +375,7 @@ pub fn execute_tx_configurable(
     block_number: BlockNumber,
     skip_validate: bool,
     skip_nonce_check: bool,
+    charge_fee: bool,
 ) -> TransactionExecutionResult<(
     TransactionExecutionInfo,
     TransactionTrace,
@@ -401,6 +403,7 @@ pub fn execute_tx_configurable(
         block_info,
         skip_validate,
         skip_nonce_check,
+        charge_fee,
         state,
     )?;
     let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
