@@ -96,25 +96,25 @@ RUST_LOG=replay=error cargo run block mainnet 648461
 ### Comparing with VM
 
 To compare Native execution with the VM, you can use the `state_dump` feature. It will save to disk the execution info and state diff of every contract executed.
-- If executing Native, the dumps will be saved at: `state_dump/native/{tx_hash}.json`
-- If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dump/vm/{tx_hash}.json`
+- If executing Native, the dumps will be saved at: `state_dumps/native/{tx_hash}.json`
+- If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
-- `cmp_state_dump.sh`. Prints which transactions match with the VM and which differ. It moves matching transaction to another directory `good_state_dump`.
+- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ. It moves matching transaction to another directory `good_state_dump`.
    ```bash
    > ./scripts/cmp_state_dumps.sh
-   match at 0x2216397e9d6e435b8e6e42550fc1d03906fa54efaf0fec5433df820c0abf03e.json
-   diff at 0x227cfe3edc87827dfa799ab11ac405629579df05ff53ccf16559e53abbf929.json
-   match at 0x235a801cdc27ed6c8831d3dfd858a3639a11c3aacba8a7c6a0e624bdbdd90c8.json
-   diff at 0x2396235a8e8d31d2ec5f2d156557cea89e5c338733ba2a479f81df4d68c5e14.json
-   diff at 0x26564061cbc9ba9bb7bed562f5018dd6554fbf6434d8f2a41127a472c1b4553.json
-   match at 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
+   diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
+   match: 0x6902da2a7ef7f7ab2e984c0cdfa94c535dedd7cc081c91f04b9f87a9805411b.json
+   diff:  0x75ae71b0aaba9454965d2077d53f056ffd426481bad709831e8d76d50f32dbe.json
+   match: 0x7895207d7d46df77f5b0de6b647cd393b9fc7bb18c52b6333c6ea852cf767e.json
+   match: 0x2335142d7b7938eeb4512fbf59be7ec2f2284e6533c14baf51460c8de427dc7.json
+   match: 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
+
+   Finished comparison
+   - Matching: 4
+   - Diffing:  16
    ```
-- `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with each transaction.
+- `delta_state_dumps.sh`. It opens delta to review the differences between VM and Native with each transaction.
    ```bash
    > ./scripts/delta_state_dumps.sh
-   ```
-- `delta_state_dump.sh`. It opens delta to review the differences between VM and Native with a single transaction.
-   ```bash
-   > ./scripts/delta_state_dump.sh 0x227cfe3edc87827dfa799ab11ac405629579df05ff53ccf16559e53abbf929.json
    ```
