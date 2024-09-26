@@ -128,17 +128,18 @@ pub fn deserialize_transaction_json(
 }
 
 pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
-    let program_cache = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::with_capacity(32)));
+    let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let cache = program_cache.read().unwrap();
-    let native_executor = cache.get(&class_hash);
+    let executor = cache_lock
+        .read()
+        .unwrap()
+        .get(&class_hash)
+        .map(|executor| Arc::clone(executor));
 
-    match native_executor {
-        Some(native_executor) => Arc::clone(native_executor),
+    match executor {
+        Some(executor) => executor,
         None => {
-            drop(cache);
-            let mut cache = program_cache.write().unwrap();
-
+            let mut cache = cache_lock.write().unwrap();
             let path = PathBuf::from(format!(
                 "compiled_programs/{}.{}",
                 class_hash.to_hex_string(),
@@ -154,10 +155,12 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
             let executor = Arc::new(if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
-                let mut ex = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+                let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+
                 std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-                ex.save(&path).unwrap();
-                ex
+                executor.save(&path).unwrap();
+
+                executor
             });
 
             cache.insert(class_hash, Arc::clone(&executor));
