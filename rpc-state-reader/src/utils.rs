@@ -130,17 +130,14 @@ pub fn deserialize_transaction_json(
 }
 
 pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
-    let program_cache = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::with_capacity(32)));
+    let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let cache = program_cache.read().unwrap();
-    let native_executor = cache.get(&class_hash);
+    let executor = cache_lock.read().unwrap().get(&class_hash).map(Arc::clone);
 
-    match native_executor {
-        Some(executor) => Arc::clone(executor),
+    match executor {
+        Some(executor) => executor,
         None => {
-            drop(cache);
-            let mut cache = program_cache.write().unwrap();
-
+            let mut cache = cache_lock.write().unwrap();
             let path = PathBuf::from(format!(
                 "compiled_programs/{}.{}",
                 class_hash.to_hex_string(),

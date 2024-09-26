@@ -8,8 +8,8 @@ resolver = "2"
 
 [workspace.dependencies]
 thiserror = "1.0.32"
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x-arc-tracing"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x-arc-tracing"}
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
+blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native" }
 tracing = "0.1"
 

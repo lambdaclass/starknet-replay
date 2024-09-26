@@ -476,7 +476,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#136b1d42a0a68a4773e14bbec4efeeab85ea46f3"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#c5c479b828b7782d26d09d79134db135f41fef42"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1130,7 +1130,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?branch=update-llvm19#53500b4e98328ac9b9bd8a11db5c4d2a28160942"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=6fb1fecc71c6c604943717d6a72f4810090017a6#6fb1fecc71c6c604943717d6a72f4810090017a6"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1182,7 +1182,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?branch=update-llvm19#53500b4e98328ac9b9bd8a11db5c4d2a28160942"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=6fb1fecc71c6c604943717d6a72f4810090017a6#6fb1fecc71c6c604943717d6a72f4810090017a6"
 dependencies = [
  "cairo-lang-sierra-gas",
  "lazy_static",
@@ -3016,7 +3016,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#136b1d42a0a68a4773e14bbec4efeeab85ea46f3"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#c5c479b828b7782d26d09d79134db135f41fef42"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4373,7 +4373,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x-arc-tracing#136b1d42a0a68a4773e14bbec4efeeab85ea46f3"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#c5c479b828b7782d26d09d79134db135f41fef42"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
