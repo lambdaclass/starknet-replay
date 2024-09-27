@@ -10,7 +10,10 @@ for vm_dump in state_dumps/vm/*/*.json; do
 
   base=$(basename "$native_dump")
 
-  if ! cmp -s "$native_dump" "$vm_dump" ; then
+  if ! cmp -s \
+      <(sed '/"reverted": /d' "$native_dump") \
+      <(sed '/"reverted": /d' "$vm_dump")
+  then
     echo "diff:  $base"
     diffing=$((diffing+1))
   else

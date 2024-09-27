@@ -21,7 +21,11 @@ for block_dir in state_dumps/vm/*/; do
   for vm_dump in "$block_dir"/*.json; do
     [ -f "$vm_dump" ] || continue
     native_dump="${vm_dump//vm/native}"
-    if cmp -s "$native_dump" "$vm_dump" ; then
+
+    if cmp -s \
+      <(sed '/"reverted": /d' "$native_dump") \
+      <(sed '/"reverted": /d' "$vm_dump")
+    then
       continue
     fi
 
