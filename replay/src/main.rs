@@ -357,7 +357,7 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
 
 fn set_global_subscriber() {
     let default_env_filter =
-        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info")
+        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=info")
             .expect("hard-coded env filter should be valid");
     let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);
 
