@@ -154,9 +154,12 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
             let executor = Arc::new(if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
-                let _span =
-                    info_span!("contract compilation", class_hash = class_hash.to_string(),)
-                        .entered();
+                let _span = info_span!(
+                    "contract compilation",
+                    class_hash = class_hash.to_string(),
+                    length = program.statements.len()
+                )
+                .entered();
                 info!("starting contract compilation");
 
                 let pre_compilation_instant = Instant::now();
