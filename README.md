@@ -96,11 +96,11 @@ RUST_LOG=replay=error cargo run block mainnet 648461
 ### Comparing with VM
 
 To compare Native execution with the VM, you can use the `state_dump` feature. It will save to disk the execution info and state diff of every contract executed.
-- If executing Native, the dumps will be saved at: `state_dumps/native/{tx_hash}.json`
-- If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/{tx_hash}.json`
+- If executing Native, the dumps will be saved at: `state_dumps/native/block{block_number}/{tx_hash}.json`
+- If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/block{block_number}/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
-- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ. It moves matching transaction to another directory `good_state_dump`.
+- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ.
    ```bash
    > ./scripts/cmp_state_dumps.sh
    diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
