@@ -5,3 +5,8 @@ target/
 .envrc
 
 compiled_programs/
+traces/
+memory.json
+*.csv
+*.png
+*.svg

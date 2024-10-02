@@ -21,13 +21,14 @@ cairo-lang-sierra = "2.8.2"
 cairo-lang-starknet-classes = "2.8.2"
 cairo-lang-utils = "2.8.2"
 cairo-native = { workspace = true }
-starknet = "0.7.0" 
+starknet = "0.7.0"
 thiserror = { workspace = true }
 flate2 = "1.0.25"
 dotenv = "0.15.0"
 cairo-vm = "1.0.0-rc5"
 blockifier = { workspace = true }
 tracing = { workspace = true }
+memory-stats = "1.2.0"
 
 [dev-dependencies]
 pretty_assertions_sorted = "1.2.3"
