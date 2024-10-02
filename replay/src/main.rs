@@ -356,9 +356,15 @@ fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String
 }
 
 fn set_global_subscriber() {
+    #[cfg(not(feature = "structured_logging"))]
+    let default_env_filter =
+        EnvFilter::try_new("replay=info").expect("hard-coded env filter should be valid");
+
+    #[cfg(feature = "structured_logging")]
     let default_env_filter =
         EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=info")
             .expect("hard-coded env filter should be valid");
+
     let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);
 
     let subscriber = tracing_subscriber::fmt()
@@ -366,11 +372,10 @@ fn set_global_subscriber() {
         .with_file(false)
         .with_line_number(false);
 
-    #[cfg(feature = "benchmark")]
-    let subscriber = subscriber.json();
-
-    #[cfg(not(feature = "benchmark"))]
+    #[cfg(not(feature = "structured_logging"))]
     let subscriber = subscriber.pretty();
+    #[cfg(feature = "structured_logging")]
+    let subscriber = subscriber.json();
 
     subscriber.finish().init();
 }
