@@ -32,7 +32,7 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use std::sync::Arc;
+use std::sync::{atomic::AtomicU64, Arc};
 
 use crate::{
     rpc_state::{RpcBlockInfo, RpcChain, RpcState, RpcTransactionReceipt, TransactionTrace},
@@ -273,10 +273,13 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 struct MemoryData {
-    physical_mem: usize,
-    virtual_mem: usize,
+    physical: usize,
+    r#virtual: usize,
     tx_hash: TransactionHash,
+    tx_count: u64,
 }
+
+static TX_COUNT: AtomicU64 = AtomicU64::new(1);
 
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
@@ -287,8 +290,14 @@ pub fn execute_tx_configurable_with_state(
     state: &mut CachedState<RpcStateReader>,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
     if let Some(usage) = memory_stats::memory_stats() {
-        tracing::info!("Current physical memory usage: {}", usage.physical_mem);
-        tracing::info!("Current virtual memory usage: {}", usage.virtual_mem);
+        tracing::info!(
+            "Current physical memory usage: {}",
+            usage.physical_mem / 1024 / 1024
+        );
+        tracing::info!(
+            "Current virtual memory usage: {}",
+            usage.virtual_mem / 1024 / 1024
+        );
         let data = if let Ok(data) = std::fs::read_to_string("memory.json") {
             data
         } else {
@@ -297,9 +306,10 @@ pub fn execute_tx_configurable_with_state(
 
         let mut data: Vec<MemoryData> = serde_json::from_str(&data).unwrap();
         data.push(MemoryData {
-            physical_mem: usage.physical_mem,
-            virtual_mem: usage.virtual_mem,
+            physical: usage.physical_mem / 1024 / 1024,
+            r#virtual: usage.virtual_mem / 1024 / 1024,
             tx_hash: *tx_hash,
+            tx_count: TX_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
         });
         std::fs::write("memory.json", serde_json::to_string_pretty(&data).unwrap()).unwrap();
     }
