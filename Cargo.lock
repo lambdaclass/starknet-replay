@@ -1129,8 +1129,7 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=6fb1fecc71c6c604943717d6a72f4810090017a6#6fb1fecc71c6c604943717d6a72f4810090017a6"
+version = "0.2.0-alpha.1"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1181,12 +1180,13 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.2.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=6fb1fecc71c6c604943717d6a72f4810090017a6#6fb1fecc71c6c604943717d6a72f4810090017a6"
+version = "0.2.0-alpha.1"
 dependencies = [
  "cairo-lang-sierra-gas",
+ "itertools 0.13.0",
  "lazy_static",
  "libc",
+ "num-traits 0.2.19",
  "rand",
  "starknet-curve 0.5.1",
  "starknet-types-core",
@@ -2781,6 +2781,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 
 [[package]]
+name = "memory-stats"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c73f5c649995a115e1a0220b35e4df0a1294500477f97a91d0660fb5abeb574a"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3585,6 +3595,7 @@ dependencies = [
  "cairo-vm",
  "dotenv",
  "flate2",
+ "memory-stats",
  "pretty_assertions_sorted",
  "serde",
  "serde_json",

@@ -22,6 +22,7 @@ use blockifier::{
 };
 
 use cairo_vm::types::program::Program;
+use serde::{Deserialize, Serialize};
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
@@ -270,6 +271,13 @@ fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo 
     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+struct MemoryData {
+    physical_mem: usize,
+    virtual_mem: usize,
+    tx_hash: TransactionHash,
+}
+
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
     tx: SNTransaction,
@@ -278,6 +286,24 @@ pub fn execute_tx_configurable_with_state(
     _skip_nonce_check: bool,
     state: &mut CachedState<RpcStateReader>,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
+    if let Some(usage) = memory_stats::memory_stats() {
+        tracing::info!("Current physical memory usage: {}", usage.physical_mem);
+        tracing::info!("Current virtual memory usage: {}", usage.virtual_mem);
+        let data = if let Ok(data) = std::fs::read_to_string("memory.json") {
+            data
+        } else {
+            "[]".to_string()
+        };
+
+        let mut data: Vec<MemoryData> = serde_json::from_str(&data).unwrap();
+        data.push(MemoryData {
+            physical_mem: usage.physical_mem,
+            virtual_mem: usage.virtual_mem,
+            tx_hash: *tx_hash,
+        });
+        std::fs::write("memory.json", serde_json::to_string_pretty(&data).unwrap()).unwrap();
+    }
+
     let fee_token_address = FeeTokenAddresses {
         strk_fee_token_address: ContractAddress(
             felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")

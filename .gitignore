@@ -5,3 +5,5 @@ target/
 .envrc
 
 compiled_programs/
+traces/
+memory.json
