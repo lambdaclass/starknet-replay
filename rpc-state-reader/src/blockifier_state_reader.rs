@@ -21,6 +21,7 @@ use blockifier::{
     versioned_constants::VersionedConstants,
 };
 
+use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
@@ -98,7 +99,7 @@ impl StateReader for RpcStateReader {
                 let _span = info_span!(
                     "contract compilation",
                     class_hash = class_hash.to_string(),
-                    length = sierra_cc.sierra_program.len()
+                    length = bytecode_size(&sierra_cc.sierra_program)
                 )
                 .entered();
 
@@ -114,7 +115,7 @@ impl StateReader for RpcStateReader {
 
                     tracing::info!(
                         time = compilation_time,
-                        size = casm_cc.bytecode.len(),
+                        size = bytecode_size(&casm_cc.bytecode),
                         "vm contract compilation finished"
                     );
 
@@ -144,6 +145,10 @@ impl StateReader for RpcStateReader {
                 .0,
         ))
     }
+}
+
+fn bytecode_size(data: &[BigUintAsHex]) -> usize {
+    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
 }
 
 pub fn execute_tx(
