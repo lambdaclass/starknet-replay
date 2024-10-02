@@ -19,7 +19,7 @@ use starknet_api::{
     hash::StarkHash,
     transaction::{DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction},
 };
-use tracing::{info, info_span};
+use tracing::info;
 
 #[derive(Debug, Deserialize)]
 pub struct MiddleSierraContractClass {
@@ -154,12 +154,6 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
             let executor = Arc::new(if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
-                let _span = info_span!(
-                    "native contract compilation",
-                    class_hash = class_hash.to_string(),
-                    length = program.statements.len()
-                )
-                .entered();
                 info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();

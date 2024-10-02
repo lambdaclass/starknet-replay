@@ -95,13 +95,14 @@ impl StateReader for RpcStateReader {
                     abi: None,
                 };
 
+                let _span = info_span!(
+                    "contract compilation",
+                    class_hash = class_hash.to_string(),
+                    length = sierra_cc.sierra_program.len()
+                )
+                .entered();
+
                 if cfg!(feature = "only_casm") {
-                    let _span = info_span!(
-                        "vm contract compilation",
-                        class_hash = class_hash.to_string(),
-                        length = sierra_cc.sierra_program.len(),
-                    )
-                    .entered();
                     info!("starting vm contract compilation");
 
                     let pre_compilation_instant = Instant::now();
