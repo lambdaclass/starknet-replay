@@ -7,16 +7,23 @@ edition = "2021"
 benchmark = []
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
 only_cairo_vm = ["rpc-state-reader/only_casm"]
+# Records state diff of every tx executed to disk
+state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 
 [dependencies]
 # starknet specific crates
 blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
+starknet-types-core = { workspace = true, optional = true }
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }
 # logs
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+# serialization
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+serde_with = { workspace = true, optional = true }
 # error handling
 anyhow = "1.0"

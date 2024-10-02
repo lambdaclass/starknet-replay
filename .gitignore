@@ -5,3 +5,4 @@ target/
 .envrc
 
 compiled_programs/
+state_dumps/
