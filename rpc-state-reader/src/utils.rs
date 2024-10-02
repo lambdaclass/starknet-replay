@@ -155,12 +155,12 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
                 AotContractExecutor::load(&path).unwrap()
             } else {
                 let _span = info_span!(
-                    "contract compilation",
+                    "native contract compilation",
                     class_hash = class_hash.to_string(),
                     length = program.statements.len()
                 )
                 .entered();
-                info!("starting contract compilation");
+                info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();
                 let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
@@ -173,8 +173,8 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
 
                 tracing::info!(
                     time = compilation_time,
-                    library_size = library_size,
-                    "contract compilation finished"
+                    size = library_size,
+                    "native contract compilation finished"
                 );
 
                 executor
