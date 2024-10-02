@@ -109,15 +109,4 @@ ax.set_ylabel("Class Hash")
 ax.set_title("Native Compilation Time")
 ax.legend()
 
-
 plt.show()
-figure, ax = plt.subplots()
-
-dataset = dataset.sum() / dataset.sum()["Total"]
-dataset = dataset.drop("Total")
-dataset = dataset.sort_values(ascending=False)
-
-sns.barplot(data=dataset, ax=ax, orient="h")
-
-plt.show()
-
