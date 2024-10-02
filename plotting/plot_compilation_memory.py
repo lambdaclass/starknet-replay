@@ -10,29 +10,22 @@ import seaborn as sns
 
 dataset = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
 
-def get_block_number(dataset):
-    for event in dataset:
-        if "starting block execution" not in event["fields"]["message"]:
-            continue
-
-
-        return event["span"]["block_number"]
-
-    return None
-
 def canonicalize_compilation_time(event):
-    # keep contract compilation finished logs
-    if "native compilation finished" not in event["fields"]["message"]:
+    if "contract compilation finished" not in event["fields"]["message"]:
+        return None
+
+    compilation_span = find_span(event, "contract compilation")
+    if compilation_span is None:
         return None
 
     return {
-        "class hash": event["fields"]["class_hash"],
-        "size": event["fields"]["library_size"] / (1024 * 1024),
+        "class hash": compilation_span["class_hash"],
+        "size": event["fields"]["size"] / (1024 * 1024),
     }
 
 def find_span(event, name):
     for span in event["spans"]:
-        if span["name"] == name:
+        if name in span["name"]:
             return span
     return None
 
@@ -40,9 +33,7 @@ def format_hash(class_hash):
     return f"0x{class_hash[:6]}..."
 
 
-block_number = get_block_number(dataset)
-
-dataset = dataset.map(canonicalize_compilation_time).dropna().apply(pd.Series)
+dataset = dataset.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
 
 figure, ax = plt.subplots()
 
@@ -51,6 +42,6 @@ sns.barplot(ax=ax, y="class hash", x="size", data=dataset, formatter=format_hash
 
 ax.set_xlabel("Library Size (MiB)")
 ax.set_ylabel("Class Hash")
-ax.set_title(f"Native Library Size: Block {block_number}")
+ax.set_title("Library Size by Contract")
 
 plt.show()
