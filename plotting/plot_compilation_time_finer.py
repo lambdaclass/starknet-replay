@@ -75,7 +75,7 @@ def canonicalize_compilation_time(event):
 
 def find_span(event, name):
     for span in event["spans"]:
-        if span["name"] == name:
+        if name in span["name"]:
             return span
     return None
 
