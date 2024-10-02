@@ -165,7 +165,7 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
 
                 let library_size = fs::metadata(path).unwrap().len();
 
-                tracing::info!(
+                info!(
                     time = compilation_time,
                     size = library_size,
                     "native contract compilation finished"
