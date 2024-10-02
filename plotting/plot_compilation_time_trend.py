@@ -27,7 +27,7 @@ def canonicalize_compilation_time(event):
 
     return {
         "class hash": class_hash,
-        "length": class_length,
+        "length": class_length / 1024,
         "time": float(event["fields"]["time"]),
     }
 
@@ -66,7 +66,7 @@ sns.regplot(
     ax = ax,
 )
 
-ax.set_xlabel("Sierra Length")
+ax.set_xlabel("Sierra size (KiB)")
 ax.set_ylabel("Compilation Time (ms)")
 ax.set_title("Native Compilation Time Trend")
 ax.legend()
