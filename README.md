@@ -92,3 +92,25 @@ As an example, to show only error messages from the replay crate, run:
 ```bash
 RUST_LOG=replay=error cargo run block mainnet 648461
 ```
+
+### Plotting
+
+In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the replay with the `structured_logging` feature, and redirect the output to a file. You should do it with both Native execution and VM execution.
+
+Make sure to erase the `compiled_programs` directory, then run:
+
+```bash
+cargo run --features structured_logging block mainnet 724000 | tee native-logs
+cargo run --features structured_logging,only_cairo_vm block mainnet 724000 | tee vm-logs
+```
+
+Once you have done this, you can use the plotting scripts:
+
+- `python ./plotting/plot_compilation_memory.py native-logs`: Plots the size of the compiled native libraries, by contract class.
+- `python ./plotting/plot_compilation_memory_corr.py native-logs vm-logs`: Plots the relation between the compiled native libraries and casm size.
+- `python ./plotting/plot_compilation_memory_trend.py native-logs vm-logs`: Plots the relation between the compiled native libraries and casm size, with the original sierra size.
+- `python ./plotting/plot_compilation_time.py native-logs`: Plots the time it takes to compile each contract class.
+- `python ./plotting/plot_compilation_time_finer.py native-logs`: Plots the time it takes to compile each contract class, at each step.
+- `python ./plotting/plot_compilation_time_trend.py native-logs vm-logs`: Plots the relation between the time takes to compile native libraries and casm contracts, with the original sierra size.
+- `python ./plotting/plot_execution_time.py native-logs vm-logs`: Plots the execution time of each contract class, and compares it with the VM. This is best used with the benchmark feature, as it ignores compilation and RPC calls.
+
