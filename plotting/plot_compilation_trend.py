@@ -5,10 +5,12 @@ import seaborn as sns
 
 argument_parser = ArgumentParser("Stress Test Plotter")
 argument_parser.add_argument("native_logs_path")
+argument_parser.add_argument("vm_logs_path")
 arguments = argument_parser.parse_args()
 
 
-dataset = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
+dataset_native = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
+dataset_vm = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
 
 
 def canonicalize_compilation_time(event):
@@ -21,19 +23,18 @@ def canonicalize_compilation_time(event):
         return None
 
     class_hash = compilation_span["class_hash"]
-    class_length = compilation_span["length"]
+    class_length = float(compilation_span["length"])
 
     return {
         "class hash": class_hash,
         "length": class_length,
-        "type": "Total",
         "time": float(event["fields"]["time"]),
     }
 
 
 def find_span(event, name):
     for span in event["spans"]:
-        if span["name"] == name:
+        if name in span["name"]:
             return span
     return None
 
@@ -42,19 +43,32 @@ def format_hash(class_hash):
     return f"0x{class_hash[:6]}..."
 
 
-dataset = dataset.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
+dataset_native = dataset_native.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
+dataset_vm = dataset_vm.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
+
+fig, ax = plt.subplots()
 
 sns.set_theme()
 sns.set_color_codes("bright")
 
-g = sns.lmplot(
+sns.regplot(
     x="length",
     y="time",
-    data=dataset,
+    label = "Native",
+    data=dataset_native,
+    ax = ax,
+)
+sns.regplot(
+    x="length",
+    y="time",
+    label = "Casm",
+    data=dataset_vm,
+    ax = ax,
 )
 
-g.set_xlabels("Sierra Length (statements)")
-g.set_ylabels("Compilation Time (ms)")
-g.set_titles("Native Compilation Time")
+ax.set_xlabel("Sierra Length")
+ax.set_ylabel("Compilation Time (ms)")
+ax.set_title("Native Compilation Time Trend")
+ax.legend()
 
 plt.show()
