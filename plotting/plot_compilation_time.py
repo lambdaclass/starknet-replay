@@ -12,24 +12,28 @@ dataset = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
 
 def canonicalize_compilation_time(event):
     # keep contract compilation finished logs
-    if "native compilation finished" not in event["fields"]["message"]:
+    if "contract compilation finished" not in event["fields"]["message"]:
         return None
 
+    compilation_span = find_span(event, "contract compilation")
+    if compilation_span is None:
+        return None
+    
     return {
-        "class hash": event["fields"]["class_hash"],
+        "class hash": compilation_span["class_hash"],
         "time": float(event["fields"]["time"]),
     }
 
 def find_span(event, name):
     for span in event["spans"]:
-        if span["name"] == name:
+        if name in span["name"]:
             return span
     return None
 
 def format_hash(class_hash):
     return f"0x{class_hash[:6]}..."
 
-dataset = dataset.map(canonicalize_compilation_time).dropna().apply(pd.Series)
+dataset = dataset.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
 
 figure, ax = plt.subplots()
 
