@@ -185,7 +185,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
         run: |
-          brew install llvm@19 lld
+          brew install llvm@19
           echo "LLVM_SYS_191_PREFIX=$(brew --prefix llvm@19)" >> $GITHUB_ENV
           echo "MLIR_SYS_190_PREFIX=$(brew --prefix llvm@19)" >> $GITHUB_ENV
           echo "TABLEGEN_190_PREFIX=$(brew --prefix llvm@19)" >> $GITHUB_ENV
