@@ -171,9 +171,9 @@ jobs:
     runs-on: macos-14
     env:
       LIBRARY_PATH: /opt/homebrew/lib
-      MLIR_SYS_190_PREFIX: /opt/homebrew/opt/llvm@19
-      LLVM_SYS_191_PREFIX: /opt/homebrew/opt/llvm@19
-      TABLEGEN_190_PREFIX: /opt/homebrew/opt/llvm@19
+      MLIR_SYS_190_PREFIX: /opt/homebrew/opt/llvm
+      LLVM_SYS_191_PREFIX: /opt/homebrew/opt/llvm
+      TABLEGEN_190_PREFIX: /opt/homebrew/opt/llvm
       RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
       RUST_LOG: debug,replay=trace,rpc-state-reader=trace
