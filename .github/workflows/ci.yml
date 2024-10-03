@@ -187,7 +187,7 @@ jobs:
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
-        run: brew install llvm@19 lld --quiet
+        run: brew install llvm@19 --quiet
       - name: Checkout cairo_native
         uses: actions/checkout@v4
         with:
