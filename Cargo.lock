@@ -1129,8 +1129,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.2.0-alpha.1"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=c866fbf8417cfcf522fd809348a483c5daef2e45#c866fbf8417cfcf522fd809348a483c5daef2e45"
+version = "0.2.0-alpha.2"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=cfd0f062c09f309f7568f09ea2deea910aadc702#cfd0f062c09f309f7568f09ea2deea910aadc702"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1181,8 +1181,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.2.0-alpha.1"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=c866fbf8417cfcf522fd809348a483c5daef2e45#c866fbf8417cfcf522fd809348a483c5daef2e45"
+version = "0.2.0-alpha.2"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=cfd0f062c09f309f7568f09ea2deea910aadc702#cfd0f062c09f309f7568f09ea2deea910aadc702"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -2497,9 +2497,9 @@ dependencies = [
 
 [[package]]
 name = "ipnet"
-version = "2.10.0"
+version = "2.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "187674a687eed5fe42285b40c6291f9a01517d415fad1c3cbc6a9f778af7fcd4"
+checksum = "ddc24109865250148c2e0f3d25d4f0f479571723792d3802153c60922a4fb708"
 
 [[package]]
 name = "is_terminal_polyfill"
