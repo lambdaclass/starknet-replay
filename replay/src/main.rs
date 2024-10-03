@@ -19,6 +19,8 @@ use {
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
+#[cfg(feature = "state_dump")]
+mod state_dump;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -34,14 +36,23 @@ enum ReplayExecute {
         tx_hash: String,
         chain: String,
         block_number: u64,
+        #[arg(short, long)]
+        charge_fee: bool,
     },
     #[clap(about = "Execute all the transactions in a given block.")]
-    Block { chain: String, block_number: u64 },
+    Block {
+        chain: String,
+        block_number: u64,
+        #[arg(short, long)]
+        charge_fee: bool,
+    },
     #[clap(about = "Execute all the transactions in a given range of blocks.")]
     BlockRange {
         block_start: u64,
         block_end: u64,
         chain: String,
+        #[arg(short, long)]
+        charge_fee: bool,
     },
     #[cfg(feature = "benchmark")]
     #[clap(
@@ -75,13 +86,15 @@ fn main() {
             tx_hash,
             chain,
             block_number,
+            charge_fee,
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
-            show_execution_data(&mut state, tx_hash, &chain, block_number);
+            show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
         }
         ReplayExecute::Block {
             block_number,
             chain,
+            charge_fee,
         } => {
             let _block_span = info_span!("block", number = block_number).entered();
 
@@ -90,13 +103,14 @@ fn main() {
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
             for tx_hash in transaction_hashes {
-                show_execution_data(&mut state, tx_hash, &chain, block_number);
+                show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
             }
         }
         ReplayExecute::BlockRange {
             block_start,
             block_end,
             chain,
+            charge_fee,
         } => {
             info!("executing block range: {} - {}", block_start, block_end);
 
@@ -109,7 +123,7 @@ fn main() {
                     .expect("Unable to fetch the transaction hashes.");
 
                 for tx_hash in transaction_hashes {
-                    show_execution_data(&mut state, tx_hash, &chain, block_number);
+                    show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
                 }
             }
         }
@@ -245,6 +259,7 @@ fn show_execution_data(
     tx_hash: String,
     chain: &str,
     block_number: u64,
+    charge_fee: bool,
 ) {
     let _transaction_execution_span = info_span!("transaction", hash = tx_hash, chain).entered();
 
@@ -252,14 +267,20 @@ fn show_execution_data(
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (execution_info, _trace, rpc_receipt) =
-        match execute_tx_configurable(state, &tx_hash, previous_block_number, false, true) {
-            Ok(x) => x,
-            Err(error_reason) => {
-                error!("execution failed unexpectedly: {}", error_reason);
-                return;
-            }
-        };
+    let (execution_info, _trace, rpc_receipt) = match execute_tx_configurable(
+        state,
+        &tx_hash,
+        previous_block_number,
+        false,
+        true,
+        charge_fee,
+    ) {
+        Ok(x) => x,
+        Err(error_reason) => {
+            error!("execution failed unexpectedly: {}", error_reason);
+            return;
+        }
+    };
 
     let execution_status = match &execution_info.revert_error {
         Some(_) => "REVERTED",
@@ -341,6 +362,21 @@ fn show_execution_data(
             state_changes_for_fee_str,
             "execution finished successfully"
         );
+    }
+
+    #[cfg(feature = "state_dump")]
+    {
+        use std::path::Path;
+        #[cfg(feature = "only_cairo_vm")]
+        let root = Path::new("state_dumps/vm");
+        #[cfg(not(feature = "only_cairo_vm"))]
+        let root = Path::new("state_dumps/native");
+        let root = root.join(format!("block{}", block_number));
+
+        let mut path = root.join(tx_hash);
+        path.set_extension("json");
+
+        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
     }
 
     let execution_gas = execution_info.receipt.fee;
