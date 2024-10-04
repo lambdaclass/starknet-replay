@@ -22,7 +22,7 @@ use {
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
-#[cfg(feature = "state_dump")]
+#[cfg(feature = "with-state-dump")]
 mod state_dump;
 
 #[derive(Debug, Parser)]
@@ -367,13 +367,18 @@ fn show_execution_data(
         );
     }
 
-    #[cfg(feature = "state_dump")]
+    #[cfg(feature = "with-state-dump")]
     {
         use std::path::Path;
-        #[cfg(feature = "only_cairo_vm")]
-        let root = Path::new("state_dumps/vm");
-        #[cfg(not(feature = "only_cairo_vm"))]
-        let root = Path::new("state_dumps/native");
+
+        let root = if cfg!(feature = "only_cairo_vm") {
+            Path::new("state_dumps/vm")
+        } else if cfg!(feature = "use-sierra-emu") {
+            Path::new("state_dumps/emu")
+        } else {
+            Path::new("state_dumps/native")
+        };
+
         let root = root.join(format!("block{}", block_number));
 
         let mut path = root.join(tx_hash);
