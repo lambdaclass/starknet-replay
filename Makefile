@@ -30,4 +30,4 @@ endif
 deps:
 
 deps-macos: 
-	-brew install llvm@18 --quiet
+	-brew install llvm@19 --quiet

@@ -18,4 +18,4 @@ serde_with = "3.9.0"
 serde = "1.0.197"
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = 'https://github.com/lambdaclass//cairo_native.git', rev = "c866fbf8417cfcf522fd809348a483c5daef2e45" }
+cairo-native = { git = 'https://github.com/lambdaclass//cairo_native.git', rev = "a06fa327795546236d6a036366bf22ed4e2e0dfb" }
