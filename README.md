@@ -118,3 +118,25 @@ To compare the outputs, you can use the following scripts. Some of them required
    ```bash
    > ./scripts/delta_state_dumps.sh
    ```
+
+### Plotting
+
+In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the replay with the `structured_logging` feature, and redirect the output to a file. You should do it with both Native execution and VM execution.
+
+Make sure to erase the `compiled_programs` directory, then run:
+
+```bash
+cargo run --features structured_logging block mainnet 724000 | tee native-logs
+cargo run --features structured_logging,only_cairo_vm block mainnet 724000 | tee vm-logs
+```
+
+Once you have done this, you can use the plotting scripts:
+
+- `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
+- `python ./plotting/plot_compilation_memory_corr.py native-logs vm-logs`: Size of the compiled native libraries, by the associated Casm contract size.
+- `python ./plotting/plot_compilation_memory_trend.py native-logs vm-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
+- `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
+- `python ./plotting/plot_compilation_time_trend.py native-logs vm-logs`: Native and Casm compilation time, by the sierra contract size.
+- `python ./plotting/plot_execution_time.py native-logs vm-logs`: Plots the execution time of Native vs VM, by contract class. This is best used with the benchmark feature, as it ignores compilation and RPC calls.
+- `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class. It requires a specific [Cairo Native branch](https://github.com/lambdaclass/cairo_native/tree/time-compilation) (as it need finer logging)
+

@@ -21,6 +21,7 @@ use blockifier::{
     versioned_constants::VersionedConstants,
 };
 
+use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
@@ -31,7 +32,8 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
+use tracing::{info, info_span};
 
 use crate::{
     rpc_state::{RpcBlockInfo, RpcChain, RpcState, RpcTransactionReceipt, TransactionTrace},
@@ -94,9 +96,29 @@ impl StateReader for RpcStateReader {
                     abi: None,
                 };
 
+                let _span = info_span!(
+                    "contract compilation",
+                    class_hash = class_hash.to_string(),
+                    length = bytecode_size(&sierra_cc.sierra_program)
+                )
+                .entered();
+
                 if cfg!(feature = "only_casm") {
+                    info!("starting vm contract compilation");
+
+                    let pre_compilation_instant = Instant::now();
+
                     let casm_cc =
                     cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+
+                    let compilation_time = pre_compilation_instant.elapsed().as_millis();
+
+                    tracing::info!(
+                        time = compilation_time,
+                        size = bytecode_size(&casm_cc.bytecode),
+                        "vm contract compilation finished"
+                    );
+
                     ContractClass::V1(casm_cc.try_into().unwrap())
                 } else {
                     let program = sierra_cc.extract_sierra_program().unwrap();
@@ -123,6 +145,10 @@ impl StateReader for RpcStateReader {
                 .0,
         ))
     }
+}
+
+fn bytecode_size(data: &[BigUintAsHex]) -> usize {
+    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
 }
 
 pub fn execute_tx(
