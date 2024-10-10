@@ -171,9 +171,9 @@ jobs:
     runs-on: macos-14
     env:
       LIBRARY_PATH: /opt/homebrew/lib
-      MLIR_SYS_190_PREFIX: /opt/homebrew/opt/llvm
-      LLVM_SYS_191_PREFIX: /opt/homebrew/opt/llvm
-      TABLEGEN_190_PREFIX: /opt/homebrew/opt/llvm
+      MLIR_SYS_190_PREFIX: /opt/homebrew/opt/llvm@19
+      LLVM_SYS_191_PREFIX: /opt/homebrew/opt/llvm@19
+      TABLEGEN_190_PREFIX: /opt/homebrew/opt/llvm@19
       RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
       RUST_LOG: debug,replay=trace,rpc-state-reader=trace
@@ -187,20 +187,17 @@ jobs:
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
-        run: |
-          brew update
-          brew upgrade
-          brew install llvm@19 --quiet
+        run: brew install llvm@19 --quiet
       - name: Checkout cairo_native
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: cfd0f062c09f309f7568f09ea2deea910aadc702
+          ref: 44d420814553c37cec7d2177892b36fc199f6cda
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         run: |
           cd cairo_native
           make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" >> $GITHUB_ENV
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
         run: cargo test --all-features
