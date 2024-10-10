@@ -18,4 +18,11 @@ serde_with = "3.9.0"
 serde = "1.0.197"
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = 'https://github.com/lambdaclass//cairo_native.git', rev = "82c25b377f50904e1253b614c8719388277530e6" }
+cairo-native = { path = "../cairo_native" }
+
+[patch.'https://github.com/lambdaclass/sequencer']
+blockifier = { path = "../sequencer/crates/blockifier" }
+starknet_api = { path = "../sequencer/crates/starknet_api" }
+
+[patch.'https://github.com/lambdaclass/sierra-emu']
+sierra-emu = { path = "../sierra-emu" }
