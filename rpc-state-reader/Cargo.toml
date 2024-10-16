@@ -9,26 +9,25 @@ edition = "2021"
 only_casm = []
 
 [dependencies]
-ureq = { version = "2.7.1", features = ["json"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = [
+ureq = { version = "2.10.1", features = ["json"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = { version = "1.0.128", features = [
   "arbitrary_precision",
   "raw_value",
 ] }
 starknet_api = {workspace = true}
-cairo-lang-starknet = "2.8.4"
 cairo-lang-sierra = "2.8.4"
 cairo-lang-starknet-classes = "2.8.4"
 cairo-lang-utils = "2.8.4"
 cairo-native = { workspace = true }
-starknet = "0.7.0" 
+starknet = "0.7.0"
 thiserror = { workspace = true }
-flate2 = "1.0.25"
-dotenv = "0.15.0"
-cairo-vm = "1.0.0-rc5"
+flate2 = "1.0.34"
+dotenvy = "0.15.7"
+cairo-vm = "1.0.1"
 blockifier = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions_sorted = "1.2.3"
-test-case = "3.1.0"
+test-case = "3.3.1"

@@ -25,5 +25,3 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 serde_with = { workspace = true, optional = true }
-# error handling
-anyhow = "1.0"
