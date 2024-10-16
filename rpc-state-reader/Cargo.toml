@@ -20,7 +20,7 @@ cairo-lang-sierra = "2.8.4"
 cairo-lang-starknet-classes = "2.8.4"
 cairo-lang-utils = "2.8.4"
 cairo-native = { workspace = true }
-starknet = "0.7.0"
+starknet = "0.12.0"
 thiserror = { workspace = true }
 flate2 = "1.0.34"
 dotenvy = "0.15.7"
