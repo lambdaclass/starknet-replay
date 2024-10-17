@@ -4,7 +4,7 @@ use cairo_vm::{
     vm::runners::cairo_runner::ExecutionResources as VmExecutionResources,
 };
 use core::fmt;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use serde::{Deserialize, Deserializer};
 use serde_json::json;
 use starknet::core::types::ContractClass as SNContractClass;
