@@ -140,7 +140,7 @@ jobs:
         run: |
           cd cairo_native
           make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" >> $GITHUB_ENV
       - name: Test
         run: cargo test --all-features
 
@@ -176,6 +176,6 @@ jobs:
         run: |
           cd cairo_native
           make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" >> $GITHUB_ENV
       - name: Test
         run: cargo test --all-features
