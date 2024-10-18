@@ -21,7 +21,7 @@ jobs:
       TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.81.0
+      - uses: dtolnay/rust-toolchain@1.82.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.81.0
+      - uses: dtolnay/rust-toolchain@1.82.0
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.81.0
+        uses: dtolnay/rust-toolchain@1.82.0
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Add LLVM Debian repository
@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: b5769e4f6ba914b36eef68e0b1f71c791d7d075c
+          ref: 0e251c56b8bb0c9c74c6de24575b21a5df2ba881
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         shell: bash
@@ -158,7 +158,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.81.0
+        uses: dtolnay/rust-toolchain@1.82.0
       - name: Rust `$PATH` workaround.
         run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - uses: Homebrew/actions/setup-homebrew@master
@@ -170,12 +170,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: b5769e4f6ba914b36eef68e0b1f71c791d7d075c
+          ref: 0e251c56b8bb0c9c74c6de24575b21a5df2ba881
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         run: |
           cd cairo_native
           make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" >> $GITHUB_ENV
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" >> "$GITHUB_ENV"
       - name: Test
         run: cargo test --all-features
