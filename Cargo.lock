@@ -476,7 +476,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=5ce75fc617bbc709a5997228930030dce358ee79#5ce75fc617bbc709a5997228930030dce358ee79"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1129,8 +1129,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.2.0-alpha.3"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=82c25b377f50904e1253b614c8719388277530e6#82c25b377f50904e1253b614c8719388277530e6"
+version = "0.2.0-alpha.4"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=4ba9e1609163c0d760f2a716244729d3116cc5ee#4ba9e1609163c0d760f2a716244729d3116cc5ee"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1141,7 +1141,6 @@ dependencies = [
  "bumpalo",
  "cairo-lang-compiler",
  "cairo-lang-defs",
- "cairo-lang-diagnostics",
  "cairo-lang-filesystem",
  "cairo-lang-runner",
  "cairo-lang-semantic",
@@ -1183,13 +1182,12 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.2.0-alpha.3"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=82c25b377f50904e1253b614c8719388277530e6#82c25b377f50904e1253b614c8719388277530e6"
+version = "0.2.0-alpha.4"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=4ba9e1609163c0d760f2a716244729d3116cc5ee#4ba9e1609163c0d760f2a716244729d3116cc5ee"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
  "lazy_static",
- "libc",
  "num-traits 0.2.19",
  "rand",
  "starknet-curve 0.5.1",
@@ -3037,7 +3035,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=5ce75fc617bbc709a5997228930030dce358ee79#5ce75fc617bbc709a5997228930030dce358ee79"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4431,7 +4429,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=5ce75fc617bbc709a5997228930030dce358ee79#5ce75fc617bbc709a5997228930030dce358ee79"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
