@@ -9,13 +9,14 @@ resolver = "2"
 [workspace.dependencies]
 thiserror = "1.0.32"
 starknet-types-core = "0.1.6"
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native" }
+# branch = native2.8.x
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "5ce75fc617bbc709a5997228930030dce358ee79" }
+blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "5ce75fc617bbc709a5997228930030dce358ee79" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "4ba9e1609163c0d760f2a716244729d3116cc5ee" }
 tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.9.0"
 serde = "1.0.197"
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = 'https://github.com/lambdaclass//cairo_native.git', rev = "82c25b377f50904e1253b614c8719388277530e6" }
+cairo-native = { git = 'https://github.com/lambdaclass//cairo_native.git', rev = "4ba9e1609163c0d760f2a716244729d3116cc5ee" }
