@@ -243,7 +243,7 @@ pub fn execute_tx(
             };
             return (
                 blockifier_tx
-                    .execute(&mut state, &block_context, true, true)
+                    .execute(&mut state, &block_context, false, true)
                     .unwrap(),
                 trace,
                 receipt,
@@ -254,7 +254,7 @@ pub fn execute_tx(
 
     (
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
