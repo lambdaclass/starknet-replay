@@ -155,7 +155,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: 4355357697e9ab57ab88ae3a4282aac61455619e
+          ref: 4ba9e1609163c0d760f2a716244729d3116cc5ee
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         shell: bash

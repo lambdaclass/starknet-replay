@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     io::{self, Read},
     path::PathBuf,
-    sync::{Arc, OnceLock, RwLock},
+    sync::{Arc, Mutex, OnceLock},
 };
 
 use cairo_lang_sierra::program::Program;
@@ -25,7 +25,7 @@ pub struct MiddleSierraContractClass {
     pub entry_points_by_type: ContractEntryPoints,
 }
 
-static AOT_PROGRAM_CACHE: OnceLock<RwLock<HashMap<ClassHash, Arc<AotContractExecutor>>>> =
+static AOT_PROGRAM_CACHE: OnceLock<Mutex<HashMap<ClassHash, Arc<AotContractExecutor>>>> =
     OnceLock::new();
 
 pub fn map_entry_points_by_type_legacy(
@@ -128,14 +128,14 @@ pub fn deserialize_transaction_json(
 }
 
 pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
-    let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
+    let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    let mut cache = cache_lock.lock().unwrap();
 
-    let executor = cache_lock.read().unwrap().get(&class_hash).map(Arc::clone);
+    let executor = cache.get(&class_hash).map(Arc::clone);
 
     match executor {
         Some(executor) => executor,
         None => {
-            let mut cache = cache_lock.write().unwrap();
             let path = PathBuf::from(format!(
                 "compiled_programs/{}.{}",
                 class_hash.to_hex_string(),
