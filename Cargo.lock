@@ -458,7 +458,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1169f649c863f0b23e890ce36cbac047b2c88da1"
+source = "git+https://github.com/lambdaclass/sequencer?rev=1169f649c863f0b23e890ce36cbac047b2c88da1#1169f649c863f0b23e890ce36cbac047b2c88da1"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1112,7 +1112,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=b5769e4f6ba914b36eef68e0b1f71c791d7d075c#b5769e4f6ba914b36eef68e0b1f71c791d7d075c"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=0e251c56b8bb0c9c74c6de24575b21a5df2ba881#0e251c56b8bb0c9c74c6de24575b21a5df2ba881"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1165,7 +1165,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=b5769e4f6ba914b36eef68e0b1f71c791d7d075c#b5769e4f6ba914b36eef68e0b1f71c791d7d075c"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=0e251c56b8bb0c9c74c6de24575b21a5df2ba881#0e251c56b8bb0c9c74c6de24575b21a5df2ba881"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -2653,9 +2653,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.160"
+version = "0.2.161"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0b21006cd1874ae9e650973c565615676dc4a274c965bb0a73796dac838ce4f"
+checksum = "8e9489c2807c139ffd9c1794f4af0ebe86a828db53ecdc7fea2111d0fed085d1"
 
 [[package]]
 name = "libloading"
@@ -3017,7 +3017,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1169f649c863f0b23e890ce36cbac047b2c88da1"
+source = "git+https://github.com/lambdaclass/sequencer?rev=1169f649c863f0b23e890ce36cbac047b2c88da1#1169f649c863f0b23e890ce36cbac047b2c88da1"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -3880,9 +3880,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.128"
+version = "1.0.129"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
+checksum = "6dbcf9b78a125ee667ae19388837dd12294b858d101fdd393cb9d5501ef09eb2"
 dependencies = [
  "itoa",
  "memchr",
@@ -4002,7 +4002,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sierra-emu"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/sierra-emu.git#18f9e7500ab43206b140d892a29efb621ea7d425"
+source = "git+https://github.com/lambdaclass/sierra-emu.git#071caea75a403fb940a96b574f2a70dc431e0662"
 dependencies = [
  "cairo-lang-compiler",
  "cairo-lang-filesystem",
@@ -4363,7 +4363,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1169f649c863f0b23e890ce36cbac047b2c88da1"
+source = "git+https://github.com/lambdaclass/sequencer?rev=1169f649c863f0b23e890ce36cbac047b2c88da1#1169f649c863f0b23e890ce36cbac047b2c88da1"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
