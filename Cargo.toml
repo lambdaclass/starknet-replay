@@ -9,9 +9,9 @@ resolver = "2"
 [workspace.dependencies]
 thiserror = "1.0.32"
 starknet-types-core = "0.1.6"
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x"}
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native" }
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "c501d392f60bdcf18f02608ec8b50e5bf501e2d0"}
+blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "c501d392f60bdcf18f02608ec8b50e5bf501e2d0"}
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "82c25b377f50904e1253b614c8719388277530e6" }
 tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.9.0"

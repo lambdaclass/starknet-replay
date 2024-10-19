@@ -476,7 +476,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=c501d392f60bdcf18f02608ec8b50e5bf501e2d0#c501d392f60bdcf18f02608ec8b50e5bf501e2d0"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -3037,7 +3037,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=c501d392f60bdcf18f02608ec8b50e5bf501e2d0#c501d392f60bdcf18f02608ec8b50e5bf501e2d0"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4431,7 +4431,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.8.x#1eaaa4b9902cd9f4a867b111ca87c3a3bfce5d29"
+source = "git+https://github.com/lambdaclass/sequencer?rev=c501d392f60bdcf18f02608ec8b50e5bf501e2d0#c501d392f60bdcf18f02608ec8b50e5bf501e2d0"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
