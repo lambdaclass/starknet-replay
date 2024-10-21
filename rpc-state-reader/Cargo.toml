@@ -27,6 +27,7 @@ flate2 = "1.0.25"
 dotenv = "0.15.0"
 cairo-vm = "1.0.0-rc5"
 blockifier = { workspace = true }
+starknet_gateway = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
