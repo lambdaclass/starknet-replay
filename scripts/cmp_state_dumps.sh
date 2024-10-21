@@ -3,12 +3,18 @@
 matching=0
 diffing=0
 
-for vm_dump in state_dumps/vm/*/*.json; do
-  [ -f "$vm_dump" ] || continue
+for native_dump in state_dumps/native/*/*.json; do
+  [ -f "$native_dump" ] || continue
 
-  native_dump="${vm_dump//vm/native}"
+  vm_dump="${native_dump//native/vm}"
 
-  base=$(basename "$native_dump")
+  # Check if the corresponding vm_dump file exists, if not, skip
+  if [ ! -f "$vm_dump" ]; then
+    echo "Skipping: $vm_dump (file not found)"
+    continue
+  fi
+
+  base=$(basename "$vm_dump")
 
   if ! cmp -s \
       <(sed '/"reverted": /d' "$native_dump") \
