@@ -1,3 +1,4 @@
+pub mod reader;
 pub mod rpc_state;
 pub mod rpc_state_errors;
 pub mod utils;
