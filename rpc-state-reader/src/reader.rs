@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{env, fmt, num::NonZeroU128, sync::Arc};
 
 use blockifier::{
-    blockifier::block::BlockInfo,
+    blockifier::block::{BlockInfo, GasPrices},
     execution::contract_class::{
         ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
     },
@@ -10,15 +10,17 @@ use blockifier::{
 use cairo_vm::types::program::Program;
 use starknet::core::types::{ContractClass as SNContractClass, Transaction, TransactionTrace};
 use starknet_api::{
-    block::BlockNumber,
-    core::{ClassHash, CompiledClassHash, ContractAddress},
+    block::{BlockNumber, GasPrice},
+    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
+    data_availability::L1DataAvailabilityMode,
     state::StorageKey,
     transaction::{TransactionHash, TransactionReceipt},
 };
 use starknet_gateway::{
-    config::RpcStateReaderConfig, errors::serde_err_to_state_err,
-    rpc_objects::GetBlockWithTxHashesParams,
-    rpc_state_reader::RpcStateReader as GatewayRpcStateReader, state_reader::MempoolStateReader,
+    config::RpcStateReaderConfig,
+    errors::serde_err_to_state_err,
+    rpc_objects::{BlockHeader, GetBlockWithTxHashesParams},
+    rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
 use ureq::json;
 
@@ -27,14 +29,57 @@ use crate::{
     utils,
 };
 
+/// Starknet chains supported in Infura.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
+pub enum RpcChain {
+    MainNet,
+    TestNet,
+    TestNet2,
+}
+
+impl fmt::Display for RpcChain {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RpcChain::MainNet => write!(f, "starknet-mainnet"),
+            RpcChain::TestNet => write!(f, "starknet-goerli"),
+            RpcChain::TestNet2 => write!(f, "starknet-goerli2"),
+        }
+    }
+}
+
+impl From<RpcChain> for ChainId {
+    fn from(value: RpcChain) -> Self {
+        ChainId::Other(match value {
+            RpcChain::MainNet => "alpha-mainnet".to_string(),
+            RpcChain::TestNet => "alpha4".to_string(),
+            RpcChain::TestNet2 => "alpha4-2".to_string(),
+        })
+    }
+}
+
 pub struct RpcStateReader {
     inner: GatewayRpcStateReader,
 }
 
 impl RpcStateReader {
-    pub fn from_number(config: &RpcStateReaderConfig, block_number: BlockNumber) -> Self {
+    pub fn new(chain: RpcChain, block_number: BlockNumber) -> Self {
+        let url = match chain {
+            RpcChain::MainNet => {
+                env::var("RPC_ENDPOINT_MAINNET").expect("Missing env var: RPC_ENDPOINT_MAINNET")
+            }
+            RpcChain::TestNet => {
+                env::var("RPC_ENDPOINT_TESTNET").expect("Missing env var: RPC_ENDPOINT_TESTNET")
+            }
+            RpcChain::TestNet2 => unimplemented!(),
+        };
+
+        let config = RpcStateReaderConfig {
+            url,
+            json_rpc_version: "2.0".to_string(),
+        };
+
         Self {
-            inner: GatewayRpcStateReader::from_number(config, block_number),
+            inner: GatewayRpcStateReader::from_number(&config, block_number),
         }
     }
 
@@ -69,7 +114,36 @@ impl RpcStateReader {
     }
 
     pub fn get_block_info(&self) -> StateResult<BlockInfo> {
-        self.inner.get_block_info()
+        // This function is inspired by sequencer's RpcStateReader::get_block_info
+
+        fn parse_gas_price(price: GasPrice) -> NonZeroU128 {
+            NonZeroU128::new(price.0).unwrap_or(NonZeroU128::new(1).unwrap())
+        }
+
+        let params = GetBlockWithTxHashesParams {
+            block_id: self.inner.block_id,
+        };
+
+        let header: BlockHeader = serde_json::from_value(
+            self.inner
+                .send_rpc_request("starknet_getBlockWithTxHashes", params)?,
+        )
+        .map_err(serde_err_to_state_err)?;
+
+        Ok(BlockInfo {
+            block_number: header.block_number,
+            sequencer_address: header.sequencer_address,
+            block_timestamp: header.timestamp,
+            gas_prices: GasPrices::new(
+                parse_gas_price(header.l1_gas_price.price_in_wei),
+                parse_gas_price(header.l1_gas_price.price_in_fri),
+                parse_gas_price(header.l1_data_gas_price.price_in_wei),
+                parse_gas_price(header.l1_data_gas_price.price_in_fri),
+                NonZeroU128::MIN,
+                NonZeroU128::MIN,
+            ),
+            use_kzg_da: matches!(header.l1_da_mode, L1DataAvailabilityMode::Blob),
+        })
     }
 
     pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
@@ -175,5 +249,35 @@ impl StateReader for RpcStateReader {
 
     fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
         self.inner.get_compiled_class_hash(class_hash)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::num::NonZeroU128;
+
+    use super::*;
+
+    #[test]
+    fn test_get_block_info() {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
+
+        let block = reader.get_block_info().unwrap();
+
+        assert_eq!(
+            block
+                .gas_prices
+                .get_l1_gas_price_by_fee_type(&blockifier::transaction::objects::FeeType::Eth),
+            NonZeroU128::new(22804578690).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_get_block_with_tx_hashes() {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(397709));
+
+        let block = reader.get_block_with_tx_hashes().unwrap();
+
+        assert_eq!(block.transactions.len(), 211);
     }
 }
