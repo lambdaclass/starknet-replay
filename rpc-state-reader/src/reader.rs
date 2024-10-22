@@ -1,25 +1,31 @@
 use std::sync::Arc;
 
 use blockifier::{
+    blockifier::block::BlockInfo,
     execution::contract_class::{
         ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
     },
     state::state_api::{StateReader, StateResult},
 };
 use cairo_vm::types::program::Program;
-use starknet::core::types::ContractClass as SNContractClass;
+use starknet::core::types::{ContractClass as SNContractClass, Transaction, TransactionTrace};
 use starknet_api::{
     block::BlockNumber,
     core::{ClassHash, CompiledClassHash, ContractAddress},
     state::StorageKey,
+    transaction::{TransactionHash, TransactionReceipt},
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig, errors::serde_err_to_state_err,
-    rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
+    rpc_objects::GetBlockWithTxHashesParams,
+    rpc_state_reader::RpcStateReader as GatewayRpcStateReader, state_reader::MempoolStateReader,
 };
 use ureq::json;
 
-use crate::utils;
+use crate::{
+    objects::{BlockWithTxHahes, BlockWithTxs},
+    utils,
+};
 
 pub struct RpcStateReader {
     inner: GatewayRpcStateReader,
@@ -38,9 +44,67 @@ impl RpcStateReader {
             "class_hash": class_hash.to_string(),
         });
 
+        serde_json::from_value(self.inner.send_rpc_request("starknet_getClass", params)?)
+            .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<TransactionTrace> {
+        let params = json!([hash]);
+
         serde_json::from_value(
             self.inner
-                .send_rpc_request("starknet_getClass", params.clone())?,
+                .send_rpc_request("starknet_traceTransaction", params)?,
+        )
+        .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
+        let params = json!([hash]);
+
+        serde_json::from_value(
+            self.inner
+                .send_rpc_request("starknet_getTransactionByHash", params)?,
+        )
+        .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_block_info(&self) -> StateResult<BlockInfo> {
+        self.inner.get_block_info()
+    }
+
+    pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
+        let params = GetBlockWithTxHashesParams {
+            block_id: self.inner.block_id,
+        };
+
+        serde_json::from_value(
+            self.inner
+                .send_rpc_request("starknet_getBlockWithTxHashes", params)?,
+        )
+        .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_block_with_txs(&self) -> StateResult<BlockWithTxs> {
+        let params = GetBlockWithTxHashesParams {
+            block_id: self.inner.block_id,
+        };
+
+        serde_json::from_value(
+            self.inner
+                .send_rpc_request("starknet_getBlockWithTxs", params)?,
+        )
+        .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_transaction_receipt(
+        &self,
+        hash: &TransactionHash,
+    ) -> StateResult<TransactionReceipt> {
+        let params = json!([hash]);
+
+        serde_json::from_value(
+            self.inner
+                .send_rpc_request("starknet_getTransactionReceipt", params)?,
         )
         .map_err(serde_err_to_state_err)
     }
