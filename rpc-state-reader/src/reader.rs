@@ -8,13 +8,15 @@ use blockifier::{
     state::state_api::{StateReader, StateResult},
 };
 use cairo_vm::types::program::Program;
-use starknet::core::types::{ContractClass as SNContractClass, Transaction, TransactionTrace};
+use starknet::core::types::{
+    ContractClass as SNContractClass, Transaction, TransactionReceipt, TransactionTrace,
+};
 use starknet_api::{
     block::{BlockNumber, GasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
     data_availability::L1DataAvailabilityMode,
     state::StorageKey,
-    transaction::{TransactionHash, TransactionReceipt},
+    transaction::TransactionHash,
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig,
@@ -63,27 +65,22 @@ pub struct RpcStateReader {
 
 impl RpcStateReader {
     pub fn new(chain: RpcChain, block_number: BlockNumber) -> Self {
-        let url = match chain {
-            RpcChain::MainNet => {
-                env::var("RPC_ENDPOINT_MAINNET").expect("Missing env var: RPC_ENDPOINT_MAINNET")
-            }
-            RpcChain::TestNet => {
-                env::var("RPC_ENDPOINT_TESTNET").expect("Missing env var: RPC_ENDPOINT_TESTNET")
-            }
-            RpcChain::TestNet2 => unimplemented!(),
-        };
-
-        let config = RpcStateReaderConfig {
-            url,
-            json_rpc_version: "2.0".to_string(),
-        };
+        let config = build_config(chain);
 
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
         }
     }
 
-    pub fn get_contract_class(&self, class_hash: ClassHash) -> StateResult<SNContractClass> {
+    pub fn new_latest(chain: RpcChain) -> Self {
+        let config = build_config(chain);
+
+        Self {
+            inner: GatewayRpcStateReader::from_latest(&config),
+        }
+    }
+
+    pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
             "class_hash": class_hash.to_string(),
@@ -184,6 +181,24 @@ impl RpcStateReader {
     }
 }
 
+fn build_config(chain: RpcChain) -> RpcStateReaderConfig {
+    let url = match chain {
+        RpcChain::MainNet => {
+            env::var("RPC_ENDPOINT_MAINNET").expect("Missing env var: RPC_ENDPOINT_MAINNET")
+        }
+        RpcChain::TestNet => {
+            env::var("RPC_ENDPOINT_TESTNET").expect("Missing env var: RPC_ENDPOINT_TESTNET")
+        }
+        RpcChain::TestNet2 => unimplemented!(),
+    };
+
+    let config = RpcStateReaderConfig {
+        url,
+        json_rpc_version: "2.0".to_string(),
+    };
+    config
+}
+
 impl StateReader for RpcStateReader {
     fn get_storage_at(
         &self,
@@ -205,7 +220,7 @@ impl StateReader for RpcStateReader {
     }
 
     fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
-        Ok(match self.get_contract_class(class_hash)? {
+        Ok(match self.get_contract_class(&class_hash)? {
             SNContractClass::Legacy(compressed_legacy_cc) => {
                 let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
                 let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();
