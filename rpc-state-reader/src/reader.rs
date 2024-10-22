@@ -8,13 +8,13 @@ use blockifier::{
     state::state_api::{StateReader, StateResult},
 };
 use cairo_vm::types::program::Program;
-use starknet::core::types::{ContractClass as SNContractClass, Transaction};
+use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, GasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
     data_availability::L1DataAvailabilityMode,
     state::StorageKey,
-    transaction::TransactionHash,
+    transaction::{Transaction, TransactionHash},
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig,
@@ -58,6 +58,7 @@ impl From<RpcChain> for ChainId {
 }
 
 pub struct RpcStateReader {
+    chain: RpcChain,
     inner: GatewayRpcStateReader,
 }
 
@@ -67,6 +68,7 @@ impl RpcStateReader {
 
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
+            chain,
         }
     }
 
@@ -75,6 +77,7 @@ impl RpcStateReader {
 
         Self {
             inner: GatewayRpcStateReader::from_latest(&config),
+            chain,
         }
     }
 
@@ -86,6 +89,10 @@ impl RpcStateReader {
 
         serde_json::from_value(self.inner.send_rpc_request("starknet_getClass", params)?)
             .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_chain_id(&self) -> ChainId {
+        self.chain.into()
     }
 
     pub fn get_transaction_trace(
@@ -104,11 +111,11 @@ impl RpcStateReader {
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
 
-        serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_getTransactionByHash", params)?,
-        )
-        .map_err(serde_err_to_state_err)
+        let tx = self
+            .inner
+            .send_rpc_request("starknet_getTransactionByHash", params)?;
+
+        utils::deserialize_transaction_json(tx).map_err(serde_err_to_state_err)
     }
 
     pub fn get_block_info(&self) -> StateResult<BlockInfo> {
