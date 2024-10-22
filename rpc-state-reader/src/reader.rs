@@ -8,9 +8,7 @@ use blockifier::{
     state::state_api::{StateReader, StateResult},
 };
 use cairo_vm::types::program::Program;
-use starknet::core::types::{
-    ContractClass as SNContractClass, Transaction, TransactionReceipt, TransactionTrace,
-};
+use starknet::core::types::{ContractClass as SNContractClass, Transaction};
 use starknet_api::{
     block::{BlockNumber, GasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
@@ -27,7 +25,7 @@ use starknet_gateway::{
 use ureq::json;
 
 use crate::{
-    objects::{BlockWithTxHahes, BlockWithTxs},
+    objects::{BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
@@ -90,7 +88,10 @@ impl RpcStateReader {
             .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<TransactionTrace> {
+    pub fn get_transaction_trace(
+        &self,
+        hash: &TransactionHash,
+    ) -> StateResult<RpcTransactionTrace> {
         let params = json!([hash]);
 
         serde_json::from_value(
@@ -170,7 +171,7 @@ impl RpcStateReader {
     pub fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
-    ) -> StateResult<TransactionReceipt> {
+    ) -> StateResult<RpcTransactionReceipt> {
         let params = json!([hash]);
 
         serde_json::from_value(
