@@ -72,8 +72,19 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
 
 /// Freestanding deserialize method to avoid a new type.
 pub fn deserialize_transaction_json(
-    transaction: serde_json::Value,
+    mut transaction: serde_json::Value,
 ) -> serde_json::Result<Transaction> {
+    if let Some(resource_bounds) = transaction.get_mut("resource_bounds") {
+        if let Some(l1_gas) = resource_bounds.get_mut("l1_gas") {
+            resource_bounds["L1_GAS"] = l1_gas.clone();
+            resource_bounds.as_object_mut().unwrap().remove("l1_gas");
+        }
+        if let Some(l2_gas) = resource_bounds.get_mut("l2_gas") {
+            resource_bounds["L2_GAS"] = l2_gas.clone();
+            resource_bounds.as_object_mut().unwrap().remove("l2_gas");
+        }
+    }
+
     let tx_type: String = serde_json::from_value(transaction["type"].clone())?;
     let tx_version: String = serde_json::from_value(transaction["version"].clone())?;
 
