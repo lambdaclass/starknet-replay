@@ -12,7 +12,6 @@ use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, GasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
-    data_availability::L1DataAvailabilityMode,
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
@@ -122,7 +121,7 @@ impl RpcStateReader {
         // This function is inspired by sequencer's RpcStateReader::get_block_info
 
         fn parse_gas_price(price: GasPrice) -> NonZeroU128 {
-            NonZeroU128::new(price.0).unwrap_or(NonZeroU128::new(1).unwrap())
+            NonZeroU128::new(price.0).unwrap_or(NonZeroU128::MIN)
         }
 
         let params = GetBlockWithTxHashesParams {
@@ -147,7 +146,7 @@ impl RpcStateReader {
                 NonZeroU128::MIN,
                 NonZeroU128::MIN,
             ),
-            use_kzg_da: matches!(header.l1_da_mode, L1DataAvailabilityMode::Blob),
+            use_kzg_da: true,
         })
     }
 
