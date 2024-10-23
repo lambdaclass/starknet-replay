@@ -132,7 +132,7 @@ fn main() {
                 for tx_hash in transaction_hashes {
                     show_execution_data(
                         &mut state,
-                        tx_hash.to_string(),
+                        tx_hash.0.to_hex_string(),
                         &chain,
                         block_number,
                         charge_fee,
