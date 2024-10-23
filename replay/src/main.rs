@@ -2,11 +2,14 @@ use std::str::FromStr;
 
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::errors::StateError;
+use blockifier::transaction::objects::TransactionExecutionInfo;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::execution::execute_tx_configurable;
+use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcChain, RpcStateReader};
 use starknet_api::block::BlockNumber;
+use starknet_api::hash::StarkHash;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::filter::Directive;
@@ -277,7 +280,7 @@ fn show_execution_data(
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (execution_info, _trace, rpc_receipt) = match execute_tx_configurable(
+    let execution_info = match execute_tx_configurable(
         state,
         &tx_hash,
         previous_block_number,
@@ -292,7 +295,41 @@ fn show_execution_data(
         }
     };
 
-    let reverted = execution_info.is_reverted();
+    #[cfg(feature = "state_dump")]
+    {
+        use std::path::Path;
+        #[cfg(feature = "only_cairo_vm")]
+        let root = Path::new("state_dumps/vm");
+        #[cfg(not(feature = "only_cairo_vm"))]
+        let root = Path::new("state_dumps/native");
+        let root = root.join(format!("block{}", block_number));
+
+        let mut path = root.join(&tx_hash);
+        path.set_extension("json");
+
+        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
+    }
+
+    let transaction_hash = TransactionHash(StarkHash::from_hex(&tx_hash).unwrap());
+    match state.state.get_transaction_receipt(&transaction_hash) {
+        Ok(rpc_receipt) => {
+            compare_execution(execution_info, rpc_receipt);
+        }
+        Err(_) => {
+            error!(
+                transaction_hash = tx_hash,
+                chain = chain,
+                "failed to get transaction receipt, could not compare to rpc"
+            );
+        }
+    };
+}
+
+fn compare_execution(
+    execution: TransactionExecutionInfo,
+    rpc_receipt: RpcTransactionReceipt,
+) -> bool {
+    let reverted = execution.is_reverted();
     let rpc_reverted = matches!(
         rpc_receipt.execution_status,
         TransactionExecutionStatus::Reverted(_)
@@ -300,13 +337,13 @@ fn show_execution_data(
 
     let status_matches = reverted == rpc_reverted;
 
-    let da_gas = &execution_info.receipt.da_gas;
+    let da_gas = &execution.receipt.da_gas;
     let da_gas_str = format!(
         "{{ l1_da_gas: {}, l1_gas: {} }}",
         da_gas.l1_data_gas, da_gas.l1_gas
     );
 
-    let exec_rsc = &execution_info.receipt.resources.starknet_resources;
+    let exec_rsc = &execution.receipt.resources.starknet_resources;
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
@@ -336,6 +373,10 @@ fn show_execution_data(
         state_changes.n_storage_updates
     );
 
+    let execution_gas = execution.receipt.fee;
+    let rpc_gas = rpc_receipt.actual_fee;
+    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
+
     if !status_matches || !events_msgs_match {
         let root_of_error = if !status_matches {
             "EXECUTION STATUS DIVERGED"
@@ -348,51 +389,32 @@ fn show_execution_data(
         };
 
         error!(
-            transaction_hash = tx_hash,
-            chain = chain,
             reverted,
             rpc_reverted,
             root_of_error = root_of_error,
-            execution_error_message = execution_info.revert_error,
+            execution_error_message = execution.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
             "rpc and execution status diverged"
-        )
+        );
+
+        false
     } else {
         info!(
-            transaction_hash = tx_hash,
-            chain = chain,
             reverted,
             rpc_reverted,
-            execution_error_message = execution_info.revert_error,
+            execution_error_message = execution.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
             "execution finished successfully"
         );
+
+        true
     }
-
-    #[cfg(feature = "state_dump")]
-    {
-        use std::path::Path;
-        #[cfg(feature = "only_cairo_vm")]
-        let root = Path::new("state_dumps/vm");
-        #[cfg(not(feature = "only_cairo_vm"))]
-        let root = Path::new("state_dumps/native");
-        let root = root.join(format!("block{}", block_number));
-
-        let mut path = root.join(tx_hash);
-        path.set_extension("json");
-
-        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
-    }
-
-    let execution_gas = execution_info.receipt.fee;
-    let rpc_gas = rpc_receipt.actual_fee;
-    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
 
 fn get_transaction_hashes(

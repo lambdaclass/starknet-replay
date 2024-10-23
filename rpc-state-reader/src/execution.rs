@@ -255,11 +255,7 @@ pub fn execute_tx_configurable(
     skip_validate: bool,
     skip_nonce_check: bool,
     charge_fee: bool,
-) -> TransactionExecutionResult<(
-    TransactionExecutionInfo,
-    RpcTransactionTrace,
-    RpcTransactionReceipt,
-)> {
+) -> TransactionExecutionResult<TransactionExecutionInfo> {
     let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
     let tx = state.state.get_transaction(&tx_hash).unwrap();
     let block_info = state.state.get_block_info().unwrap();
@@ -272,9 +268,7 @@ pub fn execute_tx_configurable(
         charge_fee,
         state,
     )?;
-    let trace = state.state.get_transaction_trace(&tx_hash).unwrap();
-    let receipt = state.state.get_transaction_receipt(&tx_hash).unwrap();
-    Ok((blockifier_exec_info, trace, receipt))
+    Ok(blockifier_exec_info)
 }
 
 /// Executes a transaction with blockifier
