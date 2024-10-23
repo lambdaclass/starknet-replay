@@ -212,18 +212,27 @@ impl StateReader for RpcStateReader {
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> StateResult<cairo_vm::Felt252> {
-        self.inner.get_storage_at(contract_address, key)
+        Ok(self
+            .inner
+            .get_storage_at(contract_address, key)
+            .unwrap_or_default())
     }
 
     fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
-        self.inner.get_nonce_at(contract_address)
+        Ok(self
+            .inner
+            .get_nonce_at(contract_address)
+            .unwrap_or_default())
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        self.inner.get_class_hash_at(contract_address)
+        Ok(self
+            .inner
+            .get_class_hash_at(contract_address)
+            .unwrap_or_default())
     }
 
     fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
