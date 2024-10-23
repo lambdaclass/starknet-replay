@@ -13,17 +13,14 @@ use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, GasPrice},
-    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
+    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig,
     errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
-    rpc_objects::{
-        BlockHeader, GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams,
-        GetStorageAtParams,
-    },
+    rpc_objects::{BlockHeader, GetBlockWithTxHashesParams, GetStorageAtParams},
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
 use ureq::json;
@@ -96,21 +93,7 @@ impl RpcStateReader {
         method: &str,
         params: impl Serialize,
     ) -> RPCStateReaderResult<Value> {
-        let result = self.inner.send_rpc_request(method, &params);
-        if result.is_ok() {
-            return result;
-        }
-
-        let mut attempt = 1;
-        while attempt < MAX_RETRIES {
-            let result = self.inner.send_rpc_request(method, &params);
-            if result.is_ok() {
-                return result;
-            }
-            attempt += 1;
-        }
-
-        result
+        retry(|| self.inner.send_rpc_request(method, &params))
     }
 
     pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
@@ -243,47 +226,29 @@ impl StateReader for RpcStateReader {
             key,
         };
 
-        let result =
-            self.send_rpc_request_with_retry("starknet_getStorageAt", get_storage_at_params);
-        match result {
-            Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
-            Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
-                Ok(cairo_vm::Felt252::default())
+        retry(|| {
+            let result = self
+                .inner
+                .send_rpc_request("starknet_getStorageAt", &get_storage_at_params);
+            match result {
+                Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
+                Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
+                    Ok(cairo_vm::Felt252::default())
+                }
+                Err(e) => Err(e)?,
             }
-            Err(e) => Err(e)?,
-        }
+        })
     }
 
     fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
-        let get_nonce_params = GetNonceParams {
-            block_id: self.inner.block_id,
-            contract_address,
-        };
-
-        let result = self.send_rpc_request_with_retry("starknet_getNonce", get_nonce_params);
-        match result {
-            Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
-            Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(Nonce::default()),
-            Err(e) => Err(e)?,
-        }
+        retry(|| self.inner.get_nonce_at(contract_address))
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        let get_class_hash_at_params = GetClassHashAtParams {
-            contract_address,
-            block_id: self.inner.block_id,
-        };
-
-        let result =
-            self.send_rpc_request_with_retry("starknet_getClassHashAt", get_class_hash_at_params);
-        match result {
-            Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
-            Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(ClassHash::default()),
-            Err(e) => Err(e)?,
-        }
+        retry(|| self.inner.get_class_hash_at(contract_address))
     }
 
     fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
@@ -342,6 +307,25 @@ fn compile_legacy_cc(
         entry_points_by_type,
     });
     ContractClass::V0(ContractClassV0(inner))
+}
+
+/// Retries the closure `MAX_RETRIES` times, until Ok is returned
+fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
+    let result = f();
+    if result.is_ok() {
+        return result;
+    }
+
+    let mut attempt = 1;
+    while attempt < MAX_RETRIES {
+        let result = f();
+        if result.is_ok() {
+            return result;
+        }
+        attempt += 1;
+    }
+
+    result
 }
 
 #[cfg(test)]
