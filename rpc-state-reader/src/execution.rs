@@ -2,14 +2,8 @@ use blockifier::{
     blockifier::block::BlockInfo,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::{
-        ClassInfo, ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
-    },
-    state::{
-        cached_state::CachedState,
-        errors::StateError,
-        state_api::{StateReader, StateResult},
-    },
+    execution::contract_class::{ClassInfo, ContractClass},
+    state::{cached_state::CachedState, state_api::StateReader},
     transaction::{
         account_transaction::AccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
@@ -20,110 +14,19 @@ use blockifier::{
     },
     versioned_constants::VersionedConstants,
 };
-
-use cairo_vm::types::program::Program;
-use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
-    core::{calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, Nonce},
+    core::{calculate_contract_address, ContractAddress, PatriciaKey},
     felt,
     hash::StarkHash,
-    state::StorageKey,
+    patricia_key,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
-use std::sync::Arc;
 
 use crate::{
-    rpc_state::{RpcBlockInfo, RpcChain, RpcState, RpcTransactionReceipt, TransactionTrace},
-    utils::{self, get_native_executor},
+    objects::{RpcTransactionReceipt, RpcTransactionTrace},
+    reader::{RpcChain, RpcStateReader},
 };
-
-pub struct RpcStateReader(pub RpcState);
-
-impl RpcStateReader {
-    pub fn new(state: RpcState) -> Self {
-        Self(state)
-    }
-}
-
-impl StateReader for RpcStateReader {
-    fn get_storage_at(
-        &self,
-        contract_address: starknet_api::core::ContractAddress,
-        key: StorageKey,
-    ) -> StateResult<StarkHash> {
-        Ok(self.0.get_storage_at(&contract_address, &key))
-    }
-
-    fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
-        Ok(Nonce(self.0.get_nonce_at(&contract_address)))
-    }
-
-    fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        Ok(self.0.get_class_hash_at(&contract_address))
-    }
-
-    /// Returns the contract class of the given class hash.
-    fn get_compiled_contract_class(
-        &self,
-        class_hash: starknet_api::core::ClassHash,
-    ) -> StateResult<ContractClass> {
-        Ok(match self.0.get_contract_class(&class_hash) {
-            Some(SNContractClass::Legacy(compressed_legacy_cc)) => {
-                let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
-                let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();
-                let entry_points_by_type = utils::map_entry_points_by_type_legacy(
-                    compressed_legacy_cc.entry_points_by_type,
-                );
-                let inner = Arc::new(ContractClassV0Inner {
-                    program,
-                    entry_points_by_type,
-                });
-                ContractClass::V0(ContractClassV0(inner))
-            }
-            Some(SNContractClass::Sierra(flattened_sierra_cc)) => {
-                let middle_sierra: utils::MiddleSierraContractClass = {
-                    let v = serde_json::to_value(flattened_sierra_cc).unwrap();
-                    serde_json::from_value(v).unwrap()
-                };
-                let sierra_cc = cairo_lang_starknet_classes::contract_class::ContractClass {
-                    sierra_program: middle_sierra.sierra_program,
-                    contract_class_version: middle_sierra.contract_class_version,
-                    entry_points_by_type: middle_sierra.entry_points_by_type,
-                    sierra_program_debug_info: None,
-                    abi: None,
-                };
-
-                if cfg!(feature = "only_casm") {
-                    let casm_cc =
-                    cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
-                    ContractClass::V1(casm_cc.try_into().unwrap())
-                } else {
-                    let program = sierra_cc.extract_sierra_program().unwrap();
-                    let executor = get_native_executor(program, class_hash);
-
-                    ContractClass::V1Native(
-                        NativeContractClassV1::new(executor, sierra_cc).unwrap(),
-                    )
-                }
-            }
-            None => {
-                return Err(StateError::UndeclaredClassHash(
-                    starknet_api::core::ClassHash(*class_hash),
-                ))
-            }
-        })
-    }
-
-    /// Returns the compiled class hash of the given class hash.
-    fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
-        Ok(CompiledClassHash(
-            self.0
-                .get_class_hash_at(&ContractAddress(class_hash.0.try_into().unwrap()))
-                .0,
-        ))
-    }
-}
 
 pub fn execute_tx(
     tx_hash: &str,
@@ -131,56 +34,35 @@ pub fn execute_tx(
     block_number: BlockNumber,
 ) -> (
     TransactionExecutionInfo,
-    TransactionTrace,
+    RpcTransactionTrace,
     RpcTransactionReceipt,
 ) {
-    let tx_hash = tx_hash.strip_prefix("0x").unwrap();
+    let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
 
     // Instantiate the RPC StateReader and the CachedState
-    let rpc_reader = RpcStateReader(RpcState::new_rpc(network, block_number.into()).unwrap());
-    let gas_price = rpc_reader.0.get_gas_price(block_number.0).unwrap();
+    let reader = RpcStateReader::new(network, block_number);
 
-    // Get values for block context before giving ownership of the reader
-    let chain_id = rpc_reader.0.get_chain_name();
-    let RpcBlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        ..
-    } = rpc_reader.0.get_block_info().unwrap();
+    let block_info = reader.get_block_info().unwrap();
 
     // Get transaction before giving ownership of the reader
-    let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
-    let sn_api_tx = rpc_reader.0.get_transaction(&tx_hash);
+    let transaction = reader.get_transaction(&tx_hash).unwrap();
 
-    let trace = rpc_reader.0.get_transaction_trace(&tx_hash).unwrap();
-    let receipt = rpc_reader.0.get_transaction_receipt(&tx_hash).unwrap();
+    let trace = reader.get_transaction_trace(&tx_hash).unwrap();
+    let receipt = reader.get_transaction_receipt(&tx_hash).unwrap();
 
     // Create state from RPC reader
-    let mut state = CachedState::new(rpc_reader);
-
-    let block_info = BlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        gas_prices: gas_price,
-        use_kzg_da: true,
-    };
+    let mut state = CachedState::new(reader);
 
     let fee_token_addresses = FeeTokenAddresses {
-        strk_fee_token_address: ContractAddress(
-            felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
-                .try_into()
-                .unwrap(),
-        ),
-        eth_fee_token_address: ContractAddress(
-            felt!("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-                .try_into()
-                .unwrap(),
-        ),
+        strk_fee_token_address: ContractAddress(patricia_key!(
+            "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+        )),
+        eth_fee_token_address: ContractAddress(patricia_key!(
+            "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+        )),
     };
     let chain_info = ChainInfo {
-        chain_id,
+        chain_id: network.into(),
         fee_token_addresses,
     };
     let mut versioned_constants =
@@ -195,7 +77,7 @@ pub fn execute_tx(
     );
 
     // Map starknet_api transaction to blockifier's
-    let blockifier_tx: AccountTransaction = match sn_api_tx.unwrap() {
+    let blockifier_tx = match transaction {
         SNTransaction::Invoke(tx) => {
             let invoke = InvokeTransaction {
                 tx: starknet_api::executable_transaction::InvokeTransaction { tx, tx_hash },
@@ -222,10 +104,9 @@ pub fn execute_tx(
         }
         SNTransaction::Declare(tx) => {
             // Fetch the contract_class from the next block (as we don't have it in the previous one)
-            let next_block_state_reader = RpcStateReader(
-                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
-            );
-            let contract_class = next_block_state_reader
+            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+
+            let contract_class = next_reader
                 .get_compiled_contract_class(tx.class_hash())
                 .unwrap();
 
@@ -249,7 +130,7 @@ pub fn execute_tx(
                 receipt,
             );
         }
-        _ => unimplemented!(),
+        SNTransaction::Deploy(_) => todo!(),
     };
 
     (
@@ -293,7 +174,7 @@ pub fn execute_tx_configurable_with_state(
     };
 
     // Get values for block context before giving ownership of the reader
-    let chain_id = state.state.0.get_chain_name();
+    let chain_id = state.state.get_chain_id();
 
     let chain_info = ChainInfo {
         chain_id: chain_id.clone(),
@@ -311,7 +192,7 @@ pub fn execute_tx_configurable_with_state(
     );
 
     // Get transaction before giving ownership of the reader
-    let blockifier_tx: AccountTransaction = match tx {
+    let blockifier_tx = match tx {
         SNTransaction::Invoke(tx) => {
             let invoke = InvokeTransaction {
                 tx: starknet_api::executable_transaction::InvokeTransaction {
@@ -343,10 +224,8 @@ pub fn execute_tx_configurable_with_state(
             let block_number = block_context.block_info().block_number;
             let network = parse_to_rpc_chain(&chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
-            let next_block_state_reader = RpcStateReader(
-                RpcState::new_rpc(network, (block_number.next()).unwrap().into()).unwrap(),
-            );
-            let contract_class = next_block_state_reader
+            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+            let contract_class = next_reader
                 .get_compiled_contract_class(tx.class_hash())
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
@@ -372,31 +251,18 @@ pub fn execute_tx_configurable_with_state(
 pub fn execute_tx_configurable(
     state: &mut CachedState<RpcStateReader>,
     tx_hash: &str,
-    block_number: BlockNumber,
+    _block_number: BlockNumber,
     skip_validate: bool,
     skip_nonce_check: bool,
     charge_fee: bool,
 ) -> TransactionExecutionResult<(
     TransactionExecutionInfo,
-    TransactionTrace,
+    RpcTransactionTrace,
     RpcTransactionReceipt,
 )> {
     let tx_hash = TransactionHash(StarkHash::from_hex(tx_hash).unwrap());
-    let tx = state.state.0.get_transaction(&tx_hash).unwrap();
-    let gas_price = state.state.0.get_gas_price(block_number.0).unwrap();
-    let RpcBlockInfo {
-        block_timestamp,
-        sequencer_address,
-        ..
-    } = state.state.0.get_block_info().unwrap();
-
-    let block_info = BlockInfo {
-        block_number,
-        block_timestamp,
-        sequencer_address,
-        gas_prices: gas_price,
-        use_kzg_da: true,
-    };
+    let tx = state.state.get_transaction(&tx_hash).unwrap();
+    let block_info = state.state.get_block_info().unwrap();
     let blockifier_exec_info = execute_tx_configurable_with_state(
         &tx_hash,
         tx,
@@ -406,8 +272,8 @@ pub fn execute_tx_configurable(
         charge_fee,
         state,
     )?;
-    let trace = state.state.0.get_transaction_trace(&tx_hash).unwrap();
-    let receipt = state.state.0.get_transaction_receipt(&tx_hash).unwrap();
+    let trace = state.state.get_transaction_trace(&tx_hash).unwrap();
+    let receipt = state.state.get_transaction_receipt(&tx_hash).unwrap();
     Ok((blockifier_exec_info, trace, receipt))
 }
 
@@ -486,9 +352,8 @@ fn parse_to_rpc_chain(network: &str) -> RpcChain {
     }
 }
 
-pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
-    let rpc_block_info = state.get_block_info().unwrap();
-    let gas_price = state.get_gas_price(block_number.0).unwrap();
+pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
+    let block_info = reader.get_block_info().unwrap();
     let mut versioned_constants =
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
     versioned_constants.disable_cairo0_redeclaration = false;
@@ -507,15 +372,9 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
     };
 
     BlockContext::new(
-        BlockInfo {
-            block_number,
-            block_timestamp: rpc_block_info.block_timestamp,
-            sequencer_address: rpc_block_info.sequencer_address,
-            gas_prices: gas_price,
-            use_kzg_da: false,
-        },
+        block_info,
         ChainInfo {
-            chain_id: state.get_chain_name(),
+            chain_id: reader.get_chain_id(),
             fee_token_addresses,
         },
         versioned_constants,
@@ -525,30 +384,17 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
 
 #[cfg(test)]
 mod tests {
-
-    use std::num::NonZeroU128;
-
-    use crate::rpc_state::{BlockValue, RpcCallInfo};
-
-    use super::*;
     use blockifier::{
         execution::call_info::CallInfo,
         state::cached_state::StateChangesCount,
         transaction::objects::{GasVector, StarknetResources},
     };
     use pretty_assertions_sorted::assert_eq_sorted;
+    use starknet_api::block::BlockNumber;
     use test_case::test_case;
-    #[test]
-    fn test_get_gas_price() {
-        let block = BlockValue::Number(BlockNumber(169928));
-        let rpc_state = RpcState::new_rpc(RpcChain::MainNet, block).unwrap();
 
-        let price = rpc_state.get_gas_price(169928).unwrap();
-        assert_eq!(
-            price.get_l1_gas_price_by_fee_type(&blockifier::transaction::objects::FeeType::Eth),
-            NonZeroU128::new(22804578690).unwrap()
-        );
-    }
+    use super::*;
+    use crate::{objects::RpcCallInfo, reader::RpcChain};
 
     #[test_case(
         "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
@@ -1135,9 +981,9 @@ mod tests {
     impl From<&CallInfo> for RpcCallInfo {
         fn from(value: &CallInfo) -> Self {
             Self {
-                retdata: Some(value.execution.retdata.0.clone()),
+                result: Some(value.execution.retdata.0.clone()),
                 calldata: Some((*value.call.calldata.0).clone()),
-                internal_calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
+                calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
             }
