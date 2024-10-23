@@ -20,8 +20,14 @@ for block in state_dumps/vm/*/; do
   # Compares the files in ascending order, by creation date
   IFS=$'\n'
   for tx_name in $(ls -trU1 $block); do
-    vm_tx="state_dumps/vm/$block_name/$tx_name"
     native_tx="state_dumps/native/$block_name/$tx_name"
+    vm_tx="state_dumps/vm/$block_name/$tx_name"
+
+    # Check if the corresponding native_tx file exists, if not, skip
+    if [ ! -f "$native_tx" ]; then
+      echo "Skipping: $native_tx (file not found)"
+      continue
+    fi
 
     if cmp -s \
       <(sed '/"reverted": /d' "$native_tx") \
@@ -33,7 +39,7 @@ for block in state_dumps/vm/*/; do
     echo "Tx ${tx_name//.*/}"
 
     prompt_continue && {
-      delta "$native_tx" "$vm_tx" --side-by-side --paging always --wrap-max-lines unlimited 
+      delta "$native_tx" "$vm_tx" --side-by-side --paging always --wrap-max-lines unlimited
     }
   done
 done
