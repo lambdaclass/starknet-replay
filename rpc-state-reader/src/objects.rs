@@ -27,6 +27,7 @@ pub struct RpcTransactionTrace {
 pub struct RpcCallInfo {
     pub result: Option<Vec<StarkHash>>,
     pub calldata: Option<Vec<StarkHash>>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub calls: Vec<RpcCallInfo>,
     pub revert_reason: Option<String>,
 }
