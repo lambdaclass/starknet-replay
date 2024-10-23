@@ -162,6 +162,7 @@ pub mod deser {
     pub fn transaction_from_json(
         mut transaction: serde_json::Value,
     ) -> serde_json::Result<Transaction> {
+        // uppercase fields to make it starknet compatible
         if let Some(resource_bounds) = transaction.get_mut("resource_bounds") {
             if let Some(l1_gas) = resource_bounds.get_mut("l1_gas") {
                 resource_bounds["L1_GAS"] = l1_gas.clone();
