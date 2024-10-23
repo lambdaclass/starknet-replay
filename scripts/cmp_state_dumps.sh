@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Compares state dump files between two directories: 'state_dumps/vm' and 'state_dumps/native'.
+# It iterates over all JSON files in the 'state_dumps/vm' directory and checks if the corresponding
+# file exists in 'state_dumps/native'.
+# If the corresponding file does not exist, it skips the comparison and counts the skipped files.
+# For existing pairs, it compares the contents, ignoring the lines containing the "reverted" field, because of error message diference in Native and VM.
+# It counts and displays the number of matching, differing, and skipped state dumps.
+
 matching=0
 diffing=0
 skipping=0

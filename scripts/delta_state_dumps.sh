@@ -11,7 +11,7 @@ function prompt_continue {
   done
 }
 
-for block in state_dumps/native/*/; do
+for block in state_dumps/vm/*/; do
   [ -d "$block" ] || continue
   block_name=$(basename "$block")
 
@@ -23,9 +23,9 @@ for block in state_dumps/native/*/; do
     native_tx="state_dumps/native/$block_name/$tx_name"
     vm_tx="state_dumps/vm/$block_name/$tx_name"
 
-    # Check if the corresponding vm_tx file exists, if not, skip
-    if [ ! -f "$vm_tx" ]; then
-      echo "Skipping: $vm_tx (file not found)"
+    # Check if the corresponding native_tx file exists, if not, skip
+    if [ ! -f "$native_tx" ]; then
+      echo "Skipping: $native_tx (file not found)"
       continue
     fi
 
