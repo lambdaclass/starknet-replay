@@ -24,7 +24,7 @@ use starknet_gateway::{
 use ureq::json;
 
 use crate::{
-    objects::{BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{self, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
@@ -114,7 +114,7 @@ impl RpcStateReader {
             .inner
             .send_rpc_request("starknet_getTransactionByHash", params)?;
 
-        utils::deserialize_transaction_json(tx).map_err(serde_err_to_state_err)
+        objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
 
     pub fn get_block_info(&self) -> StateResult<BlockInfo> {
@@ -199,11 +199,10 @@ fn build_config(chain: RpcChain) -> RpcStateReaderConfig {
         RpcChain::TestNet2 => unimplemented!(),
     };
 
-    let config = RpcStateReaderConfig {
+    RpcStateReaderConfig {
         url,
         json_rpc_version: "2.0".to_string(),
-    };
-    config
+    }
 }
 
 impl StateReader for RpcStateReader {

@@ -352,9 +352,8 @@ fn parse_to_rpc_chain(network: &str) -> RpcChain {
     }
 }
 
-pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> BlockContext {
-    let rpc_block_info = state.get_block_info().unwrap();
-    let gas_price = state.get_gas_price(block_number.0).unwrap();
+pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
+    let block_info = reader.get_block_info().unwrap();
     let mut versioned_constants =
         VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
     versioned_constants.disable_cairo0_redeclaration = false;
@@ -373,15 +372,9 @@ pub fn fetch_block_context(state: &RpcState, block_number: BlockNumber) -> Block
     };
 
     BlockContext::new(
-        BlockInfo {
-            block_number,
-            block_timestamp: rpc_block_info.block_timestamp,
-            sequencer_address: rpc_block_info.sequencer_address,
-            gas_prices: gas_price,
-            use_kzg_da: false,
-        },
+        block_info,
         ChainInfo {
-            chain_id: state.get_chain_name(),
+            chain_id: reader.get_chain_id(),
             fee_token_addresses,
         },
         versioned_constants,

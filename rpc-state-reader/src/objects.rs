@@ -1,10 +1,11 @@
 use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
-use starknet::core::types::Transaction;
 use starknet_api::{
     block::BlockStatus,
     hash::StarkHash,
-    transaction::{Event, Fee, MessageToL1, TransactionExecutionStatus, TransactionHash},
+    transaction::{
+        Event, Fee, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
+    },
 };
 use starknet_gateway::rpc_objects::BlockHeader;
 
@@ -44,7 +45,7 @@ pub struct RpcTransactionReceipt {
     pub events: Vec<Event>,
     #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
-    #[serde(deserialize_with = "deser::vm_execution_resources_deser")]
+    #[serde(deserialize_with = "deser::deserialize_execution_resources")]
     pub execution_resources: ExecutionResources,
 }
 
@@ -79,18 +80,22 @@ pub struct BlockWithTxs {
 pub struct TransactionWithHash {
     pub transaction_hash: TransactionHash,
     #[serde(flatten)]
+    #[serde(deserialize_with = "deser::deserialize_transaction")]
     pub transaction: Transaction,
 }
 
-mod deser {
+pub mod deser {
     use std::collections::HashMap;
 
     use cairo_vm::{
         types::builtin_name::BuiltinName, vm::runners::cairo_runner::ExecutionResources,
     };
     use serde::{Deserialize, Deserializer};
+    use starknet_api::transaction::{
+        DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction,
+    };
 
-    pub fn vm_execution_resources_deser<'de, D>(
+    pub fn deserialize_execution_resources<'de, D>(
         deserializer: D,
     ) -> Result<ExecutionResources, D::Error>
     where
@@ -143,5 +148,81 @@ mod deser {
             n_memory_holes,
             builtin_instance_counter,
         })
+    }
+
+    pub fn deserialize_transaction<'de, D>(deserializer: D) -> Result<Transaction, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let transaction: serde_json::Value = Deserialize::deserialize(deserializer)?;
+        transaction_from_json(transaction).map_err(|err| serde::de::Error::custom(err.to_string()))
+    }
+
+    /// Freestanding deserialize method to avoid a new type.
+    pub fn transaction_from_json(
+        mut transaction: serde_json::Value,
+    ) -> serde_json::Result<Transaction> {
+        if let Some(resource_bounds) = transaction.get_mut("resource_bounds") {
+            if let Some(l1_gas) = resource_bounds.get_mut("l1_gas") {
+                resource_bounds["L1_GAS"] = l1_gas.clone();
+                resource_bounds.as_object_mut().unwrap().remove("l1_gas");
+            }
+            if let Some(l2_gas) = resource_bounds.get_mut("l2_gas") {
+                resource_bounds["L2_GAS"] = l2_gas.clone();
+                resource_bounds.as_object_mut().unwrap().remove("l2_gas");
+            }
+        }
+
+        let tx_type: String = serde_json::from_value(transaction["type"].clone())?;
+        let tx_version: String = serde_json::from_value(transaction["version"].clone())?;
+
+        match tx_type.as_str() {
+            "INVOKE" => match tx_version.as_str() {
+                "0x0" => Ok(Transaction::Invoke(InvokeTransaction::V0(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x1" => Ok(Transaction::Invoke(InvokeTransaction::V1(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x3" => Ok(Transaction::Invoke(InvokeTransaction::V3(
+                    serde_json::from_value(transaction)?,
+                ))),
+                x => Err(serde::de::Error::custom(format!(
+                    "unimplemented invoke version: {x}"
+                ))),
+            },
+            "DEPLOY_ACCOUNT" => match tx_version.as_str() {
+                "0x1" => Ok(Transaction::DeployAccount(DeployAccountTransaction::V1(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x3" => Ok(Transaction::DeployAccount(DeployAccountTransaction::V3(
+                    serde_json::from_value(transaction)?,
+                ))),
+                x => Err(serde::de::Error::custom(format!(
+                    "unimplemented declare version: {x}"
+                ))),
+            },
+            "DECLARE" => match tx_version.as_str() {
+                "0x0" => Ok(Transaction::Declare(DeclareTransaction::V0(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x1" => Ok(Transaction::Declare(DeclareTransaction::V1(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x2" => Ok(Transaction::Declare(DeclareTransaction::V2(
+                    serde_json::from_value(transaction)?,
+                ))),
+                "0x3" => Ok(Transaction::Declare(DeclareTransaction::V3(
+                    serde_json::from_value(transaction)?,
+                ))),
+                x => Err(serde::de::Error::custom(format!(
+                    "unimplemented declare version: {x}"
+                ))),
+            },
+            "L1_HANDLER" => Ok(Transaction::L1Handler(serde_json::from_value(transaction)?)),
+            x => Err(serde::de::Error::custom(format!(
+                "unimplemented transaction type deserialization: {x}"
+            ))),
+        }
     }
 }
