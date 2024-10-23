@@ -26,7 +26,6 @@ use starknet_api::{
 use crate::{
     objects::{RpcTransactionReceipt, RpcTransactionTrace},
     reader::{RpcChain, RpcStateReader},
-    rpc_state::RpcState,
 };
 
 pub fn execute_tx(

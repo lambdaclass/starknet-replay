@@ -1,12 +1,7 @@
 pub mod execution;
 pub mod objects;
 pub mod reader;
-
-pub mod rpc_state;
-pub mod rpc_state_errors;
 pub mod utils;
-
-pub mod blockifier_state_reader;
 
 #[cfg(test)]
 mod tests1 {
