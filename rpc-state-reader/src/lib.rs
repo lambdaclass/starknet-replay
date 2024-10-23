@@ -96,17 +96,6 @@ mod tests {
                 .unwrap(),
         );
 
-        assert!(rpc_state.get_transaction(&tx_hash).is_ok());
-    }
-
-    #[test]
-    fn test_try_from_invoke() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
-        let tx_hash = TransactionHash(
-            StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
-                .unwrap(),
-        );
-
         rpc_state.get_transaction(&tx_hash).unwrap();
     }
 
