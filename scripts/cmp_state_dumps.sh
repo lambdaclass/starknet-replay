@@ -2,15 +2,18 @@
 
 matching=0
 diffing=0
+skipping=0
 
-for native_dump in state_dumps/native/*/*.json; do
-  [ -f "$native_dump" ] || continue
+# Iterate over state_dumps/vm dumps
+for vm_dump in state_dumps/vm/*/*.json; do
+  [ -f "$vm_dump" ] || continue
 
-  vm_dump="${native_dump//native/vm}"
+  native_dump="${vm_dump//vm/native}"
 
-  # Check if the corresponding vm_dump file exists, if not, skip
-  if [ ! -f "$vm_dump" ]; then
-    echo "Skipping: $vm_dump (file not found)"
+  # Check if the corresponding native_dump file exists, if not, skip
+  if [ ! -f "$native_dump" ]; then
+    echo "Skipping: $native_dump (file not found)"
+    skipping=$((skipping+1))
     continue
   fi
 
@@ -32,3 +35,4 @@ echo
 echo "Finished comparison"
 echo "- Matching: $matching"
 echo "- Diffing:  $diffing"
+echo "- Skipping: $skipping"
