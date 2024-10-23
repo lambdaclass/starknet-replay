@@ -60,7 +60,7 @@ impl From<RpcChain> for ChainId {
 
 const MAX_RETRIES: u32 = 3;
 
-// The following structured is heavily inspired by the underlying starkware-libs/sequencer implementation.
+// The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
 // It uses sequencer's RpcStateReader under the hood in some situations, while in other situation
 // the actual implementation has been copied and modified to our needs.
 
