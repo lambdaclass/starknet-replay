@@ -8,6 +8,8 @@ use blockifier::{
     state::state_api::{StateReader, StateResult},
 };
 use cairo_vm::types::program::Program;
+use serde::Serialize;
+use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, GasPrice},
@@ -17,8 +19,8 @@ use starknet_api::{
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig,
-    errors::serde_err_to_state_err,
-    rpc_objects::{BlockHeader, GetBlockWithTxHashesParams},
+    errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
+    rpc_objects::{BlockHeader, GetBlockWithTxHashesParams, GetStorageAtParams},
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
 use ureq::json;
@@ -56,6 +58,12 @@ impl From<RpcChain> for ChainId {
     }
 }
 
+const MAX_RETRIES: u32 = 3;
+
+// The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
+// It uses sequencer's RpcStateReader under the hood in some situations, while in other situation
+// the actual implementation has been copied and modified to our needs.
+
 pub struct RpcStateReader {
     chain: RpcChain,
     inner: GatewayRpcStateReader,
@@ -80,13 +88,21 @@ impl RpcStateReader {
         }
     }
 
+    pub fn send_rpc_request_with_retry(
+        &self,
+        method: &str,
+        params: impl Serialize,
+    ) -> RPCStateReaderResult<Value> {
+        retry(|| self.inner.send_rpc_request(method, &params))
+    }
+
     pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
             "class_hash": class_hash.to_string(),
         });
 
-        serde_json::from_value(self.inner.send_rpc_request("starknet_getClass", params)?)
+        serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
             .map_err(serde_err_to_state_err)
     }
 
@@ -101,8 +117,7 @@ impl RpcStateReader {
         let params = json!([hash]);
 
         serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_traceTransaction", params)?,
+            self.send_rpc_request_with_retry("starknet_traceTransaction", params)?,
         )
         .map_err(serde_err_to_state_err)
     }
@@ -110,9 +125,7 @@ impl RpcStateReader {
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
 
-        let tx = self
-            .inner
-            .send_rpc_request("starknet_getTransactionByHash", params)?;
+        let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
 
         objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
@@ -129,8 +142,7 @@ impl RpcStateReader {
         };
 
         let header: BlockHeader = serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_getBlockWithTxHashes", params)?,
+            self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
         )
         .map_err(serde_err_to_state_err)?;
 
@@ -156,8 +168,7 @@ impl RpcStateReader {
         };
 
         serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_getBlockWithTxHashes", params)?,
+            self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
         )
         .map_err(serde_err_to_state_err)
     }
@@ -168,8 +179,7 @@ impl RpcStateReader {
         };
 
         serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_getBlockWithTxs", params)?,
+            self.send_rpc_request_with_retry("starknet_getBlockWithTxs", params)?,
         )
         .map_err(serde_err_to_state_err)
     }
@@ -181,8 +191,7 @@ impl RpcStateReader {
         let params = json!([hash]);
 
         serde_json::from_value(
-            self.inner
-                .send_rpc_request("starknet_getTransactionReceipt", params)?,
+            self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
         .map_err(serde_err_to_state_err)
     }
@@ -211,27 +220,35 @@ impl StateReader for RpcStateReader {
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> StateResult<cairo_vm::Felt252> {
-        Ok(self
-            .inner
-            .get_storage_at(contract_address, key)
-            .unwrap_or_default())
+        let get_storage_at_params = GetStorageAtParams {
+            block_id: self.inner.block_id,
+            contract_address,
+            key,
+        };
+
+        retry(|| {
+            let result = self
+                .inner
+                .send_rpc_request("starknet_getStorageAt", &get_storage_at_params);
+            match result {
+                Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
+                Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
+                    Ok(cairo_vm::Felt252::default())
+                }
+                Err(e) => Err(e)?,
+            }
+        })
     }
 
     fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
-        Ok(self
-            .inner
-            .get_nonce_at(contract_address)
-            .unwrap_or_default())
+        retry(|| self.inner.get_nonce_at(contract_address))
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        Ok(self
-            .inner
-            .get_class_hash_at(contract_address)
-            .unwrap_or_default())
+        retry(|| self.inner.get_class_hash_at(contract_address))
     }
 
     fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
@@ -290,6 +307,25 @@ fn compile_legacy_cc(
         entry_points_by_type,
     });
     ContractClass::V0(ContractClassV0(inner))
+}
+
+/// Retries the closure `MAX_RETRIES` times, until Ok is returned
+fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
+    let result = f();
+    if result.is_ok() {
+        return result;
+    }
+
+    let mut attempt = 1;
+    while attempt < MAX_RETRIES {
+        let result = f();
+        if result.is_ok() {
+            return result;
+        }
+        attempt += 1;
+    }
+
+    result
 }
 
 #[cfg(test)]
