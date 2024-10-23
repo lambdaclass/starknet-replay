@@ -1,3 +1,6 @@
+//! This module contains custom objects
+//! and how to deserialize them from RPC calls
+
 use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
 use starknet_api::{
@@ -8,9 +11,6 @@ use starknet_api::{
     },
 };
 use starknet_gateway::rpc_objects::BlockHeader;
-
-// The following are not used right now
-// We are keeping them just in case
 
 #[derive(Debug, Deserialize, Clone, Eq, PartialEq)]
 pub struct RpcTransactionTrace {
@@ -84,6 +84,8 @@ pub struct TransactionWithHash {
     pub transaction: Transaction,
 }
 
+/// Some types require their own deserializer, as their ir shape is slightly different
+/// from the ones in starknet. This module contains such deserializaction functions.
 pub mod deser {
     use std::collections::HashMap;
 
