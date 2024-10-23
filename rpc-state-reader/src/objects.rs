@@ -176,8 +176,15 @@ pub mod deser {
             }
         }
 
-        let tx_type: String = serde_json::from_value(transaction["type"].clone())?;
-        let tx_version: String = serde_json::from_value(transaction["version"].clone())?;
+        #[derive(Deserialize)]
+        struct Header {
+            r#type: String,
+            version: String,
+        }
+        let Header {
+            r#type: tx_type,
+            version: tx_version,
+        } = serde_json::from_value(transaction.clone())?;
 
         match tx_type.as_str() {
             "INVOKE" => match tx_version.as_str() {
