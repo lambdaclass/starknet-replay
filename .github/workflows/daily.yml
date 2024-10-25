@@ -21,7 +21,18 @@ jobs:
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
     strategy:
       matrix:
-        block: [742000]
+        block:
+          - 740000
+          - 741000
+          - 742000
+          - 743000
+          - 744000
+          - 745000
+          - 746000
+          - 747000
+          - 748000
+          - 749000
+
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/install-linux-deps
