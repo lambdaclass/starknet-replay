@@ -44,6 +44,12 @@ jobs:
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - uses: ./.github/actions/install-native-runtime
+      - name: Patch native dependency
+        run: |
+          # Removes the "rev" portion of the native patch, allowing to use latest main commit
+          sed -Ei 's/(\/\/cairo_native\.git").*/\1 }/' Cargo.toml
+          # Updates Cargo.lock to use latest native main commit
+          cargo update
       - name: Run with Native
         run: |
           BLOCK_START=${{ matrix.block }}
