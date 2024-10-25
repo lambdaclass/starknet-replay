@@ -1,0 +1,80 @@
+name: Daily Block Run
+
+on:
+  schedule:
+  # At the end of every day
+  - cron: "0 0 * * *"
+  # remove later, only for testing
+  push:
+
+env:
+  RANGE_SIZE: 1
+
+jobs:
+  run-and-compare:
+    runs-on: ubuntu-latest
+    env:
+      LLVM_SYS_191_PREFIX: /usr/lib/llvm-19/
+      MLIR_SYS_190_PREFIX: /usr/lib/llvm-19/
+      TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
+      RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
+      RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
+    strategy:
+      matrix:
+        block: [742000]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free HDD space
+        run: |
+          echo "Listing 20 largest packages"
+          dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 20
+          df -h
+          sudo apt-get update
+          sudo apt-get remove -y '^llvm-.*'
+          sudo apt-get remove -y 'php.*'
+          sudo apt-get remove -y '^dotnet-.*'
+          sudo apt-get remove -y '^temurin-.*'
+          sudo apt-get remove -y azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell mono-devel
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          df -h
+          echo "Removing large directories"
+          # deleting 15GB
+          sudo rm -rf /usr/share/dotnet/
+          sudo rm -rf /usr/local/lib/android
+          df -h
+      - name: Setup rust env
+        uses: dtolnay/rust-toolchain@1.80.0
+      - name: Retreive cached dependecies
+        uses: Swatinem/rust-cache@v2
+      - name: Add LLVM Debian repository
+        uses: myci-actions/add-deb-repo@11
+        with:
+          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main
+          repo-name: llvm-repo
+          keys-asc: https://apt.llvm.org/llvm-snapshot.gpg.key
+      - run: sudo apt-get update && sudo apt-get upgrade -y
+      - name: Install LLVM
+        run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
+      - name: Checkout cairo_native
+        uses: actions/checkout@v4
+        with:
+          repository: lambdaclass/cairo_native
+          path: cairo_native
+      - name: Build Cairo Native Runtime Library
+        shell: bash
+        run: |
+          cd cairo_native
+          make runtime
+          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
+      - name: Run with Native
+        run: |
+          BLOCK_START=${{ matrix.block }}
+          BLOCK_END=$(($BLOCK_START + $RANGE_SIZE - 1))
+          cargo run --features state_dump block-range $BLOCK_START $BLOCK_END mainnet
+      - name: Run with VM
+        run: |
+          BLOCK_START=${{ matrix.block }}
+          BLOCK_END=$(($BLOCK_START + $RANGE_SIZE - 1))
+          cargo run --features state_dump,only_cairo_vm block-range $BLOCK_START $BLOCK_END mainnet
+  
