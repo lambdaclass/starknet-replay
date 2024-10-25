@@ -33,6 +33,8 @@ jobs:
           - 747000
           - 748000
           - 749000
+          # remove later, only for testing
+          - 803072
 
     steps:
       - uses: actions/checkout@v4
