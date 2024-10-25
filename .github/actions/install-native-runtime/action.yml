@@ -1,0 +1,15 @@
+name: 'Install Native Runtime'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Cairo Native
+      uses: actions/checkout@v4
+      with:
+        repository: lambdaclass/cairo_native
+        path: cairo_native
+    - name: Build Cairo Native Runtime Library
+      shell: bash
+      run: |
+        cd cairo_native
+        make runtime
+        echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
