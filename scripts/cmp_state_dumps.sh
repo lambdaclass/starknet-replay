@@ -26,3 +26,9 @@ echo
 echo "Finished comparison"
 echo "- Matching: $matching"
 echo "- Diffing:  $diffing"
+
+if ! [[ $diffing -eq 0 ]] ; then
+  exit 1
+else
+  exit 0
+fi
