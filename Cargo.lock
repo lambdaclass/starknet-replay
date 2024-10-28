@@ -1277,7 +1277,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=bb431f21cfd9cf8c9708dee986a8e356ec33a770#bb431f21cfd9cf8c9708dee986a8e356ec33a770"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=bb431f21cfd9cf8c9708dee986a8e356ec33a770#bb431f21cfd9cf8c9708dee986a8e356ec33a770"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1330,7 +1330,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass/cairo_native?rev=bb431f21cfd9cf8c9708dee986a8e356ec33a770#bb431f21cfd9cf8c9708dee986a8e356ec33a770"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=bb431f21cfd9cf8c9708dee986a8e356ec33a770#bb431f21cfd9cf8c9708dee986a8e356ec33a770"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -2022,6 +2022,12 @@ dependencies = [
  "redox_users",
  "winapi",
 ]
+
+[[package]]
+name = "dotenvy"
+version = "0.15.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
 name = "downcast"
@@ -4996,6 +5002,7 @@ dependencies = [
  "anyhow",
  "blockifier",
  "clap",
+ "dotenvy",
  "rpc-state-reader",
  "serde",
  "serde_json",
