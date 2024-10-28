@@ -384,6 +384,8 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
 
 #[cfg(test)]
 mod tests {
+    use std::thread;
+
     use blockifier::{
         execution::call_info::CallInfo,
         state::cached_state::StateChangesCount,
@@ -975,6 +977,46 @@ mod tests {
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
         assert_eq!(da_gas, tx_receipt.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
+    }
+
+    #[test_case(
+        "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
+        662249,
+        RpcChain::MainNet
+    )]
+    #[test_case(
+        "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
+        662252,
+        RpcChain::MainNet
+    )]
+    fn test_concurrency(tx_hash: &str, block_number: u64, chain: RpcChain) {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(block_number - 1));
+
+        let context = fetch_block_context(&reader);
+        let tx_hash = TransactionHash(felt!(tx_hash));
+        let tx = reader.get_transaction(&tx_hash).unwrap();
+
+        let mut handles = Vec::new();
+
+        for _ in 0..20 {
+            let context = context.clone();
+            let tx = tx.clone();
+            let tx_hash = tx_hash.clone();
+
+            handles.push(thread::spawn(move || {
+                let reader = RpcStateReader::new(chain, BlockNumber(block_number - 1));
+                let mut cache = CachedState::new(reader);
+
+                let execution_info =
+                    execute_tx_with_blockifier(&mut cache, context, tx, tx_hash).unwrap();
+
+                assert!(!execution_info.is_reverted())
+            }));
+        }
+
+        for h in handles {
+            h.join().unwrap()
+        }
     }
 
     // Impl conversion for easier checking against RPC data
