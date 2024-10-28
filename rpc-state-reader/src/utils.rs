@@ -17,7 +17,6 @@ use starknet_api::{
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
     hash::StarkHash,
-    transaction::{DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction},
 };
 use tracing::info;
 
@@ -71,63 +70,6 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
     let mut s = String::new();
     gz.read_to_string(&mut s)?;
     Ok(s)
-}
-
-/// Freestanding deserialize method to avoid a new type.
-pub fn deserialize_transaction_json(
-    transaction: serde_json::Value,
-) -> serde_json::Result<Transaction> {
-    let tx_type: String = serde_json::from_value(transaction["type"].clone())?;
-    let tx_version: String = serde_json::from_value(transaction["version"].clone())?;
-
-    match tx_type.as_str() {
-        "INVOKE" => match tx_version.as_str() {
-            "0x0" => Ok(Transaction::Invoke(InvokeTransaction::V0(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x1" => Ok(Transaction::Invoke(InvokeTransaction::V1(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x3" => Ok(Transaction::Invoke(InvokeTransaction::V3(
-                serde_json::from_value(transaction)?,
-            ))),
-            x => Err(serde::de::Error::custom(format!(
-                "unimplemented invoke version: {x}"
-            ))),
-        },
-        "DEPLOY_ACCOUNT" => match tx_version.as_str() {
-            "0x1" => Ok(Transaction::DeployAccount(DeployAccountTransaction::V1(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x3" => Ok(Transaction::DeployAccount(DeployAccountTransaction::V3(
-                serde_json::from_value(transaction)?,
-            ))),
-            x => Err(serde::de::Error::custom(format!(
-                "unimplemented declare version: {x}"
-            ))),
-        },
-        "DECLARE" => match tx_version.as_str() {
-            "0x0" => Ok(Transaction::Declare(DeclareTransaction::V0(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x1" => Ok(Transaction::Declare(DeclareTransaction::V1(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x2" => Ok(Transaction::Declare(DeclareTransaction::V2(
-                serde_json::from_value(transaction)?,
-            ))),
-            "0x3" => Ok(Transaction::Declare(DeclareTransaction::V3(
-                serde_json::from_value(transaction)?,
-            ))),
-            x => Err(serde::de::Error::custom(format!(
-                "unimplemented declare version: {x}"
-            ))),
-        },
-        "L1_HANDLER" => Ok(Transaction::L1Handler(serde_json::from_value(transaction)?)),
-        x => Err(serde::de::Error::custom(format!(
-            "unimplemented transaction type deserialization: {x}"
-        ))),
-    }
 }
 
 pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
