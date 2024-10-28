@@ -1,4 +1,4 @@
-use std::{env, fmt, num::NonZeroU128, sync::Arc};
+use std::{env, fmt, num::NonZeroU128, sync::Arc, thread, time::Duration};
 
 use blockifier::{
     blockifier::block::{BlockInfo, GasPrices},
@@ -58,7 +58,8 @@ impl From<RpcChain> for ChainId {
     }
 }
 
-const MAX_RETRIES: u32 = 3;
+const MAX_RETRIES: u32 = 10;
+const RETRY_SLEEP_MS: u64 = 10000;
 
 // The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
 // It uses sequencer's RpcStateReader under the hood in some situations, while in other situation
@@ -309,7 +310,8 @@ fn compile_legacy_cc(
     ContractClass::V0(ContractClassV0(inner))
 }
 
-/// Retries the closure `MAX_RETRIES` times, until Ok is returned
+/// Retries the closure `MAX_RETRIES` times  until Ok is returned,
+/// waiting RETRY_SLEEP_MS after each retry
 fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
     let result = f();
     if result.is_ok() {
@@ -318,6 +320,8 @@ fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
 
     let mut attempt = 1;
     while attempt < MAX_RETRIES {
+        thread::sleep(Duration::from_millis(RETRY_SLEEP_MS));
+
         let result = f();
         if result.is_ok() {
             return result;
