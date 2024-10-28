@@ -341,27 +341,22 @@ fn compile_legacy_cc(
 /// Retries the closure `MAX_RETRIES` times on RPC errors,
 /// waiting RETRY_SLEEP_MS after each retry
 fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Value> {
-    let result = f();
-
-    // We retry only on RPC error
-    if !matches!(result, Err(RPCStateReaderError::RPCError(_))) {
-        return result;
-    }
-
-    let mut attempt = 1;
-    while attempt < MAX_RETRIES {
-        thread::sleep(Duration::from_millis(RETRY_SLEEP_MS));
-
+    let mut attempt = 0;
+    loop {
         let result = f();
-        // We retry only on RPC error
-        if !matches!(result, Err(RPCStateReaderError::RPCError(_))) {
+        attempt += 1;
+
+        if !matches!(
+            result,
+            Err(RPCStateReaderError::RPCError(_) | RPCStateReaderError::ReqwestError(_))
+        ) {
             return result;
         }
 
-        attempt += 1;
+        if attempt >= MAX_RETRIES {
+            return result;
+        }
     }
-
-    result
 }
 
 #[cfg(test)]
