@@ -357,6 +357,8 @@ fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Va
         if attempt >= MAX_RETRIES {
             return result;
         }
+
+        thread::sleep(Duration::from_millis(RETRY_SLEEP_MS))
     }
 }
 
