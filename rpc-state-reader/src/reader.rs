@@ -13,14 +13,17 @@ use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockNumber, GasPrice},
-    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress},
+    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
 use starknet_gateway::{
     config::RpcStateReaderConfig,
     errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
-    rpc_objects::{BlockHeader, GetBlockWithTxHashesParams, GetStorageAtParams},
+    rpc_objects::{
+        BlockHeader, GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams,
+        GetStorageAtParams,
+    },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
 use ureq::json;
@@ -227,29 +230,54 @@ impl StateReader for RpcStateReader {
             key,
         };
 
-        retry(|| {
-            let result = self
-                .inner
-                .send_rpc_request("starknet_getStorageAt", &get_storage_at_params);
-            match result {
-                Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
-                Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
-                    Ok(cairo_vm::Felt252::default())
-                }
-                Err(e) => Err(e)?,
+        let result =
+            self.send_rpc_request_with_retry("starknet_getStorageAt", &get_storage_at_params);
+        match result {
+            Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
+            Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
+                Ok(cairo_vm::Felt252::default())
             }
-        })
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
-        retry(|| self.inner.get_nonce_at(contract_address))
+        let get_nonce_params = GetNonceParams {
+            block_id: self.inner.block_id,
+            contract_address,
+        };
+
+        let result = self.send_rpc_request_with_retry("starknet_getNonce", get_nonce_params);
+        match result {
+            Ok(value) => {
+                let nonce: Nonce = serde_json::from_value(value).map_err(serde_err_to_state_err)?;
+                Ok(nonce)
+            }
+            Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(Nonce::default()),
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        retry(|| self.inner.get_class_hash_at(contract_address))
+        let get_class_hash_at_params = GetClassHashAtParams {
+            contract_address,
+            block_id: self.inner.block_id,
+        };
+
+        let result =
+            self.send_rpc_request_with_retry("starknet_getClassHashAt", get_class_hash_at_params);
+        match result {
+            Ok(value) => {
+                let class_hash: ClassHash =
+                    serde_json::from_value(value).map_err(serde_err_to_state_err)?;
+                Ok(class_hash)
+            }
+            Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(ClassHash::default()),
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
@@ -310,11 +338,13 @@ fn compile_legacy_cc(
     ContractClass::V0(ContractClassV0(inner))
 }
 
-/// Retries the closure `MAX_RETRIES` times  until Ok is returned,
+/// Retries the closure `MAX_RETRIES` times on RPC errors,
 /// waiting RETRY_SLEEP_MS after each retry
-fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
+fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Value> {
     let result = f();
-    if result.is_ok() {
+
+    // We retry only on RPC error
+    if !matches!(result, Err(RPCStateReaderError::RPCError(_))) {
         return result;
     }
 
@@ -323,9 +353,11 @@ fn retry<A, B>(f: impl Fn() -> Result<A, B>) -> Result<A, B> {
         thread::sleep(Duration::from_millis(RETRY_SLEEP_MS));
 
         let result = f();
-        if result.is_ok() {
+        // We retry only on RPC error
+        if !matches!(result, Err(RPCStateReaderError::RPCError(_))) {
             return result;
         }
+
         attempt += 1;
     }
 
