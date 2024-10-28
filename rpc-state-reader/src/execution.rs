@@ -1010,7 +1010,11 @@ mod tests {
                 let execution_info =
                     execute_tx_with_blockifier(&mut cache, context, tx, tx_hash).unwrap();
 
-                assert!(!execution_info.is_reverted())
+                assert!(
+                    !execution_info.is_reverted(),
+                    "{:?}",
+                    execution_info.revert_error.unwrap_or_default()
+                )
             }));
         }
 
