@@ -346,6 +346,7 @@ fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Va
         let result = f();
         attempt += 1;
 
+        // only retry on rpc or request error
         if !matches!(
             result,
             Err(RPCStateReaderError::RPCError(_) | RPCStateReaderError::ReqwestError(_))
