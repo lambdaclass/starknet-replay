@@ -1001,7 +1001,6 @@ mod tests {
         for _ in 0..20 {
             let context = context.clone();
             let tx = tx.clone();
-            let tx_hash = tx_hash.clone();
 
             handles.push(thread::spawn(move || {
                 let reader = RpcStateReader::new(chain, BlockNumber(block_number - 1));
