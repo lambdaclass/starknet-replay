@@ -5,8 +5,7 @@ use std::{
     sync::{Arc, OnceLock, RwLock},
 };
 
-use cairo_lang_sierra::program::Program;
-use cairo_lang_starknet_classes::contract_class::ContractEntryPoints;
+use cairo_lang_starknet_classes::contract_class::{ContractClass, ContractEntryPoints};
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
@@ -69,7 +68,10 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotContractExecutor> {
+pub fn get_native_executor(
+    contract: &ContractClass,
+    class_hash: ClassHash,
+) -> Arc<AotContractExecutor> {
     let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
     let executor = cache_lock.read().unwrap().get(&class_hash).map(Arc::clone);
@@ -93,7 +95,12 @@ pub fn get_native_executor(program: Program, class_hash: ClassHash) -> Arc<AotCo
             let executor = Arc::new(if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
-                let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+                let mut executor = AotContractExecutor::new(
+                    &contract.extract_sierra_program().unwrap(),
+                    &contract.entry_points_by_type,
+                    OptLevel::Default,
+                )
+                .unwrap();
 
                 std::fs::create_dir_all(path.parent().unwrap()).unwrap();
                 executor.save(&path).unwrap();

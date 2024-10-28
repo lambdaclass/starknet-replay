@@ -271,8 +271,7 @@ fn compile_sierra_cc(
         cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
         ContractClass::V1(casm_cc.try_into().unwrap())
     } else {
-        let program = sierra_cc.extract_sierra_program().unwrap();
-        let executor = utils::get_native_executor(program, class_hash);
+        let executor = utils::get_native_executor(&sierra_cc, class_hash);
 
         ContractClass::V1Native(NativeContractClassV1::new(executor, sierra_cc).unwrap())
     }

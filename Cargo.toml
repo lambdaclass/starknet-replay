@@ -13,11 +13,8 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.9.0"
 serde = "1.0.197"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "355c250f37cf0977ef2776b1aae2cb2e87c9da3d" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "bb431f21cfd9cf8c9708dee986a8e356ec33a770" }
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
-
-[patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "355c250f37cf0977ef2776b1aae2cb2e87c9da3d" }
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native_aot_builtincosts_entry_points"}
+blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native_aot_builtincosts_entry_points"}
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", branch = "native_aot_builtincosts_entry_points"}
