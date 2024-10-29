@@ -1,4 +1,10 @@
-use std::{env, fmt, num::NonZeroU128, sync::Arc, thread, time::Duration};
+use std::{
+    env, fmt,
+    num::NonZeroU128,
+    sync::Arc,
+    thread,
+    time::{Duration, Instant},
+};
 
 use blockifier::{
     blockifier::block::{BlockInfo, GasPrices},
@@ -7,6 +13,7 @@ use blockifier::{
     },
     state::state_api::{StateReader, StateResult},
 };
+use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
@@ -26,6 +33,7 @@ use starknet_gateway::{
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
+use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
@@ -312,9 +320,29 @@ fn compile_sierra_cc(
         abi: None,
     };
 
+    let _span = info_span!(
+        "contract compilation",
+        class_hash = class_hash.to_string(),
+        length = bytecode_size(&sierra_cc.sierra_program)
+    )
+    .entered();
+
     if cfg!(feature = "only_casm") {
+        info!("starting vm contract compilation");
+
+        let pre_compilation_instant = Instant::now();
+
         let casm_cc =
         cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+
+        let compilation_time = pre_compilation_instant.elapsed().as_millis();
+
+        tracing::info!(
+            time = compilation_time,
+            size = bytecode_size(&casm_cc.bytecode),
+            "vm contract compilation finished"
+        );
+
         ContractClass::V1(casm_cc.try_into().unwrap())
     } else {
         let program = sierra_cc.extract_sierra_program().unwrap();
@@ -360,6 +388,10 @@ fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Va
 
         thread::sleep(Duration::from_millis(RETRY_SLEEP_MS))
     }
+}
+
+fn bytecode_size(data: &[BigUintAsHex]) -> usize {
+    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
 }
 
 #[cfg(test)]

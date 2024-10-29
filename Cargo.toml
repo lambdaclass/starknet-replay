@@ -20,4 +20,4 @@ blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95ca
 starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "355c250f37cf0977ef2776b1aae2cb2e87c9da3d" }
+cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "ab478323d6aee5e0424712bbde98de443b8cc72f" }
