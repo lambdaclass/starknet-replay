@@ -1,8 +1,10 @@
 use std::{
     collections::HashMap,
+    fs,
     io::{self, Read},
     path::PathBuf,
     sync::{Arc, OnceLock, RwLock},
+    time::Instant,
 };
 
 use cairo_lang_starknet_classes::contract_class::{ContractClass, ContractEntryPoints};
@@ -15,6 +17,7 @@ use starknet_api::{
     deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
     hash::StarkHash,
 };
+use tracing::info;
 
 #[derive(Debug, Deserialize)]
 pub struct MiddleSierraContractClass {
@@ -95,15 +98,22 @@ pub fn get_native_executor(
             let executor = Arc::new(if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
-                let mut executor = AotContractExecutor::new(
-                    &contract.extract_sierra_program().unwrap(),
-                    &contract.entry_points_by_type,
-                    OptLevel::Default,
-                )
-                .unwrap();
+                info!("starting native contract compilation");
+
+                let pre_compilation_instant = Instant::now();
+                let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+                let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
                 std::fs::create_dir_all(path.parent().unwrap()).unwrap();
                 executor.save(&path).unwrap();
+
+                let library_size = fs::metadata(path).unwrap().len();
+
+                info!(
+                    time = compilation_time,
+                    size = library_size,
+                    "native contract compilation finished"
+                );
 
                 executor
             });
