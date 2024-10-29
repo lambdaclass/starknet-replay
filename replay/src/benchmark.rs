@@ -103,7 +103,7 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
                 }
                 Err(_) => error!(
                     time = ?execution_time,
-                    "tx execution failed unexpectedly"
+                    "tx execution failed"
                 ),
             }
         }
