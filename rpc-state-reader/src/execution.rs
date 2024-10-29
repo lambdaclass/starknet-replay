@@ -989,6 +989,13 @@ mod tests {
         662252,
         RpcChain::MainNet
     )]
+    /// Ideally contract executions should be independent from one another.
+    /// In practice we use the same loaded dynamic shared library for each
+    /// execution of the same contract, for performance reasons. This means that
+    /// if a contract relies on global variables, those will be shared between
+    /// different executions of the same contract. This test executes a single
+    /// transaction (therefore, the same contracts) multiple times at the same
+    /// time, helping to uncover any possible concurrency bug that we may have
     fn test_concurrency(tx_hash: &str, block_number: u64, chain: RpcChain) {
         let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(block_number - 1));
 
