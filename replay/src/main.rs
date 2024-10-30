@@ -277,24 +277,20 @@ fn show_execution_data(
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let execution_info = match execute_tx_configurable(
+    let execution_info = execute_tx_configurable(
         state,
         &tx_hash,
         previous_block_number,
         false,
         true,
         charge_fee,
-    ) {
-        Ok(x) => x,
-        Err(error_reason) => {
-            error!("execution failed unexpectedly: {}", error_reason);
-            return;
-        }
-    };
+    );
 
     #[cfg(feature = "state_dump")]
     {
+        use std::fs::File;
         use std::path::Path;
+
         #[cfg(feature = "only_cairo_vm")]
         let root = Path::new("state_dumps/vm");
         #[cfg(not(feature = "only_cairo_vm"))]
@@ -304,8 +300,26 @@ fn show_execution_data(
         let mut path = root.join(&tx_hash);
         path.set_extension("json");
 
-        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
+        match &execution_info {
+            Ok(execution_info) => {
+                state_dump::dump_state_diff(state, execution_info, &path).unwrap();
+            }
+            Err(err) => {
+                // If we have no execution info, we write the error to a file so that it can be compared anyway
+                let file = File::create(path).unwrap();
+                let err = err.to_string();
+                serde_json::to_writer_pretty(file, &err).unwrap();
+            }
+        }
     }
+
+    let execution_info = match execution_info {
+        Ok(x) => x,
+        Err(error_reason) => {
+            error!("execution failed unexpectedly: {}", error_reason);
+            return;
+        }
+    };
 
     let transaction_hash = TransactionHash(StarkHash::from_hex(&tx_hash).unwrap());
     match state.state.get_transaction_receipt(&transaction_hash) {
