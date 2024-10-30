@@ -316,7 +316,7 @@ fn show_execution_data(
     let execution_info = match execution_info {
         Ok(x) => x,
         Err(error_reason) => {
-            error!("execution failed unexpectedly: {}", error_reason);
+            error!("execution failed: {}", error_reason);
             return;
         }
     };
