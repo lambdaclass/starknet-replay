@@ -1,17 +1,15 @@
-use std::str::FromStr;
-
 use blockifier::state::cached_state::CachedState;
+use blockifier::state::errors::StateError;
+use blockifier::transaction::objects::TransactionExecutionInfo;
 use clap::{Parser, Subcommand};
-use rpc_state_reader::{
-    blockifier_state_reader::RpcStateReader,
-    rpc_state::{BlockValue, RpcChain, RpcState},
-    rpc_state_errors::RpcStateError,
-};
 
-use rpc_state_reader::blockifier_state_reader::execute_tx_configurable;
+use rpc_state_reader::execution::execute_tx_configurable;
+use rpc_state_reader::objects::RpcTransactionReceipt;
+use rpc_state_reader::reader::{RpcChain, RpcStateReader};
 use starknet_api::block::BlockNumber;
+use starknet_api::hash::StarkHash;
+use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
-use tracing_subscriber::filter::Directive;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
@@ -106,7 +104,13 @@ fn main() {
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
             for tx_hash in transaction_hashes {
-                show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
+                show_execution_data(
+                    &mut state,
+                    tx_hash.0.to_hex_string(),
+                    &chain,
+                    block_number,
+                    charge_fee,
+                );
             }
         }
         ReplayExecute::BlockRange {
@@ -126,7 +130,13 @@ fn main() {
                     .expect("Unable to fetch the transaction hashes.");
 
                 for tx_hash in transaction_hashes {
-                    show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
+                    show_execution_data(
+                        &mut state,
+                        tx_hash.0.to_hex_string(),
+                        &chain,
+                        block_number,
+                        charge_fee,
+                    );
                 }
             }
         }
@@ -249,10 +259,7 @@ fn parse_network(network: &str) -> RpcChain {
 fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
     let previous_block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(network);
-    let rpc_reader = RpcStateReader(
-        RpcState::new_rpc(rpc_chain, previous_block_number.into())
-            .expect("failed to create state reader"),
-    );
+    let rpc_reader = RpcStateReader::new(rpc_chain, previous_block_number);
 
     CachedState::new(rpc_reader)
 }
@@ -270,7 +277,7 @@ fn show_execution_data(
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let (execution_info, _trace, rpc_receipt) = match execute_tx_configurable(
+    let execution_info = match execute_tx_configurable(
         state,
         &tx_hash,
         previous_block_number,
@@ -285,20 +292,58 @@ fn show_execution_data(
         }
     };
 
-    let execution_status = match &execution_info.revert_error {
-        Some(_) => "REVERTED",
-        None => "SUCCEEDED",
-    };
-    let rpc_execution_status = rpc_receipt.execution_status;
-    let status_matches = execution_status == rpc_execution_status;
+    #[cfg(feature = "state_dump")]
+    {
+        use std::path::Path;
 
-    let da_gas = &execution_info.receipt.da_gas;
+        let root = if cfg!(feature = "only_cairo_vm") {
+            Path::new("state_dumps/vm")
+        } else if cfg!(feature = "use-sierra-emu") {
+            Path::new("state_dumps/emu")
+        } else {
+            Path::new("state_dumps/native")
+        };
+
+        let mut path = root.join(&tx_hash);
+        path.set_extension("json");
+
+        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
+    }
+
+    let transaction_hash = TransactionHash(StarkHash::from_hex(&tx_hash).unwrap());
+    match state.state.get_transaction_receipt(&transaction_hash) {
+        Ok(rpc_receipt) => {
+            compare_execution(execution_info, rpc_receipt);
+        }
+        Err(_) => {
+            error!(
+                transaction_hash = tx_hash,
+                chain = chain,
+                "failed to get transaction receipt, could not compare to rpc"
+            );
+        }
+    };
+}
+
+fn compare_execution(
+    execution: TransactionExecutionInfo,
+    rpc_receipt: RpcTransactionReceipt,
+) -> bool {
+    let reverted = execution.is_reverted();
+    let rpc_reverted = matches!(
+        rpc_receipt.execution_status,
+        TransactionExecutionStatus::Reverted(_)
+    );
+
+    let status_matches = reverted == rpc_reverted;
+
+    let da_gas = &execution.receipt.da_gas;
     let da_gas_str = format!(
         "{{ l1_da_gas: {}, l1_gas: {} }}",
         da_gas.l1_data_gas, da_gas.l1_gas
     );
 
-    let exec_rsc = &execution_info.receipt.resources.starknet_resources;
+    let exec_rsc = &execution.receipt.resources.starknet_resources;
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
@@ -328,6 +373,10 @@ fn show_execution_data(
         state_changes.n_storage_updates
     );
 
+    let execution_gas = execution.receipt.fee;
+    let rpc_gas = rpc_receipt.actual_fee;
+    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
+
     if !status_matches || !events_msgs_match {
         let root_of_error = if !status_matches {
             "EXECUTION STATUS DIVERGED"
@@ -340,82 +389,65 @@ fn show_execution_data(
         };
 
         error!(
-            transaction_hash = tx_hash,
-            chain = chain,
-            execution_status,
-            rpc_execution_status,
+            reverted,
+            rpc_reverted,
             root_of_error = root_of_error,
-            execution_error_message = execution_info.revert_error,
+            execution_error_message = execution.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
             "rpc and execution status diverged"
-        )
+        );
+
+        false
     } else {
         info!(
-            transaction_hash = tx_hash,
-            chain = chain,
-            execution_status,
-            rpc_execution_status,
-            execution_error_message = execution_info.revert_error,
+            reverted,
+            rpc_reverted,
+            execution_error_message = execution.revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
             "execution finished successfully"
         );
+
+        true
     }
-
-    #[cfg(feature = "with-state-dump")]
-    {
-        use std::path::Path;
-
-        let root = if cfg!(feature = "only_cairo_vm") {
-            Path::new("state_dumps/vm")
-        } else if cfg!(feature = "use-sierra-emu") {
-            Path::new("state_dumps/emu")
-        } else {
-            Path::new("state_dumps/native")
-        };
-
-        let root = root.join(format!("block{}", block_number));
-
-        let mut path = root.join(tx_hash);
-        path.set_extension("json");
-
-        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
-    }
-
-    let execution_gas = execution_info.receipt.fee;
-    let rpc_gas = rpc_receipt.actual_fee;
-    debug!(?execution_gas, ?rpc_gas, "execution actual fee");
 }
 
-fn get_transaction_hashes(network: &str, block_number: u64) -> Result<Vec<String>, RpcStateError> {
+fn get_transaction_hashes(
+    network: &str,
+    block_number: u64,
+) -> Result<Vec<TransactionHash>, StateError> {
     let network = parse_network(network);
-    let block_value = BlockValue::Number(BlockNumber(block_number));
-    let rpc_state = RpcState::new_rpc(network, block_value)?;
-    rpc_state.get_transaction_hashes()
+    let block_value = BlockNumber(block_number);
+    let rpc_state = RpcStateReader::new(network, block_value);
+    Ok(rpc_state.get_block_with_tx_hashes()?.transactions)
 }
 
 fn set_global_subscriber() {
-    let default_directive = Directive::from_str("replay=info").expect("should be valid");
+    #[cfg(not(feature = "structured_logging"))]
+    let default_env_filter =
+        EnvFilter::try_new("replay=info").expect("hard-coded env filter should be valid");
+
+    #[cfg(feature = "structured_logging")]
+    let default_env_filter =
+        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=info")
+            .expect("hard-coded env filter should be valid");
+
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);
 
     let subscriber = tracing_subscriber::fmt()
-        .with_env_filter({
-            EnvFilter::builder()
-                .with_default_directive(default_directive)
-                .from_env_lossy()
-        })
+        .with_env_filter(env_filter)
         .with_file(false)
         .with_line_number(false);
 
-    #[cfg(feature = "benchmark")]
-    let subscriber = subscriber.json();
-
-    #[cfg(not(feature = "benchmark"))]
+    #[cfg(not(feature = "structured_logging"))]
     let subscriber = subscriber.pretty();
+    #[cfg(feature = "structured_logging")]
+    let subscriber = subscriber.json();
 
     subscriber.finish().init();
 }

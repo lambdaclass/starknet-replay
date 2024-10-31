@@ -5,20 +5,17 @@ use blockifier::{
     state::{cached_state::CachedState, state_api::StateReader},
 };
 use rpc_state_reader::{
-    blockifier_state_reader::{execute_tx_with_blockifier, fetch_block_context, RpcStateReader},
-    rpc_state::{RpcChain, RpcState},
+    execution::{execute_tx_with_blockifier, fetch_block_context},
+    objects::TransactionWithHash,
+    reader::{RpcChain, RpcStateReader},
 };
-use starknet_api::{
-    block::BlockNumber,
-    hash::StarkHash,
-    transaction::{Transaction as SNTransaction, TransactionHash},
-};
+use starknet_api::{block::BlockNumber, hash::StarkHash, transaction::TransactionHash};
 use tracing::{error, info, info_span};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
     BlockContext,
-    Vec<(TransactionHash, SNTransaction)>,
+    Vec<TransactionWithHash>,
 );
 
 /// Fetches context data to execute the given block range
@@ -39,32 +36,17 @@ pub fn fetch_block_range_data(
         // For each block
         let block_number = BlockNumber(block_number);
 
-        let rpc_state = RpcState::new_rpc(chain, block_number.into()).unwrap();
+        let reader = RpcStateReader::new(chain, block_number);
 
         // Fetch block context
-        let block_context = fetch_block_context(&rpc_state, block_number);
+        let block_context = fetch_block_context(&reader);
 
         // Fetch transactions for the block
-        let transactions = rpc_state
-            .get_transaction_hashes()
-            .unwrap()
-            .into_iter()
-            .map(|transaction_hash| {
-                let transaction_hash =
-                    TransactionHash(StarkHash::from_hex(&transaction_hash).unwrap());
-
-                // Fetch transaction
-                let transaction = rpc_state.get_transaction(&transaction_hash).unwrap();
-
-                (transaction_hash, transaction)
-            })
-            .collect::<Vec<_>>();
+        let transactions = reader.get_block_with_txs().unwrap().transactions;
 
         // Create cached state
-        let previous_rpc_state =
-            RpcState::new_rpc(chain, block_number.prev().unwrap().into()).unwrap();
-        let previous_rpc_state_reader = RpcStateReader::new(previous_rpc_state);
-        let cached_state = CachedState::new(OptionalStateReader::new(previous_rpc_state_reader));
+        let previous_reader = RpcStateReader::new(chain, block_number.prev().unwrap());
+        let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
         block_caches.push((cached_state, block_context, transactions));
     }
@@ -88,14 +70,19 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
 
-        for (transaction_hash, transaction) in transactions {
+        for TransactionWithHash {
+            transaction_hash,
+            transaction,
+        } in transactions
+        {
             // Execute each transaction
             let _tx_span = info_span!(
                 "tx execution",
                 transaction_hash = transaction_hash.to_string(),
             )
             .entered();
-            info!("starting tx execution");
+
+            info!("tx execution started");
 
             let pre_execution_instant = Instant::now();
             let result = execute_tx_with_blockifier(
@@ -109,36 +96,38 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
             match result {
                 Ok(info) => {
                     info!(
+                        time = ?execution_time,
                         succeeded = info.revert_error.is_none(),
-                        "tx execution status"
+                        "tx execution finished"
                     )
                 }
                 Err(_) => error!(
-                    transaction_hash = transaction_hash.to_string(),
+                    time = ?execution_time,
                     "tx execution failed"
                 ),
             }
-
-            info!(time = ?execution_time, "finished tx execution");
         }
     }
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    let rpc_state = RpcState::new_rpc(chain, block.into()).unwrap();
+    let reader = RpcStateReader::new(chain, block);
 
     // Fetch block context
-    let block_context = fetch_block_context(&rpc_state, block);
+    let block_context = fetch_block_context(&reader);
 
     // Fetch transactions for the block
     let transaction_hash = TransactionHash(StarkHash::from_hex(tx).unwrap());
-    let transaction = rpc_state.get_transaction(&transaction_hash).unwrap();
-    let transactions = vec![(transaction_hash, transaction)];
+    let transaction = reader.get_transaction(&transaction_hash).unwrap();
+    let transactions = vec![TransactionWithHash {
+        transaction_hash,
+        transaction,
+    }];
 
     // Create cached state
-    let previous_rpc_state = RpcState::new_rpc(chain, block.prev().unwrap().into()).unwrap();
-    let previous_rpc_state_reader = RpcStateReader::new(previous_rpc_state);
-    let cached_state = CachedState::new(OptionalStateReader::new(previous_rpc_state_reader));
+    let previous_reader = RpcStateReader::new(chain, block.prev().unwrap());
+
+    let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
     (cached_state, block_context, transactions)
 }
