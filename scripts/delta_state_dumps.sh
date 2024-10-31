@@ -19,7 +19,7 @@ for block in state_dumps/vm/*/; do
 
   # Compares the files in ascending order, by creation date
   IFS=$'\n'
-  for tx_name in $(ls -trU1 $block); do
+  for tx_name in $(ls -tr1 $block); do
     native_tx="state_dumps/native/$block_name/$tx_name"
     vm_tx="state_dumps/vm/$block_name/$tx_name"
 
