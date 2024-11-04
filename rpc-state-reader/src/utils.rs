@@ -101,7 +101,12 @@ pub fn get_native_executor(
                 info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();
-                let mut executor = AotContractExecutor::new(&program, OptLevel::Default).unwrap();
+                let mut executor = AotContractExecutor::new(
+                    &contract.extract_sierra_program().unwrap(),
+                    &contract.entry_points_by_type,
+                    OptLevel::Default,
+                )
+                .unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
                 std::fs::create_dir_all(path.parent().unwrap()).unwrap();
