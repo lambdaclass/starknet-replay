@@ -7,7 +7,6 @@ members = ["rpc-state-reader", "replay"]
 resolver = "2"
 
 [workspace.dependencies]
-thiserror = "1.0.67"
 starknet-types-core = "0.1.6"
 tracing = "0.1"
 serde_json = "1.0.116"

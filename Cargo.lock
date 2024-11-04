@@ -5021,7 +5021,6 @@ checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
 name = "replay"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "blockifier",
  "clap",
  "dotenvy",
@@ -5161,8 +5160,6 @@ name = "rpc-state-reader"
 version = "0.1.0"
 dependencies = [
  "blockifier",
- "cairo-lang-sierra",
- "cairo-lang-starknet",
  "cairo-lang-starknet-classes",
  "cairo-lang-utils",
  "cairo-native",
@@ -5175,7 +5172,6 @@ dependencies = [
  "starknet_api",
  "starknet_gateway",
  "test-case",
- "thiserror",
  "tracing",
  "ureq",
 ]
