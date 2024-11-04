@@ -1277,7 +1277,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=ad818adcef2099205365f7f2cb0c7a0838935e20#ad818adcef2099205365f7f2cb0c7a0838935e20"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=2bb59c9d6ee2d6dbed9f2212e333fcd69cd8cf84#2bb59c9d6ee2d6dbed9f2212e333fcd69cd8cf84"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1330,7 +1330,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=ad818adcef2099205365f7f2cb0c7a0838935e20#ad818adcef2099205365f7f2cb0c7a0838935e20"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=2bb59c9d6ee2d6dbed9f2212e333fcd69cd8cf84#2bb59c9d6ee2d6dbed9f2212e333fcd69cd8cf84"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -4142,7 +4142,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.3.1",
  "proc-macro2",
  "quote",
  "syn 2.0.85",
