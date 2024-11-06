@@ -13,7 +13,7 @@ pd.set_option('display.max_colwidth', None)
 sns.set_color_codes("bright")
 
 # Top 100 most common classes, without non significant zeroes
-classes=[
+classes={
     "0x279d12a282d7888e3fdbe456150775be2c160e7c78d409bbf02be68fdf275ce",
     "0xe2eb8f5672af4e6a4e8a8f1b44989685e668489b0a25437733756c5a34a1d6",
     "0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420",
@@ -114,9 +114,7 @@ classes=[
     "0x3a350cc2540d8c608feafe3d337291776a1f02a3a640fc3a4e4a6160a608a0e",
     "0x231adde42526bad434ca2eb983efdd64472638702f87f97e6e3c084f264e06f",
     "0x4231e8125da430bdec5ad18810528fbc520db9984a7ef4a890b0984c8eadf2a",
-]
-
-datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
+}
 
 def canonicalize_execution_time_by_contract_class(event):
     # skip caching logs
@@ -132,6 +130,7 @@ def canonicalize_execution_time_by_contract_class(event):
     if class_hash not in classes:
         return None
 
+    # Multiply by 100 to deal with microseconds
     time = float(event["fields"]["time"])
     return {
         "class hash": class_hash,
@@ -144,9 +143,14 @@ def find_span(event, name):
             return span
     return None
 
-datasetNative = datasetNative.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
-datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
-datasetVM = datasetVM.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+def load_dataset(path):
+    dataset = pd.read_json(path, lines=True, typ="series")
+    return dataset.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+
+datasetNative = load_dataset(arguments.native_logs_path)
+datasetVM = load_dataset(arguments.vm_logs_path)
+
+print("Loaded Data")
 
 # CALCULATE MEAN
 datasetNative = datasetNative.groupby("class hash").mean()
