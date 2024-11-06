@@ -12,8 +12,8 @@ import seaborn as sns
 pd.set_option('display.max_colwidth', None)
 sns.set_color_codes("bright")
 
-# Top 100 most common classes, without non significant zeroes
-classes={
+classes_list=[
+    # Top 100 most common classes, without non significant zeroes
     "0x279d12a282d7888e3fdbe456150775be2c160e7c78d409bbf02be68fdf275ce",
     "0xe2eb8f5672af4e6a4e8a8f1b44989685e668489b0a25437733756c5a34a1d6",
     "0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420",
@@ -114,7 +114,15 @@ classes={
     "0x3a350cc2540d8c608feafe3d337291776a1f02a3a640fc3a4e4a6160a608a0e",
     "0x231adde42526bad434ca2eb983efdd64472638702f87f97e6e3c084f264e06f",
     "0x4231e8125da430bdec5ad18810528fbc520db9984a7ef4a890b0984c8eadf2a",
-}
+    # Swap Contracts
+    "0x05ee939756c1a60b029c594da00e637bf5923bf04a86ff163e877e899c0840eb",
+    "0x7197021c108b0cc57ae354f5ad02222c4b3d7344664e6dd602a0e2298595434",
+    "0x514718bb56ed2a8607554c7d393c2ffd73cbab971c120b00a2ce27cc58dd1c1",
+    "0x7e35b811e3d4e2678d037b632a0c8a09a46d82185187762c0d429363e3ef9cf",
+    "0x26adb4ba4b50e1e5737e1032f1b6aea85251324caa1dfa8f0b57955bc74c267",
+    "0xcabe1e6e783267adac15159ae3dad843389eb99f3a6d0ac69ec7f22a99d164",
+]
+classes = set(classes_list)
 
 def canonicalize_execution_time_by_contract_class(event):
     # skip caching logs
@@ -153,12 +161,15 @@ datasetVM = load_dataset(arguments.vm_logs_path)
 print("Loaded Data")
 
 # CALCULATE MEAN
-datasetNative = datasetNative.groupby("class hash").mean()
-datasetVM = datasetVM.groupby("class hash").mean()
+datasetNative = datasetNative.groupby("class hash").agg(["mean","size"])
+datasetVM = datasetVM.groupby("class hash").agg(["mean","size"])
 dataset = datasetNative.join(datasetVM, lsuffix="_native", rsuffix="_vm")
+dataset.columns = dataset.columns.map('_'.join)
+
+print(dataset)
 
 # CALCULATE SPEEDUP
-dataset["speedup"] = dataset["time_vm"] / dataset["time_native"]
+dataset["speedup"] = dataset["time_vm_mean"] / dataset["time_native_mean"]
 print("Average Speedup: ", dataset["speedup"].mean())
 
 # FILTER WORST AND BEST
@@ -167,7 +178,7 @@ datasetS = dataset.nsmallest(20, "speedup")
 dataset = pd.concat([datasetL, datasetS])
 
 # SORT BY POPULARITY
-classesIdx= dict(zip(classes, range(len(classes))))
+classesIdx= dict(zip(classes_list, range(len(classes_list))))
 dataset['order'] = dataset.index.map(classesIdx)
 dataset.sort_values('order', ascending=True, inplace=True)
 dataset.drop('order', axis=1, inplace=True)
@@ -181,8 +192,8 @@ figure, axes = plt.subplots(1, 2)
 
 ax=axes[0]
 
-sns.barplot(ax=ax, y="class hash", x="time_vm", data=dataset, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
-sns.barplot(ax=ax, y="class hash", x="time_native", data=dataset, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
+sns.barplot(ax=ax, y="class hash", x="time_vm_mean", data=dataset, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
+sns.barplot(ax=ax, y="class hash", x="time_native_mean", data=dataset, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
 
 ax.set_xlabel("Mean Time (ns)")
 ax.set_ylabel("Class Hash")
