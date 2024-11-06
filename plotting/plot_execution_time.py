@@ -95,7 +95,7 @@ classes=[
     "0x16f2e4271df6214026a7c669d0e795b05667b9d7e349b9a9565bd7784653ca9",
     "0x7b5cd6a6949cc1730f89d795f2442f6ab431ea6c9a5be00685d50f97433c5eb",
     "0x2b39bc3f4c1fd5bef8b7d21504c44e0da59cf27b350551b13d913da52e40d3b",
-    "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017", # outlier
+    "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017",
     "0x562fc1d911530d18a86ea3ef4be50018923898d3c573288c5abb9c2344459ed",
     "0x6038c772adbf8740b1be1a75853b8d1ecc69621c938d186c80111176bafb1a2",
     "0x10f037591f881e9bc721f34d1bf12867aad74c7b01a5585b7e7cc1112e2627c",
@@ -111,19 +111,12 @@ classes=[
     "0x26b25c3a9bf7582cc8a9e6fff378cb649fc5cba404f93633ed41d59053dcd31",
     "0x73fc0a8c1fae1b2b42762cc0cc79337e57aa438e6bab44aab2c46733f5f0405",
     "0x364f8f46d2fbdc1593e75e291da5e830018f8ad6432f45fe2e2924fd53f94b4",
-    "0x3a350cc2540d8c608feafe3d337291776a1f02a3a640fc3a4e4a6160a608a0e", # outlier
-    "0x231adde42526bad434ca2eb983efdd64472638702f87f97e6e3c084f264e06f",
-    "0x4231e8125da430bdec5ad18810528fbc520db9984a7ef4a890b0984c8eadf2a", # outlier
-]
-
-outliers = [
-    "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017",
     "0x3a350cc2540d8c608feafe3d337291776a1f02a3a640fc3a4e4a6160a608a0e",
+    "0x231adde42526bad434ca2eb983efdd64472638702f87f97e6e3c084f264e06f",
     "0x4231e8125da430bdec5ad18810528fbc520db9984a7ef4a890b0984c8eadf2a",
 ]
 
 datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
-datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
 
 def canonicalize_execution_time_by_contract_class(event):
     # skip caching logs
@@ -152,6 +145,7 @@ def find_span(event, name):
     return None
 
 datasetNative = datasetNative.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
 datasetVM = datasetVM.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
 
 # CALCULATE MEAN
@@ -174,8 +168,6 @@ dataset['order'] = dataset.index.map(classesIdx)
 dataset.sort_values('order', ascending=True, inplace=True)
 dataset.drop('order', axis=1, inplace=True)
 
-# DROP OUTLIERS
-dataset.drop(outliers, axis=0, inplace=True)
 print(dataset)
 
 def format_hash(class_hash):
@@ -188,7 +180,7 @@ ax=axes[0]
 sns.barplot(ax=ax, y="class hash", x="time_vm", data=dataset, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
 sns.barplot(ax=ax, y="class hash", x="time_native", data=dataset, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
 
-ax.set_xlabel("Mean Time (ms)")
+ax.set_xlabel("Mean Time (ns)")
 ax.set_ylabel("Class Hash")
 ax.set_title("Mean time by Contract Class")
 
