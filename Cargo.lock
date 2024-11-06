@@ -82,9 +82,9 @@ dependencies = [
 
 [[package]]
 name = "anstream"
-version = "0.6.17"
+version = "0.6.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23a1e53f0f5d86382dafe1cf314783b2044280f406e7e1506368220ad11b1338"
+checksum = "8acc5369981196006228e28809f761875c0327210a891e941f4c683b3a99529b"
 dependencies = [
  "anstyle",
  "anstyle-parse",
@@ -131,9 +131,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.92"
+version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74f37166d7d48a0284b99dd824694c26119c700b53bf0d1540cdb147dbdaaf13"
+checksum = "4c95c10ba0b00a02636238b814946408b1322d5ac4760326e6fb8ec956d85775"
 
 [[package]]
 name = "aquamarine"
@@ -608,7 +608,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1277,7 +1277,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=73fa0ba9497484855fb0234bac9df9e6bd42734a#73fa0ba9497484855fb0234bac9df9e6bd42734a"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=acc3a3b8c38c5ae52bad56c3388bad660bfadca6#acc3a3b8c38c5ae52bad56c3388bad660bfadca6"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1330,7 +1330,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=73fa0ba9497484855fb0234bac9df9e6bd42734a#73fa0ba9497484855fb0234bac9df9e6bd42734a"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=acc3a3b8c38c5ae52bad56c3388bad660bfadca6#acc3a3b8c38c5ae52bad56c3388bad660bfadca6"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -1416,9 +1416,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.34"
+version = "1.1.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67b9470d453346108f93a59222a9a1a5724db32d0a4727b7ab7ace4b4d822dc9"
+checksum = "baee610e9452a8f6f0a1b6194ec09ff9e2d85dea54432acdae41aa0761c95d70"
 dependencies = [
  "jobserver",
  "libc",
@@ -2041,6 +2041,17 @@ dependencies = [
  "libc",
  "redox_users",
  "winapi",
+]
+
+[[package]]
+name = "displaydoc"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -2947,9 +2958,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.15.0"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e087f84d4f86bf4b218b927129862374b72199ae7d8657835f1e89000eea4fb"
+checksum = "3a9bfc1af68b1726ea47d3d5109de126281def866b33970e10fbab11b5dafab3"
 dependencies = [
  "allocator-api2",
  "equivalent",
@@ -3143,6 +3154,124 @@ dependencies = [
 ]
 
 [[package]]
+name = "icu_collections"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db2fa452206ebee18c4b5c2274dbf1de17008e874b4dc4f0aea9d01ca79e4526"
+dependencies = [
+ "displaydoc",
+ "yoke",
+ "zerofrom",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_locid"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13acbb8371917fc971be86fc8057c41a64b521c184808a698c02acc242dbf637"
+dependencies = [
+ "displaydoc",
+ "litemap",
+ "tinystr",
+ "writeable",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_locid_transform"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01d11ac35de8e40fdeda00d9e1e9d92525f3f9d887cdd7aa81d727596788b54e"
+dependencies = [
+ "displaydoc",
+ "icu_locid",
+ "icu_locid_transform_data",
+ "icu_provider",
+ "tinystr",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_locid_transform_data"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdc8ff3388f852bede6b579ad4e978ab004f139284d7b28715f773507b946f6e"
+
+[[package]]
+name = "icu_normalizer"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19ce3e0da2ec68599d193c93d088142efd7f9c5d6fc9b803774855747dc6a84f"
+dependencies = [
+ "displaydoc",
+ "icu_collections",
+ "icu_normalizer_data",
+ "icu_properties",
+ "icu_provider",
+ "smallvec",
+ "utf16_iter",
+ "utf8_iter",
+ "write16",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_normalizer_data"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8cafbf7aa791e9b22bec55a167906f9e1215fd475cd22adfcf660e03e989516"
+
+[[package]]
+name = "icu_properties"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93d6020766cfc6302c15dbbc9c8778c37e62c14427cb7f6e601d849e092aeef5"
+dependencies = [
+ "displaydoc",
+ "icu_collections",
+ "icu_locid_transform",
+ "icu_properties_data",
+ "icu_provider",
+ "tinystr",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_properties_data"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67a8effbc3dd3e4ba1afa8ad918d5684b8868b3b26500753effea8d2eed19569"
+
+[[package]]
+name = "icu_provider"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ed421c8a8ef78d3e2dbc98a973be2f3770cb42b606e3ab18d6237c4dfde68d9"
+dependencies = [
+ "displaydoc",
+ "icu_locid",
+ "icu_provider_macros",
+ "stable_deref_trait",
+ "tinystr",
+ "writeable",
+ "yoke",
+ "zerofrom",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_provider_macros"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ec89e9337638ecdc08744df490b221a7399bf8d164eb52a665454e60e075ad6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
 name = "id-arena"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3167,12 +3296,23 @@ dependencies = [
 
 [[package]]
 name = "idna"
-version = "0.5.0"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "634d9b1461af396cad843f47fdba5597a4f9e6ddd4bfb6ff5d85028c25cb12f6"
+checksum = "686f825264d630750a544639377bae737628043f20d38bbc029e8f29ea968a7e"
 dependencies = [
- "unicode-bidi",
- "unicode-normalization",
+ "idna_adapter",
+ "smallvec",
+ "utf8_iter",
+]
+
+[[package]]
+name = "idna_adapter"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daca1df1c957320b2cf139ac61e7bd64fed304c5040df000a745aa1de3b4ef71"
+dependencies = [
+ "icu_normalizer",
+ "icu_properties",
 ]
 
 [[package]]
@@ -3284,7 +3424,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.0",
+ "hashbrown 0.15.1",
  "serde",
 ]
 
@@ -3721,6 +3861,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89"
 
 [[package]]
+name = "litemap"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "643cb0b8d4fcc284004d5fd0d67ccf61dfffadb7f75e1e71bc420f4688a3a704"
+
+[[package]]
 name = "llvm-sys"
 version = "191.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3756,7 +3902,7 @@ version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "234cf4f4a04dc1f57e24b96cc0cd600cf2af460d4161ac5ecdd0af8e1f3b2a38"
 dependencies = [
- "hashbrown 0.15.0",
+ "hashbrown 0.15.1",
 ]
 
 [[package]]
@@ -3858,7 +4004,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "blockifier",
  "serde_json",
@@ -3890,9 +4036,9 @@ dependencies = [
 
 [[package]]
 name = "microlp"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4be6fbd22ab75d94d6e4419c2225a62ae22410c9ae1ecb4d743a1df906a55ca4"
+checksum = "4190b5ca62abfbc95a81d57f4a8e3e3872289d656f3eeea5820b3046a1f81d4b"
 dependencies = [
  "log",
  "sprs",
@@ -4294,7 +4440,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "cairo-lang-starknet-classes",
  "hex",
@@ -4313,7 +4459,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4327,7 +4473,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -4350,7 +4496,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "quote",
  "syn 2.0.87",
@@ -4360,7 +4506,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4394,7 +4540,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -5270,9 +5416,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.38"
+version = "0.38.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa260229e6538e52293eeb577aabd09945a09d6d9cc0fc550ed7529056c2e32a"
+checksum = "375116bee2be9ed569afe2154ea6a99dfdffd257f533f187498c2a8f5feaf4ee"
 dependencies = [
  "bitflags 2.6.0",
  "errno",
@@ -5767,7 +5913,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "smallvec",
- "starknet-crypto 0.7.2",
+ "starknet-crypto 0.7.3",
  "starknet-curve 0.5.1",
  "starknet-types-core",
  "tempfile",
@@ -6050,9 +6196,9 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60a5064173a8e8d2675e67744fd07f310de44573924b6b7af225a6bdd8102913"
+checksum = "ded22ccf4cb9e572ce3f77de6066af53560cd2520d508876c83bb1e6b29d5cbc"
 dependencies = [
  "crypto-bigint",
  "hex",
@@ -6184,7 +6330,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
@@ -6206,7 +6352,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -6233,7 +6379,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "async-trait",
  "axum",
@@ -6261,7 +6407,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_infra"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "async-trait",
  "bincode 1.3.3",
@@ -6279,7 +6425,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "async-trait",
  "mockall",
@@ -6293,7 +6439,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_compile"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#744f2afff99c349677971845b47a9d38fb26c331"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native_aot_builtincosts_entry_points#ea09d7c2bdfd8fa2552cd25ada654f6563f5e5e8"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
@@ -6459,6 +6605,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2047c6ded9c721764247e62cd3b03c09ffc529b2ba5b10ec482ae507a4a70160"
 
 [[package]]
+name = "synstructure"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
 name = "system-configuration"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6562,18 +6719,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.67"
+version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b3c6efbfc763e64eb85c11c25320f0737cb7364c4b6336db90aa9ebe27a0bbd"
+checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.67"
+version = "1.0.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b607164372e89797d78b8e23a6d67d5d1038c1c65efd52e1389ef8b77caba2a6"
+checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6648,6 +6805,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
 dependencies = [
  "crunchy",
+]
+
+[[package]]
+name = "tinystr"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9117f5d4db391c1cf6927e7bea3db74b9a1c1add8f7eda9ffd5364f40f57b82f"
+dependencies = [
+ "displaydoc",
+ "zerovec",
 ]
 
 [[package]]
@@ -7080,12 +7247,12 @@ dependencies = [
 
 [[package]]
 name = "url"
-version = "2.5.2"
+version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22784dbdf76fdde8af1aeda5622b546b422b6fc585325248a2bf9f5e41e94d6c"
+checksum = "8d157f1b96d14500ffdc1f10ba712e780825526c03d9a49b4d0324b0d9113ada"
 dependencies = [
  "form_urlencoded",
- "idna 0.5.0",
+ "idna 1.0.3",
  "percent-encoding",
 ]
 
@@ -7094,6 +7261,12 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
+
+[[package]]
+name = "utf16_iter"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c8232dd3cdaed5356e0f716d285e4b40b932ac434100fe9b7e0e8e935b9e6246"
 
 [[package]]
 name = "utf8-width"
@@ -7526,6 +7699,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "write16"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1890f4022759daae28ed4fe62859b1236caebfc61ede2f63ed4e695f3f6d936"
+
+[[package]]
+name = "writeable"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
+
+[[package]]
 name = "ws_stream_wasm"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7581,6 +7766,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
+name = "yoke"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c5b1314b079b0930c31e3af543d8ee1757b1951ae1e1565ec704403a7240ca5"
+dependencies = [
+ "serde",
+ "stable_deref_trait",
+ "yoke-derive",
+ "zerofrom",
+]
+
+[[package]]
+name = "yoke-derive"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28cc31741b18cb6f1d5ff12f5b7523e3d6eb0852bbbad19d73905511d9849b95"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+ "synstructure",
+]
+
+[[package]]
 name = "zerocopy"
 version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7602,6 +7811,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "zerofrom"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91ec111ce797d0e0784a1116d0ddcdbea84322cd79e5d5ad173daeba4f93ab55"
+dependencies = [
+ "zerofrom-derive",
+]
+
+[[package]]
+name = "zerofrom-derive"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ea7b4a3637ea8669cedf0f1fd5c286a17f3de97b8dd5a70a6c167a1730e63a5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+ "synstructure",
+]
+
+[[package]]
 name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7615,6 +7845,28 @@ name = "zeroize_derive"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "zerovec"
+version = "0.10.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa2b893d79df23bfb12d5461018d408ea19dfafe76c2c7ef6d4eba614f8ff079"
+dependencies = [
+ "yoke",
+ "zerofrom",
+ "zerovec-derive",
+]
+
+[[package]]
+name = "zerovec-derive"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6"
 dependencies = [
  "proc-macro2",
  "quote",
