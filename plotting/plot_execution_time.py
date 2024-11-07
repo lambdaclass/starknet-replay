@@ -129,8 +129,8 @@ swap_classes = [
 # Set to empty list to disable filtering
 classes_list = (
     []
-    + top_classes_list
-    + swap_classes
+    # + top_classes_list
+    # + swap_classes
 )
 
 # convert to integer to compare
