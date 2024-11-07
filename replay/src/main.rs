@@ -204,7 +204,7 @@ fn main() {
             let mut block_range_data = {
                 let _caching_span = info_span!("caching block range").entered();
 
-                info!("fetching transaction data");
+                info!("fetching block range data");
                 let transaction_data = fetch_transaction_data(&tx, block, chain);
 
                 // We insert it into a vector so that we can reuse `execute_block_range`
@@ -224,7 +224,7 @@ fn main() {
             };
 
             {
-                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let _benchmark_span = info_span!("benchmarking block range").entered();
                 let before_execution = Instant::now();
 
                 for _ in 0..number_of_runs {
