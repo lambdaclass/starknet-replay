@@ -76,6 +76,11 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block: u64,
         number_of_runs: usize,
     },
+    #[cfg(feature = "benchmark")]
+    #[clap(about = "Measures the time it takes to run a list of transactions.
+        Caches all rpc data before the benchmark runs to provide accurate results.
+        It only works if the transaction doesn't depend on another transaction in the same block")]
+    BenchMultiTx
 }
 
 fn main() {
@@ -237,6 +242,84 @@ fn main() {
                 info!(
                     tx = tx,
                     block = block.0,
+                    number_of_runs,
+                    total_run_time,
+                    average_run_time,
+                    "benchmark finished",
+                );
+            }
+        }
+        #[cfg(feature = "benchmark")]
+        ReplayExecute::BenchMultiTx => {
+            let blocks = vec![
+                803245,
+                 803233,
+                 803223,
+                 803215,
+                 803198,
+                 803194,
+                 803019,
+                 802967,
+                 802964,
+                 802964,
+                802962,
+                 802962,
+                802907,
+                802903,
+            ];
+            let txs = vec![
+                "0x7f2f1e76fe3d58cf20cc987cda37327206b711977a25955ed818a7b32378c0",
+                "0x69c279695d338e93bf18151259612016b298b28fbf33412e7ebde9e06bed2e0",
+                "0x1760352413f6a648fad6ee315285f1ed14139248279caaae9f5929545cb5cdb",
+                "0x7ca4ddbd5e1cfd269092490cbe18c2794b7918e9ba64dfc386f483814333370",
+                "0x3fbce25696fd0ecd0b265127f174f990f73f42e6fb7bbc4eb7f952ed40aaf20",
+                "0x2634ddda80c52649556725ac3b700b543165bac7fb28575f722662425292779",
+                "0x692d00de6b2e0b03deaee822c4a696ee1b68b3c4f978be1fd26cbbc09cec09d",
+                "0x60ebb7ebdb4ec104367341e6c7447db3510cefa36084297ce0abe7fe86954c1",
+                "0x2c4aa75cd709100e93437b0a2157f6262b1c2389d3fb4cf0dcdaa11155f8e65",
+                "0x52ea7a6e762cb7746b8c67ac75a76ab9e5258833d90becd50001b8154f2ba51",
+                "0xfe77326cffee6415680cb1eb413b34a067fadb54190731f382762232d2fd51",
+                "0x63d26dd5d7c2b9b8633541267664e2bf26577985469fbf47b9c7605d5513d2a",
+                "0x8d586ca36d2737aee12bbb24eaf4874dd0a500b7a0b74d42c457af383358f9",
+                "0x713aeaf5914892f486b33ae6ccb5359c76d74c059b1426230adb262bde3522",
+            ];
+            let number_of_runs = 100;
+            let chain = parse_network("mainnet");
+            let tx_block = txs.iter().zip(blocks);
+            let mut block_range_data = {
+                let _caching_span = info_span!("caching block range").entered();
+                let mut block_range_data = vec![];
+
+                info!("fetching transaction data");
+                for (tx, block) in tx_block {
+                    let block = BlockNumber(block);
+                    let transaction_data = fetch_transaction_data(&tx, block, chain);
+                    block_range_data.push(transaction_data);
+                }
+
+                info!("filling up execution cache");
+                execute_block_range(&mut block_range_data);
+
+                for (cached_state, ..) in &mut block_range_data {
+                    cached_state.state.disable();
+                }
+
+                block_range_data
+            };
+
+            {
+                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let before_execution = Instant::now();
+
+                for _ in 0..number_of_runs {
+                    execute_block_range(&mut block_range_data);
+                }
+
+                let execution_time = before_execution.elapsed();
+                let total_run_time = execution_time.as_secs_f64();
+                let average_run_time = total_run_time.div(number_of_runs as f64);
+
+                info!(
                     number_of_runs,
                     total_run_time,
                     average_run_time,
