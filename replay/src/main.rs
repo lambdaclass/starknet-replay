@@ -264,7 +264,7 @@ fn main() {
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchMultiTx => {
-            let txs_blocks: Vec<(String, u64)> = vec![];
+            let txs_blocks: Vec<(&str, u64)> = vec![];
             let number_of_runs = 100;
             let chain = parse_network("mainnet");
 
