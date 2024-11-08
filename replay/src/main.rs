@@ -95,11 +95,9 @@ fn main() {
             charge_fee,
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
-            let mut next_state = build_cached_state(&chain, block_number);
 
             show_execution_data(
                 &mut state,
-                &mut next_state,
                 tx_hash,
                 &chain,
                 block_number,
@@ -114,14 +112,12 @@ fn main() {
             let _block_span = info_span!("block", number = block_number).entered();
 
             let mut state = build_cached_state(&chain, block_number - 1);
-            let mut next_state = build_cached_state(&chain, block_number);
 
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
             for tx_hash in transaction_hashes {
                 show_execution_data(
                     &mut state,
-                    &mut next_state,
                     tx_hash.0.to_hex_string(),
                     &chain,
                     block_number,
@@ -141,7 +137,6 @@ fn main() {
                 let _block_span = info_span!("block", number = block_number).entered();
 
                 let mut state = build_cached_state(&chain, block_number - 1);
-                let mut next_state = build_cached_state(&chain, block_number);
 
                 let transaction_hashes = get_transaction_hashes(&chain, block_number)
                     .expect("Unable to fetch the transaction hashes.");
@@ -149,7 +144,6 @@ fn main() {
                 for tx_hash in transaction_hashes {
                     show_execution_data(
                         &mut state,
-                        &mut next_state,
                         tx_hash.0.to_hex_string(),
                         &chain,
                         block_number,
@@ -329,7 +323,6 @@ fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateR
 
 fn show_execution_data(
     state: &mut CachedState<RpcStateReader>,
-    next_state: &mut CachedState<RpcStateReader>,
     tx_hash: String,
     chain: &str,
     block_number: u64,
