@@ -278,6 +278,7 @@ pub fn execute_tx_configurable(
 /// needed to execute the transaction.
 pub fn execute_tx_with_blockifier(
     state: &mut CachedState<impl StateReader>,
+    next_state: &mut CachedState<impl StateReader>,
     context: BlockContext,
     transaction: SNTransaction,
     transaction_hash: TransactionHash,
@@ -311,7 +312,7 @@ pub fn execute_tx_with_blockifier(
             })
         }
         SNTransaction::Declare(tx) => {
-            let contract_class = state
+            let contract_class = next_state
                 .state
                 .get_compiled_contract_class(tx.class_hash())
                 .unwrap();
@@ -1005,10 +1006,14 @@ mod tests {
 
             handles.push(thread::spawn(move || {
                 let reader = RpcStateReader::new(chain, BlockNumber(block_number - 1));
+                let next_reader = RpcStateReader::new(chain, BlockNumber(block_number));
+
                 let mut cache = CachedState::new(reader);
+                let mut next_cache = CachedState::new(next_reader);
 
                 let execution_info =
-                    execute_tx_with_blockifier(&mut cache, context, tx, tx_hash).unwrap();
+                    execute_tx_with_blockifier(&mut cache, &mut next_cache, context, tx, tx_hash)
+                        .unwrap();
 
                 assert!(
                     !execution_info.is_reverted(),

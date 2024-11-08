@@ -69,6 +69,20 @@ impl From<RpcChain> for ChainId {
     }
 }
 
+impl TryFrom<ChainId> for RpcChain {
+    type Error = String;
+
+    fn try_from(value: ChainId) -> Result<Self, Self::Error> {
+        let testnet2 = String::from("alpha4-2");
+        match value {
+            ChainId::Mainnet => Ok(RpcChain::MainNet),
+            ChainId::Sepolia => Ok(RpcChain::TestNet),
+            ChainId::Other(c) if c == testnet2 => Ok(RpcChain::TestNet2),
+            _ => Err("Unrecognized chain".to_string()),
+        }
+    }
+}
+
 const MAX_RETRIES: u32 = 10;
 const RETRY_SLEEP_MS: u64 = 10000;
 
