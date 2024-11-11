@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 argument_parser = ArgumentParser('Stress Test Plotter')
 argument_parser.add_argument("native_logs_path")
 argument_parser.add_argument("vm_logs_path")
+argument_parser.add_argument("output")
 arguments = argument_parser.parse_args()
 
 import matplotlib.pyplot as plt
@@ -194,5 +195,7 @@ sns.barplot(ax=ax, y="class hash", x="speedup", data=dataset, formatter=format_h
 ax.set_xlabel("Speedup")
 ax.set_ylabel("Class Hash")
 ax.set_title("Speedup by Contract Class")
+
+figure.savefig(arguments.output)
 
 plt.show()
