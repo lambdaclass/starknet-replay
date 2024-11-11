@@ -130,7 +130,8 @@ def filter(row):
     if len(classes_list) == 0:
         return True
 
-    return row["class hash"] in classes
+    class_hash_dec = int(row["class hash"], 0)
+    return class_hash_dec in classes
 
 def load_dataset(path):
     dataset = pd.read_json(path, lines=True, typ="series").apply(pd.Series)
