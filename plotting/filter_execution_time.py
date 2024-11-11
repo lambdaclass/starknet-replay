@@ -7,7 +7,7 @@ arguments = argument_parser.parse_args()
 
 import pandas as pd
 
-CHUNKSIZE = 1
+CHUNKSIZE = 10000
 
 # Top 100 most common classes, without non significant zeroes
 top_classes_list=[
