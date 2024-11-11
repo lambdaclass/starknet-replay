@@ -12,6 +12,7 @@ import seaborn as sns
 pd.set_option('display.max_colwidth', None)
 sns.set_color_codes("bright")
 
+
 # Top 100 most common classes, without non significant zeroes
 top_classes_list=[
     "0x279d12a282d7888e3fdbe456150775be2c160e7c78d409bbf02be68fdf275ce",
@@ -132,40 +133,18 @@ classes_list = (
     # + top_classes_list
     # + swap_classes
 )
-
-# convert to integer to compare
+# convert to integer set to compare faster
 classes = set(map(lambda x: int(x, 16), classes_list))
 
-def canonicalize_execution_time_by_contract_class(event):
-    # skip caching logs
-    if find_span(event, "caching block range") != None:
-        return None
+def filter(row):
+    if len(classes_list) == 0:
+        return True
 
-    # keep contract execution finished logs
-    if "contract execution finished" not in event["fields"]["message"]:
-            return None
-
-    # filter target classes
-    class_hash_dec = int(event["span"]["class_hash"])
-    if len(classes) > 0 and class_hash_dec not in classes:
-        return None
-
-    class_hash = hex(class_hash_dec)
-    time = float(event["fields"]["time"])
-    return {
-        "class hash": class_hash,
-        "time": time,
-    }
-
-def find_span(event, name):
-    for span in event["spans"]:
-        if name in span["name"]:
-            return span
-    return None
+    return row["class hash"] in classes
 
 def load_dataset(path):
-    dataset = pd.read_json(path, lines=True, typ="series")
-    return dataset.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+    dataset = pd.read_json(path, lines=True, typ="series").apply(pd.Series)
+    return dataset[dataset.apply(filter, axis=1)]
 
 datasetNative = load_dataset(arguments.native_logs_path)
 datasetVM = load_dataset(arguments.vm_logs_path)
