@@ -118,21 +118,10 @@ top_classes_list=[
     "0x4231e8125da430bdec5ad18810528fbc520db9984a7ef4a890b0984c8eadf2a",
 ]
 
-# Top 100 most common classes, without non significant zeroes
-swap_classes = [
-    "0x5ee939756c1a60b029c594da00e637bf5923bf04a86ff163e877e899c0840eb",
-    "0x7197021c108b0cc57ae354f5ad02222c4b3d7344664e6dd602a0e2298595434",
-    "0x514718bb56ed2a8607554c7d393c2ffd73cbab971c120b00a2ce27cc58dd1c1",
-    "0x7e35b811e3d4e2678d037b632a0c8a09a46d82185187762c0d429363e3ef9cf",
-    "0x26adb4ba4b50e1e5737e1032f1b6aea85251324caa1dfa8f0b57955bc74c267",
-    "0x0cabe1e6e783267adac15159ae3dad843389eb99f3a6d0ac69ec7f22a99d164",
-]
-
 # Set to empty list to disable filtering
 classes_list = (
     []
-    # + top_classes_list
-    # + swap_classes
+    + top_classes_list
 )
 # convert to integer set to compare faster
 classes = set(map(lambda x: int(x, 16), classes_list))
