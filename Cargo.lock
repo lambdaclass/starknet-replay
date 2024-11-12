@@ -647,7 +647,7 @@ dependencies = [
  "strum 0.25.0",
  "strum_macros 0.25.3",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror",
  "toml",
  "tracing",
 ]
@@ -733,7 +733,7 @@ dependencies = [
  "hashbrown 0.13.2",
  "instant",
  "once_cell",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
 ]
 
@@ -793,7 +793,7 @@ dependencies = [
  "rust-analyzer-salsa",
  "semver",
  "smol_str",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -877,7 +877,7 @@ dependencies = [
  "rust-analyzer-salsa",
  "serde",
  "smol_str",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -964,7 +964,7 @@ dependencies = [
  "cairo-lang-utils",
  "serde",
  "smol_str",
- "thiserror 1.0.69",
+ "thiserror",
  "toml",
 ]
 
@@ -996,7 +996,7 @@ dependencies = [
  "sha2",
  "smol_str",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1049,7 +1049,7 @@ dependencies = [
  "sha3",
  "smol_str",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1065,7 +1065,7 @@ dependencies = [
  "itertools 0.12.1",
  "num-bigint",
  "num-traits",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1081,7 +1081,7 @@ dependencies = [
  "itertools 0.12.1",
  "num-bigint",
  "num-traits",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1126,7 +1126,7 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1166,7 +1166,7 @@ dependencies = [
  "serde_json",
  "smol_str",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1189,7 +1189,7 @@ dependencies = [
  "sha3",
  "smol_str",
  "starknet-types-core",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1321,7 +1321,7 @@ dependencies = [
  "starknet-types-core",
  "stats_alloc",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
  "tracing-subscriber",
  "utf8_iter",
@@ -1401,7 +1401,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1527,7 +1527,7 @@ dependencies = [
  "k256",
  "serde",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1543,7 +1543,7 @@ dependencies = [
  "pbkdf2 0.12.2",
  "rand",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1563,7 +1563,7 @@ dependencies = [
  "serde_derive",
  "sha2",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -2237,7 +2237,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror",
  "uuid",
 ]
 
@@ -2254,7 +2254,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha3",
- "thiserror 1.0.69",
+ "thiserror",
  "uint",
 ]
 
@@ -2333,7 +2333,7 @@ dependencies = [
  "pin-project",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -2401,7 +2401,7 @@ dependencies = [
  "strum 0.26.3",
  "syn 2.0.87",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror",
  "tiny-keccak",
  "unicode-xid",
 ]
@@ -2418,7 +2418,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
 ]
 
@@ -2442,7 +2442,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-futures",
@@ -2474,7 +2474,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tokio-tungstenite",
  "tracing",
@@ -2501,7 +2501,7 @@ dependencies = [
  "ethers-core",
  "rand",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
 ]
 
@@ -2529,7 +2529,7 @@ dependencies = [
  "serde_json",
  "solang-parser",
  "svm-rs",
- "thiserror 1.0.69",
+ "thiserror",
  "tiny-keccak",
  "tokio",
  "tracing",
@@ -2859,7 +2859,7 @@ dependencies = [
  "pin-project",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -3562,7 +3562,7 @@ dependencies = [
  "pin-project",
  "rustls-native-certs",
  "soketto",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tokio-rustls",
  "tokio-util",
@@ -3591,7 +3591,7 @@ dependencies = [
  "serde",
  "serde_json",
  "soketto",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "wasm-bindgen-futures",
@@ -3610,7 +3610,7 @@ dependencies = [
  "jsonrpsee-types",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tower",
  "tracing",
@@ -3645,7 +3645,7 @@ dependencies = [
  "serde",
  "serde_json",
  "soketto",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -3663,7 +3663,7 @@ dependencies = [
  "beef",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
 ]
 
@@ -3832,7 +3832,7 @@ dependencies = [
  "lifetimed-bytes",
  "mdbx-sys",
  "parking_lot",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -4453,7 +4453,7 @@ dependencies = [
  "sha3",
  "starknet-types-core",
  "starknet_api",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -4466,7 +4466,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum_macros 0.25.3",
- "thiserror 1.0.69",
+ "thiserror",
  "validator",
 ]
 
@@ -4489,7 +4489,7 @@ dependencies = [
  "serde_json",
  "starknet-types-core",
  "starknet_api",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
 ]
 
@@ -4563,7 +4563,7 @@ dependencies = [
  "serde_json",
  "starknet-types-core",
  "starknet_api",
- "thiserror 1.0.69",
+ "thiserror",
  "tracing",
  "validator",
  "zstd 0.13.2",
@@ -5104,7 +5104,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -5893,7 +5893,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sierra-emu"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/sierra-emu.git#783b57767f36928ded909ae1e17fded6262dbf32"
+source = "git+https://github.com/lambdaclass//sierra-emu.git?rev=92591b54f5d3ea6697a3644d678d2203ebfdbf87#92591b54f5d3ea6697a3644d678d2203ebfdbf87"
 dependencies = [
  "cairo-lang-compiler",
  "cairo-lang-filesystem",
@@ -5917,7 +5917,7 @@ dependencies = [
  "starknet-curve 0.5.1",
  "starknet-types-core",
  "tempfile",
- "thiserror 2.0.3",
+ "thiserror",
  "tracing",
  "tracing-subscriber",
 ]
@@ -5949,7 +5949,7 @@ checksum = "adc4e5204eb1910f40f9cfa375f6f05b68c3abac4b6fd879c8ff5e7ae8a0a085"
 dependencies = [
  "num-bigint",
  "num-traits",
- "thiserror 1.0.69",
+ "thiserror",
  "time",
 ]
 
@@ -6029,7 +6029,7 @@ dependencies = [
  "lalrpop",
  "lalrpop-util",
  "phf",
- "thiserror 1.0.69",
+ "thiserror",
  "unicode-xid",
 ]
 
@@ -6100,7 +6100,7 @@ dependencies = [
  "starknet-core 0.7.2",
  "starknet-providers",
  "starknet-signers",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6115,7 +6115,7 @@ dependencies = [
  "starknet-accounts",
  "starknet-core 0.7.2",
  "starknet-providers",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6292,7 +6292,7 @@ dependencies = [
  "serde_json",
  "serde_with 2.3.3",
  "starknet-core 0.7.2",
- "thiserror 1.0.69",
+ "thiserror",
  "url",
 ]
 
@@ -6309,7 +6309,7 @@ dependencies = [
  "rand",
  "starknet-core 0.7.2",
  "starknet-crypto 0.6.2",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6346,7 +6346,7 @@ dependencies = [
  "starknet-types-core",
  "strum 0.24.1",
  "strum_macros 0.24.3",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6369,7 +6369,7 @@ dependencies = [
  "starknet_api",
  "strum 0.25.0",
  "strum_macros 0.25.3",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tokio-retry",
  "tracing",
@@ -6398,7 +6398,7 @@ dependencies = [
  "starknet_mempool_infra",
  "starknet_mempool_types",
  "starknet_sierra_compile",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "validator",
@@ -6415,7 +6415,7 @@ dependencies = [
  "papyrus_config",
  "rstest",
  "serde",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -6433,7 +6433,7 @@ dependencies = [
  "serde",
  "starknet_api",
  "starknet_mempool_infra",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6449,7 +6449,7 @@ dependencies = [
  "serde_json",
  "starknet-types-core",
  "starknet_api",
- "thiserror 1.0.69",
+ "thiserror",
  "validator",
 ]
 
@@ -6571,7 +6571,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror",
  "url",
  "zip",
 ]
@@ -6651,7 +6651,7 @@ dependencies = [
  "bindgen 0.69.5",
  "cc",
  "paste",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -6723,16 +6723,7 @@ version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
-version = "2.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c006c85c7651b3cf2ada4584faa36773bd07bac24acfb39f3c431b36d7e667aa"
-dependencies = [
- "thiserror-impl 2.0.3",
+ "thiserror-impl",
 ]
 
 [[package]]
@@ -6740,17 +6731,6 @@ name = "thiserror-impl"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.87",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f077553d607adc1caf65430528a576c757a71ed73944b66ebb58ef2bbd243568"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7146,7 +7126,7 @@ dependencies = [
  "rand",
  "rustls 0.21.12",
  "sha1",
- "thiserror 1.0.69",
+ "thiserror",
  "url",
  "utf-8",
 ]
@@ -7187,7 +7167,7 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c878a167baa8afd137494101a688ef8c67125089ff2249284bd2b5f9bfedb815"
 dependencies = [
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -7743,7 +7723,7 @@ dependencies = [
  "pharos",
  "rustc_version",
  "send_wrapper 0.6.0",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

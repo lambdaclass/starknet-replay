@@ -20,3 +20,6 @@ starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", branch = 
 
 [patch.'https://github.com/lambdaclass/cairo_native']
 cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "4d24686b90cd83caea5412205a31ee3b6fedddcb" }
+
+[patch.'https://github.com/lambdaclass/sierra-emu']
+sierra-emu = { git = "https://github.com/lambdaclass//sierra-emu.git", rev = "92591b54f5d3ea6697a3644d678d2203ebfdbf87" }
