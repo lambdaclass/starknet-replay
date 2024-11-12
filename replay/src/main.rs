@@ -79,6 +79,7 @@ Caches all rpc data before the benchmark runs to provide accurate results"
 }
 
 fn main() {
+    dotenvy::dotenv().ok();
     set_global_subscriber();
 
     let cli = ReplayCLI::parse();
