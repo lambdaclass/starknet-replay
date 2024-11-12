@@ -12,11 +12,11 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "533e7ab40c5a067f35fa27ef7f94099a6439b7e3" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "461bd36b69552ad6fabbc6d50a22a892c949ba50" }
 # Sequencer Dependencies
 starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "update_gas_u64" }
 blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "update_gas_u64" }
 starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", branch = "update_gas_u64" }
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "4d24686b90cd83caea5412205a31ee3b6fedddcb" }
+cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "461bd36b69552ad6fabbc6d50a22a892c949ba50" }
