@@ -289,7 +289,6 @@ fn show_execution_data(
 
     #[cfg(feature = "state_dump")]
     {
-        use std::fs::File;
         use std::path::Path;
 
         #[cfg(feature = "only_cairo_vm")]
@@ -306,10 +305,9 @@ fn show_execution_data(
                 state_dump::dump_state_diff(state, execution_info, &path).unwrap();
             }
             Err(err) => {
-                // If we have no execution info, we write the error to a file so that it can be compared anyway
-                let file = File::create(path).unwrap();
-                let err = err.to_string();
-                serde_json::to_writer_pretty(file, &err).unwrap();
+                // If we have no execution info, we write the error
+                // to a file so that it can be compared anyway
+                state_dump::dump_error(err, &path).unwrap();
             }
         }
     }
