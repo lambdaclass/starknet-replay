@@ -298,7 +298,7 @@ fn show_execution_data(
         let root = Path::new("state_dumps/native");
         let root = root.join(format!("block{}", block_number));
 
-        std::fs::create_dir_all(root).ok();
+        std::fs::create_dir_all(&root).ok();
 
         let mut path = root.join(&tx_hash);
         path.set_extension("json");
