@@ -14,7 +14,10 @@ use blockifier::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::objects::{GasVector, TransactionExecutionInfo},
+    transaction::{
+        errors::TransactionExecutionError,
+        objects::{GasVector, TransactionExecutionInfo},
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -46,6 +49,32 @@ pub fn dump_state_diff(
     serde_json::to_writer_pretty(file, &info)?;
 
     Ok(())
+}
+
+pub fn dump_error(err: &TransactionExecutionError, path: &Path) -> Result<(), Box<dyn Error>> {
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+
+    let info = ErrorInfo {
+        reverted: err.to_string(),
+    };
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &info)?;
+
+    Ok(())
+}
+
+// The error messages is different between CairoVM and Cairo Native. That is way
+// we must ignore them while comparing the state dumps. To make ignoring them
+// easier, we name the field that contains the error message as "reverted" both
+// in `Info` and `ErrorInfo`. That way we can just filter out that line before
+// comparing them
+
+#[derive(Serialize)]
+struct ErrorInfo {
+    reverted: String,
 }
 
 #[derive(Serialize)]
