@@ -7,17 +7,20 @@ members = ["rpc-state-reader", "replay"]
 resolver = "2"
 
 [workspace.dependencies]
-thiserror = "1.0.32"
 starknet-types-core = "0.1.6"
 tracing = "0.1"
 serde_json = "1.0.116"
-serde_with = "3.9.0"
+serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "355c250f37cf0977ef2776b1aae2cb2e87c9da3d" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "ab5199bd2cfdf88acdd483685022cb4a369af2a6" }
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "13e409b6a6b366e860da451b46dd6813015c3065"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "13e409b6a6b366e860da451b46dd6813015c3065"}
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", rev = "13e409b6a6b366e860da451b46dd6813015c3065"}
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x" }
+blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x" }
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", branch = "native2.8.x" }
 
 [patch.'https://github.com/lambdaclass/cairo_native']
-cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "c80b41e4b6d8720a90e7aa6edd5d2d3a5e2d291e" }
+cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "ab5199bd2cfdf88acdd483685022cb4a369af2a6" }
+
+# remove once updated gas to u64 on replay
+[patch.'https://github.com/lambdaclass/sierra-emu']
+sierra-emu = { git = "https://github.com/lambdaclass//sierra-emu.git", rev = "92591b54f5d3ea6697a3644d678d2203ebfdbf87" }
