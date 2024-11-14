@@ -100,6 +100,8 @@ pub fn get_native_executor(
             } else {
                 info!("starting native contract compilation");
 
+                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+
                 let sierra_program = contract.extract_sierra_program().unwrap();
                 let sierra_program_path = path.with_extension("sierra");
                 fs::write(sierra_program_path, format!("{sierra_program}")).unwrap();
@@ -113,7 +115,6 @@ pub fn get_native_executor(
                 .unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
-                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
                 executor.save(&path).unwrap();
 
                 let library_size = fs::metadata(path).unwrap().len();
