@@ -608,7 +608,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1277,7 +1277,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=e1f87b1aa251ad2e80673d49d92e0cffd80daf7b#e1f87b1aa251ad2e80673d49d92e0cffd80daf7b"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=63dda0ec1e7b593a53a120a92df1412c125151fa#63dda0ec1e7b593a53a120a92df1412c125151fa"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1330,7 +1330,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.0-alpha.4"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=e1f87b1aa251ad2e80673d49d92e0cffd80daf7b#e1f87b1aa251ad2e80673d49d92e0cffd80daf7b"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=63dda0ec1e7b593a53a120a92df1412c125151fa#63dda0ec1e7b593a53a120a92df1412c125151fa"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -4004,7 +4004,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "blockifier",
  "serde_json",
@@ -4440,7 +4440,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "cairo-lang-starknet-classes",
  "hex",
@@ -4459,7 +4459,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4473,7 +4473,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -4496,7 +4496,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "quote",
  "syn 2.0.87",
@@ -4506,7 +4506,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4540,7 +4540,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -5893,7 +5893,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sierra-emu"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/sierra-emu.git?rev=889d5f40cdc5ae90c6ac614facb3071de88220cd#889d5f40cdc5ae90c6ac614facb3071de88220cd"
+source = "git+https://github.com/lambdaclass/sierra-emu.git?rev=0b11466033d7f070fcdd13cb81681b0fd9aaaa00#0b11466033d7f070fcdd13cb81681b0fd9aaaa00"
 dependencies = [
  "cairo-lang-compiler",
  "cairo-lang-filesystem",
@@ -6330,7 +6330,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
@@ -6352,7 +6352,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -6379,7 +6379,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "async-trait",
  "axum",
@@ -6407,7 +6407,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_infra"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "async-trait",
  "bincode 1.3.3",
@@ -6425,7 +6425,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "async-trait",
  "mockall",
@@ -6439,7 +6439,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_compile"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#5a8759b572b7616c6e69682d140e440b3ae44ffe"
+source = "git+https://github.com/lambdaclass/sequencer?branch=update_gas_u64#38586bbd9e40c71ec46564026b0b86aa69798fb8"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
