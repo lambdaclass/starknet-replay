@@ -100,9 +100,13 @@ pub fn get_native_executor(
             } else {
                 info!("starting native contract compilation");
 
+                let sierra_program = contract.extract_sierra_program().unwrap();
+                let sierra_program_path = path.with_extension("sierra");
+                fs::write(sierra_program_path, format!("{sierra_program}")).unwrap();
+
                 let pre_compilation_instant = Instant::now();
                 let mut executor = AotContractExecutor::new(
-                    &contract.extract_sierra_program().unwrap(),
+                    &sierra_program,
                     &contract.entry_points_by_type,
                     OptLevel::Default,
                 )
