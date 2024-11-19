@@ -20,7 +20,7 @@ use {
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
-#[cfg(feature = "with-state-dump")]
+#[cfg(feature = "state_dump")]
 mod state_dump;
 
 #[derive(Debug, Parser)]
@@ -79,6 +79,7 @@ Caches all rpc data before the benchmark runs to provide accurate results"
 }
 
 fn main() {
+    dotenvy::dotenv().ok();
     set_global_subscriber();
 
     let cli = ReplayCLI::parse();
@@ -277,20 +278,14 @@ fn show_execution_data(
 
     let previous_block_number = BlockNumber(block_number - 1);
 
-    let execution_info = match execute_tx_configurable(
+    let execution_info = execute_tx_configurable(
         state,
         &tx_hash,
         previous_block_number,
         false,
         true,
         charge_fee,
-    ) {
-        Ok(x) => x,
-        Err(error_reason) => {
-            error!("execution failed unexpectedly: {}", error_reason);
-            return;
-        }
-    };
+    );
 
     #[cfg(feature = "state_dump")]
     {
@@ -303,12 +298,32 @@ fn show_execution_data(
         } else {
             Path::new("state_dumps/native")
         };
+        let root = root.join(format!("block{}", block_number));
+
+        std::fs::create_dir_all(&root).ok();
 
         let mut path = root.join(&tx_hash);
         path.set_extension("json");
 
-        state_dump::dump_state_diff(state, &execution_info, &path).unwrap();
+        match &execution_info {
+            Ok(execution_info) => {
+                state_dump::dump_state_diff(state, execution_info, &path).unwrap();
+            }
+            Err(err) => {
+                // If we have no execution info, we write the error
+                // to a file so that it can be compared anyway
+                state_dump::dump_error(err, &path).unwrap();
+            }
+        }
     }
+
+    let execution_info = match execution_info {
+        Ok(x) => x,
+        Err(error_reason) => {
+            error!("execution failed: {}", error_reason);
+            return;
+        }
+    };
 
     let transaction_hash = TransactionHash(StarkHash::from_hex(&tx_hash).unwrap());
     match state.state.get_transaction_receipt(&transaction_hash) {
