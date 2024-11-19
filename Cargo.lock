@@ -608,7 +608,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -1277,8 +1277,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.2.2-alpha.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=3659bb7e941fc12904319e1ed4c5e78176a9070a#3659bb7e941fc12904319e1ed4c5e78176a9070a"
+version = "0.2.3"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=f46e5152ee799c5b3a5f6934490129e31f31c652#f46e5152ee799c5b3a5f6934490129e31f31c652"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1330,8 +1330,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.2.2-alpha.0"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=3659bb7e941fc12904319e1ed4c5e78176a9070a#3659bb7e941fc12904319e1ed4c5e78176a9070a"
+version = "0.2.3"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=f46e5152ee799c5b3a5f6934490129e31f31c652#f46e5152ee799c5b3a5f6934490129e31f31c652"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -2175,13 +2175,13 @@ checksum = "b5320ae4c3782150d900b79807611a59a99fc9a1d61d686faafc24b93fc8d7ca"
 
 [[package]]
 name = "enum-assoc"
-version = "1.1.0"
+version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24247b89d37b9502dc5a4b80d369aab1a12106067776e440094c786dae5b9d07"
+checksum = "060ab02428f3e85b688eb41943d1c69adabfea7c6a68d0c75c18d90dde4ac200"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -3799,9 +3799,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.162"
+version = "0.2.164"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d287de67fe55fd7e1581fe933d965a5a9477b38e949cfa9f8574ef01506398"
+checksum = "433bfe06b8c75da9b2e3fbea6e5329ff87748f0b144ef75306e674c3f6f7c13f"
 
 [[package]]
 name = "libloading"
@@ -4005,7 +4005,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "blockifier",
  "serde_json",
@@ -4441,7 +4441,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "cairo-lang-starknet-classes",
  "hex",
@@ -4460,7 +4460,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4474,7 +4474,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -4497,7 +4497,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "quote",
  "syn 2.0.87",
@@ -4507,7 +4507,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4541,7 +4541,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -4586,14 +4586,14 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec-derive"
-version = "3.6.12"
+version = "3.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d830939c76d294956402033aee57a6da7b438f2294eb94864c37b0569053a42c"
+checksum = "8781a75c6205af67215f382092b6e0a4ff3734798523e69073d4bcd294ec767b"
 dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.87",
 ]
 
 [[package]]
@@ -5417,9 +5417,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.40"
+version = "0.38.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99e4ea3e1cdc4b559b8e5650f9c8e5998e3e5c1343b4eaf034565f32318d63c0"
+checksum = "d7f649912bc1495e167a6edee79151c84b1bad49748cb4f1f1167f459f6224f6"
 dependencies = [
  "bitflags 2.6.0",
  "errno",
@@ -5442,9 +5442,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.16"
+version = "0.23.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eee87ff5d9b36712a58574e12e9f0ea80f915a5b0ac518d322b24a465617925e"
+checksum = "7f1a745511c54ba6d4465e8d5dfbd81b45791756de28d4981af70d6dca128f1e"
 dependencies = [
  "log",
  "once_cell",
@@ -5559,9 +5559,9 @@ dependencies = [
 
 [[package]]
 name = "schannel"
-version = "0.1.26"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01227be5826fa0690321a2ba6c5cd57a19cf3f6a09e76973b58e61de6ab9d1c1"
+checksum = "1f29ebaa345f945cec9fbbc532eb307f0fdad8161f281b6369539c8d84876b3d"
 dependencies = [
  "windows-sys 0.59.0",
 ]
@@ -5710,9 +5710,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.132"
+version = "1.0.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d726bfaff4b320266d395898905d0eba0345aae23b54aee3a737e260fd46db03"
+checksum = "c7fceb2473b9166b2294ef05efcb65a3db80803f0b03ef86a5fc88a2b85ee377"
 dependencies = [
  "itoa",
  "memchr",
@@ -6331,7 +6331,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
@@ -6353,7 +6353,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -6380,7 +6380,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "async-trait",
  "axum",
@@ -6408,7 +6408,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_infra"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "async-trait",
  "bincode 1.3.3",
@@ -6426,7 +6426,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "async-trait",
  "mockall",
@@ -6440,7 +6440,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_compile"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#178badd8be808040f89da2ac9482de7660ea64a2"
+source = "git+https://github.com/lambdaclass/sequencer?branch=native2.9.x#8d3e6b5515e7b62e7ab173026b2c81c750dbb853"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
@@ -7258,7 +7258,7 @@ dependencies = [
  "flate2",
  "log",
  "once_cell",
- "rustls 0.23.16",
+ "rustls 0.23.17",
  "rustls-pki-types",
  "serde",
  "serde_json",
@@ -7761,18 +7761,18 @@ dependencies = [
 
 [[package]]
 name = "xshell"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6db0ab86eae739efd1b054a8d3d16041914030ac4e01cd1dca0cf252fd8b6437"
+checksum = "9e7290c623014758632efe00737145b6867b66292c42167f2ec381eb566a373d"
 dependencies = [
  "xshell-macros",
 ]
 
 [[package]]
 name = "xshell-macros"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d422e8e38ec76e2f06ee439ccc765e9c6a9638b9e7c9f2e8255e4d41e8bd852"
+checksum = "32ac00cd3f8ec9c1d33fb3e7958a82df6989c42d747bd326c822b1d625283547"
 
 [[package]]
 name = "yansi"
