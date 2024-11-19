@@ -15,18 +15,13 @@ serde_with = "3.9.0"
 serde = "1.0.197"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "355c250f37cf0977ef2776b1aae2cb2e87c9da3d" }
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
-blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", rev = "1b1b95cae7ae07b9bc778443ca75ee18008a6bc8"}
+starknet_api = { git = "https://github.com/lambdaclass/sequencer", rev = "f567fcb25680310dbc5528eebd087fe95802975c"}
+blockifier = { git = "https://github.com/lambdaclass/sequencer", rev = "f567fcb25680310dbc5528eebd087fe95802975c"}
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", rev = "f567fcb25680310dbc5528eebd087fe95802975c"}
 sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git" }
 
 [patch.'https://github.com/lambdaclass/cairo_native']
 cairo-native = { path = "../cairo_native" }
-
-[patch.'https://github.com/lambdaclass/sequencer']
-blockifier = { path = "../sequencer/crates/blockifier" }
-starknet_api = { path = "../sequencer/crates/starknet_api" }
-starknet_gateway = { path = "../sequencer/crates/gateway" }
 
 [patch.'https://github.com/lambdaclass/sierra-emu']
 sierra-emu = { path = "../sierra-emu" }
