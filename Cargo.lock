@@ -608,6 +608,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -4005,6 +4006,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "blockifier",
  "serde_json",
@@ -4440,6 +4442,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "cairo-lang-starknet-classes",
  "hex",
@@ -4458,6 +4461,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "clap",
  "itertools 0.10.5",
@@ -4471,6 +4475,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -4493,6 +4498,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "quote",
  "syn 2.0.87",
@@ -4502,6 +4508,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4535,6 +4542,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -6323,6 +6331,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "bitvec",
  "cairo-lang-starknet-classes",
@@ -6344,6 +6353,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -6370,6 +6380,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "async-trait",
  "axum",
@@ -6397,6 +6408,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_infra"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "async-trait",
  "bincode 1.3.3",
@@ -6414,6 +6426,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "async-trait",
  "mockall",
@@ -6427,6 +6440,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_compile"
 version = "0.0.0"
+source = "git+https://github.com/lambdaclass/sequencer?rev=f567fcb25680310dbc5528eebd087fe95802975c#f567fcb25680310dbc5528eebd087fe95802975c"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
