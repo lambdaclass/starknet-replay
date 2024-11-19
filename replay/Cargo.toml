@@ -10,6 +10,11 @@ only_cairo_vm = ["rpc-state-reader/only_casm"]
 structured_logging = []
 state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 
+# Executes transactions with Sierra Emu instead of Native
+use-sierra-emu = ["blockifier/use-sierra-emu"]
+# Records execution trace with Native or Sierra Emu
+with-trace-dump = ["blockifier/with-trace-dump"]
+
 [dependencies]
 # starknet specific crates
 blockifier = { workspace = true }
