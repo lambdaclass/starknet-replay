@@ -7,8 +7,6 @@ NET=testnet
 
 output="tx-$TX-$NET.jsonl"
 
-echo "Running Native benchmark"
 cargo run --release --features benchmark,structured_logging bench-tx $TX $NET $BLOCK $LAPS | tee "native-$output"
 
-echo "Running VM benchmark"
 cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-tx $TX $NET $BLOCK $LAPS | tee "vm-$output"
