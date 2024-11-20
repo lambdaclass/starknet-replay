@@ -13,6 +13,7 @@ import seaborn as sns
 pd.set_option('display.max_colwidth', None)
 sns.set_color_codes("bright")
 
+CHUNKSIZE = 10000
 
 # Top 100 most common classes, without non significant zeroes
 top_classes_list=[
@@ -121,21 +122,49 @@ top_classes_list=[
 # Set to empty list to disable filtering
 classes_list = (
     []
-    + top_classes_list
+    # + top_classes_list
 )
 # convert to integer set to compare faster
 classes = set(map(lambda x: int(x, 16), classes_list))
 
-def filter(row):
-    if len(classes_list) == 0:
-        return True
 
-    class_hash_dec = int(row["class hash"], 0)
-    return class_hash_dec in classes
+def canonicalize(event):
+    # skip caching logs
+    if find_span(event, "caching block range") != None:
+        return None
+
+    # keep contract execution finished logs
+    if "contract execution finished" not in event["fields"]["message"]:
+            return None
+
+    # filter target classes
+    class_hash_dec = int(event["span"]["class_hash"])
+    class_hash = hex(class_hash_dec)
+    if len(classes_list) > 0 and class_hash_dec not in classes:
+        return None
+
+    time = float(event["fields"]["time"])
+    
+    return {
+        "class hash": class_hash,
+        "time": time,
+    }
+
+def find_span(event, name):
+    for span in event["spans"]:
+        if name in span["name"]:
+            return span
+    return None
 
 def load_dataset(path):
-    dataset = pd.read_json(path, lines=True, typ="series").apply(pd.Series)
-    return dataset[dataset.apply(filter, axis=1)]
+    dataset = pd.DataFrame()
+
+    with pd.read_json(path, lines=True, typ="series", chunksize=CHUNKSIZE) as chunks:
+        for chunk in chunks:
+            chunk = chunk.apply(canonicalize).dropna().apply(pd.Series)
+            dataset = pd.concat([dataset, chunk])
+
+    return dataset
 
 datasetNative = load_dataset(arguments.native_logs_path)
 datasetVM = load_dataset(arguments.vm_logs_path)
