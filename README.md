@@ -137,20 +137,6 @@ Once you have done this, you can use the plotting scripts:
 - `python ./plotting/plot_compilation_memory_trend.py native-logs vm-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
 - `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
 - `python ./plotting/plot_compilation_time_trend.py native-logs vm-logs`: Native and Casm compilation time, by the sierra contract size.
+- `python ./plotting/plot_execution_time.py native-logs vm-logs`: Plots the execution time of Native vs VM, by contract class.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
-
-If you want to plot the execution time comparison you must first parse the logs with a different script.
-
-```bash
-python ./plotting/parse_execution_time.py native-logs
-python ./plotting/parse_execution_time.py vm-logs
-```
-
-This will output new files `native-logs-execution` and `vm-logs-execution`. Then you can plot them with:
-
-```bash
-python ./plotting/plot_execution_time.py native-logs-execution vm-logs-execution plot.png
-```
-
-The execution plog will be saved to `plot.png`.
 
