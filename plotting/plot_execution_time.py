@@ -12,7 +12,7 @@ import seaborn as sns
 pd.set_option('display.max_colwidth', None)
 sns.set_color_codes("bright")
 
-CHUNKSIZE = 10000
+CHUNKSIZE = 100000
 
 # Top 100 most common classes, without non significant zeroes
 top_classes_list=[
@@ -161,7 +161,8 @@ def load_dataset(path):
     with pd.read_json(path, lines=True, typ="series", chunksize=CHUNKSIZE) as chunks:
         for chunk in chunks:
             chunk = chunk.apply(canonicalize).dropna().apply(pd.Series)
-            dataset = pd.concat([dataset, chunk])
+            if len(chunk) > 0:
+                dataset = pd.concat([dataset, chunk])
 
     return dataset
 
