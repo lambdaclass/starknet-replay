@@ -20,7 +20,7 @@ def canonicalize_compilation_time(event):
         return None
     
     return {
-        "class hash": compilation_span["class_hash"],
+        "class hash": hex(int(compilation_span["class_hash"])),
         "time": float(event["fields"]["time"]),
     }
 
@@ -31,17 +31,16 @@ def find_span(event, name):
     return None
 
 def format_hash(class_hash):
-    return f"0x{class_hash[:6]}..."
+    return f"{class_hash[:6]}..."
 
 dataset = dataset.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
 
 figure, ax = plt.subplots()
 
 sns.set_color_codes("bright")
-sns.barplot(ax=ax, y="class hash", x="time", data=dataset, formatter=format_hash) # type: ignore
+sns.violinplot(ax=ax, x="time", data=dataset, cut=0)
 
 ax.set_xlabel("Compilation Time (ms)")
-ax.set_ylabel("Class Hash")
 ax.set_title("Native Compilation Time")
 
 plt.show()
