@@ -446,7 +446,7 @@ fn set_global_subscriber() {
 
     #[cfg(feature = "structured_logging")]
     let default_env_filter =
-        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=info")
+        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=trace")
             .expect("hard-coded env filter should be valid");
 
     let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);
