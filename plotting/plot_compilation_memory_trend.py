@@ -46,15 +46,8 @@ sns.set_color_codes("bright")
 sns.regplot(
     x="length",
     y="size",
-    label = "Native (<1000)",
-    data=dataset_native[dataset_native["size"] < 1000],
-    ax = ax,
-)
-sns.regplot(
-    x="length",
-    y="size",
-    label = "Native (>=1000)",
-    data=dataset_native[dataset_native["size"] >= 1000],
+    label = "Native",
+    data=dataset_native,
     ax = ax,
 )
 sns.regplot(

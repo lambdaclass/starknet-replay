@@ -50,22 +50,12 @@ sns.set_color_codes("bright")
 sns.regplot(
     x="size_native",
     y="size_casm",
-    label = "Native (<1000)",
-    data=dataset[dataset["size_native"] < 1000],
-    ax = ax,
-)
-sns.regplot(
-    x="size_native",
-    y="size_casm",
-    label = "Native (>=1000)",
-    data=dataset[dataset["size_native"] >= 1000],
+    data=dataset,
     ax = ax,
 )
 
 ax.set_xlabel("Native Compilation Size (KiB)")
 ax.set_ylabel("Casm Compilation Size (KiB)")
 ax.set_title("Compilation Size Correlation")
-
-ax.legend()
 
 plt.show()
