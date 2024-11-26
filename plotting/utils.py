@@ -1,7 +1,5 @@
 import pandas as pd
 
-CHUNKSIZE = 100000
-
 # Top 100 most common classes
 TOP_CLASSES_LIST=[
     "0x279d12a282d7888e3fdbe456150775be2c160e7c78d409bbf02be68fdf275ce",
@@ -126,6 +124,9 @@ def find_span(event, name):
 
 def format_hash(class_hash):
     return f"{class_hash[:6]}..."
+
+
+CHUNKSIZE = 100000
 
 def load_dataset(path, f):
     dataset = pd.DataFrame()
