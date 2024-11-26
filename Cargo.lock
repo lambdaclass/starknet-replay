@@ -1302,8 +1302,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native"
-version = "0.2.3"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=107ff62555b9c65acb4897ed7041ba4e17d85689#107ff62555b9c65acb4897ed7041ba4e17d85689"
+version = "0.2.4"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=76e83965d3bf1252eb6c68200a3accd5fd1ec004#76e83965d3bf1252eb6c68200a3accd5fd1ec004"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1355,8 +1355,8 @@ dependencies = [
 
 [[package]]
 name = "cairo-native-runtime"
-version = "0.2.3"
-source = "git+https://github.com/lambdaclass//cairo_native.git?rev=107ff62555b9c65acb4897ed7041ba4e17d85689#107ff62555b9c65acb4897ed7041ba4e17d85689"
+version = "0.2.4"
+source = "git+https://github.com/lambdaclass//cairo_native.git?rev=76e83965d3bf1252eb6c68200a3accd5fd1ec004#76e83965d3bf1252eb6c68200a3accd5fd1ec004"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
