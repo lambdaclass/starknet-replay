@@ -50,7 +50,6 @@ dataset["speedup"] = dataset["time_vm_mean"] / dataset["time_native_mean"]
 # SORT BY TIME
 dataset.sort_values(['time_vm_mean'], ascending=[False], inplace=True)
 
-print("Average Speedup: ", dataset["speedup"].mean())
 print(dataset)
 
 figure, axes = plt.subplots(1, 2)
