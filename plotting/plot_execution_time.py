@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import matplotlib.ticker as ticker
 from utils import find_span, format_hash, load_dataset, keep_common_classes
 
 pd.set_option('display.max_colwidth', None)
@@ -46,6 +47,9 @@ dataset.columns = dataset.columns.map('_'.join)
 # CALCULATE SPEEDUP
 dataset["speedup"] = dataset["time_vm_mean"] / dataset["time_native_mean"]
 
+# SORT BY TIME
+dataset.sort_values(['time_vm_mean'], ascending=[False], inplace=True)
+
 print("Average Speedup: ", dataset["speedup"].mean())
 print(dataset)
 
@@ -59,6 +63,7 @@ sns.barplot(ax=ax, y="class hash", x="time_native_mean", data=dataset, formatter
 ax.set_xlabel("Mean Time (ns)")
 ax.set_ylabel("Class Hash")
 ax.set_title("Mean time by Contract Class")
+ax.set_xscale("log", base=2)
 
 ax=axes[1]
 
@@ -70,8 +75,8 @@ ax.set_title("Speedup by Contract Class")
 
 fig, ax = plt.subplots()
 sns.violinplot(ax=ax, x="speedup", data=dataset, cut=0)
-ax.set_xticks(np.arange(1,25,3))
 ax.set_xlabel("Speedup")
 ax.set_title("Speedup Distribution")
+ax.xaxis.set_major_locator(ticker.MultipleLocator(2, 1)) # type: ignore
 
 plt.show()
