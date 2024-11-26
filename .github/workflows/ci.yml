@@ -152,7 +152,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: ae234bac7eb4b7f70715b3832363a843348c6927 
+          ref: 76e83965d3bf1252eb6c68200a3accd5fd1ec004
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         shell: bash
@@ -189,7 +189,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: ae234bac7eb4b7f70715b3832363a843348c6927 
+          ref: 76e83965d3bf1252eb6c68200a3accd5fd1ec004
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         run: |
