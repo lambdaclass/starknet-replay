@@ -20,7 +20,7 @@ def canonicalize(event):
 
     # keep contract execution finished logs
     if "contract execution finished" not in event["fields"]["message"]:
-            return None
+        return None
 
     class_hash = hex(int(event["span"]["class_hash"]))
     time = float(event["fields"]["time"])
