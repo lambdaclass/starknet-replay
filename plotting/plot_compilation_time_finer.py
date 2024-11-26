@@ -77,7 +77,7 @@ dataset = dataset.sum()
 
 sections = ["Linking", "LLVM to object", "LLVM passes", "MLIR to LLVM", "MLIR passes", "Sierra to MLIR"]
 for section in sections:
-    dataset[section] = dataset[section] / dataset["Total"]
+    dataset[section] = dataset[section] / dataset["Total"] * 100
 
 dataset = dataset.drop("Total")
 dataset = dataset.sort_values(ascending=False)
