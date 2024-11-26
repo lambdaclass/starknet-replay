@@ -1,18 +1,16 @@
 from argparse import ArgumentParser
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-import numpy as np
+
 
 argument_parser = ArgumentParser("Stress Test Plotter")
 argument_parser.add_argument("native_logs_path")
 arguments = argument_parser.parse_args()
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.ticker import PercentFormatter
+from utils import load_dataset, find_span
 
-dataset = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
-
-
-def canonicalize_compilation_time(event):
+def canonicalize(event):
     # keep contract compilation finished logs
     compilation_span = find_span(event, "contract compilation")
     if compilation_span is None:
@@ -72,41 +70,23 @@ def canonicalize_compilation_time(event):
         }
     return None
 
+dataset = load_dataset(arguments.native_logs_path, canonicalize)
 
-def find_span(event, name):
-    for span in event["spans"]:
-        if name in span["name"]:
-            return span
-    return None
-
-
-def format_hash(class_hash):
-    return f"0x{class_hash[:6]}..."
-
-
-dataset = dataset.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
 dataset = dataset.pivot(index = ["class hash"], columns = "type", values = "time")
+dataset = dataset.sum()
 
-pd.set_option('display.max_columns', None)
+sections = ["Linking", "LLVM to object", "LLVM passes", "MLIR to LLVM", "MLIR passes", "Sierra to MLIR"]
+for section in sections:
+    dataset[section] = dataset[section] / dataset["Total"]
+
+dataset = dataset.drop("Total")
+dataset = dataset.sort_values(ascending=False)
 
 figure, ax = plt.subplots()
 
-sns.set_color_codes("pastel")
-sns.barplot(data=dataset, y="class hash", x="Total", label="Other", ax=ax, formatter=format_hash)
+sns.barplot(data=dataset, orient="y") # type: ignore
 
-bottom = np.zeros(len(dataset))
-sections = ["Linking", "LLVM to object", "LLVM passes", "MLIR to LLVM", "MLIR passes", "Sierra to MLIR"]
-
-for section in sections:
-    bottom += dataset[section]
-
-for section in sections:
-    sns.barplot(y=dataset.index, x=bottom, ax=ax, label=section, formatter=format_hash, orient="h")
-    bottom -= dataset[section]
-
-ax.set_xlabel("Compilation Time (ms)")
-ax.set_ylabel("Class Hash")
-ax.set_title("Native Compilation Time")
-ax.legend()
+plt.title("Mean Compilation Time by Step")
+ax.xaxis.set_major_formatter(PercentFormatter(decimals=2))
 
 plt.show()
