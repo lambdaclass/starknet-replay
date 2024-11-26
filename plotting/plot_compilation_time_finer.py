@@ -89,4 +89,6 @@ sns.barplot(data=dataset, orient="y") # type: ignore
 plt.title("Mean Compilation Time by Step")
 ax.xaxis.set_major_formatter(PercentFormatter(decimals=2))
 
+ax.set_xlabel("Step")
+
 plt.show()
