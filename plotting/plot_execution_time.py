@@ -8,6 +8,7 @@ arguments = argument_parser.parse_args()
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
 from utils import find_span, format_hash, load_dataset, keep_common_classes
 
 pd.set_option('display.max_colwidth', None)
@@ -66,5 +67,11 @@ sns.barplot(ax=ax, y="class hash", x="speedup", data=dataset, formatter=format_h
 ax.set_xlabel("Speedup")
 ax.set_ylabel("Class Hash")
 ax.set_title("Speedup by Contract Class")
+
+fig, ax = plt.subplots()
+sns.violinplot(ax=ax, x="speedup", data=dataset, cut=0)
+ax.set_xticks(np.arange(1,25,3))
+ax.set_xlabel("Speedup")
+ax.set_title("Speedup Distribution")
 
 plt.show()
