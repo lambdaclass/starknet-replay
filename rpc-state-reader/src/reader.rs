@@ -1,25 +1,34 @@
 use std::{
+    collections::HashMap,
     env, fmt,
     num::NonZeroU128,
     sync::Arc,
     thread,
     time::{Duration, Instant},
+    usize,
 };
 
 use blockifier::{
     blockifier::block::{BlockInfo, GasPrices},
-    execution::contract_class::{
-        ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
+    execution::{
+        contract_class::{
+            ContractClassV0, ContractClassV0Inner, ContractClassV1, ContractClassV1Inner,
+            RunnableContractClass,
+        },
+        native::contract_class::NativeContractClassV1,
     },
     state::state_api::{StateReader, StateResult},
+    versioned_constants::CompilerVersion,
 };
+use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::{BlockNumber, GasPrice},
+    block::{BlockNumber, GasPrice, NonzeroGasPrice},
+    contract_class::ContractClass,
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -163,12 +172,12 @@ impl RpcStateReader {
             sequencer_address: header.sequencer_address,
             block_timestamp: header.timestamp,
             gas_prices: GasPrices::new(
-                parse_gas_price(header.l1_gas_price.price_in_wei),
-                parse_gas_price(header.l1_gas_price.price_in_fri),
-                parse_gas_price(header.l1_data_gas_price.price_in_wei),
-                parse_gas_price(header.l1_data_gas_price.price_in_fri),
-                NonZeroU128::MIN,
-                NonZeroU128::MIN,
+                NonzeroGasPrice::new(header.l1_gas_price.price_in_wei)?,
+                NonzeroGasPrice::new(header.l1_gas_price.price_in_fri)?,
+                NonzeroGasPrice::new(header.l1_data_gas_price.price_in_wei)?,
+                NonzeroGasPrice::new(header.l1_data_gas_price.price_in_fri)?,
+                NonzeroGasPrice::MIN,
+                NonzeroGasPrice::MIN,
             ),
             use_kzg_da: true,
         })
@@ -288,7 +297,7 @@ impl StateReader for RpcStateReader {
         }
     }
 
-    fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
+    fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<RunnableContractClass> {
         Ok(match self.get_contract_class(&class_hash)? {
             SNContractClass::Legacy(compressed_legacy_cc) => {
                 compile_legacy_cc(compressed_legacy_cc)
@@ -307,7 +316,7 @@ impl StateReader for RpcStateReader {
 fn compile_sierra_cc(
     flattened_sierra_cc: starknet::core::types::FlattenedSierraClass,
     class_hash: ClassHash,
-) -> ContractClass {
+) -> RunnableContractClass {
     let middle_sierra: utils::MiddleSierraContractClass = {
         let v = serde_json::to_value(flattened_sierra_cc).unwrap();
         serde_json::from_value(v).unwrap()
@@ -343,17 +352,19 @@ fn compile_sierra_cc(
             "vm contract compilation finished"
         );
 
-        ContractClass::V1(casm_cc.try_into().unwrap())
+        RunnableContractClass::V1(casm_cc.try_into().unwrap())
     } else {
         let executor = utils::get_native_executor(&sierra_cc, class_hash);
+        let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+        let casm = ContractClassV1::try_from(casm).unwrap();
 
-        ContractClass::V1Native(NativeContractClassV1::new(executor, sierra_cc).unwrap())
+        RunnableContractClass::V1Native(NativeContractClassV1::new(executor, casm))
     }
 }
 
 fn compile_legacy_cc(
     compressed_legacy_cc: starknet::core::types::CompressedLegacyContractClass,
-) -> ContractClass {
+) -> RunnableContractClass {
     let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
     let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();
     let entry_points_by_type =
@@ -362,7 +373,7 @@ fn compile_legacy_cc(
         program,
         entry_points_by_type,
     });
-    ContractClass::V0(ContractClassV0(inner))
+    RunnableContractClass::V0(ContractClassV0(inner))
 }
 
 /// Retries the closure `MAX_RETRIES` times on RPC errors,

@@ -7,7 +7,7 @@ use starknet_api::{
     block::BlockStatus,
     hash::StarkHash,
     transaction::{
-        Event, Fee, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
+        fields::Fee, Event, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
     },
 };
 use starknet_gateway::rpc_objects::BlockHeader;
