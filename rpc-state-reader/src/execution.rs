@@ -5,6 +5,7 @@ use crate::{
 use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
+    execution::contract_class::RunnableCompiledClass,
     state::{cached_state::CachedState, state_api::StateReader},
     transaction::{
         account_transaction::AccountTransaction as BlockiAccountTransaction,
@@ -13,11 +14,16 @@ use blockifier::{
     },
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
+use blockifier_reexecution::state_reader::compile::{
+    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+};
+use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber},
+    contract_class::ClassInfo,
     core::{calculate_contract_address, ContractAddress},
     executable_transaction::{
-        AccountTransaction, DeployAccountTransaction, InvokeTransaction,
+        AccountTransaction, DeclareTransaction, DeployAccountTransaction, InvokeTransaction,
         L1HandlerTransaction,
     },
     felt,
@@ -99,20 +105,20 @@ pub fn execute_tx(
             });
             BlockiAccountTransaction::new(deploy)
         }
-        // SNTransaction::Declare(tx) => {
-        //     // Fetch the contract_class from the next block (as we don't have it in the previous one)
-        //     let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+        SNTransaction::Declare(tx) => {
+            // Fetch the contract_class from the next block (as we don't have it in the previous one)
+            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
 
-        //     let contract_class = next_reader.get_compiled_contract_class(&tx.class_hash()).unwrap();
-        //     let class_info = calculate_class_info_for_testing(contract_class);
+            let contract_class = next_reader.get_contract_class(&tx.class_hash()).unwrap();
+            let class_info = calculate_class_info_for_testing(contract_class);
 
-        //     let declare = AccountTransaction::Declare(DeclareTransaction {
-        //         tx,
-        //         tx_hash,
-        //         class_info,
-        //     });
-        //     BlockiAccountTransaction::new(declare)
-        // }
+            let declare = AccountTransaction::Declare(DeclareTransaction {
+                tx,
+                tx_hash,
+                class_info,
+            });
+            BlockiAccountTransaction::new(declare)
+        }
         SNTransaction::L1Handler(tx) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
             let blockifier_tx = L1HandlerTransaction {
@@ -128,7 +134,7 @@ pub fn execute_tx(
                 receipt,
             );
         }
-        SNTransaction::Deploy(_) | SNTransaction::Declare(_) => todo!(),
+        SNTransaction::Deploy(_) => todo!(),
     };
 
     (
@@ -140,15 +146,21 @@ pub fn execute_tx(
     )
 }
 
-// fn calculate_class_info_for_testing(contract_class: RunnableContractClass) -> ClassInfo {
-//     let (contract_class, sierra_program_length) = match contract_class {
-//         RunnableContractClass::V0(contract) => (ContractClass::V0(contract.into()), 0),
-//         RunnableContractClass::V1(contract) => (ContractClass::V1(contract.into()), 100),
-//         RunnableContractClass::V1Native(contract) => (ContractClass::V1(()), 100),
-//     };
+fn calculate_class_info_for_testing(contract_class: SNContractClass) -> ClassInfo {
+    match contract_class {
+        SNContractClass::Sierra(s) => {
+            let abi = s.abi.len();
+            let program_length = s.sierra_program.len();
 
-//     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
-// }
+            ClassInfo::new(&sierra_to_contact_class_v1(s).unwrap(), program_length, abi).unwrap()
+        }
+        SNContractClass::Legacy(l) => {
+            let abi = l.abi.clone().unwrap().len();
+
+            ClassInfo::new(&legacy_to_contract_class_v0(l).unwrap(), 0, abi).unwrap()
+        }
+    }
+}
 
 pub fn execute_tx_configurable_with_state(
     tx_hash: &TransactionHash,
@@ -218,23 +230,21 @@ pub fn execute_tx_configurable_with_state(
             });
             BlockiAccountTransaction::new(deploy)
         }
-        // SNTransaction::Declare(tx) => {
-        //     let block_number = block_context.block_info().block_number;
-        //     let network = parse_to_rpc_chain(&chain_id.to_string());
-        //     // we need to retrieve the next block in order to get the contract_class
-        //     let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-        //     let contract_class = next_reader
-        //         .get_compiled_contract_class(tx.class_hash())
-        //         .unwrap();
-        //     let class_info = calculate_class_info_for_testing(contract_class);
+        SNTransaction::Declare(tx) => {
+            let block_number = block_context.block_info().block_number;
+            let network = parse_to_rpc_chain(&chain_id.to_string());
+            // we need to retrieve the next block in order to get the contract_class
+            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+            let contract_class = next_reader.get_contract_class(&tx.class_hash()).unwrap();
+            let class_info = calculate_class_info_for_testing(contract_class);
 
-        //     let declare = AccountTransaction::Declare(DeclareTransaction {
-        //         tx,
-        //         class_info,
-        //         tx_hash: *tx_hash,
-        //     });
-        //     BlockiAccountTransaction::new(declare)
-        // }
+            let declare = AccountTransaction::Declare(DeclareTransaction {
+                tx,
+                class_info,
+                tx_hash: *tx_hash,
+            });
+            BlockiAccountTransaction::new(declare)
+        }
         SNTransaction::L1Handler(tx) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
             let blockifier_tx = L1HandlerTransaction {
@@ -279,7 +289,7 @@ pub fn execute_tx_configurable(
 /// and can be used with any cached state. It already receives all context information
 /// needed to execute the transaction.
 pub fn execute_tx_with_blockifier(
-    state: &mut CachedState<impl StateReader>,
+    state: &mut CachedState<RpcStateReader>,
     context: BlockContext,
     transaction: SNTransaction,
     transaction_hash: TransactionHash,
@@ -307,21 +317,18 @@ pub fn execute_tx_with_blockifier(
             });
             BlockiAccountTransaction::new(deploy)
         }
-        // SNTransaction::Declare(tx) => {
-        //     let contract_class = state
-        //         .state
-        //         .get_compiled_contract_class(tx.class_hash())
-        //         .unwrap();
+        SNTransaction::Declare(tx) => {
+            let contract_class = state.state.get_contract_class(&tx.class_hash()).unwrap();
 
-        //     let class_info = calculate_class_info_for_testing(contract_class);
+            let class_info = calculate_class_info_for_testing(contract_class);
 
-        //     let declare = AccountTransaction::Declare(DeclareTransaction {
-        //         tx,
-        //         tx_hash: transaction_hash,
-        //         class_info,
-        //     });
-        //     BlockiAccountTransaction::new(declare)
-        // }
+            let declare = AccountTransaction::Declare(DeclareTransaction {
+                tx,
+                tx_hash: transaction_hash,
+                class_info,
+            });
+            BlockiAccountTransaction::new(declare)
+        }
         SNTransaction::L1Handler(tx) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
             let account_transaction = L1HandlerTransaction {

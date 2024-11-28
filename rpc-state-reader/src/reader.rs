@@ -9,8 +9,7 @@ use blockifier::{
     blockifier::block::validated_gas_prices,
     execution::{
         contract_class::{
-            CompiledClassV0, CompiledClassV0Inner, CompiledClassV1,
-            RunnableCompiledClass,
+            CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
         },
         native::contract_class::NativeCompiledClassV1,
     },
