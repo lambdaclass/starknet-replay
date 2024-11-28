@@ -1,6 +1,7 @@
 //! This module contains custom objects
 //! and how to deserialize them from RPC calls
 
+use blockifier::{execution::stack_trace::ErrorStackSegment, transaction::objects::RevertError};
 use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
 use starknet_api::{

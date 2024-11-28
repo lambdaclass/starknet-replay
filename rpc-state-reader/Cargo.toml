@@ -19,7 +19,7 @@ starknet_api = {workspace = true}
 cairo-lang-starknet-classes = "2.9.0-dev.0"
 cairo-lang-utils = "2.9.0-dev.0"
 cairo-native = { workspace = true }
-starknet = "0.6.0"
+starknet = "0.7.0"
 flate2 = "1.0.25"
 cairo-vm = "1.0.0-rc5"
 blockifier = { workspace = true }

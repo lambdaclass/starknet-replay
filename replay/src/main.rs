@@ -1,6 +1,6 @@
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::errors::StateError;
-use blockifier::transaction::objects::TransactionExecutionInfo;
+use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::execution::execute_tx_configurable;
@@ -359,8 +359,8 @@ fn compare_execution(
 
     let events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
-        exec_rsc.n_events + 1,
-        exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len(),
+        exec_rsc.archival_data.event_summary.n_events + 1,
+        exec_rsc.messages.l2_to_l1_payload_lengths.len(),
     );
     let rpc_events_and_msgs = format!(
         "{{ events_number: {}, l2_to_l1_messages_number: {} }}",
@@ -370,24 +370,29 @@ fn compare_execution(
 
     // currently adding 1 because the sequencer is counting only the
     // events produced by the inner calls of a callinfo
-    let events_match = exec_rsc.n_events + 1 == rpc_receipt.events.len();
+    let events_match = exec_rsc.archival_data.event_summary.n_events + 1 == rpc_receipt.events.len();
     let msgs_match = rpc_receipt.messages_sent.len()
-        == exec_rsc.message_cost_info.l2_to_l1_payload_lengths.len();
+        == exec_rsc.messages.l2_to_l1_payload_lengths.len();
 
     let events_msgs_match = events_match && msgs_match;
 
-    let state_changes = exec_rsc.state_changes_for_fee;
+    let state_changes = exec_rsc.state.state_changes_for_fee;
     let state_changes_for_fee_str = format!(
         "{{ n_class_hash_updates: {}, n_compiled_class_hash_updates: {}, n_modified_contracts: {}, n_storage_updates: {} }}",
-        state_changes.n_class_hash_updates,
-        state_changes.n_compiled_class_hash_updates,
-        state_changes.n_modified_contracts,
-        state_changes.n_storage_updates
+        state_changes.state_changes_count.n_class_hash_updates,
+        state_changes.state_changes_count.n_compiled_class_hash_updates,
+        state_changes.state_changes_count.n_modified_contracts,
+        state_changes.state_changes_count.n_storage_updates
     );
 
     let execution_gas = execution.receipt.fee;
     let rpc_gas = rpc_receipt.actual_fee;
     debug!(?execution_gas, ?rpc_gas, "execution actual fee");
+
+    let revert_error = execution.revert_error.map(|err| match err {
+        RevertError::Execution(e) => e.to_string(),
+        RevertError::PostExecution(p) => p.to_string()
+    });
 
     if !status_matches || !events_msgs_match {
         let root_of_error = if !status_matches {
@@ -399,12 +404,12 @@ fn compare_execution(
         } else {
             "MESSAGE COUNT DIVERGED"
         };
-
+        
         error!(
             reverted,
             rpc_reverted,
             root_of_error = root_of_error,
-            execution_error_message = execution.revert_error,
+            execution_error_message = revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
@@ -417,7 +422,7 @@ fn compare_execution(
         info!(
             reverted,
             rpc_reverted,
-            execution_error_message = execution.revert_error,
+            execution_error_message = revert_error,
             n_events_and_messages = events_and_msgs,
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
