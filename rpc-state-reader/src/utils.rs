@@ -3,7 +3,7 @@ use std::{
     fs,
     io::{self, Read},
     path::PathBuf,
-    sync::{Arc, OnceLock, RwLock},
+    sync::{OnceLock, RwLock},
     time::Instant,
 };
 
@@ -17,7 +17,6 @@ use starknet_api::{
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
-    state::{EntryPoint, FunctionIndex},
 };
 use tracing::info;
 

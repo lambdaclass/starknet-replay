@@ -1,14 +1,10 @@
-use std::{u32, usize};
-
 use crate::{
     objects::{RpcTransactionReceipt, RpcTransactionTrace},
     reader::{RpcChain, RpcStateReader},
 };
 use blockifier::{
-    blockifier::block::BlockInfo,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::RunnableContractClass,
     state::{cached_state::CachedState, state_api::StateReader},
     transaction::{
         account_transaction::AccountTransaction as BlockiAccountTransaction,
@@ -17,17 +13,11 @@ use blockifier::{
     },
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
-use blockifier_reexecution::state_reader::compile::{
-    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
-};
-use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use starknet_api::{
-    block::BlockNumber,
-    deprecated_contract_class::ContractClass as DeprecatedContractClass,
-    contract_class::{ClassInfo, ContractClass, },
-    core::{calculate_contract_address, ContractAddress, PatriciaKey},
+    block::{BlockInfo, BlockNumber},
+    core::{calculate_contract_address, ContractAddress},
     executable_transaction::{
-        AccountTransaction, DeclareTransaction, DeployAccountTransaction, InvokeTransaction,
+        AccountTransaction, DeployAccountTransaction, InvokeTransaction,
         L1HandlerTransaction,
     },
     felt,
@@ -138,8 +128,7 @@ pub fn execute_tx(
                 receipt,
             );
         }
-        SNTransaction::Deploy(_) 
-        | SNTransaction::Declare(_) => todo!(),
+        SNTransaction::Deploy(_) | SNTransaction::Declare(_) => todo!(),
     };
 
     (
@@ -157,7 +146,7 @@ pub fn execute_tx(
 //         RunnableContractClass::V1(contract) => (ContractClass::V1(contract.into()), 100),
 //         RunnableContractClass::V1Native(contract) => (ContractClass::V1(()), 100),
 //     };
-    
+
 //     ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
 // }
 

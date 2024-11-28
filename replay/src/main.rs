@@ -370,9 +370,10 @@ fn compare_execution(
 
     // currently adding 1 because the sequencer is counting only the
     // events produced by the inner calls of a callinfo
-    let events_match = exec_rsc.archival_data.event_summary.n_events + 1 == rpc_receipt.events.len();
-    let msgs_match = rpc_receipt.messages_sent.len()
-        == exec_rsc.messages.l2_to_l1_payload_lengths.len();
+    let events_match =
+        exec_rsc.archival_data.event_summary.n_events + 1 == rpc_receipt.events.len();
+    let msgs_match =
+        rpc_receipt.messages_sent.len() == exec_rsc.messages.l2_to_l1_payload_lengths.len();
 
     let events_msgs_match = events_match && msgs_match;
 
@@ -391,7 +392,7 @@ fn compare_execution(
 
     let revert_error = execution.revert_error.map(|err| match err {
         RevertError::Execution(e) => e.to_string(),
-        RevertError::PostExecution(p) => p.to_string()
+        RevertError::PostExecution(p) => p.to_string(),
     });
 
     if !status_matches || !events_msgs_match {
@@ -404,7 +405,7 @@ fn compare_execution(
         } else {
             "MESSAGE COUNT DIVERGED"
         };
-        
+
         error!(
             reverted,
             rpc_reverted,
