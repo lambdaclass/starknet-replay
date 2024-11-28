@@ -402,6 +402,8 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 mod tests {
     use std::num::NonZeroU128;
 
+    use starknet_api::block::FeeType;
+
     use super::*;
 
     #[test]
@@ -411,10 +413,8 @@ mod tests {
         let block = reader.get_block_info().unwrap();
 
         assert_eq!(
-            block
-                .gas_prices
-                .get_l1_gas_price_by_fee_type(&blockifier::transaction::objects::FeeType::Eth),
-            NonZeroU128::new(22804578690).unwrap()
+            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
+            22804578690
         );
     }
 
