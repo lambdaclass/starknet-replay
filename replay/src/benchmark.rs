@@ -1,8 +1,7 @@
 use std::time::Instant;
 
 use blockifier::{
-    context::BlockContext,
-    state::{cached_state::CachedState, state_api::StateReader},
+    context::BlockContext, execution::contract_class::RunnableCompiledClass, state::{cached_state::CachedState, state_api::StateReader}
 };
 use rpc_state_reader::{
     execution::{execute_tx_with_blockifier, fetch_block_context},
@@ -176,13 +175,13 @@ impl<S: StateReader> StateReader for OptionalStateReader<S> {
         self.get_inner().get_class_hash_at(contract_address)
     }
 
-    fn get_compiled_contract_class(
+    fn get_compiled_class(
         &self,
         class_hash: starknet_api::core::ClassHash,
     ) -> blockifier::state::state_api::StateResult<
-        blockifier::execution::contract_class::ContractClass,
+        RunnableCompiledClass,
     > {
-        self.get_inner().get_compiled_contract_class(class_hash)
+        self.get_inner().get_compiled_class(class_hash)
     }
 
     fn get_compiled_class_hash(

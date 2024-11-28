@@ -16,16 +16,13 @@ use blockifier::{
     },
     transaction::{
         errors::TransactionExecutionError,
-        objects::{GasVector, TransactionExecutionInfo},
+        objects::TransactionExecutionInfo,
     },
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
-    core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
-    deprecated_contract_class::EntryPointType,
-    state::StorageKey,
-    transaction::Calldata,
+    contract_class::EntryPointType, core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce}, execution_resources::GasVector, state::StorageKey, transaction::fields::Calldata
 };
 use starknet_types_core::felt::Felt;
 
@@ -38,7 +35,7 @@ pub fn dump_state_diff(
         let _ = fs::create_dir_all(parent);
     }
 
-    let state_maps = SerializableStateMaps::from(state.to_state_diff()?);
+    let state_maps = SerializableStateMaps::from(state.get_initial_reads()?);
     let execution_info = SerializableExecutionInfo::new(execution_info);
     let info = Info {
         execution_info,
@@ -123,6 +120,9 @@ struct SerializableExecutionInfo {
 
 impl SerializableExecutionInfo {
     pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
+        let reverted =  execution_info.revert_error.clone().and_then(|f|{
+            Some(f.to_string())
+        });
         Self {
             validate_call_info: execution_info
                 .validate_call_info
@@ -136,7 +136,7 @@ impl SerializableExecutionInfo {
                 .fee_transfer_call_info
                 .clone()
                 .map(From::<CallInfo>::from),
-            reverted: execution_info.revert_error.clone(),
+            reverted,
             receipt: SerializableTransactionReceipt {
                 resources: SerializableTransactionResources {
                     starknet_resources: SerializableStarknetResources {
@@ -144,31 +144,40 @@ impl SerializableExecutionInfo {
                             .receipt
                             .resources
                             .starknet_resources
+                            .archival_data
                             .calldata_length,
                         state_changes_for_fee: SerializableStateChangesCount {
                             n_storage_updates: execution_info
                                 .receipt
                                 .resources
                                 .starknet_resources
+                                .state
                                 .state_changes_for_fee
+                                .state_changes_count
                                 .n_storage_updates,
                             n_class_hash_updates: execution_info
                                 .receipt
                                 .resources
                                 .starknet_resources
+                                .state
                                 .state_changes_for_fee
+                                .state_changes_count
                                 .n_class_hash_updates,
                             n_compiled_class_hash_updates: execution_info
                                 .receipt
                                 .resources
                                 .starknet_resources
+                                .state
                                 .state_changes_for_fee
+                                .state_changes_count
                                 .n_compiled_class_hash_updates,
                             n_modified_contracts: execution_info
                                 .receipt
                                 .resources
                                 .starknet_resources
+                                .state
                                 .state_changes_for_fee
+                                .state_changes_count
                                 .n_modified_contracts,
                         },
                         message_cost_info: SerializableMessageL1CostInfo {
@@ -176,22 +185,23 @@ impl SerializableExecutionInfo {
                                 .receipt
                                 .resources
                                 .starknet_resources
-                                .message_cost_info
+                                .messages
                                 .l2_to_l1_payload_lengths
                                 .clone(),
                             message_segment_length: execution_info
                                 .receipt
                                 .resources
                                 .starknet_resources
-                                .message_cost_info
+                                .messages
                                 .message_segment_length,
                         },
                         l1_handler_payload_size: execution_info
                             .receipt
                             .resources
                             .starknet_resources
+                            .messages
                             .l1_handler_payload_size,
-                        n_events: execution_info.receipt.resources.starknet_resources.n_events,
+                        n_events: execution_info.receipt.resources.starknet_resources.archival_data.event_summary.n_events,
                     },
                 },
                 da_gas: execution_info.receipt.da_gas,

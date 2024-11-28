@@ -139,9 +139,9 @@ impl RpcStateReader {
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
-
+        dbg!(&hash);
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
-
+        
         objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
 
@@ -170,8 +170,8 @@ impl RpcStateReader {
                 parse_gas_price(header.l1_gas_price.price_in_fri),
                 parse_gas_price(header.l1_data_gas_price.price_in_wei),
                 parse_gas_price(header.l1_data_gas_price.price_in_fri),
-                parse_gas_price(header.l2_gas_price.price_in_wei),
-                parse_gas_price(header.l2_gas_price.price_in_fri),
+                NonzeroGasPrice::MIN,
+                NonzeroGasPrice::MIN,
             ),
             use_kzg_da: true,
         })

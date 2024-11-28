@@ -6,7 +6,7 @@ use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     execution::contract_class::RunnableCompiledClass,
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::{cached_state::{CachedState, TransactionalState}, state_api::{State, StateReader}},
     transaction::{
         account_transaction::AccountTransaction as BlockiAccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
@@ -289,7 +289,7 @@ pub fn execute_tx_configurable(
 /// and can be used with any cached state. It already receives all context information
 /// needed to execute the transaction.
 pub fn execute_tx_with_blockifier(
-    state: &mut CachedState<RpcStateReader>,
+    state: &mut CachedState<impl StateReader>,
     context: BlockContext,
     transaction: SNTransaction,
     transaction_hash: TransactionHash,
@@ -317,18 +317,18 @@ pub fn execute_tx_with_blockifier(
             });
             BlockiAccountTransaction::new(deploy)
         }
-        SNTransaction::Declare(tx) => {
-            let contract_class = state.state.get_contract_class(&tx.class_hash()).unwrap();
+        // SNTransaction::Declare(tx) => {
+        //     let contract_class = state.state.get_contract_class(&tx.class_hash()).unwrap();
 
-            let class_info = calculate_class_info_for_testing(contract_class);
+        //     let class_info = calculate_class_info_for_testing(contract_class);
 
-            let declare = AccountTransaction::Declare(DeclareTransaction {
-                tx,
-                tx_hash: transaction_hash,
-                class_info,
-            });
-            BlockiAccountTransaction::new(declare)
-        }
+        //     let declare = AccountTransaction::Declare(DeclareTransaction {
+        //         tx,
+        //         tx_hash: transaction_hash,
+        //         class_info,
+        //     });
+        //     BlockiAccountTransaction::new(declare)
+        // }
         SNTransaction::L1Handler(tx) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
             let account_transaction = L1HandlerTransaction {
