@@ -5,11 +5,7 @@ use crate::{
 use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::RunnableCompiledClass,
-    state::{
-        cached_state::{CachedState, TransactionalState},
-        state_api::{State, StateReader},
-    },
+    state::{cached_state::CachedState, state_api::StateReader},
     transaction::{
         account_transaction::AccountTransaction as BlockiAccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
