@@ -14,15 +14,16 @@ use blockifier::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::{
-        errors::TransactionExecutionError,
-        objects::TransactionExecutionInfo,
-    },
+    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
-    contract_class::EntryPointType, core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce}, execution_resources::GasVector, state::StorageKey, transaction::fields::Calldata
+    contract_class::EntryPointType,
+    core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
+    execution_resources::GasVector,
+    state::StorageKey,
+    transaction::fields::Calldata,
 };
 use starknet_types_core::felt::Felt;
 
@@ -120,9 +121,10 @@ struct SerializableExecutionInfo {
 
 impl SerializableExecutionInfo {
     pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
-        let reverted =  execution_info.revert_error.clone().and_then(|f|{
-            Some(f.to_string())
-        });
+        let reverted = execution_info
+            .revert_error
+            .clone()
+            .and_then(|f| Some(f.to_string()));
         Self {
             validate_call_info: execution_info
                 .validate_call_info
@@ -201,7 +203,13 @@ impl SerializableExecutionInfo {
                             .starknet_resources
                             .messages
                             .l1_handler_payload_size,
-                        n_events: execution_info.receipt.resources.starknet_resources.archival_data.event_summary.n_events,
+                        n_events: execution_info
+                            .receipt
+                            .resources
+                            .starknet_resources
+                            .archival_data
+                            .event_summary
+                            .n_events,
                     },
                 },
                 da_gas: execution_info.receipt.da_gas,
