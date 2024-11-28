@@ -139,7 +139,7 @@ impl RpcStateReader {
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
-        dbg!(&hash);
+
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
 
         objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
