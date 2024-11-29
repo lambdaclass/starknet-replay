@@ -294,11 +294,14 @@ impl StateReader for RpcStateReader {
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
+        dbg!("ENTERED_GET_COMPILED_CLASS");
         Ok(match self.get_contract_class(&class_hash)? {
             SNContractClass::Legacy(compressed_legacy_cc) => {
+                dbg!("ENTERED_LEGACY");
                 compile_legacy_cc(compressed_legacy_cc)
             }
             SNContractClass::Sierra(flattened_sierra_cc) => {
+                dbg!("ENTERED_SIERRA");
                 compile_sierra_cc(flattened_sierra_cc, class_hash)
             }
         })
@@ -350,7 +353,9 @@ fn compile_sierra_cc(
 
         RunnableCompiledClass::V1(casm_cc.try_into().unwrap())
     } else {
+        dbg!("COMPILED_EXECUTOR");
         let executor = utils::get_native_executor(&sierra_cc, class_hash);
+        dbg!("COMPILED_EXECUTOR_PASSED");
         let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
         let casm = CompiledClassV1::try_from(casm).unwrap();
 

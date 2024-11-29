@@ -75,11 +75,10 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
 pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> AotContractExecutor {
     let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let executor = cache_lock.read().unwrap();
-    let executor = executor.get(&class_hash);
+    let executor = cache_lock.read().unwrap().get(&class_hash).map(Clone::clone);
 
     match executor {
-        Some(executor) => executor.clone(),
+        Some(executor) => executor,
         None => {
             let mut cache = cache_lock.write().unwrap();
             let path = PathBuf::from(format!(
@@ -122,7 +121,9 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 executor
             };
 
-            cache.insert(class_hash, executor).unwrap()
+            cache.insert(class_hash, executor.clone());
+
+            executor
         }
     }
 }
