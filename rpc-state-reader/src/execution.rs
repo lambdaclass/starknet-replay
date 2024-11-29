@@ -77,7 +77,7 @@ pub fn execute_tx(
         block_info,
         chain_info,
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     );
 
     // Map starknet_api transaction to blockifier's
@@ -311,7 +311,7 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
             fee_token_addresses,
         },
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     )
 }
 
@@ -974,7 +974,7 @@ mod tests {
         fn from(value: &CallInfo) -> Self {
             Self {
                 result: Some(value.execution.retdata.0.clone()),
-                calldata: Some(*(value.call.calldata).0.clone()),
+                calldata: Some((*value.call.calldata.0).clone()),
                 calls: value.inner_calls.iter().map(|ci| ci.into()).collect(),
                 // We don't have the revert reason string in the trace so we just make sure it doesn't revert
                 revert_reason: value.execution.failed.then_some("Default String".into()),
