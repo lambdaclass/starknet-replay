@@ -14,10 +14,10 @@ serde_with = "3.11.0"
 serde = "1.0.197"
 cairo-native = "0.2.4"
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer", branch = "update-main-2" } # main
-blockifier = { git = "https://github.com/lambdaclass/sequencer", branch = "update-main-2", features = ["cairo_native"] } # main
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer", branch = "update-main-2" } # main
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer", branch = "update-main-2" } # main
+starknet_api = { path = "../sequencer/crates/starknet_api" } # main
+blockifier = { path = "../sequencer/crates/blockifier", features = ["cairo_native"] } # main
+starknet_gateway = { path = "../sequencer/crates/starknet_gateway" } # main
+blockifier_reexecution = { path = "../sequencer/crates/blockifier_reexecution" } # main
 
 # [patch.'https://github.com/lambdaclass/cairo_native']
 # cairo-native = { git = "https://github.com/lambdaclass//cairo_native.git", rev = "76e83965d3bf1252eb6c68200a3accd5fd1ec004" }

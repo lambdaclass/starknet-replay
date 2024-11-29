@@ -31,8 +31,7 @@ use starknet_gateway::{
     config::RpcStateReaderConfig,
     errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
     rpc_objects::{
-        BlockHeader, GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams,
-        GetStorageAtParams,
+        GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams, GetStorageAtParams,
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
@@ -40,7 +39,10 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    objects::{self, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{
+        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
+        RpcTransactionTrace,
+    },
     utils,
 };
 
