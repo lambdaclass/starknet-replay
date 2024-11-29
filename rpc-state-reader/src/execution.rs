@@ -169,7 +169,7 @@ pub fn execute_tx_configurable_with_state(
         block_info,
         chain_info,
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     );
 
     // Get transaction before giving ownership of the reader
