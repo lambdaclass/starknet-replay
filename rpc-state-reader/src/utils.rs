@@ -75,7 +75,11 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
 pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> AotContractExecutor {
     let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let executor = cache_lock.read().unwrap().get(&class_hash).map(Clone::clone);
+    let executor = cache_lock
+        .read()
+        .unwrap()
+        .get(&class_hash)
+        .map(Clone::clone);
 
     match executor {
         Some(executor) => executor,

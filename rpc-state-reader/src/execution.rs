@@ -3,9 +3,16 @@ use crate::{
     reader::{RpcChain, RpcStateReader},
 };
 use blockifier::{
-    bouncer::BouncerConfig, context::{BlockContext, ChainInfo, FeeTokenAddresses}, state::{cached_state::CachedState, state_api::StateReader}, test_utils::MAX_FEE, transaction::{
-        objects::{TransactionExecutionInfo, TransactionExecutionResult}, transaction_execution::Transaction as BlockiTransaction, transactions::ExecutableTransaction
-    }, versioned_constants::{VersionedConstants, VersionedConstantsOverrides}
+    bouncer::BouncerConfig,
+    context::{BlockContext, ChainInfo, FeeTokenAddresses},
+    state::{cached_state::CachedState, state_api::StateReader},
+    test_utils::MAX_FEE,
+    transaction::{
+        objects::{TransactionExecutionInfo, TransactionExecutionResult},
+        transaction_execution::Transaction as BlockiTransaction,
+        transactions::ExecutableTransaction,
+    },
+    versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
 use blockifier_reexecution::state_reader::compile::{
     legacy_to_contract_class_v0, sierra_to_contact_class_v1,
@@ -14,7 +21,7 @@ use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber},
     contract_class::ClassInfo,
-    core:: ContractAddress,
+    core::ContractAddress,
     felt,
     hash::StarkHash,
     patricia_key,
@@ -75,28 +82,23 @@ pub fn execute_tx(
 
     // Map starknet_api transaction to blockifier's
     let blockifier_tx = match tx {
-        SNTransaction::Invoke(_)
-        | SNTransaction::DeployAccount(_)  =>
-            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap(),
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
+        }
         SNTransaction::Declare(ref declare_tx) => {
             let block_number = block_context.block_info().block_number;
             let network = parse_to_rpc_chain(&block_context.chain_info().chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
             let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader.get_contract_class(&declare_tx.class_hash()).unwrap();
+            let contract_class = next_reader
+                .get_contract_class(&declare_tx.class_hash())
+                .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
             BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
         }
         SNTransaction::L1Handler(_) => {
-            BlockiTransaction::from_api(
-                tx,
-                tx_hash,
-                None,
-                Some(MAX_FEE),
-                None,
-                false,
-            ).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
         }
         _ => todo!(),
     };
@@ -172,28 +174,23 @@ pub fn execute_tx_configurable_with_state(
 
     // Get transaction before giving ownership of the reader
     let blockifier_tx = match tx {
-        SNTransaction::Invoke(_)
-        | SNTransaction::DeployAccount(_)  =>
-            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap(),
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
+        }
         SNTransaction::Declare(ref declare_tx) => {
             let block_number = block_context.block_info().block_number;
             let network = parse_to_rpc_chain(&chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
             let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader.get_contract_class(&declare_tx.class_hash()).unwrap();
+            let contract_class = next_reader
+                .get_contract_class(&declare_tx.class_hash())
+                .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
             BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
         }
         SNTransaction::L1Handler(_) => {
-            BlockiTransaction::from_api(
-                tx,
-                tx_hash,
-                None,
-                Some(MAX_FEE),
-                None,
-                false,
-            ).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
         }
         _ => unimplemented!(),
     };
@@ -236,18 +233,27 @@ pub fn execute_tx_with_blockifier(
     transaction_hash: TransactionHash,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
     let account_transaction: BlockiTransaction = match transaction {
-        SNTransaction::Invoke(_)
-        | SNTransaction::DeployAccount(_)  =>
-            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, false)?,
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, false)?
+        }
         SNTransaction::Declare(ref declare_tx) => {
             let block_number = context.block_info().block_number;
             let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
             let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader.get_contract_class(&declare_tx.class_hash()).unwrap();
+            let contract_class = next_reader
+                .get_contract_class(&declare_tx.class_hash())
+                .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(transaction, transaction_hash, Some(class_info), None, None, false)?
+            BlockiTransaction::from_api(
+                transaction,
+                transaction_hash,
+                Some(class_info),
+                None,
+                None,
+                false,
+            )?
         }
         SNTransaction::L1Handler(_) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
