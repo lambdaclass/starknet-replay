@@ -79,7 +79,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
         .read()
         .unwrap()
         .get(&class_hash)
-        .map(Clone::clone);
+        .cloned();
 
     match executor {
         Some(executor) => executor,

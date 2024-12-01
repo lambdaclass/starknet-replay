@@ -350,11 +350,10 @@ mod tests {
         // To reexecute a transaction, we must use the state from its previous block
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, trace, _) = execute_tx(hash, chain, previous_block);
-
-        // assert_eq!(
-        //     tx_info.revert_error.unwrap(),
-        //     trace.execute_invocation.unwrap()
-        // );
+        assert_eq!(
+            tx_info.revert_error.and_then(|r| Some(r.to_string())),
+            trace.execute_invocation.unwrap().revert_reason
+        );
 
         // We can't currently compare fee values
     }
@@ -553,7 +552,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
@@ -570,7 +570,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
@@ -587,7 +588,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
@@ -604,7 +606,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
@@ -621,7 +624,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
@@ -638,7 +642,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
@@ -655,7 +660,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        2
     )]
     #[test_case(
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
@@ -672,7 +678,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
@@ -689,7 +696,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
@@ -706,7 +714,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
@@ -723,7 +732,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
@@ -740,7 +750,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
@@ -757,7 +768,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     // Check this tx, l1_data_gas should be 384
     // https://starkscan.co/tx/0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e
@@ -776,7 +788,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
@@ -793,7 +806,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
@@ -810,7 +824,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
@@ -827,7 +842,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
@@ -844,7 +860,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
@@ -861,7 +878,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 4,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
@@ -878,7 +896,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        true
+        true,
+        0
     )]
     #[allow(clippy::too_many_arguments)]
     fn test_transaction_info(
@@ -892,30 +911,28 @@ mod tests {
         l1_handler_payload_size: Option<usize>,
         starknet_chg: StateChangesCount,
         is_reverted: bool,
+        n_allocated_keys: usize
     ) {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, r) = execute_tx(hash, chain, previous_block);
-        let tx_receipt = tx_info.receipt;
-        let starknet_resources = tx_receipt.resources.starknet_resources;
-        let info = tx_info.execute_call_info.unwrap();
+        let starknet_resources =  tx_info.clone().receipt.resources.starknet_resources;
         let versioned_constants =
             VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
                 validate_max_n_steps: u32::MAX,
                 invoke_tx_max_n_steps: u32::MAX,
                 max_recursion_depth: usize::MAX,
             });
-        let state_resources = StateResources::new_for_testing(starknet_chg, 0);
+        let state_resources = StateResources::new_for_testing(starknet_chg, n_allocated_keys);
         let starknet_rsc = StarknetResources::new(
             calldata_length,
             signature_length,
             code_size,
             state_resources,
             l1_handler_payload_size,
-            info.summarize(&versioned_constants),
+            tx_info.summarize(&versioned_constants)
         );
-
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
-        assert_eq!(da_gas, tx_receipt.da_gas);
+        assert_eq!(da_gas, tx_info.receipt.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
     }
 
