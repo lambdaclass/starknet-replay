@@ -911,11 +911,11 @@ mod tests {
         l1_handler_payload_size: Option<usize>,
         starknet_chg: StateChangesCount,
         is_reverted: bool,
-        n_allocated_keys: usize
+        n_allocated_keys: usize,
     ) {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, r) = execute_tx(hash, chain, previous_block);
-        let starknet_resources =  tx_info.clone().receipt.resources.starknet_resources;
+        let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
         let versioned_constants =
             VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
                 validate_max_n_steps: u32::MAX,
@@ -929,7 +929,7 @@ mod tests {
             code_size,
             state_resources,
             l1_handler_payload_size,
-            tx_info.summarize(&versioned_constants)
+            tx_info.summarize(&versioned_constants),
         );
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
         assert_eq!(da_gas, tx_info.receipt.da_gas);
