@@ -36,7 +36,7 @@ pub fn dump_state_diff(
         let _ = fs::create_dir_all(parent);
     }
 
-    let state_maps = SerializableStateMaps::from(state.get_initial_reads()?);
+    let state_maps = SerializableStateMaps::from(state.to_state_diff()?);
     let execution_info = SerializableExecutionInfo::new(execution_info);
     let info = Info {
         execution_info,
