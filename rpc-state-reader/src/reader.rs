@@ -1,25 +1,28 @@
 use std::{
     env, fmt,
-    num::NonZeroU128,
     sync::Arc,
     thread,
     time::{Duration, Instant},
 };
 
 use blockifier::{
-    blockifier::block::{BlockInfo, GasPrices},
-    execution::contract_class::{
-        ContractClass, ContractClassV0, ContractClassV0Inner, NativeContractClassV1,
+    blockifier::block::validated_gas_prices,
+    execution::{
+        contract_class::{
+            CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
+        },
+        native::contract_class::NativeCompiledClassV1,
     },
     state::state_api::{StateReader, StateResult},
 };
+use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::{BlockNumber, GasPrice},
+    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -28,8 +31,7 @@ use starknet_gateway::{
     config::RpcStateReaderConfig,
     errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
     rpc_objects::{
-        BlockHeader, GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams,
-        GetStorageAtParams,
+        GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams, GetStorageAtParams,
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
@@ -37,7 +39,10 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    objects::{self, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{
+        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
+        RpcTransactionTrace,
+    },
     utils,
 };
 
@@ -145,8 +150,8 @@ impl RpcStateReader {
     pub fn get_block_info(&self) -> StateResult<BlockInfo> {
         // This function is inspired by sequencer's RpcStateReader::get_block_info
 
-        fn parse_gas_price(price: GasPrice) -> NonZeroU128 {
-            NonZeroU128::new(price.0).unwrap_or(NonZeroU128::MIN)
+        fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
+            NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
         }
 
         let params = GetBlockWithTxHashesParams {
@@ -162,13 +167,13 @@ impl RpcStateReader {
             block_number: header.block_number,
             sequencer_address: header.sequencer_address,
             block_timestamp: header.timestamp,
-            gas_prices: GasPrices::new(
+            gas_prices: validated_gas_prices(
                 parse_gas_price(header.l1_gas_price.price_in_wei),
                 parse_gas_price(header.l1_gas_price.price_in_fri),
                 parse_gas_price(header.l1_data_gas_price.price_in_wei),
                 parse_gas_price(header.l1_data_gas_price.price_in_fri),
-                NonZeroU128::MIN,
-                NonZeroU128::MIN,
+                NonzeroGasPrice::MIN,
+                NonzeroGasPrice::MIN,
             ),
             use_kzg_da: true,
         })
@@ -288,7 +293,7 @@ impl StateReader for RpcStateReader {
         }
     }
 
-    fn get_compiled_contract_class(&self, class_hash: ClassHash) -> StateResult<ContractClass> {
+    fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
         Ok(match self.get_contract_class(&class_hash)? {
             SNContractClass::Legacy(compressed_legacy_cc) => {
                 compile_legacy_cc(compressed_legacy_cc)
@@ -307,7 +312,7 @@ impl StateReader for RpcStateReader {
 fn compile_sierra_cc(
     flattened_sierra_cc: starknet::core::types::FlattenedSierraClass,
     class_hash: ClassHash,
-) -> ContractClass {
+) -> RunnableCompiledClass {
     let middle_sierra: utils::MiddleSierraContractClass = {
         let v = serde_json::to_value(flattened_sierra_cc).unwrap();
         serde_json::from_value(v).unwrap()
@@ -343,26 +348,28 @@ fn compile_sierra_cc(
             "vm contract compilation finished"
         );
 
-        ContractClass::V1(casm_cc.try_into().unwrap())
+        RunnableCompiledClass::V1(casm_cc.try_into().unwrap())
     } else {
         let executor = utils::get_native_executor(&sierra_cc, class_hash);
+        let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
+        let casm = CompiledClassV1::try_from(casm).unwrap();
 
-        ContractClass::V1Native(NativeContractClassV1::new(executor, sierra_cc).unwrap())
+        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(executor, casm))
     }
 }
 
 fn compile_legacy_cc(
     compressed_legacy_cc: starknet::core::types::CompressedLegacyContractClass,
-) -> ContractClass {
+) -> RunnableCompiledClass {
     let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
     let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();
     let entry_points_by_type =
         utils::map_entry_points_by_type_legacy(compressed_legacy_cc.entry_points_by_type);
-    let inner = Arc::new(ContractClassV0Inner {
+    let inner = Arc::new(CompiledClassV0Inner {
         program,
         entry_points_by_type,
     });
-    ContractClass::V0(ContractClassV0(inner))
+    RunnableCompiledClass::V0(CompiledClassV0(inner))
 }
 
 /// Retries the closure `MAX_RETRIES` times on RPC errors,
@@ -395,7 +402,7 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU128;
+    use starknet_api::block::FeeType;
 
     use super::*;
 
@@ -406,10 +413,8 @@ mod tests {
         let block = reader.get_block_info().unwrap();
 
         assert_eq!(
-            block
-                .gas_prices
-                .get_l1_gas_price_by_fee_type(&blockifier::transaction::objects::FeeType::Eth),
-            NonZeroU128::new(22804578690).unwrap()
+            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
+            22804578690
         );
     }
 

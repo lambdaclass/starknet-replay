@@ -3,7 +3,7 @@ use std::{
     fs,
     io::{self, Read},
     path::PathBuf,
-    sync::{Arc, OnceLock, RwLock},
+    sync::{OnceLock, RwLock},
     time::Instant,
 };
 
@@ -13,8 +13,9 @@ use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
+    contract_class::EntryPointType,
     core::{ClassHash, EntryPointSelector},
-    deprecated_contract_class::{EntryPoint, EntryPointOffset, EntryPointType},
+    deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
 };
 use tracing::info;
@@ -26,12 +27,12 @@ pub struct MiddleSierraContractClass {
     pub entry_points_by_type: ContractEntryPoints,
 }
 
-static AOT_PROGRAM_CACHE: OnceLock<RwLock<HashMap<ClassHash, Arc<AotContractExecutor>>>> =
+static AOT_PROGRAM_CACHE: OnceLock<RwLock<HashMap<ClassHash, AotContractExecutor>>> =
     OnceLock::new();
 
 pub fn map_entry_points_by_type_legacy(
     entry_points_by_type: LegacyEntryPointsByType,
-) -> HashMap<EntryPointType, Vec<EntryPoint>> {
+) -> HashMap<EntryPointType, Vec<EntryPointV0>> {
     let entry_types_to_points = HashMap::from([
         (
             EntryPointType::Constructor,
@@ -41,9 +42,9 @@ pub fn map_entry_points_by_type_legacy(
         (EntryPointType::L1Handler, entry_points_by_type.l1_handler),
     ]);
 
-    let to_contract_entry_point = |entrypoint: &LegacyContractEntryPoint| -> EntryPoint {
+    let to_contract_entry_point = |entrypoint: &LegacyContractEntryPoint| -> EntryPointV0 {
         let felt: StarkHash = StarkHash::from_bytes_be(&entrypoint.selector.to_bytes_be());
-        EntryPoint {
+        EntryPointV0 {
             offset: EntryPointOffset(entrypoint.offset as usize),
             selector: EntryPointSelector(felt),
         }
@@ -71,13 +72,10 @@ pub fn decode_reader(bytes: Vec<u8>) -> io::Result<String> {
     Ok(s)
 }
 
-pub fn get_native_executor(
-    contract: &ContractClass,
-    class_hash: ClassHash,
-) -> Arc<AotContractExecutor> {
+pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> AotContractExecutor {
     let cache_lock = AOT_PROGRAM_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
 
-    let executor = cache_lock.read().unwrap().get(&class_hash).map(Arc::clone);
+    let executor = cache_lock.read().unwrap().get(&class_hash).cloned();
 
     match executor {
         Some(executor) => executor,
@@ -95,7 +93,7 @@ pub fn get_native_executor(
                 }
             ));
 
-            let executor = Arc::new(if path.exists() {
+            let executor = if path.exists() {
                 AotContractExecutor::load(&path).unwrap()
             } else {
                 info!("starting native contract compilation");
@@ -121,9 +119,10 @@ pub fn get_native_executor(
                 );
 
                 executor
-            });
+            };
 
-            cache.insert(class_hash, Arc::clone(&executor));
+            cache.insert(class_hash, executor.clone());
+
             executor
         }
     }

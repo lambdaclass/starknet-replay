@@ -1,31 +1,31 @@
+use crate::{
+    objects::{RpcTransactionReceipt, RpcTransactionTrace},
+    reader::{RpcChain, RpcStateReader},
+};
 use blockifier::{
-    blockifier::block::BlockInfo,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    execution::contract_class::{ClassInfo, ContractClass},
     state::{cached_state::CachedState, state_api::StateReader},
+    test_utils::MAX_FEE,
     transaction::{
-        account_transaction::AccountTransaction,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
-        transactions::{
-            DeclareTransaction, DeployAccountTransaction, ExecutableTransaction, InvokeTransaction,
-            L1HandlerTransaction,
-        },
+        transaction_execution::Transaction as BlockiTransaction,
+        transactions::ExecutableTransaction,
     },
-    versioned_constants::VersionedConstants,
+    versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
+use blockifier_reexecution::state_reader::compile::{
+    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+};
+use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::BlockNumber,
-    core::{calculate_contract_address, ContractAddress, PatriciaKey},
+    block::{BlockInfo, BlockNumber},
+    contract_class::ClassInfo,
+    core::ContractAddress,
     felt,
     hash::StarkHash,
     patricia_key,
     transaction::{Transaction as SNTransaction, TransactionHash},
-};
-
-use crate::{
-    objects::{RpcTransactionReceipt, RpcTransactionTrace},
-    reader::{RpcChain, RpcStateReader},
 };
 
 pub fn execute_tx(
@@ -45,7 +45,7 @@ pub fn execute_tx(
     let block_info = reader.get_block_info().unwrap();
 
     // Get transaction before giving ownership of the reader
-    let transaction = reader.get_transaction(&tx_hash).unwrap();
+    let tx = reader.get_transaction(&tx_hash).unwrap();
 
     let trace = reader.get_transaction_trace(&tx_hash).unwrap();
     let receipt = reader.get_transaction_receipt(&tx_hash).unwrap();
@@ -66,93 +66,70 @@ pub fn execute_tx(
         fee_token_addresses,
     };
     let mut versioned_constants =
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+        VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
+            validate_max_n_steps: u32::MAX,
+            invoke_tx_max_n_steps: u32::MAX,
+            max_recursion_depth: usize::MAX,
+        });
     versioned_constants.disable_cairo0_redeclaration = false;
 
     let block_context = BlockContext::new(
         block_info,
         chain_info,
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     );
 
     // Map starknet_api transaction to blockifier's
-    let blockifier_tx = match transaction {
-        SNTransaction::Invoke(tx) => {
-            let invoke = InvokeTransaction {
-                tx: starknet_api::executable_transaction::InvokeTransaction { tx, tx_hash },
-                only_query: false,
-            };
-            AccountTransaction::Invoke(invoke)
+    let blockifier_tx = match tx {
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
         }
-        SNTransaction::DeployAccount(tx) => {
-            let contract_address = calculate_contract_address(
-                tx.contract_address_salt(),
-                tx.class_hash(),
-                &tx.constructor_calldata(),
-                ContractAddress::default(),
-            )
-            .unwrap();
-            AccountTransaction::DeployAccount(DeployAccountTransaction {
-                only_query: false,
-                tx: starknet_api::executable_transaction::DeployAccountTransaction {
-                    tx,
-                    tx_hash,
-                    contract_address,
-                },
-            })
-        }
-        SNTransaction::Declare(tx) => {
-            // Fetch the contract_class from the next block (as we don't have it in the previous one)
+        SNTransaction::Declare(ref declare_tx) => {
+            let block_number = block_context.block_info().block_number;
+            let network = parse_to_rpc_chain(&block_context.chain_info().chain_id.to_string());
+            // we need to retrieve the next block in order to get the contract_class
             let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-
             let contract_class = next_reader
-                .get_compiled_contract_class(tx.class_hash())
+                .get_contract_class(&declare_tx.class_hash())
                 .unwrap();
-
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            let declare = DeclareTransaction::new(tx, tx_hash, class_info).unwrap();
-            AccountTransaction::Declare(declare)
+            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
         }
-        SNTransaction::L1Handler(tx) => {
-            // As L1Hanlder is not an account transaction we execute it here and return the result
-            let blockifier_tx = L1HandlerTransaction {
-                tx,
-                tx_hash,
-                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
-            };
-            return (
-                blockifier_tx
-                    .execute(&mut state, &block_context, true, true)
-                    .unwrap(),
-                trace,
-                receipt,
-            );
+        SNTransaction::L1Handler(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
         }
-        SNTransaction::Deploy(_) => todo!(),
+        _ => todo!(),
     };
 
     (
         blockifier_tx
-            .execute(&mut state, &block_context, true, true)
+            .execute(&mut state, &block_context, false, true)
             .unwrap(),
         trace,
         receipt,
     )
 }
 
-fn calculate_class_info_for_testing(contract_class: ContractClass) -> ClassInfo {
-    let sierra_program_length = match contract_class {
-        ContractClass::V0(_) => 0,
-        ContractClass::V1(_) => 100,
-        ContractClass::V1Native(_) => 100,
-    };
-    ClassInfo::new(&contract_class, sierra_program_length, 100).unwrap()
+fn calculate_class_info_for_testing(contract_class: SNContractClass) -> ClassInfo {
+    match contract_class {
+        SNContractClass::Sierra(s) => {
+            let abi = s.abi.len();
+            let program_length = s.sierra_program.len();
+
+            ClassInfo::new(&sierra_to_contact_class_v1(s).unwrap(), program_length, abi).unwrap()
+        }
+        SNContractClass::Legacy(l) => {
+            let abi = l.abi.clone().unwrap().len();
+
+            ClassInfo::new(&legacy_to_contract_class_v0(l).unwrap(), 0, abi).unwrap()
+        }
+    }
 }
 
 pub fn execute_tx_configurable_with_state(
-    tx_hash: &TransactionHash,
+    tx_hash: TransactionHash,
     tx: SNTransaction,
     block_info: BlockInfo,
     _skip_validate: bool,
@@ -181,66 +158,39 @@ pub fn execute_tx_configurable_with_state(
         fee_token_addresses: fee_token_address,
     };
     let mut versioned_constants =
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+        VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
+            validate_max_n_steps: u32::MAX,
+            invoke_tx_max_n_steps: u32::MAX,
+            max_recursion_depth: usize::MAX,
+        });
     versioned_constants.disable_cairo0_redeclaration = false;
 
     let block_context = BlockContext::new(
         block_info,
         chain_info,
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     );
 
     // Get transaction before giving ownership of the reader
     let blockifier_tx = match tx {
-        SNTransaction::Invoke(tx) => {
-            let invoke = InvokeTransaction {
-                tx: starknet_api::executable_transaction::InvokeTransaction {
-                    tx,
-                    tx_hash: *tx_hash,
-                },
-                only_query: false,
-            };
-            AccountTransaction::Invoke(invoke)
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
         }
-        SNTransaction::DeployAccount(tx) => {
-            let contract_address = calculate_contract_address(
-                tx.contract_address_salt(),
-                tx.class_hash(),
-                &tx.constructor_calldata(),
-                ContractAddress::default(),
-            )
-            .unwrap();
-            AccountTransaction::DeployAccount(DeployAccountTransaction {
-                only_query: false,
-                tx: starknet_api::executable_transaction::DeployAccountTransaction {
-                    tx,
-                    tx_hash: *tx_hash,
-                    contract_address,
-                },
-            })
-        }
-        SNTransaction::Declare(tx) => {
+        SNTransaction::Declare(ref declare_tx) => {
             let block_number = block_context.block_info().block_number;
             let network = parse_to_rpc_chain(&chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
             let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
             let contract_class = next_reader
-                .get_compiled_contract_class(tx.class_hash())
+                .get_contract_class(&declare_tx.class_hash())
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            let declare = DeclareTransaction::new(tx, *tx_hash, class_info).unwrap();
-            AccountTransaction::Declare(declare)
+            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
         }
-        SNTransaction::L1Handler(tx) => {
-            // As L1Hanlder is not an account transaction we execute it here and return the result
-            let blockifier_tx = L1HandlerTransaction {
-                tx,
-                tx_hash: *tx_hash,
-                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
-            };
-            return blockifier_tx.execute(state, &block_context, charge_fee, true);
+        SNTransaction::L1Handler(_) => {
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
         }
         _ => unimplemented!(),
     };
@@ -260,7 +210,7 @@ pub fn execute_tx_configurable(
     let tx = state.state.get_transaction(&tx_hash).unwrap();
     let block_info = state.state.get_block_info().unwrap();
     let blockifier_exec_info = execute_tx_configurable_with_state(
-        &tx_hash,
+        tx_hash,
         tx,
         block_info,
         skip_validate,
@@ -282,54 +232,39 @@ pub fn execute_tx_with_blockifier(
     transaction: SNTransaction,
     transaction_hash: TransactionHash,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
-    let account_transaction: AccountTransaction = match transaction {
-        SNTransaction::Invoke(tx) => {
-            let invoke = InvokeTransaction {
-                tx: starknet_api::executable_transaction::InvokeTransaction {
-                    tx,
-                    tx_hash: transaction_hash,
-                },
-                only_query: false,
-            };
-            AccountTransaction::Invoke(invoke)
+    let account_transaction: BlockiTransaction = match transaction {
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
+            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, false)?
         }
-        SNTransaction::DeployAccount(tx) => {
-            let contract_address = calculate_contract_address(
-                tx.contract_address_salt(),
-                tx.class_hash(),
-                &tx.constructor_calldata(),
-                ContractAddress::default(),
-            )
-            .unwrap();
-            AccountTransaction::DeployAccount(DeployAccountTransaction {
-                only_query: false,
-                tx: starknet_api::executable_transaction::DeployAccountTransaction {
-                    tx,
-                    tx_hash: transaction_hash,
-                    contract_address,
-                },
-            })
-        }
-        SNTransaction::Declare(tx) => {
-            let contract_class = state
-                .state
-                .get_compiled_contract_class(tx.class_hash())
+        SNTransaction::Declare(ref declare_tx) => {
+            let block_number = context.block_info().block_number;
+            let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
+            // we need to retrieve the next block in order to get the contract_class
+            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+            let contract_class = next_reader
+                .get_contract_class(&declare_tx.class_hash())
                 .unwrap();
-
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            let declare = DeclareTransaction::new(tx, transaction_hash, class_info).unwrap();
-            AccountTransaction::Declare(declare)
+            BlockiTransaction::from_api(
+                transaction,
+                transaction_hash,
+                Some(class_info),
+                None,
+                None,
+                false,
+            )?
         }
-        SNTransaction::L1Handler(tx) => {
+        SNTransaction::L1Handler(_) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
-            let account_transaction = L1HandlerTransaction {
-                tx,
-                tx_hash: transaction_hash,
-                paid_fee_on_l1: starknet_api::transaction::Fee(u128::MAX),
-            };
-
-            return account_transaction.execute(state, &context, true, true);
+            BlockiTransaction::from_api(
+                transaction,
+                transaction_hash,
+                None,
+                Some(MAX_FEE),
+                None,
+                false,
+            )?
         }
         _ => unimplemented!(),
     };
@@ -349,7 +284,11 @@ fn parse_to_rpc_chain(network: &str) -> RpcChain {
 pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
     let block_info = reader.get_block_info().unwrap();
     let mut versioned_constants =
-        VersionedConstants::latest_constants_with_overrides(u32::MAX, usize::MAX);
+        VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
+            validate_max_n_steps: u32::MAX,
+            invoke_tx_max_n_steps: u32::MAX,
+            max_recursion_depth: usize::MAX,
+        });
     versioned_constants.disable_cairo0_redeclaration = false;
 
     let fee_token_addresses = FeeTokenAddresses {
@@ -372,7 +311,7 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
             fee_token_addresses,
         },
         versioned_constants,
-        BouncerConfig::empty(),
+        BouncerConfig::max(),
     )
 }
 
@@ -382,11 +321,14 @@ mod tests {
 
     use blockifier::{
         execution::call_info::CallInfo,
+        fee::resources::{StarknetResources, StateResources},
         state::cached_state::StateChangesCount,
-        transaction::objects::{GasVector, StarknetResources},
     };
     use pretty_assertions_sorted::assert_eq_sorted;
-    use starknet_api::block::BlockNumber;
+    use starknet_api::{
+        block::BlockNumber,
+        execution_resources::{GasAmount, GasVector},
+    };
     use test_case::test_case;
 
     use super::*;
@@ -408,9 +350,8 @@ mod tests {
         // To reexecute a transaction, we must use the state from its previous block
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, trace, _) = execute_tx(hash, chain, previous_block);
-
         assert_eq!(
-            tx_info.revert_error,
+            tx_info.revert_error.map(|r| r.to_string()),
             trace.execute_invocation.unwrap().revert_reason
         );
 
@@ -600,7 +541,7 @@ mod tests {
         "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
         648462,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 192, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(192), l2_gas: GasAmount(0) },
         7,
         3,
         0,
@@ -611,13 +552,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
         661815,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         9,
         2,
         0,
@@ -628,13 +570,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
         662246,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         9,
         2,
         0,
@@ -645,13 +588,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         7,
         2,
         0,
@@ -662,13 +606,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
         654770,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 320, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         7,
         2,
         0,
@@ -679,13 +624,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
         653019,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 640, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(640), l2_gas: GasAmount(0) },
         28,
         2,
         0,
@@ -696,13 +642,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
         650558,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 448, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(448), l2_gas: GasAmount(0) },
         24,
         3,
         0,
@@ -713,13 +660,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        2
     )]
     #[test_case(
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
         351226,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         3,
         0,
         0,
@@ -730,13 +678,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
         317093,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         6,
         2,
         0,
@@ -747,13 +696,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         8,
         2,
         0,
@@ -764,13 +714,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         5,
         0,
         0,
@@ -781,13 +732,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 384, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
         7,
         2,
         0,
@@ -798,13 +750,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
         662252,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 448, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(448), l2_gas: GasAmount(0) },
         18,
         2,
         0,
@@ -815,7 +768,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     // Check this tx, l1_data_gas should be 384
     // https://starkscan.co/tx/0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e
@@ -823,7 +777,7 @@ mod tests {
         "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
         662250,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         10,
         2,
         0,
@@ -834,13 +788,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
         662251,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 256, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(256), l2_gas: GasAmount(0) },
         12,
         5,
         0,
@@ -851,13 +806,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
         351269,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         3,
         0,
         0,
@@ -868,13 +824,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 0,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 640, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(640), l2_gas: GasAmount(0) },
         37,
         2,
         0,
@@ -885,13 +842,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 3,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
         662248,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 384, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
         4,
         2,
         0,
@@ -902,13 +860,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
-        false
+        false,
+        0
     )]
     #[test_case(
         "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
         536893,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 896, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(896), l2_gas: GasAmount(0) },
         24,
         4,
         0,
@@ -919,13 +878,14 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 4,
         },
-        false
+        false,
+        1
     )]
     #[test_case(
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
         644700,
         RpcChain::MainNet,
-        GasVector { l1_gas: 0, l1_data_gas: 128, l2_gas: 0 },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         8,
         2,
         0,
@@ -936,7 +896,8 @@ mod tests {
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 1,
         },
-        true
+        true,
+        0
     )]
     #[allow(clippy::too_many_arguments)]
     fn test_transaction_info(
@@ -950,26 +911,28 @@ mod tests {
         l1_handler_payload_size: Option<usize>,
         starknet_chg: StateChangesCount,
         is_reverted: bool,
+        n_allocated_keys: usize,
     ) {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
-        let tx_receipt = tx_info.receipt;
-        let starknet_resources = tx_receipt.resources.starknet_resources;
-        let callinfo_iter = match tx_info.execute_call_info {
-            Some(c) => vec![c],
-            None => vec![CallInfo::default()], // there's no call info, so we take the default value to have all of it's atributes set to 0
-        };
+        let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
+        let versioned_constants =
+            VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
+                validate_max_n_steps: u32::MAX,
+                invoke_tx_max_n_steps: u32::MAX,
+                max_recursion_depth: usize::MAX,
+            });
+        let state_resources = StateResources::new_for_testing(starknet_chg, n_allocated_keys);
         let starknet_rsc = StarknetResources::new(
             calldata_length,
             signature_length,
             code_size,
-            starknet_chg,
+            state_resources,
             l1_handler_payload_size,
-            callinfo_iter.iter(),
+            tx_info.summarize(&versioned_constants),
         );
-
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
-        assert_eq!(da_gas, tx_receipt.da_gas);
+        assert_eq!(da_gas, tx_info.receipt.da_gas);
         assert_eq!(starknet_rsc, starknet_resources);
     }
 
@@ -1013,7 +976,7 @@ mod tests {
                 assert!(
                     !execution_info.is_reverted(),
                     "{:?}",
-                    execution_info.revert_error.unwrap_or_default()
+                    execution_info.revert_error.unwrap()
                 )
             }));
         }
