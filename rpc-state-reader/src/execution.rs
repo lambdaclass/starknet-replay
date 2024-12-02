@@ -351,7 +351,7 @@ mod tests {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, trace, _) = execute_tx(hash, chain, previous_block);
         assert_eq!(
-            tx_info.revert_error.and_then(|r| Some(r.to_string())),
+            tx_info.revert_error.map(|r| r.to_string()),
             trace.execute_invocation.unwrap().revert_reason
         );
 
