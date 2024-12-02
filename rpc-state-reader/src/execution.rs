@@ -240,8 +240,7 @@ pub fn execute_tx_with_blockifier(
             let block_number = context.block_info().block_number;
             let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
             // we need to retrieve the next block in order to get the contract_class
-            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader
+            let contract_class = state
                 .get_contract_class(&declare_tx.class_hash())
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
