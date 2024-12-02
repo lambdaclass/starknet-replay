@@ -320,7 +320,7 @@ mod tests {
     use std::thread;
 
     use blockifier::{
-        execution::call_info::{CallInfo, EventSummary, ExecutionSummary},
+        execution::call_info::CallInfo,
         fee::resources::{StarknetResources, StateResources},
         state::cached_state::StateChangesCount,
     };
@@ -914,7 +914,7 @@ mod tests {
         n_allocated_keys: usize,
     ) {
         let previous_block = BlockNumber(block_number - 1);
-        let (tx_info, _, r) = execute_tx(hash, chain, previous_block);
+        let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
         let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
         let versioned_constants =
             VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {

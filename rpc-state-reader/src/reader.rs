@@ -402,8 +402,6 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroU128;
-
     use starknet_api::block::FeeType;
 
     use super::*;

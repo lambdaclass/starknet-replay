@@ -121,10 +121,7 @@ struct SerializableExecutionInfo {
 
 impl SerializableExecutionInfo {
     pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
-        let reverted = execution_info
-            .revert_error
-            .clone()
-            .and_then(|f| Some(f.to_string()));
+        let reverted = execution_info.revert_error.clone().map(|f| f.to_string());
         Self {
             validate_call_info: execution_info
                 .validate_call_info
