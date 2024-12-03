@@ -77,11 +77,7 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
         } in transactions
         {
             // Execute each transaction
-            let _tx_span = info_span!(
-                "tx execution",
-                transaction_hash = transaction_hash.to_string(),
-            )
-            .entered();
+            let _tx_span = info_span!("tx execution",).entered();
 
             info!("tx execution started");
 
