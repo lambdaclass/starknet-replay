@@ -4,13 +4,15 @@
 use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
 use starknet_api::{
-    block::BlockStatus,
+    block::{BlockHash, BlockNumber, BlockStatus, BlockTimestamp},
+    core::{ContractAddress, GlobalRoot},
+    data_availability::L1DataAvailabilityMode,
     hash::StarkHash,
     transaction::{
-        Event, Fee, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
+        fields::Fee, Event, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
     },
 };
-use starknet_gateway::rpc_objects::BlockHeader;
+use starknet_gateway::rpc_objects::ResourcePrice;
 
 #[derive(Debug, Deserialize, Clone, Eq, PartialEq)]
 pub struct RpcTransactionTrace {
@@ -57,6 +59,20 @@ pub struct FeePayment {
 
 // The following structures are taken from https://github.com/starkware-libs/sequencer,
 // but modified to suit our particular needs.
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BlockHeader {
+    pub block_hash: BlockHash,
+    pub parent_hash: BlockHash,
+    pub block_number: BlockNumber,
+    pub sequencer_address: ContractAddress,
+    pub new_root: GlobalRoot,
+    pub timestamp: BlockTimestamp,
+    pub l1_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice,
+    pub l1_da_mode: L1DataAvailabilityMode,
+    pub starknet_version: String,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct BlockWithTxHahes {

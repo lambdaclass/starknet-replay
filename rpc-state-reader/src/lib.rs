@@ -9,7 +9,7 @@ mod tests {
     use pretty_assertions_sorted::{assert_eq, assert_eq_sorted};
     use starknet_api::{
         class_hash,
-        core::{ClassHash, ContractAddress, Nonce, PatriciaKey},
+        core::{ContractAddress, Nonce},
         felt,
         hash::StarkHash,
         patricia_key,
