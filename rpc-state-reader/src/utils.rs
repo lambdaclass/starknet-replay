@@ -102,7 +102,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 let mut executor = AotContractExecutor::new(
                     &contract.extract_sierra_program().unwrap(),
                     &contract.entry_points_by_type,
-                    OptLevel::Default,
+                    OptLevel::Aggressive,
                 )
                 .unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();

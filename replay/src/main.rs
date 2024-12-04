@@ -1,3 +1,6 @@
+use std::thread;
+use std::time::Duration;
+
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::errors::StateError;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -223,6 +226,10 @@ fn main() {
 
                 block_range_data
             };
+
+            // We pause the main thread to differentiate
+            // caching from benchmarking from within a profiler
+            thread::sleep(Duration::from_secs(1));
 
             {
                 let _benchmark_span = info_span!("benchmarking transaction").entered();
