@@ -131,8 +131,8 @@ pub fn save_executions(
 }
 
 fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
-    // get from storage is not available
-    let class_hash = call.call.class_hash.unwrap_or_default();
+    // class hash can initially be None, but it is always added before execution
+    let class_hash = call.call.class_hash.unwrap();
 
     let mut time = call.time;
     let mut classes = call
