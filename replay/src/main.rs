@@ -20,7 +20,7 @@ use {
     crate::benchmark::{
         execute_block_range, fetch_block_range_data, fetch_transaction_data, save_executions,
     },
-    std::path::Path,
+    std::path::PathBuf,
     std::{ops::Div, time::Instant},
 };
 
@@ -71,6 +71,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_end: u64,
         chain: String,
         number_of_runs: usize,
+        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
+        output: PathBuf,
     },
     #[cfg(feature = "benchmark")]
     #[clap(about = "Measures the time it takes to run a single transaction.
@@ -81,6 +83,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         chain: String,
         block: u64,
         number_of_runs: usize,
+        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
+        output: PathBuf,
     },
 }
 
@@ -153,6 +157,7 @@ fn main() {
             block_end,
             chain,
             number_of_runs,
+            output,
         } => {
             let block_start = BlockNumber(block_start);
             let block_end = BlockNumber(block_end);
@@ -191,8 +196,7 @@ fn main() {
 
                 info!("saving execution info");
                 let execution = executions.into_iter().flatten().collect::<Vec<_>>();
-                save_executions(Path::new("executions.json"), execution)
-                    .expect("failed to save execution info");
+                save_executions(&output, execution).expect("failed to save execution info");
 
                 let total_run_time = execution_time.as_secs_f64();
                 let average_run_time = total_run_time.div(number_of_runs as f64);
@@ -212,6 +216,7 @@ fn main() {
             block,
             chain,
             number_of_runs,
+            output,
         } => {
             let chain = parse_network(&chain);
             let block = BlockNumber(block);
@@ -256,8 +261,7 @@ fn main() {
 
                 info!("saving execution info");
                 let execution = executions.into_iter().flatten().collect::<Vec<_>>();
-                save_executions(Path::new("executions.json"), execution)
-                    .expect("failed to save execution info");
+                save_executions(&output, execution).expect("failed to save execution info");
 
                 let total_run_time = execution_time.as_secs_f64();
                 let average_run_time = total_run_time.div(number_of_runs as f64);
