@@ -20,8 +20,6 @@ NET=$2
 BLOCK=$3
 LAPS=$4
 
-echo "Benchmarking $NET $TX"
-
 output="$TX-$NET.jsonl"
 native_output="native-$output"
 vm_output="vm-$output"
@@ -38,5 +36,5 @@ cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-
 vm_time=$(tail -n1 "$vm_output" | jq .fields.average_run_time)
 echo "Average VM time: $vm_time"
 
-speedup=$(bc -le "$vm_time/$native_time")
+speedup=$(bc -l <<< "$vm_time/$native_time")
 echo "Native Speedup: $speedup"
