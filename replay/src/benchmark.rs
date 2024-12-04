@@ -1,8 +1,10 @@
-use std::{error::Error, io, path::Path};
+use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use blockifier::{
     context::BlockContext,
-    execution::contract_class::RunnableCompiledClass,
+    execution::{
+        call_info::CallInfo, contract_class::RunnableCompiledClass, entry_point::CallEntryPoint,
+    },
     state::{cached_state::CachedState, state_api::StateReader},
     transaction::objects::TransactionExecutionInfo,
 };
@@ -11,7 +13,10 @@ use rpc_state_reader::{
     objects::TransactionWithHash,
     reader::{RpcChain, RpcStateReader},
 };
-use starknet_api::{block::BlockNumber, hash::StarkHash, transaction::TransactionHash};
+use serde::Serialize;
+use starknet_api::{
+    block::BlockNumber, core::ClassHash, hash::StarkHash, transaction::TransactionHash,
+};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
@@ -90,11 +95,64 @@ pub fn execute_block_range(
     executions
 }
 
+#[derive(Serialize)]
+struct ClassExecutionInfo {
+    class_hash: ClassHash,
+    call: CallEntryPoint,
+    time: Duration,
+}
+
 pub fn save_executions(
-    file: &Path,
+    path: &Path,
     executions: Vec<TransactionExecutionInfo>,
 ) -> Result<(), Box<dyn Error>> {
+    let classes = executions
+        .into_iter()
+        .flat_map(|execution| {
+            let mut classes = Vec::new();
+
+            if let Some(call) = execution.validate_call_info {
+                classes.append(&mut xxx(call));
+            }
+            if let Some(call) = execution.execute_call_info {
+                classes.append(&mut xxx(call));
+            }
+            if let Some(call) = execution.fee_transfer_call_info {
+                classes.append(&mut xxx(call));
+            }
+            classes
+        })
+        .collect::<Vec<_>>();
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &classes)?;
+
     Ok(())
+}
+
+fn xxx(call: CallInfo) -> Vec<ClassExecutionInfo> {
+    // get from storage is not available
+    let class_hash = call.call.class_hash.unwrap_or_default();
+
+    let mut time = call.time;
+    let mut classes = call
+        .inner_calls
+        .into_iter()
+        .flat_map(|call| {
+            time -= call.time;
+            xxx(call)
+        })
+        .collect::<Vec<_>>();
+
+    let top_class = ClassExecutionInfo {
+        class_hash,
+        call: call.call,
+        time,
+    };
+
+    classes.push(top_class);
+
+    return classes;
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {

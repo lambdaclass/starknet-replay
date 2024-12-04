@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-benchmark = []
+benchmark = ["dep:serde", "dep:serde_json", "dep:serde_with"]
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
 only_cairo_vm = ["rpc-state-reader/only_casm"]
 structured_logging = []
