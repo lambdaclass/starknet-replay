@@ -6,13 +6,10 @@ argument_parser.add_argument("vm_logs_path")
 arguments = argument_parser.parse_args()
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
+from utils import load_dataset, find_span
 
-dataset_native = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
-dataset_vm = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
-
-def canonicalize_compilation_time(event):
+def canonicalize(event):
     if "contract compilation finished" not in event["fields"]["message"]:
         return None
 
@@ -25,18 +22,8 @@ def canonicalize_compilation_time(event):
         "size": event["fields"]["size"] / 1024,
     }
 
-def find_span(event, name):
-    for span in event["spans"]:
-        if name in span["name"]:
-            return span
-    return None
-
-def format_hash(class_hash):
-    return f"0x{class_hash[:6]}..."
-
-
-dataset_native = dataset_native.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
-dataset_vm = dataset_vm.apply(canonicalize_compilation_time).dropna().apply(pd.Series)
+dataset_native = load_dataset(arguments.native_logs_path, canonicalize)
+dataset_vm = load_dataset(arguments.vm_logs_path, canonicalize)
 
 dataset_native = dataset_native.set_index("class hash")
 dataset_vm = dataset_vm.set_index("class hash")
@@ -50,22 +37,12 @@ sns.set_color_codes("bright")
 sns.regplot(
     x="size_native",
     y="size_casm",
-    label = "Native (<1000)",
-    data=dataset[dataset["size_native"] < 1000],
-    ax = ax,
-)
-sns.regplot(
-    x="size_native",
-    y="size_casm",
-    label = "Native (>=1000)",
-    data=dataset[dataset["size_native"] >= 1000],
+    data=dataset,
     ax = ax,
 )
 
 ax.set_xlabel("Native Compilation Size (KiB)")
 ax.set_ylabel("Casm Compilation Size (KiB)")
 ax.set_title("Compilation Size Correlation")
-
-ax.legend()
 
 plt.show()

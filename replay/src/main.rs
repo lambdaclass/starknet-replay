@@ -208,7 +208,7 @@ fn main() {
             let mut block_range_data = {
                 let _caching_span = info_span!("caching block range").entered();
 
-                info!("fetching transaction data");
+                info!("fetching block range data");
                 let transaction_data = fetch_transaction_data(&tx, block, chain);
 
                 // We insert it into a vector so that we can reuse `execute_block_range`
@@ -232,7 +232,7 @@ fn main() {
             thread::sleep(Duration::from_secs(1));
 
             {
-                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let _benchmark_span = info_span!("benchmarking block range").entered();
                 let before_execution = Instant::now();
 
                 for _ in 0..number_of_runs {
@@ -459,7 +459,7 @@ fn set_global_subscriber() {
 
     #[cfg(feature = "structured_logging")]
     let default_env_filter =
-        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=info")
+        EnvFilter::try_new("replay=info,blockifier=info,rpc_state_reader=info,cairo_native=trace")
             .expect("hard-coded env filter should be valid");
 
     let env_filter = EnvFilter::try_from_default_env().unwrap_or(default_env_filter);

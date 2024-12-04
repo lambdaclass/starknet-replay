@@ -8,11 +8,14 @@ arguments = argument_parser.parse_args()
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import numpy as np
+import matplotlib.ticker as ticker
+from utils import find_span, format_hash, load_dataset, keep_common_classes
 
-datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
-datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
+pd.set_option('display.max_colwidth', None)
+sns.set_color_codes("bright")
 
-def canonicalize_execution_time_by_contract_class(event):
+def canonicalize(event):
     # skip caching logs
     if find_span(event, "caching block range") != None:
         return None
@@ -21,35 +24,58 @@ def canonicalize_execution_time_by_contract_class(event):
     if "contract execution finished" not in event["fields"]["message"]:
         return None
 
+    class_hash = hex(int(event["span"]["class_hash"]))
+    time = float(event["fields"]["time"])
+    
     return {
-        "class hash": event["span"]["class_hash"],
-        "time": float(event["fields"]["time"]),
+        "class hash": class_hash,
+        "time": time,
     }
 
-def find_span(event, name):
-    for span in event["spans"]:
-        if name in span["name"]:
-            return span
-    return None
+datasetNative = load_dataset(arguments.native_logs_path, canonicalize)
+datasetVM = load_dataset(arguments.vm_logs_path, canonicalize)
 
-def format_hash(class_hash):
-    return f"0x{class_hash[:6]}..."
+datasetNative = keep_common_classes(datasetNative, 75)
+datasetVM = keep_common_classes(datasetVM, 75)
 
-datasetNative = datasetNative.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
-datasetVM = datasetVM.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+# CALCULATE MEAN
+datasetNative = datasetNative.groupby("class hash").agg(["mean","size"])
+datasetVM = datasetVM.groupby("class hash").agg(["mean","size"])
+dataset = datasetNative.join(datasetVM, lsuffix="_native", rsuffix="_vm")
+dataset.columns = dataset.columns.map('_'.join)
 
-datasetNative = datasetNative.groupby("class hash").mean()
-datasetVM = datasetVM.groupby("class hash").mean()
+# CALCULATE SPEEDUP
+dataset["speedup"] = dataset["time_vm_mean"] / dataset["time_native_mean"]
 
-figure, ax = plt.subplots()
+# SORT BY TIME
+dataset.sort_values(['time_vm_mean'], ascending=[False], inplace=True)
 
-sns.set_color_codes("bright")
+print(dataset)
 
-sns.barplot(ax=ax, y="class hash", x="time", data=datasetVM, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
-sns.barplot(ax=ax, y="class hash", x="time", data=datasetNative, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
+figure, axes = plt.subplots(1, 2)
 
-ax.set_xlabel("Mean Time (ms)")
+ax=axes[0]
+
+sns.barplot(ax=ax, y="class hash", x="time_vm_mean", data=dataset, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
+sns.barplot(ax=ax, y="class hash", x="time_native_mean", data=dataset, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
+
+ax.set_xlabel("Mean Time (ns)")
 ax.set_ylabel("Class Hash")
-ax.set_title("Native vs. VM by Contract Class")
+ax.set_title("Mean time by Contract Class")
+ax.set_xscale("log", base=2)
+
+ax=axes[1]
+
+sns.barplot(ax=ax, y="class hash", x="speedup", data=dataset, formatter=format_hash, label="Execution Speedup", color="b", alpha = 0.75) # type: ignore
+
+ax.set_xlabel("Speedup")
+ax.set_ylabel("Class Hash")
+ax.set_title("Speedup by Contract Class")
+
+fig, ax = plt.subplots()
+sns.violinplot(ax=ax, x="speedup", data=dataset, cut=0)
+ax.set_xlabel("Speedup")
+ax.set_title("Speedup Distribution")
+ax.xaxis.set_major_locator(ticker.MultipleLocator(2, 1)) # type: ignore
 
 plt.show()
