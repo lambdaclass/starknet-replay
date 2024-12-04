@@ -236,25 +236,24 @@ pub fn execute_tx_with_blockifier(
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
             BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, false)?
         }
-        SNTransaction::Declare(ref declare_tx) => {
-            let block_number = context.block_info().block_number;
-            let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
-            // we need to retrieve the next block in order to get the contract_class
-            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader
-                .get_contract_class(&declare_tx.class_hash())
-                .unwrap();
-            let class_info = calculate_class_info_for_testing(contract_class);
+        // SNTransaction::Declare(ref declare_tx) => {
+        //     let block_number = context.block_info().block_number;
+        //     let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
+        //     // we need to retrieve the next block in order to get the contract_class
+        //     let contract_class = state
+        //         .get_compiled_class(&declare_tx.class_hash())
+        //         .unwrap();
+        //     let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(
-                transaction,
-                transaction_hash,
-                Some(class_info),
-                None,
-                None,
-                false,
-            )?
-        }
+        //     BlockiTransaction::from_api(
+        //         transaction,
+        //         transaction_hash,
+        //         Some(class_info),
+        //         None,
+        //         None,
+        //         false,
+        //     )?
+        // }
         SNTransaction::L1Handler(_) => {
             // As L1Hanlder is not an account transaction we execute it here and return the result
             BlockiTransaction::from_api(
