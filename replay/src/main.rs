@@ -17,7 +17,10 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
 use {
-    crate::benchmark::{execute_block_range, fetch_block_range_data, fetch_transaction_data},
+    crate::benchmark::{
+        execute_block_range, fetch_block_range_data, fetch_transaction_data, save_executions,
+    },
+    std::path::Path,
     std::{ops::Div, time::Instant},
 };
 
@@ -176,13 +179,21 @@ fn main() {
 
             {
                 let _benchmark_span = info_span!("benchmarking block range").entered();
+
+                let mut executions = Vec::new();
+
+                info!("executing block range");
                 let before_execution = Instant::now();
-
                 for _ in 0..number_of_runs {
-                    execute_block_range(&mut block_range_data);
+                    executions.push(execute_block_range(&mut block_range_data));
                 }
-
                 let execution_time = before_execution.elapsed();
+
+                info!("saving execution info");
+                let execution = executions.into_iter().flatten().collect::<Vec<_>>();
+                save_executions(Path::new("executions.json"), execution)
+                    .expect("failed to save execution info");
+
                 let total_run_time = execution_time.as_secs_f64();
                 let average_run_time = total_run_time.div(number_of_runs as f64);
                 info!(
