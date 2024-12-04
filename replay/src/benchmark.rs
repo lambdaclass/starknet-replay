@@ -112,13 +112,13 @@ pub fn save_executions(
             let mut classes = Vec::new();
 
             if let Some(call) = execution.validate_call_info {
-                classes.append(&mut xxx(call));
+                classes.append(&mut get_class_executions(call));
             }
             if let Some(call) = execution.execute_call_info {
-                classes.append(&mut xxx(call));
+                classes.append(&mut get_class_executions(call));
             }
             if let Some(call) = execution.fee_transfer_call_info {
-                classes.append(&mut xxx(call));
+                classes.append(&mut get_class_executions(call));
             }
             classes
         })
@@ -130,7 +130,7 @@ pub fn save_executions(
     Ok(())
 }
 
-fn xxx(call: CallInfo) -> Vec<ClassExecutionInfo> {
+fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     // get from storage is not available
     let class_hash = call.call.class_hash.unwrap_or_default();
 
@@ -140,7 +140,7 @@ fn xxx(call: CallInfo) -> Vec<ClassExecutionInfo> {
         .into_iter()
         .flat_map(|call| {
             time -= call.time;
-            xxx(call)
+            get_class_executions(call)
         })
         .collect::<Vec<_>>();
 
