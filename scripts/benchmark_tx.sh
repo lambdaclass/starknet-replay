@@ -25,13 +25,13 @@ native_output="native-$output"
 vm_output="vm-$output"
 
 echo "Executing with Native"
-cargo run --release --features benchmark,structured_logging bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$native_output" 2>/dev/null
+cargo run --release --features benchmark,structured_logging bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$native_output"
 
 native_time=$(tail -n1 "$native_output" | jq .fields.average_run_time)
 echo "Average Native time: $native_time"
 
 echo "Executing with VM"
-cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$vm_output" 2>/dev/null
+cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$vm_output"
 
 vm_time=$(tail -n1 "$vm_output" | jq .fields.average_run_time)
 echo "Average VM time: $vm_time"
