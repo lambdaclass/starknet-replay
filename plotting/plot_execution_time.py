@@ -38,10 +38,14 @@ data = (
     .agg(
         total_time=("time", "sum"),
         mean_time=("time", "mean"),
+        samples=("time", "size"),
     )
     .unstack("executor")
 )
 data.columns = data.columns.map("_".join)
+
+if (data["samples_native"] != data["samples_vm"]).any():
+    raise Exception("Native and VM should have the same number of samples")
 
 # calculate speedup
 data["speedup"] = data["total_time_vm"] / data["total_time_native"]
