@@ -2,9 +2,7 @@ use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use blockifier::{
     context::BlockContext,
-    execution::{
-        call_info::CallInfo, contract_class::RunnableCompiledClass, entry_point::CallEntryPoint,
-    },
+    execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
     state::{cached_state::CachedState, state_api::StateReader},
     transaction::objects::TransactionExecutionInfo,
 };
