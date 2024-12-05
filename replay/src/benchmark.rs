@@ -153,7 +153,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 
     classes.push(top_class);
 
-    return classes;
+    classes
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
