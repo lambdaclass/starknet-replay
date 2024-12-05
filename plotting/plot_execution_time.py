@@ -27,34 +27,39 @@ def process_row(row):
 
 
 dataNative = load_dataset(args.native_data, process_row)
+dataNative["executor"] = "native"
 dataVM = load_dataset(args.vm_data, process_row)
+dataVM["executor"] = "vm"
+data = pd.concat([dataNative, dataVM])
 
 # calculate mean by class hash
-dataNative = dataNative.groupby("class_hash").agg(
-    total_time=("time", "sum"),
-    mean_time=("time", "mean"),
+data = (
+    data.groupby(["executor", "class_hash"])
+    .agg(
+        total_time=("time", "sum"),
+        mean_time=("time", "mean"),
+    )
+    .unstack("executor")
 )
-dataVM = dataVM.groupby("class_hash").agg(
-    total_time=("time", "sum"),
-    mean_time=("time", "mean"),
-)
-data = dataNative.join(dataVM, lsuffix="_native", rsuffix="_vm")
+data.columns = data.columns.map("_".join)
 
 # calculate speedup
 data["speedup"] = data["total_time_vm"] / data["total_time_native"]
 
-# calculate total speedup
 total_native = data["total_time_native"].sum() / 10e9
-print(f"Total Native: {total_native} seconds")
 total_vm = data["total_time_vm"].sum() / 10e9
+print(f"Total Native: {total_native} seconds")
 print(f"Total VM: {total_vm} seconds")
 print("Total Speedup:", total_vm / total_native)
 
+# sort by decreasing time
+data.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
+
 print(data)
 
-# ==========
-#  PLOTTING
-# ==========
+# ======================
+#        PLOTTING
+# ======================
 
 figure, axes = plt.subplots(1, 2)
 
@@ -64,7 +69,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="total_time_vm",
-    data=data,
+    data=data,  # type: ignore
     formatter=format_hash,
     label="VM Execution Time",
     color="r",
@@ -74,7 +79,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="total_time_native",
-    data=data,
+    data=data,  # type: ignore
     formatter=format_hash,
     label="Native Execution Time",
     color="b",
@@ -92,7 +97,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="speedup",
-    data=data,
+    data=data,  # type: ignore
     formatter=format_hash,
     label="Execution Speedup",
     color="b",
@@ -105,7 +110,12 @@ ax.set_title("Speedup by Contract Class")
 
 if args.speedup:
     fig, ax = plt.subplots()
-    sns.violinplot(ax=ax, x="speedup", data=data, cut=0)
+    sns.violinplot(
+        ax=ax,
+        x="speedup",
+        data=data,  # type: ignore
+        cut=0,
+    )
     ax.set_xlabel("Speedup")
     ax.set_title("Speedup Distribution")
 
