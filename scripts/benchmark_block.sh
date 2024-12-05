@@ -25,7 +25,7 @@ log_output="logs-$START-$END-$NET.jsonl"
 native_log_output="native-$log_output"
 vm_log_output="vm-$log_output"
 
-data_output="data-$START-$END-$NET.jsonl"
+data_output="data-$START-$END-$NET.json"
 native_data_output="native-$data_output"
 vm_data_output="vm-$data_output"
 
