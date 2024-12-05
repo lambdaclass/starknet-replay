@@ -15,7 +15,10 @@ use rpc_state_reader::{
 };
 use serde::Serialize;
 use starknet_api::{
-    block::BlockNumber, core::ClassHash, hash::StarkHash, transaction::TransactionHash,
+    block::BlockNumber,
+    core::{ClassHash, EntryPointSelector},
+    hash::StarkHash,
+    transaction::TransactionHash,
 };
 
 pub type BlockCachedData = (
@@ -98,7 +101,7 @@ pub fn execute_block_range(
 #[derive(Serialize)]
 struct ClassExecutionInfo {
     class_hash: ClassHash,
-    call: CallEntryPoint,
+    selector: EntryPointSelector,
     time: Duration,
 }
 
@@ -146,7 +149,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 
     let top_class = ClassExecutionInfo {
         class_hash,
-        call: call.call,
+        selector: call.call.entry_point_selector,
         time,
     };
 
