@@ -1,17 +1,23 @@
-use std::time::Instant;
+use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use blockifier::{
     context::BlockContext,
-    execution::contract_class::RunnableCompiledClass,
+    execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
     state::{cached_state::CachedState, state_api::StateReader},
+    transaction::objects::TransactionExecutionInfo,
 };
 use rpc_state_reader::{
     execution::{execute_tx_with_blockifier, fetch_block_context},
     objects::TransactionWithHash,
     reader::{RpcChain, RpcStateReader},
 };
-use starknet_api::{block::BlockNumber, hash::StarkHash, transaction::TransactionHash};
-use tracing::{error, info, info_span};
+use serde::Serialize;
+use starknet_api::{
+    block::BlockNumber,
+    core::{ClassHash, EntryPointSelector},
+    hash::StarkHash,
+    transaction::TransactionHash,
+};
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcStateReader>>,
@@ -58,15 +64,13 @@ pub fn fetch_block_range_data(
 /// Executes the given block range, discarding any state changes applied to it
 ///
 /// Can also be used to fill up the cache
-pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
+pub fn execute_block_range(
+    block_range_data: &mut Vec<BlockCachedData>,
+) -> Vec<TransactionExecutionInfo> {
+    let mut executions = Vec::new();
+
     for (state, block_context, transactions) in block_range_data {
         // For each block
-        let _block_span = info_span!(
-            "block execution",
-            block_number = block_context.block_info().block_number.0,
-        )
-        .entered();
-        info!("starting block execution");
 
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
@@ -77,34 +81,85 @@ pub fn execute_block_range(block_range_data: &mut Vec<BlockCachedData>) {
         } in transactions
         {
             // Execute each transaction
-            let _tx_span = info_span!("tx execution",).entered();
-
-            info!("tx execution started");
-
-            let pre_execution_instant = Instant::now();
-            let result = execute_tx_with_blockifier(
+            let execution = execute_tx_with_blockifier(
                 &mut transactional_state,
                 block_context.clone(),
                 transaction.to_owned(),
                 transaction_hash.to_owned(),
             );
-            let execution_time = pre_execution_instant.elapsed();
+            let Ok(execution) = execution else { continue };
 
-            match result {
-                Ok(info) => {
-                    info!(
-                        time = ?execution_time,
-                        succeeded = info.revert_error.is_none(),
-                        "tx execution finished"
-                    )
-                }
-                Err(_) => error!(
-                    time = ?execution_time,
-                    "tx execution failed"
-                ),
-            }
+            executions.push(execution);
         }
     }
+
+    executions
+}
+
+#[derive(Serialize)]
+struct ClassExecutionInfo {
+    class_hash: ClassHash,
+    selector: EntryPointSelector,
+    time: Duration,
+}
+
+pub fn save_executions(
+    path: &Path,
+    executions: Vec<TransactionExecutionInfo>,
+) -> Result<(), Box<dyn Error>> {
+    let classes = executions
+        .into_iter()
+        .flat_map(|execution| {
+            let mut classes = Vec::new();
+
+            if let Some(call) = execution.validate_call_info {
+                classes.append(&mut get_class_executions(call));
+            }
+            if let Some(call) = execution.execute_call_info {
+                classes.append(&mut get_class_executions(call));
+            }
+            if let Some(call) = execution.fee_transfer_call_info {
+                classes.append(&mut get_class_executions(call));
+            }
+            classes
+        })
+        .collect::<Vec<_>>();
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &classes)?;
+
+    Ok(())
+}
+
+fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
+    // class hash can initially be None, but it is always added before execution
+    let class_hash = call.call.class_hash.unwrap();
+
+    let mut inner_time = Duration::ZERO;
+
+    let mut classes = call
+        .inner_calls
+        .into_iter()
+        .flat_map(|call| {
+            inner_time += call.time;
+            get_class_executions(call)
+        })
+        .collect::<Vec<_>>();
+
+    if call.time.is_zero() {
+        panic!("contract time should never be zero, there is a bug somewhere")
+    }
+    let time = call.time - inner_time;
+
+    let top_class = ClassExecutionInfo {
+        class_hash,
+        selector: call.call.entry_point_selector,
+        time,
+    };
+
+    classes.push(top_class);
+
+    classes
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {

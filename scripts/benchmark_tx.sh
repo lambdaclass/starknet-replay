@@ -20,20 +20,24 @@ NET=$2
 BLOCK=$3
 LAPS=$4
 
-output="$TX-$NET.jsonl"
-native_output="native-$output"
-vm_output="vm-$output"
+log_output="logs-$TX-$NET.jsonl"
+native_log_output="native-$log_output"
+vm_log_output="vm-$log_output"
+
+data_output="data-$TX-$NET.json"
+native_data_output="native-$data_output"
+vm_data_output="vm-$data_output"
 
 echo "Executing with Native"
-cargo run --release --features benchmark,structured_logging bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$native_output"
+cargo run --release --features benchmark,structured_logging bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$native_data_output" > "$native_log_output"
 
-native_time=$(tail -n1 "$native_output" | jq .fields.average_run_time)
+native_time=$(tail -n1 "$native_log_output" | jq .fields.average_run_time)
 echo "Average Native time: $native_time"
 
 echo "Executing with VM"
-cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" > "$vm_output"
+cargo run --release --features benchmark,structured_logging,only_cairo_vm bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$vm_data_output" > "$vm_log_output"
 
-vm_time=$(tail -n1 "$vm_output" | jq .fields.average_run_time)
+vm_time=$(tail -n1 "$vm_log_output" | jq .fields.average_run_time)
 echo "Average VM time: $vm_time"
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
