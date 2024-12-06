@@ -135,15 +135,21 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
-    let mut time = call.time;
+    let mut inner_time = Duration::ZERO;
+
     let mut classes = call
         .inner_calls
         .into_iter()
         .flat_map(|call| {
-            time -= call.time;
+            inner_time += call.time;
             get_class_executions(call)
         })
         .collect::<Vec<_>>();
+
+    if call.time.is_zero() {
+        panic!("contract time should never be zero, there is a bug somewhere")
+    }
+    let time = call.time - inner_time;
 
     let top_class = ClassExecutionInfo {
         class_hash,
