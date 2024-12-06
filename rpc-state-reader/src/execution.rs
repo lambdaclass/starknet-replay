@@ -102,7 +102,8 @@ pub fn execute_tx(
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
+                .unwrap()
         }
         SNTransaction::L1Handler(_) => {
             BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, exec_flags).unwrap()
@@ -111,9 +112,7 @@ pub fn execute_tx(
     };
 
     (
-        blockifier_tx
-            .execute(&mut state, &block_context)
-            .unwrap(),
+        blockifier_tx.execute(&mut state, &block_context).unwrap(),
         trace,
         receipt,
     )
@@ -125,12 +124,24 @@ fn calculate_class_info_for_testing(contract_class: SNContractClass) -> ClassInf
             let abi = s.abi.len();
             let program_length = s.sierra_program.len();
             let sierra_version = SierraVersion::extract_from_program(&s.sierra_program).unwrap();
-            ClassInfo::new(&sierra_to_contact_class_v1(s).unwrap(), program_length, abi, sierra_version).unwrap()
+            ClassInfo::new(
+                &sierra_to_contact_class_v1(s).unwrap(),
+                program_length,
+                abi,
+                sierra_version,
+            )
+            .unwrap()
         }
         SNContractClass::Legacy(l) => {
             let abi = l.abi.clone().unwrap().len();
 
-            ClassInfo::new(&legacy_to_contract_class_v0(l).unwrap(), 0, abi, SierraVersion::DEPRECATED).unwrap()
+            ClassInfo::new(
+                &legacy_to_contract_class_v0(l).unwrap(),
+                0,
+                abi,
+                SierraVersion::DEPRECATED,
+            )
+            .unwrap()
         }
     }
 }
@@ -253,9 +264,14 @@ pub fn execute_tx_with_blockifier(
     };
 
     let account_transaction: BlockiTransaction = match transaction {
-        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
-            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, exec_flags)?
-        }
+        SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => BlockiTransaction::from_api(
+            transaction,
+            transaction_hash,
+            None,
+            None,
+            None,
+            exec_flags,
+        )?,
         // SNTransaction::Declare(ref declare_tx) => {
         //     let block_number = context.block_info().block_number;
         //     let network = parse_to_rpc_chain(&context.chain_info().chain_id.to_string());
