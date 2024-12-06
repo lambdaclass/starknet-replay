@@ -7,6 +7,7 @@ use blockifier::{
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     state::{cached_state::CachedState, state_api::StateReader},
     test_utils::MAX_FEE,
+    transaction::account_transaction::ExecutionFlags,
     transaction::{
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
         transaction_execution::Transaction as BlockiTransaction,
@@ -20,7 +21,7 @@ use blockifier_reexecution::state_reader::compile::{
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber},
-    contract_class::ClassInfo,
+    contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     felt,
     hash::StarkHash,
@@ -80,10 +81,16 @@ pub fn execute_tx(
         BouncerConfig::max(),
     );
 
+    let exec_flags = ExecutionFlags {
+        charge_fee: true,
+        only_query: false,
+        validate: true,
+    };
+
     // Map starknet_api transaction to blockifier's
     let blockifier_tx = match tx {
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
-            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, exec_flags).unwrap()
         }
         SNTransaction::Declare(ref declare_tx) => {
             let block_number = block_context.block_info().block_number;
@@ -95,17 +102,17 @@ pub fn execute_tx(
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags).unwrap()
         }
         SNTransaction::L1Handler(_) => {
-            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, exec_flags).unwrap()
         }
         _ => todo!(),
     };
 
     (
         blockifier_tx
-            .execute(&mut state, &block_context, false, true)
+            .execute(&mut state, &block_context)
             .unwrap(),
         trace,
         receipt,
@@ -117,13 +124,13 @@ fn calculate_class_info_for_testing(contract_class: SNContractClass) -> ClassInf
         SNContractClass::Sierra(s) => {
             let abi = s.abi.len();
             let program_length = s.sierra_program.len();
-
-            ClassInfo::new(&sierra_to_contact_class_v1(s).unwrap(), program_length, abi).unwrap()
+            let sierra_version = SierraVersion::extract_from_program(&s.sierra_program).unwrap();
+            ClassInfo::new(&sierra_to_contact_class_v1(s).unwrap(), program_length, abi, sierra_version).unwrap()
         }
         SNContractClass::Legacy(l) => {
             let abi = l.abi.clone().unwrap().len();
 
-            ClassInfo::new(&legacy_to_contract_class_v0(l).unwrap(), 0, abi).unwrap()
+            ClassInfo::new(&legacy_to_contract_class_v0(l).unwrap(), 0, abi, SierraVersion::DEPRECATED).unwrap()
         }
     }
 }
@@ -172,10 +179,16 @@ pub fn execute_tx_configurable_with_state(
         BouncerConfig::max(),
     );
 
+    let exec_flags = ExecutionFlags {
+        charge_fee,
+        only_query: false,
+        validate: true,
+    };
+
     // Get transaction before giving ownership of the reader
     let blockifier_tx = match tx {
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
-            BlockiTransaction::from_api(tx, tx_hash, None, None, None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, None, None, exec_flags).unwrap()
         }
         SNTransaction::Declare(ref declare_tx) => {
             let block_number = block_context.block_info().block_number;
@@ -187,15 +200,16 @@ pub fn execute_tx_configurable_with_state(
                 .unwrap();
             let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
+                .unwrap()
         }
         SNTransaction::L1Handler(_) => {
-            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, false).unwrap()
+            BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, exec_flags).unwrap()
         }
         _ => unimplemented!(),
     };
 
-    blockifier_tx.execute(state, &block_context, charge_fee, true)
+    blockifier_tx.execute(state, &block_context)
 }
 
 pub fn execute_tx_configurable(
@@ -232,9 +246,15 @@ pub fn execute_tx_with_blockifier(
     transaction: SNTransaction,
     transaction_hash: TransactionHash,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
+    let exec_flags = ExecutionFlags {
+        charge_fee: true,
+        only_query: false,
+        validate: true,
+    };
+
     let account_transaction: BlockiTransaction = match transaction {
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
-            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, false)?
+            BlockiTransaction::from_api(transaction, transaction_hash, None, None, None, exec_flags)?
         }
         // SNTransaction::Declare(ref declare_tx) => {
         //     let block_number = context.block_info().block_number;
@@ -251,7 +271,7 @@ pub fn execute_tx_with_blockifier(
         //         Some(class_info),
         //         None,
         //         None,
-        //         false,
+        //         exec_flags,
         //     )?
         // }
         SNTransaction::L1Handler(_) => {
@@ -262,13 +282,13 @@ pub fn execute_tx_with_blockifier(
                 None,
                 Some(MAX_FEE),
                 None,
-                false,
+                exec_flags,
             )?
         }
         _ => unimplemented!(),
     };
 
-    account_transaction.execute(state, &context, true, true)
+    account_transaction.execute(state, &context)
 }
 
 fn parse_to_rpc_chain(network: &str) -> RpcChain {
