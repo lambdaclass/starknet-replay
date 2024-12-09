@@ -126,17 +126,25 @@ In the `plotting` directory, you can find python scripts to plot relevant inform
 Make sure to erase the `compiled_programs` directory, then run:
 
 ```bash
-cargo run --features benchmark,structured_logging bench-block-range 724000 724000 mainnet 1 | tee native-logs
-cargo run --features benchmark,structured_logging,only_cairo_vm bench-block-range 724000 724000 mainnet 1 | tee vm-logs
+./scripts/benchmark_tx.sh <tx> <net> <block> <laps>
+```
+
+This generates four files:
+- `{native,vm}-data-$tx-$net.json`: Contains the execution time of each contract call
+- `{native,vm}-logs-$tx-$net.json`: Contains the output of running the benchmark
+
+If you want to benchmark a full block, you could run:
+```bash
+./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
 ```
 
 Once you have done this, you can use the plotting scripts:
 
+- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
 - `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
 - `python ./plotting/plot_compilation_memory_corr.py native-logs vm-logs`: Size of the compiled native libraries, by the associated Casm contract size.
 - `python ./plotting/plot_compilation_memory_trend.py native-logs vm-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
 - `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
 - `python ./plotting/plot_compilation_time_trend.py native-logs vm-logs`: Native and Casm compilation time, by the sierra contract size.
-- `python ./plotting/plot_execution_time.py native-logs vm-logs`: Plots the execution time of Native vs VM, by contract class.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
 

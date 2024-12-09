@@ -1,55 +1,155 @@
 from argparse import ArgumentParser
 
-argument_parser = ArgumentParser('Stress Test Plotter')
-argument_parser.add_argument("native_logs_path")
-argument_parser.add_argument("vm_logs_path")
-arguments = argument_parser.parse_args()
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import io
+from utils import format_hash
 
-datasetNative = pd.read_json(arguments.native_logs_path, lines=True, typ="series")
-datasetVM = pd.read_json(arguments.vm_logs_path, lines=True, typ="series")
+parser = ArgumentParser("Stress Test Plotter")
+parser.add_argument("native_data")
+parser.add_argument("vm_data")
+parser.add_argument("-s", "--speedup", action="store_true")
+args = parser.parse_args()
 
-def canonicalize_execution_time_by_contract_class(event):
-    # skip caching logs
-    if find_span(event, "caching block range") != None:
-        return None
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", None)
 
-    # keep contract execution finished logs
-    if "contract execution finished" not in event["fields"]["message"]:
-        return None
+
+def load_dataset(path, f):
+    return pd.read_json(path).apply(f, axis=1).dropna().apply(pd.Series)
+
+
+def process_row(row):
+    class_hash = row.class_hash
+    selector = row.selector
+    time = row.time["nanos"] + row.time["secs"] * 10e9
 
     return {
-        "class hash": event["span"]["class_hash"],
-        "time": float(event["fields"]["time"]),
+        "class_hash": class_hash,
+        "selector": selector,
+        "time": time,
     }
 
-def find_span(event, name):
-    for span in event["spans"]:
-        if name in span["name"]:
-            return span
-    return None
 
-def format_hash(class_hash):
-    return f"0x{class_hash[:6]}..."
+dataNative = load_dataset(args.native_data, process_row)
+dataNative["executor"] = "native"
+dataVM = load_dataset(args.vm_data, process_row)
+dataVM["executor"] = "vm"
+data = pd.concat([dataNative, dataVM])
 
-datasetNative = datasetNative.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
-datasetVM = datasetVM.apply(canonicalize_execution_time_by_contract_class).dropna().apply(pd.Series)
+# GROUP BY SELECTOR
 
-datasetNative = datasetNative.groupby("class hash").mean()
-datasetVM = datasetVM.groupby("class hash").mean()
+# calculate mean by class hash
+data_by_selector = (
+    data.groupby(["executor", "class_hash", "selector"])
+    .agg(
+        total_time=("time", "sum"),
+        mean_time=("time", "mean"),
+        samples=("time", "size"),
+    )
+    .unstack("executor")
+)
+data_by_selector.columns = data_by_selector.columns.map("_".join)
 
-figure, ax = plt.subplots()
+if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
+    raise Exception("Native and VM should have the same number of samples")
 
-sns.set_color_codes("bright")
+# calculate speedup
+data_by_selector["speedup"] = (
+    data_by_selector["total_time_vm"] / data_by_selector["total_time_native"]
+)
+total_native = data_by_selector["total_time_native"].sum() / 10e9
+total_vm = data_by_selector["total_time_vm"].sum() / 10e9
+print(f"Total Native: {total_native} seconds")
+print(f"Total VM: {total_vm} seconds")
+print("Total Speedup:", total_vm / total_native)
 
-sns.barplot(ax=ax, y="class hash", x="time", data=datasetVM, formatter=format_hash, label="VM Execution Time", color="r", alpha = 0.75) # type: ignore
-sns.barplot(ax=ax, y="class hash", x="time", data=datasetNative, formatter=format_hash, label="Native Execution Time", color="b", alpha = 0.75) # type: ignore
+# sort by decreasing time
+data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
 
-ax.set_xlabel("Mean Time (ms)")
+s = io.StringIO()
+data_by_selector.to_csv(s)
+print(s.getvalue())
+
+# GROUP BY CLASS
+
+data_by_class = (
+    data.groupby(["executor", "class_hash"])
+    .agg(
+        total_time=("time", "sum"),
+        mean_time=("time", "mean"),
+        samples=("time", "size"),
+    )
+    .unstack("executor")
+)
+data_by_class.columns = data_by_class.columns.map("_".join)
+data_by_class["speedup"] = (
+    data_by_class["total_time_vm"] / data_by_class["total_time_native"]
+)
+data_by_class.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
+data_by_class = data_by_class.nlargest(50, "total_time_vm")  # type: ignore
+
+# ======================
+#        PLOTTING
+# ======================
+
+figure, axes = plt.subplots(1, 2)
+
+ax = axes[0]
+
+sns.barplot(
+    ax=ax,
+    y="class_hash",
+    x="total_time_vm",
+    data=data_by_class,  # type: ignore
+    formatter=format_hash,
+    label="VM Execution Time",
+    color="r",
+    alpha=0.75,
+)  # type: ignore
+sns.barplot(
+    ax=ax,
+    y="class_hash",
+    x="total_time_native",
+    data=data_by_class,  # type: ignore
+    formatter=format_hash,
+    label="Native Execution Time",
+    color="b",
+    alpha=0.75,
+)  # type: ignore
+
+ax.set_xlabel("Total Time (ns)")
 ax.set_ylabel("Class Hash")
-ax.set_title("Native vs. VM by Contract Class")
+ax.set_title("Total time by Contract Class")
+ax.set_xscale("log", base=2)
+
+ax = axes[1]
+
+sns.barplot(
+    ax=ax,
+    y="class_hash",
+    x="speedup",
+    data=data_by_class,  # type: ignore
+    formatter=format_hash,
+    label="Execution Speedup",
+    color="b",
+    alpha=0.75,
+)  # type: ignore
+
+ax.set_xlabel("Speedup")
+ax.set_ylabel("Class Hash")
+ax.set_title("Speedup by Contract Class")
+
+if args.speedup:
+    fig, ax = plt.subplots()
+    sns.violinplot(
+        ax=ax,
+        x="speedup",
+        data=data_by_class,  # type: ignore
+        cut=0,
+    )
+    ax.set_xlabel("Speedup")
+    ax.set_title("Speedup Distribution")
 
 plt.show()

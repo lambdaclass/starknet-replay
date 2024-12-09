@@ -268,7 +268,7 @@ pub fn execute_tx_with_blockifier(
         _ => unimplemented!(),
     };
 
-    account_transaction.execute(state, &context, true, true)
+    account_transaction.execute(state, &context, false, true)
 }
 
 fn parse_to_rpc_chain(network: &str) -> RpcChain {
