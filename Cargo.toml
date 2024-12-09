@@ -14,7 +14,7 @@ serde_with = "3.11.0"
 serde = "1.0.197"
 cairo-native = "0.2.4"
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bfc5b6b5475d359b8fc910516e026d972be5d02f" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bfc5b6b5475d359b8fc910516e026d972be5d02f", features = ["cairo_native"] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bfc5b6b5475d359b8fc910516e026d972be5d02f" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bfc5b6b5475d359b8fc910516e026d972be5d02f" } # replay
+starknet_api = { path = "../sequencer/crates/starknet_api" } # replay
+blockifier = { path = "../sequencer/crates/blockifier", features = ["cairo_native"] } # replay
+starknet_gateway = { path = "../sequencer/crates/starknet_gateway" } # replay
+blockifier_reexecution = { path = "../sequencer/crates/blockifier_reexecution" } # replay
