@@ -22,10 +22,12 @@ def load_dataset(path, f):
 
 def process_row(row):
     class_hash = row.class_hash
+    selector = row.selector
     time = row.time["nanos"] + row.time["secs"] * 10e9
 
     return {
         "class_hash": class_hash,
+        "selector": selector,
         "time": time,
     }
 
@@ -36,8 +38,43 @@ dataVM = load_dataset(args.vm_data, process_row)
 dataVM["executor"] = "vm"
 data = pd.concat([dataNative, dataVM])
 
+# GROUP BY SELECTOR
+
 # calculate mean by class hash
-data = (
+data_by_selector = (
+    data.groupby(["executor", "class_hash", "selector"])
+    .agg(
+        total_time=("time", "sum"),
+        mean_time=("time", "mean"),
+        samples=("time", "size"),
+    )
+    .unstack("executor")
+)
+data_by_selector.columns = data_by_selector.columns.map("_".join)
+
+if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
+    raise Exception("Native and VM should have the same number of samples")
+
+# calculate speedup
+data_by_selector["speedup"] = (
+    data_by_selector["total_time_vm"] / data_by_selector["total_time_native"]
+)
+total_native = data_by_selector["total_time_native"].sum() / 10e9
+total_vm = data_by_selector["total_time_vm"].sum() / 10e9
+print(f"Total Native: {total_native} seconds")
+print(f"Total VM: {total_vm} seconds")
+print("Total Speedup:", total_vm / total_native)
+
+# sort by decreasing time
+data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
+
+s = io.StringIO()
+data_by_selector.to_csv(s)
+print(s.getvalue())
+
+# GROUP BY CLASS
+
+data_by_class = (
     data.groupby(["executor", "class_hash"])
     .agg(
         total_time=("time", "sum"),
@@ -46,28 +83,12 @@ data = (
     )
     .unstack("executor")
 )
-data.columns = data.columns.map("_".join)
-
-if (data["samples_native"] != data["samples_vm"]).any():
-    raise Exception("Native and VM should have the same number of samples")
-
-# calculate speedup
-data["speedup"] = data["total_time_vm"] / data["total_time_native"]
-
-total_native = data["total_time_native"].sum() / 10e9
-total_vm = data["total_time_vm"].sum() / 10e9
-print(f"Total Native: {total_native} seconds")
-print(f"Total VM: {total_vm} seconds")
-print("Total Speedup:", total_vm / total_native)
-
-# sort by decreasing time
-data.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
-
-s = io.StringIO()
-data.to_csv(s)
-print(s.getvalue())
-
-data = data.nlargest(50, "total_time_vm")  # type: ignore
+data_by_class.columns = data_by_class.columns.map("_".join)
+data_by_class["speedup"] = (
+    data_by_class["total_time_vm"] / data_by_class["total_time_native"]
+)
+data_by_class.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
+data_by_class = data_by_class.nlargest(50, "total_time_vm")  # type: ignore
 
 # ======================
 #        PLOTTING
@@ -81,7 +102,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="total_time_vm",
-    data=data,  # type: ignore
+    data=data_by_class,  # type: ignore
     formatter=format_hash,
     label="VM Execution Time",
     color="r",
@@ -91,7 +112,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="total_time_native",
-    data=data,  # type: ignore
+    data=data_by_class,  # type: ignore
     formatter=format_hash,
     label="Native Execution Time",
     color="b",
@@ -109,7 +130,7 @@ sns.barplot(
     ax=ax,
     y="class_hash",
     x="speedup",
-    data=data,  # type: ignore
+    data=data_by_class,  # type: ignore
     formatter=format_hash,
     label="Execution Speedup",
     color="b",
@@ -125,7 +146,7 @@ if args.speedup:
     sns.violinplot(
         ax=ax,
         x="speedup",
-        data=data,  # type: ignore
+        data=data_by_class,  # type: ignore
         cut=0,
     )
     ax.set_xlabel("Speedup")
