@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import io
 from utils import format_hash
 
 parser = ArgumentParser("Stress Test Plotter")
@@ -10,6 +11,9 @@ parser.add_argument("native_data")
 parser.add_argument("vm_data")
 parser.add_argument("-s", "--speedup", action="store_true")
 args = parser.parse_args()
+
+pd.set_option("display.max_columns", None)
+pd.set_option("display.max_rows", None)
 
 
 def load_dataset(path, f):
@@ -59,7 +63,11 @@ print("Total Speedup:", total_vm / total_native)
 # sort by decreasing time
 data.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
 
-print(data)
+s = io.StringIO()
+data.to_csv(s)
+print(s.getvalue())
+
+data = data.nlargest(50, "total_time_vm")  # type: ignore
 
 # ======================
 #        PLOTTING
