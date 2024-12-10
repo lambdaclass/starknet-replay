@@ -21,7 +21,6 @@ use blockifier_reexecution::state_reader::compile::{
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber},
-    class_hash,
     contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     felt,
