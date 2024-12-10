@@ -20,6 +20,7 @@ use blockifier_reexecution::state_reader::compile::{
 };
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
+    class_hash,
     block::{BlockInfo, BlockNumber},
     contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
@@ -352,16 +353,17 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashSet, thread};
+    use std::{collections::{HashMap, HashSet}, thread};
 
     use blockifier::{
-        execution::call_info::{CallInfo, EventSummary, ExecutionSummary},
+        execution::call_info::{CallInfo, ChargedResources, EventSummary, ExecutionSummary},
         fee::resources::{StarknetResources, StateResources},
         state::cached_state::StateChangesCount,
     };
+    use cairo_vm::{types::builtin_name::BuiltinName, vm::runners::cairo_runner::ExecutionResources};
     use pretty_assertions_sorted::assert_eq_sorted;
     use starknet_api::{
-        block::BlockNumber, core::PatriciaKey, execution_resources::{GasAmount, GasVector}
+        block::BlockNumber, class_hash, core::ClassHash, execution_resources::{GasAmount, GasVector}, state::StorageKey
     };
     use test_case::test_case;
 
@@ -594,8 +596,8 @@ mod tests {
                     n_steps: 3035,
                     n_memory_holes: 74,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("pedersen", 4),
-                        ("range_check", 75),
+                        (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 75),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -603,83 +605,77 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253,
-                ),
-                ClassHash(
-                    0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b,
-                ),
+                class_hash!("0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+                class_hash!("0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x558d16edafba7ea87e7b3e97642103a3b83511a8439f83d345c8cc1fb8c1cea,
+                        patricia_key!(
+                            "0x558d16edafba7ea87e7b3e97642103a3b83511a8439f83d345c8cc1fb8c1cea"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x301976036fab639ccfd796c13864cd6988e6d0449b0ca749fd505b83d57fcc4,
+                        patricia_key!(
+                            "0x301976036fab639ccfd796c13864cd6988e6d0449b0ca749fd505b83d57fcc4"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463,
+                        patricia_key!(
+                            "0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x301976036fab639ccfd796c13864cd6988e6d0449b0ca749fd505b83d57fcc4,
+                        patricia_key!(
+                            "0x301976036fab639ccfd796c13864cd6988e6d0449b0ca749fd505b83d57fcc4"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76,
+                        patricia_key!(
+                            "0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x558d16edafba7ea87e7b3e97642103a3b83511a8439f83d345c8cc1fb8c1ceb,
+                        patricia_key!(
+                            "0x558d16edafba7ea87e7b3e97642103a3b83511a8439f83d345c8cc1fb8c1ceb"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4531ecd0aefdd998d337d3dfc40af9bb3512edac441f2a31e0d499233086fec,
+                        patricia_key!(
+                            "0x4531ecd0aefdd998d337d3dfc40af9bb3512edac441f2a31e0d499233086fec"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4531ecd0aefdd998d337d3dfc40af9bb3512edac441f2a31e0d499233086feb,
+                        patricia_key!(
+                            "0x4531ecd0aefdd998d337d3dfc40af9bb3512edac441f2a31e0d499233086feb"
                         ),
                     ),
                 ),
@@ -715,8 +711,8 @@ mod tests {
                     n_steps: 3457,
                     n_memory_holes: 26,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("pedersen", 4),
-                        ("range_check", 74),
+                        (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 74),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -724,74 +720,68 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x309c042d3729173c7f2f91a34f04d8c509c1b292d334679ef1aabf8da0899cc,
-                ),
-                ClassHash(
-                    0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b,
-                ),
-                ClassHash(
-                    0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9,
-                ),
+                class_hash!("0x309c042d3729173c7f2f91a34f04d8c509c1b292d334679ef1aabf8da0899cc"),
+                class_hash!("0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"),
+                class_hash!("0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x269ea391a9c99cb6cee43ff589169f547cbc48d7554fdfbbfa7f97f516da700,
+                        patricia_key!(
+                            "0x269ea391a9c99cb6cee43ff589169f547cbc48d7554fdfbbfa7f97f516da700"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc,
+                        patricia_key!(
+                            "0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4009513ce606f0ec0973e1bd057b7a36ac14f1a203569e30713140e5c928dad,
+                        patricia_key!(
+                            "0x4009513ce606f0ec0973e1bd057b7a36ac14f1a203569e30713140e5c928dad"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4009513ce606f0ec0973e1bd057b7a36ac14f1a203569e30713140e5c928dac,
+                        patricia_key!(
+                            "0x4009513ce606f0ec0973e1bd057b7a36ac14f1a203569e30713140e5c928dac"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5460e3ada357c552adbe9fdd830aabe59b7a3b43284240fb606458be8c6e0a,
+                        patricia_key!(
+                            "0x5460e3ada357c552adbe9fdd830aabe59b7a3b43284240fb606458be8c6e0a"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5460e3ada357c552adbe9fdd830aabe59b7a3b43284240fb606458be8c6e09,
+                        patricia_key!(
+                            "0x5460e3ada357c552adbe9fdd830aabe59b7a3b43284240fb606458be8c6e09"
                         ),
                     ),
                 ),
@@ -827,8 +817,8 @@ mod tests {
                     n_steps: 3457,
                     n_memory_holes: 26,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("pedersen", 4),
-                        ("range_check", 74),
+                    (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 74),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -836,74 +826,68 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918,
-                ),
-                ClassHash(
-                    0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2,
-                ),
-                ClassHash(
-                    0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b,
-                ),
+                class_hash!("0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
+                class_hash!("0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2"),
+                class_hash!("0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"),
                 ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x15ce587ff19a4baa941545deb4359e7d29b8ea3b224829a514425adbc5371d3,
+                        patricia_key!(
+                            "0x15ce587ff19a4baa941545deb4359e7d29b8ea3b224829a514425adbc5371d3"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x15ce587ff19a4baa941545deb4359e7d29b8ea3b224829a514425adbc5371d2,
+                        patricia_key!(
+                            "0x15ce587ff19a4baa941545deb4359e7d29b8ea3b224829a514425adbc5371d2"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3aeff2c4fa75aace8f3974aa291ed288c2946cb2c89d3d45f43ec2e3d341266,
+                        patricia_key!(
+                            "0x3aeff2c4fa75aace8f3974aa291ed288c2946cb2c89d3d45f43ec2e3d341266"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3aeff2c4fa75aace8f3974aa291ed288c2946cb2c89d3d45f43ec2e3d341267,
+                        patricia_key!(
+                            "0x3aeff2c4fa75aace8f3974aa291ed288c2946cb2c89d3d45f43ec2e3d341267"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x69a7818562b608ce8c5d0039e7f6d1c6ee55f36978f633b151858d85c022d2f,
+                        patricia_key!(
+                            "0x69a7818562b608ce8c5d0039e7f6d1c6ee55f36978f633b151858d85c022d2f"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc,
+                        patricia_key!(
+                            "0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"
                         ),
                     ),
                 ),
@@ -939,8 +923,8 @@ mod tests {
                     n_steps: 3938,
                     n_memory_holes: 63,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("pedersen", 4),
-                        ("range_check", 76),
+                    (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 76),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -948,59 +932,55 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
-                ClassHash(
-                    0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed,
-                ),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
+                class_hash!("0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
+                        patricia_key!(
+                            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ef,
+                        patricia_key!(
+                            "0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ef"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
+                        patricia_key!(
+                            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2693,
+                        patricia_key!(
+                            "0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2693"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
+                        patricia_key!(
+                            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2692,
+                        patricia_key!(
+                            "0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2692"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
+                        patricia_key!(
+                            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ee,
+                        patricia_key!(
+                            "0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ee"
                         ),
                     ),
                 ),
@@ -1036,8 +1016,8 @@ mod tests {
                     n_steps: 3411,
                     n_memory_holes: 30,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("pedersen", 4),
-                        ("range_check", 76),
+                        (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 76),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1045,60 +1025,50 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
-                ClassHash(
-                    0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b,
-                ),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
+                class_hash!("0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44d,
+                        patricia_key!(
+                            "0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44d"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44e,
+                        patricia_key!(
+                            "0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44e"
                         ),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                        patricia_key!(
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
                         ),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350b,
-                        ),
+                        patricia_key!("0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350c,
-                        ),
+                        patricia_key!("0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350c"),
                     ),
                 ),
             ]),
@@ -1133,9 +1103,9 @@ mod tests {
                     n_steps: 45076,
                     n_memory_holes: 1809,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("pedersen", 39),
-                        ("range_check", 1435),
-                        ("segment_arena", 2),
+                        (BuiltinName::pedersen, 39),
+                            (BuiltinName::range_check, 1435),
+                        (BuiltinName::segment_arena, 2),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1143,426 +1113,278 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x4f9849485e35f4a1c57d69b297feda94e743151f788202a6d731173babf4aec,
-                ),
-                ClassHash(
-                    0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420,
-                ),
-                ClassHash(
-                    0x7b33a07ec099c227130ddffc9d74ad813fbcb8e0ff1c0f3ce097958e3dfc70b,
-                ),
-                ClassHash(
-                    0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253,
-                ),
-                ClassHash(
-                    0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed,
-                ),
-                ClassHash(
-                    0x4ac055f14361bb6f7bf4b9af6e96ca68825e6037e9bdf87ea0b2c641dea73ae,
-                ),
-                ClassHash(
-                    0x182dfcf12cf38789f5937a1b920f0513195131a408716224ac8273f371d9d0a,
-                ),
-                ClassHash(
-                    0x5ee939756c1a60b029c594da00e637bf5923bf04a86ff163e877e899c0840eb,
-                ),
+                class_hash!("0x4f9849485e35f4a1c57d69b297feda94e743151f788202a6d731173babf4aec"),
+                class_hash!("0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420"),
+                class_hash!("0x7b33a07ec099c227130ddffc9d74ad813fbcb8e0ff1c0f3ce097958e3dfc70b"),
+                class_hash!("0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+                class_hash!("0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed"),
+                class_hash!("0x4ac055f14361bb6f7bf4b9af6e96ca68825e6037e9bdf87ea0b2c641dea73ae"),
+                class_hash!("0x182dfcf12cf38789f5937a1b920f0513195131a408716224ac8273f371d9d0a"),
+                class_hash!("0x5ee939756c1a60b029c594da00e637bf5923bf04a86ff163e877e899c0840eb"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04863,
-                        ),
+                        patricia_key!("0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04863"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95e,
-                        ),
+                        patricia_key!("0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95e"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04864,
-                        ),
+                        patricia_key!("0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04864"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5a2c887b4759dcad85a9164f219f88ac0098570bf6dbb934fb24f95fc45220c,
-                        ),
+                        patricia_key!("0x5a2c887b4759dcad85a9164f219f88ac0098570bf6dbb934fb24f95fc45220c"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463,
-                        ),
+                        patricia_key!("0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04864,
-                        ),
+                        patricia_key!("0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04864"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2a8ae95dddffb0c09b9e1d7dacea66d3d564bd00c190cd4c9660a7e8a555fb0,
-                        ),
+                        patricia_key!("0x2a8ae95dddffb0c09b9e1d7dacea66d3d564bd00c190cd4c9660a7e8a555fb0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x261d7b045ffcfe9aad8e2d16a5e9195fdd1ff58e84f6019048cf342c79501b2,
-                        ),
+                        patricia_key!("0x261d7b045ffcfe9aad8e2d16a5e9195fdd1ff58e84f6019048cf342c79501b2"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f,
-                        ),
+                        patricia_key!("0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xc157281c325105632605b5874203b6a26582ef61f9507a569aa5d2a7637cd7,
-                        ),
+                        patricia_key!("0xc157281c325105632605b5874203b6a26582ef61f9507a569aa5d2a7637cd7"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x493875a3926558b908441a8fd6642a9f5b85f7fc5e39289c3a83b72b2eca837,
-                        ),
+                        patricia_key!("0x493875a3926558b908441a8fd6642a9f5b85f7fc5e39289c3a83b72b2eca837"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04863,
-                        ),
+                        patricia_key!("0x27171399f13c5078064c25dff40dadf2762e5c393b7154209964e7a80e04863"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f,
-                        ),
+                        patricia_key!("0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2232b2e1d8025562b381e10d97d2aa29b0ba14ab2fb65abaf36ea6179ff1067,
-                        ),
+                        patricia_key!("0x2232b2e1d8025562b381e10d97d2aa29b0ba14ab2fb65abaf36ea6179ff1067"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1f5dba4f0e386fe3e03022985e50076614214c29faad4f1a66fd553c39c47ed,
-                        ),
+                        patricia_key!("0x1f5dba4f0e386fe3e03022985e50076614214c29faad4f1a66fd553c39c47ed"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x493875a3926558b908441a8fd6642a9f5b85f7fc5e39289c3a83b72b2eca838,
-                        ),
+                        patricia_key!("0x493875a3926558b908441a8fd6642a9f5b85f7fc5e39289c3a83b72b2eca838"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f,
-                        ),
+                        patricia_key!("0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2c98037748f28d346ea45305cb75d2b43b6a280f2bbf0a033fcdb7c23dacb94,
-                        ),
+                        patricia_key!("0x2c98037748f28d346ea45305cb75d2b43b6a280f2bbf0a033fcdb7c23dacb94"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1aa58c2130812a393a81be1c126ab39cc69de7d4cc9091535a3738bff6bca5a,
-                        ),
+                        patricia_key!("0x1aa58c2130812a393a81be1c126ab39cc69de7d4cc9091535a3738bff6bca5a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95e,
-                        ),
+                        patricia_key!("0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95e"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95d,
-                        ),
+                        patricia_key!("0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbd,
-                        ),
+                        patricia_key!("0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbd"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbe,
-                        ),
+                        patricia_key!("0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbe"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x587f8a359f3afbadaac7e3a22b5d00fa5f08794c82353701e04afb0485d8c1,
-                        ),
+                        patricia_key!("0x587f8a359f3afbadaac7e3a22b5d00fa5f08794c82353701e04afb0485d8c1"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f,
-                        ),
+                        patricia_key!("0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2dd61772d8928d37542f9463273c969d38b38efa4c26744578f0890f1534d3d,
-                        ),
+                        patricia_key!("0x2dd61772d8928d37542f9463273c969d38b38efa4c26744578f0890f1534d3d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1bee0233b83cc233e905a16e35ad64d3720b430ffc95ac935ee81f1c2bb70a8,
-                        ),
+                        patricia_key!("0x1bee0233b83cc233e905a16e35ad64d3720b430ffc95ac935ee81f1c2bb70a8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3e9df762c67f04c3d19de6f877d7906e3a52e992c3f97013dc2450ab7851c9,
-                        ),
+                        patricia_key!("0x3e9df762c67f04c3d19de6f877d7906e3a52e992c3f97013dc2450ab7851c9"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x511270adbc9dd47783d90b9494051b71a2ca036eae8193fa3ea697266d1202,
-                        ),
+                        patricia_key!("0x511270adbc9dd47783d90b9494051b71a2ca036eae8193fa3ea697266d1202"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1f5dba4f0e386fe3e03022985e50076614214c29faad4f1a66fd553c39c47ee,
-                        ),
+                        patricia_key!("0x1f5dba4f0e386fe3e03022985e50076614214c29faad4f1a66fd553c39c47ee"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95d,
-                        ),
+                        patricia_key!("0x2c40cfaa9c0aeba40ea0b8f5818e1a12c44c5e9c01c31beb8fd21f5dab2f95d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5a2c887b4759dcad85a9164f219f88ac0098570bf6dbb934fb24f95fc45220c,
-                        ),
+                        patricia_key!("0x5a2c887b4759dcad85a9164f219f88ac0098570bf6dbb934fb24f95fc45220c"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76,
-                        ),
+                        patricia_key!("0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516,
-                        ),
+                        patricia_key!("0x5ef8800d242c5d5e218605d6a10e81449529d4144185f95bf4b8fb669424516"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3e9df762c67f04c3d19de6f877d7906e3a52e992c3f97013dc2450ab7851ca,
-                        ),
+                        patricia_key!("0x3e9df762c67f04c3d19de6f877d7906e3a52e992c3f97013dc2450ab7851ca"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f,
-                        ),
+                        patricia_key!("0x4270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0,
-                        ),
+                        patricia_key!("0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbe,
-                        ),
+                        patricia_key!("0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbe"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbd,
-                        ),
+                        patricia_key!("0x29e4f0fb421255927c6fe4a10d0d56fb9cad419f02b4456a1cebd6da07fabbd"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2a8ae95dddffb0c09b9e1d7dacea66d3d564bd00c190cd4c9660a7e8a555fb1,
-                        ),
+                        patricia_key!("0x2a8ae95dddffb0c09b9e1d7dacea66d3d564bd00c190cd4c9660a7e8a555fb1"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1aa58c2130812a393a81be1c126ab39cc69de7d4cc9091535a3738bff6bca5b,
-                        ),
+                        patricia_key!("0x1aa58c2130812a393a81be1c126ab39cc69de7d4cc9091535a3738bff6bca5b"),
                     ),
                 ),
             ]),
@@ -1597,9 +1419,9 @@ mod tests {
                     n_steps: 7394,
                     n_memory_holes: 222,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("range_check", 272),
-                        ("pedersen", 26),
-                        ("poseidon", 1)
+                        (BuiltinName::range_check, 272),
+                            (BuiltinName::pedersen, 26),
+                        (BuiltinName::poseidon, 1)
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1607,135 +1429,89 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed,
-                ),
-                ClassHash(
-                    0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253,
-                ),
-                ClassHash(
-                    0x6312b8cc5222001e694fedc019c1160ff478ad6ae0fb066dc354b75bf9b5454,
-                ),
+                class_hash!("0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed"),
+                class_hash!("0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+                class_hash!("0x6312b8cc5222001e694fedc019c1160ff478ad6ae0fb066dc354b75bf9b5454"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c,
-                        ),
+                        patricia_key!("0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463,
-                        ),
+                        patricia_key!("0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007,
-                        ),
+                        patricia_key!("0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8ef,
-                        ),
+                        patricia_key!("0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8ef"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c,
-                        ),
+                        patricia_key!("0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76,
-                        ),
+                        patricia_key!("0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007,
-                        ),
+                        patricia_key!("0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8f0,
-                        ),
+                        patricia_key!("0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8f0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180,
-                        ),
+                        patricia_key!("0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x75f128ea43bc75b11cb0532e6873df6e9398b11d788ffbdd600a4546e83c10d,
-                        ),
+                        patricia_key!("0x75f128ea43bc75b11cb0532e6873df6e9398b11d788ffbdd600a4546e83c10d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180,
-                        ),
+                        patricia_key!("0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6bd3a5ce5dcb97eaa770a5a3c9e4f5c752d99c61823a1d3d086688ee21a1247,
-                        ),
+                        patricia_key!("0x6bd3a5ce5dcb97eaa770a5a3c9e4f5c752d99c61823a1d3d086688ee21a1247"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180,
-                        ),
+                        patricia_key!("0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xb59f37c0f9d09ea41ec01867728e0af61d0339b945f7d193fd07f4f96cfee8,
-                        ),
+                        patricia_key!("0xb59f37c0f9d09ea41ec01867728e0af61d0339b945f7d193fd07f4f96cfee8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007,
-                        ),
+                        patricia_key!("0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a1a,
-                        ),
+                        patricia_key!("0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a1a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007,
-                        ),
+                        patricia_key!("0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a19,
-                        ),
+                        patricia_key!("0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a19"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180,
-                        ),
+                        patricia_key!("0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1a22f545ba9d916b44403905200f55b36377a2e761b2184577679b0d7f7bc94,
-                        ),
+                        patricia_key!("0x1a22f545ba9d916b44403905200f55b36377a2e761b2184577679b0d7f7bc94"),
                     ),
                 ),
             ]),
@@ -1770,8 +1546,8 @@ mod tests {
                     n_steps: 8422,
                     n_memory_holes: 40,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("range_check", 161),
-                            ("pedersen", 4),
+                        (BuiltinName::range_check, 161),
+                        (BuiltinName::pedersen, 4),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1779,123 +1555,81 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0,
-                ),
-                ClassHash(
-                    0x4f5bce5f70bb1fcf6573f68205d3e74538c46c14dc47d37bdbde4c1abaf4e1e,
-                ),
-                ClassHash(
-                    0xd0e183745e9dae3e4e78a8ffedcce0903fc4900beace4e0abf192d4c202da3,
-                ),
+                class_hash!("0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0"),
+                class_hash!("0x4f5bce5f70bb1fcf6573f68205d3e74538c46c14dc47d37bdbde4c1abaf4e1e"),
+                class_hash!("0xd0e183745e9dae3e4e78a8ffedcce0903fc4900beace4e0abf192d4c202da3"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970,
-                        ),
+                        patricia_key!("0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf,
-                        ),
+                        patricia_key!("0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x45ef7281f1485fd8d0298fc971ec7f2f8cf67d18b32a5e2cc876c957753332b,
-                        ),
+                        patricia_key!("0x45ef7281f1485fd8d0298fc971ec7f2f8cf67d18b32a5e2cc876c957753332b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970,
-                        ),
+                        patricia_key!("0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab,
-                        ),
+                        patricia_key!("0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x45ef7281f1485fd8d0298fc971ec7f2f8cf67d18b32a5e2cc876c957753332c,
-                        ),
+                        patricia_key!("0x45ef7281f1485fd8d0298fc971ec7f2f8cf67d18b32a5e2cc876c957753332c"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1dc79e2fd056704ede52dca5746b720269aaa5da53301dff546657c16ca07af,
-                        ),
+                        patricia_key!("0x1dc79e2fd056704ede52dca5746b720269aaa5da53301dff546657c16ca07af"),
                     ),
                 ),
             ]),
@@ -1930,7 +1664,7 @@ mod tests {
                     n_steps: 2263,
                     n_memory_holes: 7,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("range_check", 38),
+                        (BuiltinName::range_check, 38),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1938,12 +1672,8 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
-                ClassHash(
-                    0x2d49ae8a5475e2185e6044592f034e85011d53e29b527b4ea35aed4063d9e44,
-                ),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
+                class_hash!("0x2d49ae8a5475e2185e6044592f034e85011d53e29b527b4ea35aed4063d9e44"),
             ]),
             visited_storage_entries: HashSet::new(),
             l2_to_l1_payload_lengths: vec![],
@@ -1977,7 +1707,7 @@ mod tests {
                     n_steps: 2430,
                     n_memory_holes: 3,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("range_check", 39),
+                        (BuiltinName::range_check, 39),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -1985,27 +1715,17 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2,
-                ),
-                ClassHash(
-                    0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918,
-                ),
-                ClassHash(
-                    0x2d49ae8a5475e2185e6044592f034e85011d53e29b527b4ea35aed4063d9e44,
-                ),
+                class_hash!("0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2"),
+                class_hash!("0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
+                class_hash!("0x2d49ae8a5475e2185e6044592f034e85011d53e29b527b4ea35aed4063d9e44"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68826cd135a7ae273d26bf0b93de662db2e7dd0a6f765327b77c98a5d3b600d,
-                        ),
+                        patricia_key!("0x68826cd135a7ae273d26bf0b93de662db2e7dd0a6f765327b77c98a5d3b600d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc,
-                        ),
+                        patricia_key!("0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"),
                     ),
                 ),
             ]),
@@ -2040,8 +1760,8 @@ mod tests {
                     n_steps: 3086,
                     n_memory_holes: 55,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("range_check", 72),
-                        ("pedersen", 3),
+                        (BuiltinName::range_check, 72),
+                        (BuiltinName::pedersen, 3),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2049,96 +1769,64 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420,
-                ),
-                ClassHash(
-                    0x358663e6ed9d37efd33d4661e20b2bad143e0f92076b0c91fe65f31ccf55046,
-                ),
+                class_hash!("0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420"),
+                class_hash!("0x358663e6ed9d37efd33d4661e20b2bad143e0f92076b0c91fe65f31ccf55046"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x290e00617050a68193b715654df85cc41c3b79f263373d66459c8a3d5780b46,
-                        ),
+                        patricia_key!("0x290e00617050a68193b715654df85cc41c3b79f263373d66459c8a3d5780b46"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d9,
-                        ),
+                        patricia_key!("0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d9"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab,
-                        ),
+                        patricia_key!("0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf,
-                        ),
+                        patricia_key!("0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d8,
-                        ),
+                        patricia_key!("0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d8"),
                     ),
                 ),
             ]),
@@ -2173,8 +1861,8 @@ mod tests {
                     n_steps: 39395,
                     n_memory_holes: 118,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("range_check", 1234),
-                            ("pedersen", 9),
+                        (BuiltinName::range_check, 1234),
+                        (BuiltinName::pedersen, 9),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2182,126 +1870,82 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x4572af1cd59b8b91055ebb78df8f1d11c59f5270018b291366ba4585d4cdff0,
-                ),
-                ClassHash(
-                    0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2,
-                ),
-                ClassHash(
-                    0x7f7125c5958bf48de9d6a3ad045f845095d9572dc1a4b77da365f358c478cce,
-                ),
-                ClassHash(
-                    0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918,
-                ),
+                class_hash!("0x4572af1cd59b8b91055ebb78df8f1d11c59f5270018b291366ba4585d4cdff0"),
+                class_hash!("0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2"),
+                class_hash!("0x7f7125c5958bf48de9d6a3ad045f845095d9572dc1a4b77da365f358c478cce"),
+                class_hash!("0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0,
-                        ),
+                        patricia_key!("0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x8819d617fb205534ef545e2fcd15db7b2f43e98e65e242dad41ca4fe7d5256,
-                        ),
+                        patricia_key!("0x8819d617fb205534ef545e2fcd15db7b2f43e98e65e242dad41ca4fe7d5256"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc,
-                        ),
+                        patricia_key!("0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d72,
-                        ),
+                        patricia_key!("0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d72"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x31b2db582739d919e49855d464d4ef21e6bfd0aa6db07d6f4cf006bf32ec7e8,
-                        ),
+                        patricia_key!("0x31b2db582739d919e49855d464d4ef21e6bfd0aa6db07d6f4cf006bf32ec7e8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x20ddb4628d547df787159e32a15efecfbfb960110c425c74e6b35421adca448,
-                        ),
+                        patricia_key!("0x20ddb4628d547df787159e32a15efecfbfb960110c425c74e6b35421adca448"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d73,
-                        ),
+                        patricia_key!("0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d73"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0,
-                        ),
+                        patricia_key!("0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x64adb0d4dfddace954f8460d8327cb16ec952a7221eaab02a02294c5aad7a63,
-                        ),
+                        patricia_key!("0x64adb0d4dfddace954f8460d8327cb16ec952a7221eaab02a02294c5aad7a63"),
                     ),
                 ),
             ]),
@@ -2336,9 +1980,9 @@ mod tests {
                     n_steps: 30042,
                     n_memory_holes: 3584,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("range_check", 1369),
-                        ("poseidon", 36),
-                        ("pedersen", 3),
+                        (BuiltinName::range_check, 1369),
+                        (BuiltinName::poseidon, 36),
+                        (BuiltinName::pedersen, 3),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2346,162 +1990,106 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x589a40e9cd8784359c066db1adaf6cf0d92322ce579fc0c19739649beae132,
-                ),
-                ClassHash(
-                    0x3c8904d062171ab62c1f2e52e2b33299c305626a8f8a253a1544a6ad774121b,
-                ),
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
-                ClassHash(
-                    0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0,
-                ),
+                class_hash!("0x589a40e9cd8784359c066db1adaf6cf0d92322ce579fc0c19739649beae132"),
+                class_hash!("0x3c8904d062171ab62c1f2e52e2b33299c305626a8f8a253a1544a6ad774121b"),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
+                class_hash!("0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x12ed0a68687678217e8e212e851aaaf26f24b745382184bac5b8f83e2089d09,
-                        ),
+                        patricia_key!("0x12ed0a68687678217e8e212e851aaaf26f24b745382184bac5b8f83e2089d09"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1161aad19d349dc80ba5fb3bf52b82512f548b6631d4fc936347426e587f612,
-                        ),
+                        patricia_key!("0x1161aad19d349dc80ba5fb3bf52b82512f548b6631d4fc936347426e587f612"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780165,
-                        ),
+                        patricia_key!("0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780165"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6c876061653ded49c5f4b2be528a17c0b99c707c36010da0dfdf7e86c88ed14,
-                        ),
+                        patricia_key!("0x6c876061653ded49c5f4b2be528a17c0b99c707c36010da0dfdf7e86c88ed14"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x64cc83b312a847fec159095793816da6b9251610ebd55497d7e8fdbe0db5b8c,
-                        ),
+                        patricia_key!("0x64cc83b312a847fec159095793816da6b9251610ebd55497d7e8fdbe0db5b8c"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780166,
-                        ),
+                        patricia_key!("0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780166"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3eaa3e4be55bc8ada64d23f168b178d714a85ad9971bf1d5ff6bd6b703775dc,
-                        ),
+                        patricia_key!("0x3eaa3e4be55bc8ada64d23f168b178d714a85ad9971bf1d5ff6bd6b703775dc"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780164,
-                        ),
+                        patricia_key!("0x67ac2c2c96afe3312ea11413b2fdbf75b345d6f37dc435bc3e3fc2178780164"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5602256700ad140f3346bd762776cec457aaa1a4c6597607818faa0f1086386,
-                        ),
+                        patricia_key!("0x5602256700ad140f3346bd762776cec457aaa1a4c6597607818faa0f1086386"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x64cc83b312a847fec159095793816da6b9251610ebd55497d7e8fdbe0db5b8d,
-                        ),
+                        patricia_key!("0x64cc83b312a847fec159095793816da6b9251610ebd55497d7e8fdbe0db5b8d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4a7ca3168783dab075bc552295fca05ea8d02a2bdeb461946b10187ef4b122d,
-                        ),
+                        patricia_key!("0x4a7ca3168783dab075bc552295fca05ea8d02a2bdeb461946b10187ef4b122d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4a7ca3168783dab075bc552295fca05ea8d02a2bdeb461946b10187ef4b122c,
-                        ),
+                        patricia_key!("0x4a7ca3168783dab075bc552295fca05ea8d02a2bdeb461946b10187ef4b122c"),
                     ),
                 ),
             ]),
@@ -2538,8 +2126,8 @@ mod tests {
                     n_steps: 8108,
                     n_memory_holes: 893,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("pedersen", 3),
-                            ("range_check", 165),
+                        (BuiltinName::pedersen, 3),
+                        (BuiltinName::range_check, 165),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2547,72 +2135,48 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x6551d5af6e4eb4fac2f9fea06948a49a6d12d924e43a63e6034a6a75e749577,
-                ),
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
+                class_hash!("0x6551d5af6e4eb4fac2f9fea06948a49a6d12d924e43a63e6034a6a75e749577"),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x235a4d83b9b27bde6943b4e26301642f73f6fb6e5cda141734b02962b9d7f9d,
-                        ),
+                        patricia_key!("0x235a4d83b9b27bde6943b4e26301642f73f6fb6e5cda141734b02962b9d7f9d"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x291625bbd3d00024377934a31b5cdf6dfcc1e76776985889e17efb47b3ce2f0,
-                        ),
+                        patricia_key!("0x291625bbd3d00024377934a31b5cdf6dfcc1e76776985889e17efb47b3ce2f0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1e44381b0f95a657a83284ece260c1948e6c965da4d357f7fbd6b557342cdc0,
-                        ),
+                        patricia_key!("0x1e44381b0f95a657a83284ece260c1948e6c965da4d357f7fbd6b557342cdc0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x7d42c1838d13fa94d3f00304fe618766ad0ada8e0138966e8161b47a92c7e69,
-                        ),
+                        patricia_key!("0x7d42c1838d13fa94d3f00304fe618766ad0ada8e0138966e8161b47a92c7e69"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x144978e3c7c8da8f54b97b4fa49320e49d8c70be0c35f42ba1e78465949d19c,
-                        ),
+                        patricia_key!("0x144978e3c7c8da8f54b97b4fa49320e49d8c70be0c35f42ba1e78465949d19c"),
                     ),
                 ),
             ]),
@@ -2647,9 +2211,9 @@ mod tests {
                     n_steps: 8068,
                     n_memory_holes: 605,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("poseidon", 10),
-                    ("range_check", 250),
-                    ("pedersen", 1),
+                        (BuiltinName::poseidon, 10),
+                        (BuiltinName::range_check, 250),
+                        (BuiltinName::pedersen, 1),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2657,111 +2221,73 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f,
-                ),
-                ClassHash(
-                    0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0,
-                ),
-                ClassHash(
-                    0x7992c30dd1dc4ce93b44e37e3c48b37635ca31f16c8518e88e15ff5686face,
-                ),
+                class_hash!("0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f"),
+                class_hash!("0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0"),
+                class_hash!("0x7992c30dd1dc4ce93b44e37e3c48b37635ca31f16c8518e88e15ff5686face"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d722f,
-                        ),
+                        patricia_key!("0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d722f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5046041b2f3c48f2f3b7ed44f3d4233fd85427a20ac2dd9e7b23da551e06d2b,
-                        ),
+                        patricia_key!("0x5046041b2f3c48f2f3b7ed44f3d4233fd85427a20ac2dd9e7b23da551e06d2b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6164114d6518ebb3e8846b99c34c706b00f7bb475b3c5b8f67f85d336527162,
-                        ),
+                        patricia_key!("0x6164114d6518ebb3e8846b99c34c706b00f7bb475b3c5b8f67f85d336527162"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7231,
-                        ),
+                        patricia_key!("0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7231"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x1e637c300d7c105df1f620c34f08a99b0757f177f2d9d52a7a6d6a337f5cad6,
-                        ),
+                        patricia_key!("0x1e637c300d7c105df1f620c34f08a99b0757f177f2d9d52a7a6d6a337f5cad6"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x587f8a359f3afbadaac7e3a22b5d00fa5f08794c82353701e04afb0485d8c1,
-                        ),
+                        patricia_key!("0x587f8a359f3afbadaac7e3a22b5d00fa5f08794c82353701e04afb0485d8c1"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x12ed0a68687678217e8e212e851aaaf26f24b745382184bac5b8f83e2089d09,
-                        ),
+                        patricia_key!("0x12ed0a68687678217e8e212e851aaaf26f24b745382184bac5b8f83e2089d09"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7230,
-                        ),
+                        patricia_key!("0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7230"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4,
-                        ),
+                        patricia_key!("0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3117bb5a3b11d2eb8edb4980b76562d25525d1fcfa8f4873c0a2737a8e05ab6,
-                        ),
+                        patricia_key!("0x3117bb5a3b11d2eb8edb4980b76562d25525d1fcfa8f4873c0a2737a8e05ab6"),
                     ),
                 ),
             ]),
@@ -2796,8 +2322,8 @@ mod tests {
                     n_steps: 8414,
                     n_memory_holes: 44,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("pedersen", 4),
-                            ("range_check", 161),
+                        (BuiltinName::pedersen, 4),
+                        (BuiltinName::range_check, 161),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2805,123 +2331,81 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0xd0e183745e9dae3e4e78a8ffedcce0903fc4900beace4e0abf192d4c202da3,
-                ),
-                ClassHash(
-                    0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0,
-                ),
-                ClassHash(
-                    0x4f5bce5f70bb1fcf6573f68205d3e74538c46c14dc47d37bdbde4c1abaf4e1e,
-                ),
+                class_hash!("0xd0e183745e9dae3e4e78a8ffedcce0903fc4900beace4e0abf192d4c202da3"),
+                class_hash!("0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0"),
+                class_hash!("0x4f5bce5f70bb1fcf6573f68205d3e74538c46c14dc47d37bdbde4c1abaf4e1e"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970,
-                        ),
+                        patricia_key!("0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf,
-                        ),
+                        patricia_key!("0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab,
-                        ),
+                        patricia_key!("0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970,
-                        ),
+                        patricia_key!("0x5d2e9527cbeb1a51aa084b0de7501f343b7b1bf24a0c427d6204a7b7988970"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1b9e3d38adfc69623b8d12acf32adfde1319fb40263927c8fc287371bc2d571,
-                        ),
+                        patricia_key!("0x1b9e3d38adfc69623b8d12acf32adfde1319fb40263927c8fc287371bc2d571"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a,
-                        ),
+                        patricia_key!("0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7,
-                        ),
+                        patricia_key!("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1b9e3d38adfc69623b8d12acf32adfde1319fb40263927c8fc287371bc2d570,
-                        ),
+                        patricia_key!("0x1b9e3d38adfc69623b8d12acf32adfde1319fb40263927c8fc287371bc2d570"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82,
-                        ),
+                        patricia_key!("0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1dc79e2fd056704ede52dca5746b720269aaa5da53301dff546657c16ca07af,
-                        ),
+                        patricia_key!("0x1dc79e2fd056704ede52dca5746b720269aaa5da53301dff546657c16ca07af"),
                     ),
                 ),
             ]),
@@ -2956,9 +2440,9 @@ mod tests {
                     n_steps: 63180,
                     n_memory_holes: 8239,
                     builtin_instance_counter: HashMap::from_iter([
-                        ("bitwise", 84),
-                    ("pedersen", 79),
-                        ("range_check", 4897),
+                        (BuiltinName::bitwise, 84),
+                        (BuiltinName::pedersen, 79),
+                        (BuiltinName::range_check, 4897),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -2966,381 +2450,251 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x5fdb47de4edfd5983f6a82a1beeb1aab2b69d3674b90730aa1693d94d73f0d3,
-                ),
-                ClassHash(
-                    0x27067191f94e301b528b1624e7998d51606412522aab9621fb2c1899b983eeb,
-                ),
-                ClassHash(
-                    0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b,
-                ),
-                ClassHash(
-                    0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be,
-                ),
-                ClassHash(
-                    0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b,
-                ),
+                class_hash!("0x5fdb47de4edfd5983f6a82a1beeb1aab2b69d3674b90730aa1693d94d73f0d3"),
+                class_hash!("0x27067191f94e301b528b1624e7998d51606412522aab9621fb2c1899b983eeb"),
+                class_hash!("0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+                class_hash!("0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be"),
+                class_hash!("0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed7,
-                        ),
+                        patricia_key!("0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed7"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901,
-                        ),
+                        patricia_key!("0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e,
-                        ),
+                        patricia_key!("0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3251cfd36c995a7f163e76498e247f8b2d61aeda83a746bd61d4e7da5fe5699,
-                        ),
+                        patricia_key!("0x3251cfd36c995a7f163e76498e247f8b2d61aeda83a746bd61d4e7da5fe5699"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x100000001,
-                        ),
+                        patricia_key!("0x100000001"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc,
-                        ),
+                        patricia_key!("0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f5,
-                        ),
+                        patricia_key!("0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f5"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369,
-                        ),
+                        patricia_key!("0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba3,
-                        ),
+                        patricia_key!("0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba3"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007236,
-                        ),
+                        patricia_key!("0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007236"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3110bae189a1cca17a6da4ee778f0076e1ea99cefa11a9b532fe7c064deb948,
-                        ),
+                        patricia_key!("0x3110bae189a1cca17a6da4ee778f0076e1ea99cefa11a9b532fe7c064deb948"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d44,
-                        ),
+                        patricia_key!("0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d44"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f,
-                        ),
+                        patricia_key!("0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed6,
-                        ),
+                        patricia_key!("0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed6"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1,
-                        ),
+                        patricia_key!("0x1"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x0,
-                        ),
+                        patricia_key!("0x0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba4,
-                        ),
+                        patricia_key!("0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba4"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4428af60ea017cd8ac5a041f3777f8b2d7450f8474e471bcbae608cca7975ae,
-                        ),
+                        patricia_key!("0x4428af60ea017cd8ac5a041f3777f8b2d7450f8474e471bcbae608cca7975ae"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x356fd6aa989033f329e6a5aceb143ba7d0667fd7f74fbbf9457080dd9352c0b,
-                        ),
+                        patricia_key!("0x356fd6aa989033f329e6a5aceb143ba7d0667fd7f74fbbf9457080dd9352c0b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc,
-                        ),
+                        patricia_key!("0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8,
-                        ),
+                        patricia_key!("0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x73ffd08441115d89e71906f927d21e18c97a612c56116b40280b8ee6ae5e1f6,
-                        ),
+                        patricia_key!("0x73ffd08441115d89e71906f927d21e18c97a612c56116b40280b8ee6ae5e1f6"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x100000000,
-                        ),
+                        patricia_key!("0x100000000"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007235,
-                        ),
+                        patricia_key!("0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007235"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6aff514d3c14935bb84bfc2f5e443daa68c6b9af02150bce2904dc5cee89fb4,
-                        ),
+                        patricia_key!("0x6aff514d3c14935bb84bfc2f5e443daa68c6b9af02150bce2904dc5cee89fb4"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc,
-                        ),
+                        patricia_key!("0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f4,
-                        ),
+                        patricia_key!("0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f4"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
-                        ),
+                        patricia_key!("0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a,
-                        ),
+                        patricia_key!("0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f,
-                        ),
+                        patricia_key!("0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066,
-                        ),
+                        patricia_key!("0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8,
-                        ),
+                        patricia_key!("0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6267108c93bc853ce42efb890b0793116c50e5a98b13e024640da0d272115a8,
-                        ),
+                        patricia_key!("0x6267108c93bc853ce42efb890b0793116c50e5a98b13e024640da0d272115a8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d43,
-                        ),
+                        patricia_key!("0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d43"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b,
-                        ),
+                        patricia_key!("0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7,
-                        ),
+                        patricia_key!("0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7"),
                     ),
                 ),
             ]),
@@ -3375,8 +2729,8 @@ mod tests {
                     n_steps: 3730,
                     n_memory_holes: 100,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("range_check", 78),
-                            ("pedersen", 3),
+                        (BuiltinName::range_check, 78),
+                        (BuiltinName::pedersen, 3),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -3384,108 +2738,72 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x6551d5af6e4eb4fac2f9fea06948a49a6d12d924e43a63e6034a6a75e749577,
-                ),
-                ClassHash(
-                    0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253,
-                ),
+                class_hash!("0x6551d5af6e4eb4fac2f9fea06948a49a6d12d924e43a63e6034a6a75e749577"),
+                class_hash!("0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x401109fe98501f72c01ea79ad5b48c227ec2706d706723cfec3fa5d4ba54c90,
-                        ),
+                        patricia_key!("0x401109fe98501f72c01ea79ad5b48c227ec2706d706723cfec3fa5d4ba54c90"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x291625bbd3d00024377934a31b5cdf6dfcc1e76776985889e17efb47b3ce2f0,
-                        ),
+                        patricia_key!("0x291625bbd3d00024377934a31b5cdf6dfcc1e76776985889e17efb47b3ce2f0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x144978e3c7c8da8f54b97b4fa49320e49d8c70be0c35f42ba1e78465949d19c,
-                        ),
+                        patricia_key!("0x144978e3c7c8da8f54b97b4fa49320e49d8c70be0c35f42ba1e78465949d19c"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xce305af75e878121f5691150fdd386dff5af073f7e56f4882f62e02bb05a45,
-                        ),
+                        patricia_key!("0xce305af75e878121f5691150fdd386dff5af073f7e56f4882f62e02bb05a45"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76,
-                        ),
+                        patricia_key!("0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xce305af75e878121f5691150fdd386dff5af073f7e56f4882f62e02bb05a45,
-                        ),
+                        patricia_key!("0xce305af75e878121f5691150fdd386dff5af073f7e56f4882f62e02bb05a45"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463,
-                        ),
+                        patricia_key!("0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1e44381b0f95a657a83284ece260c1948e6c965da4d357f7fbd6b557342cdc0,
-                        ),
+                        patricia_key!("0x1e44381b0f95a657a83284ece260c1948e6c965da4d357f7fbd6b557342cdc0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3db6ec55ed007baefa72e1ff639054f691cb3009b778edb59a37aa04690682c,
-                        ),
+                        patricia_key!("0x3db6ec55ed007baefa72e1ff639054f691cb3009b778edb59a37aa04690682c"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11,
-                        ),
+                        patricia_key!("0x6182278e63816ff4080ed07d668f991df6773fd13db0ea10971096033411b11"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x235a4d83b9b27bde6943b4e26301642f73f6fb6e5cda141734b02962b9d7f9d,
-                        ),
+                        patricia_key!("0x235a4d83b9b27bde6943b4e26301642f73f6fb6e5cda141734b02962b9d7f9d"),
                     ),
                 ),
             ]),
@@ -3520,8 +2838,8 @@ mod tests {
                     n_steps: 60919,
                     n_memory_holes: 975,
                     builtin_instance_counter: HashMap::from_iter([
-                    ("range_check", 1715),
-                            ("pedersen", 43),
+                        (BuiltinName::range_check, 1715),
+                        (BuiltinName::pedersen, 43),
                     ]),
                 },
                 gas_for_fee: GasAmount(
@@ -3529,541 +2847,351 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x5ad7636491f8a6b210c137e6191bc12daf31171b6c6e670fe1387697810403a,
-                ),
-                ClassHash(
-                    0xdb2ed00ec7872d4d093f3acb479d7ef2b56bcc7fc793707c1fb04ec66c6b10,
-                ),
-                ClassHash(
-                    0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003,
-                ),
-                ClassHash(
-                    0x26fe8ea36ec7703569cfe4693b05102940bf122647c4dbf0abc0bb919ce27bd,
-                ),
-                ClassHash(
-                    0x4c2a0ab0698957bd725745ff6dfdda0e874ade8681770fe8990016a6fa9cf04,
-                ),
-                ClassHash(
-                    0x2b39bc3f4c1fd5bef8b7d21504c44e0da59cf27b350551b13d913da52e40d3b,
-                ),
-                ClassHash(
-                    0x2580632f25bbee45da5a1a1ef49d03a984f78dde4019069aa9f25aac06f941a,
-                ),
-                ClassHash(
-                    0x7b5cd6a6949cc1730f89d795f2442f6ab431ea6c9a5be00685d50f97433c5eb,
-                ),
-                ClassHash(
-                    0x52c7ba99c77fc38dd3346beea6c0753c3471f2e3135af5bb837d6c9523fff62,
-                ),
-                ClassHash(
-                    0x7197021c108b0cc57ae354f5ad02222c4b3d7344664e6dd602a0e2298595434,
-                ),
-                ClassHash(
-                    0x64e7d628b1b2aa04a35fe6610b005689e8b591058f7f92bf4eb234e67cf403b,
-                ),
-                ClassHash(
-                    0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0,
-                ),
+                class_hash!("0x5ad7636491f8a6b210c137e6191bc12daf31171b6c6e670fe1387697810403a"),
+                class_hash!("0xdb2ed00ec7872d4d093f3acb479d7ef2b56bcc7fc793707c1fb04ec66c6b10"),
+                class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003"),
+                class_hash!("0x26fe8ea36ec7703569cfe4693b05102940bf122647c4dbf0abc0bb919ce27bd"),
+                class_hash!("0x4c2a0ab0698957bd725745ff6dfdda0e874ade8681770fe8990016a6fa9cf04"),
+                class_hash!("0x2b39bc3f4c1fd5bef8b7d21504c44e0da59cf27b350551b13d913da52e40d3b"),
+                class_hash!("0x2580632f25bbee45da5a1a1ef49d03a984f78dde4019069aa9f25aac06f941a"),
+                class_hash!("0x7b5cd6a6949cc1730f89d795f2442f6ab431ea6c9a5be00685d50f97433c5eb"),
+                class_hash!("0x52c7ba99c77fc38dd3346beea6c0753c3471f2e3135af5bb837d6c9523fff62"),
+                class_hash!("0x7197021c108b0cc57ae354f5ad02222c4b3d7344664e6dd602a0e2298595434"),
+                class_hash!("0x64e7d628b1b2aa04a35fe6610b005689e8b591058f7f92bf4eb234e67cf403b"),
+                class_hash!("0x2760f25d5a4fb2bdde5f561fd0b44a3dee78c28903577d37d669939d97036a0"),
             ]),
             visited_storage_entries: HashSet::from_iter([
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xdad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd,
-                        ),
+                        patricia_key!("0xdad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0,
-                        ),
+                        patricia_key!("0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3b3a699bb6ef37ff4b9c4e14319c7d8e9c9bdd10ff402d1ebde18c62ae58382,
-                        ),
+                        patricia_key!("0x3b3a699bb6ef37ff4b9c4e14319c7d8e9c9bdd10ff402d1ebde18c62ae58382"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa4f,
-                        ),
+                        patricia_key!("0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa4f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1c76cd4f3f79786d9e5d1298f47170de4bf0222337c680c5377ec772d3ce96b,
-                        ),
+                        patricia_key!("0x1c76cd4f3f79786d9e5d1298f47170de4bf0222337c680c5377ec772d3ce96b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3351bce4793f90e4aa00447357c2d34ac08611756193d8249009e0396dd7b41,
-                        ),
+                        patricia_key!("0x3351bce4793f90e4aa00447357c2d34ac08611756193d8249009e0396dd7b41"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x34fea4b03b28c51f5bea6524bf41d06209d8306dc2376d4d730b14fea79ec8c,
-                        ),
+                        patricia_key!("0x34fea4b03b28c51f5bea6524bf41d06209d8306dc2376d4d730b14fea79ec8c"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1c76cd4f3f79786d9e5d1298f47170de4bf0222337c680c5377ec772d3ce96b,
-                        ),
+                        patricia_key!("0x1c76cd4f3f79786d9e5d1298f47170de4bf0222337c680c5377ec772d3ce96b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ad,
-                        ),
+                        patricia_key!("0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ad"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ac,
-                        ),
+                        patricia_key!("0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ac"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3b3a699bb6ef37ff4b9c4e14319c7d8e9c9bdd10ff402d1ebde18c62ae58381,
-                        ),
+                        patricia_key!("0x3b3a699bb6ef37ff4b9c4e14319c7d8e9c9bdd10ff402d1ebde18c62ae58381"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa50,
-                        ),
+                        patricia_key!("0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa50"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x7dd6927869f0f6501f10407d6de416a90d2272af189f8b24d12acc09c2df5e6,
-                        ),
+                        patricia_key!("0x7dd6927869f0f6501f10407d6de416a90d2272af189f8b24d12acc09c2df5e6"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xdad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd,
-                        ),
+                        patricia_key!("0xdad44c139a476c7a17fc8141e6db680e9abc9f56fe249a105094c44382c2fd"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5c722fd91dec49f67eb170afb8e7e54ebe6f35b6b7f4fec3fdd0bad96606126,
-                        ),
+                        patricia_key!("0x5c722fd91dec49f67eb170afb8e7e54ebe6f35b6b7f4fec3fdd0bad96606126"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa4f,
-                        ),
+                        patricia_key!("0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa4f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d9,
-                        ),
+                        patricia_key!("0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d9"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a,
-                        ),
+                        patricia_key!("0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x119407278bb67ccb5306f7b08343c96f7b6933a06f3173067d21e98725a2b59,
-                        ),
+                        patricia_key!("0x119407278bb67ccb5306f7b08343c96f7b6933a06f3173067d21e98725a2b59"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d8,
-                        ),
+                        patricia_key!("0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023,
-                        ),
+                        patricia_key!("0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x139825585c3389ee852d93d2706b57d5bf8d4ba85922ef0689a691627211b05,
-                        ),
+                        patricia_key!("0x139825585c3389ee852d93d2706b57d5bf8d4ba85922ef0689a691627211b05"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2ec31623436b0fbcbbd71b2b3eed2887c8156077098a52a9256a9e0edb833f,
-                        ),
+                        patricia_key!("0x2ec31623436b0fbcbbd71b2b3eed2887c8156077098a52a9256a9e0edb833f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ac,
-                        ),
+                        patricia_key!("0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ac"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1e6f3e4333da349f86a03f030be7f2c76d8266a97c625746ebb9d3220a39d87,
-                        ),
+                        patricia_key!("0x1e6f3e4333da349f86a03f030be7f2c76d8266a97c625746ebb9d3220a39d87"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x57c60b189063035eed65879a14ad5f6e718027a212dafbe52f9bcd79e9f4fb,
-                        ),
+                        patricia_key!("0x57c60b189063035eed65879a14ad5f6e718027a212dafbe52f9bcd79e9f4fb"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa50,
-                        ),
+                        patricia_key!("0x6f4db3b80b3f05685fbb3cbcb6dc5a676c638925269901e02993ca6c121fa50"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a,
-                        ),
+                        patricia_key!("0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2ded64caa8ae4aba3291cc1f172d4b8fda206d4d1b5660c7565e7461c727929,
-                        ),
+                        patricia_key!("0x2ded64caa8ae4aba3291cc1f172d4b8fda206d4d1b5660c7565e7461c727929"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x12f8e318fe04a1fe8bffe005ea4bbd19cb77a656b4f42682aab8a0ed20702f0,
-                        ),
+                        patricia_key!("0x12f8e318fe04a1fe8bffe005ea4bbd19cb77a656b4f42682aab8a0ed20702f0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d6c55cbfbeaef29110e02a1f4a1228488feec6f59b3f2f77d24245272e799a,
-                        ),
+                        patricia_key!("0x5d6c55cbfbeaef29110e02a1f4a1228488feec6f59b3f2f77d24245272e799a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x18d7b079b471cfde70d671fc55b3c06d4363cdc22201c09924822902a33e01a,
-                        ),
+                        patricia_key!("0x18d7b079b471cfde70d671fc55b3c06d4363cdc22201c09924822902a33e01a"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d9,
-                        ),
+                        patricia_key!("0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d9"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023,
-                        ),
+                        patricia_key!("0x41fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0,
-                        ),
+                        patricia_key!("0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x18d7b079b471cfde70d671fc55b3c06d4363cdc22201c09924822902a33e019,
-                        ),
+                        patricia_key!("0x18d7b079b471cfde70d671fc55b3c06d4363cdc22201c09924822902a33e019"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x57c60b189063035eed65879a14ad5f6e718027a212dafbe52f9bcd79e9f4fa,
-                        ),
+                        patricia_key!("0x57c60b189063035eed65879a14ad5f6e718027a212dafbe52f9bcd79e9f4fa"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3ad6945aa849b77ba309199d76ea4555be65368391ba450fab8ea6248431ea0,
-                        ),
+                        patricia_key!("0x3ad6945aa849b77ba309199d76ea4555be65368391ba450fab8ea6248431ea0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a,
-                        ),
+                        patricia_key!("0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x1f7cb1620ff9ec226d1c4c618ea516ebdd5a65005c2f457158cdd0d4d77ab4b,
-                        ),
+                        patricia_key!("0x1f7cb1620ff9ec226d1c4c618ea516ebdd5a65005c2f457158cdd0d4d77ab4b"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2ec31623436b0fbcbbd71b2b3eed2887c8156077098a52a9256a9e0edb8340,
-                        ),
+                        patricia_key!("0x2ec31623436b0fbcbbd71b2b3eed2887c8156077098a52a9256a9e0edb8340"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8,
-                        ),
+                        patricia_key!("0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d8,
-                        ),
+                        patricia_key!("0x5a7a0269b464f3a77a50c4de3ef3ba7e2c253c514f440ef75786d28d59007d8"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0,
-                        ),
+                        patricia_key!("0x3f1abe37754ee6ca6d8dfa1036089f78a07ebe8f3b1e336cdbf3274d25becd0"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x37d931bc5c74214b7c669bc431e9dc2c39cba57516e0ab3c5a7ceb2d1c9e5c1,
-                        ),
+                        patricia_key!("0x37d931bc5c74214b7c669bc431e9dc2c39cba57516e0ab3c5a7ceb2d1c9e5c1"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x3ad6945aa849b77ba309199d76ea4555be65368391ba450fab8ea6248431e9f,
-                        ),
+                        patricia_key!("0x3ad6945aa849b77ba309199d76ea4555be65368391ba450fab8ea6248431e9f"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x35bfc9b032421f93a52912870bbb09af6c896d21d00165845f0c04715df1468,
-                        ),
+                        patricia_key!("0x35bfc9b032421f93a52912870bbb09af6c896d21d00165845f0c04715df1468"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x7dd6927869f0f6501f10407d6de416a90d2272af189f8b24d12acc09c2df5e5,
-                        ),
+                        patricia_key!("0x7dd6927869f0f6501f10407d6de416a90d2272af189f8b24d12acc09c2df5e5"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8,
-                        ),
+                        patricia_key!("0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ad,
-                        ),
+                        patricia_key!("0x2f91121a0e63b29dc1d6a4afc3a3963209345391a124869e657665e749659ad"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a,
-                        ),
+                        patricia_key!("0xf6f4cf62e3c010e0ac2451cc7807b5eec19a40b0faacd00cca3914280fdf5a"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x26be8966924075afd93cd2a84013cca637468173cc02904002dc3d0caf30b61,
-                        ),
+                        patricia_key!("0x26be8966924075afd93cd2a84013cca637468173cc02904002dc3d0caf30b61"),
                     ),
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b,
-                        ),
+                        patricia_key!("0x5801bdad32f343035fb242e98d1e9371ae85bc1543962fedea16c59b35bd19b"),
                     ),
                     StorageKey(
                         patricia_key!(
@@ -4073,14 +3201,10 @@ mod tests {
                 ),
                 (
                     ContractAddress(
-                        PatriciaKey(
-                            0x12f8e318fe04a1fe8bffe005ea4bbd19cb77a656b4f42682aab8a0ed20702f0,
-                        ),
+                        patricia_key!("0x12f8e318fe04a1fe8bffe005ea4bbd19cb77a656b4f42682aab8a0ed20702f0"),
                     ),
                     StorageKey(
-                        PatriciaKey(
-                            0x5d6c55cbfbeaef29110e02a1f4a1228488feec6f59b3f2f77d24245272e7999,
-                        ),
+                        patricia_key!("0x5d6c55cbfbeaef29110e02a1f4a1228488feec6f59b3f2f77d24245272e7999"),
                     ),
                 ),
             ]),
@@ -4121,9 +3245,7 @@ mod tests {
                 ),
             },
             executed_class_hashes: HashSet::from_iter([
-                ClassHash(
-                    0x33478650b3b71be225cbad55fda8a590022eea17be3212d0ccbf3d364b1e448,
-                ),
+                class_hash!("0x33478650b3b71be225cbad55fda8a590022eea17be3212d0ccbf3d364b1e448"),
             ]),
             visited_storage_entries: HashSet::new(),
             l2_to_l1_payload_lengths: vec![],
@@ -4147,9 +3269,8 @@ mod tests {
         starknet_chg: StateChangesCount,
         is_reverted: bool,
         n_allocated_keys: usize,
-        execution_summary: ExecutionSummary
+        execution_summary: ExecutionSummary,
     ) {
-        HashSet::from(value);
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
         let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
@@ -4166,7 +3287,7 @@ mod tests {
             code_size,
             state_resources,
             l1_handler_payload_size,
-            execution_summary
+            execution_summary,
         );
         assert_eq!(is_reverted, tx_info.revert_error.is_some());
         assert_eq!(da_gas, tx_info.receipt.da_gas);
@@ -4192,7 +3313,6 @@ mod tests {
     /// time, helping to uncover any possible concurrency bug that we may have
     fn test_concurrency(tx_hash: &str, block_number: u64, chain: RpcChain) {
         let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(block_number - 1));
-
         let context = fetch_block_context(&reader);
         let tx_hash = TransactionHash(felt!(tx_hash));
         let tx = reader.get_transaction(&tx_hash).unwrap();
