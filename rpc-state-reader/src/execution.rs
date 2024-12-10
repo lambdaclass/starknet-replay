@@ -826,7 +826,7 @@ mod tests {
                     n_steps: 3457,
                     n_memory_holes: 26,
                     builtin_instance_counter: HashMap::from_iter([
-                    (BuiltinName::pedersen, 4),
+                        (BuiltinName::pedersen, 4),
                         (BuiltinName::range_check, 74),
                     ]),
                 },
@@ -932,7 +932,7 @@ mod tests {
                     n_steps: 3938,
                     n_memory_holes: 63,
                     builtin_instance_counter: HashMap::from_iter([
-                    (BuiltinName::pedersen, 4),
+                        (BuiltinName::pedersen, 4),
                         (BuiltinName::range_check, 76),
                     ]),
                 },
@@ -1113,7 +1113,7 @@ mod tests {
                     n_memory_holes: 1809,
                     builtin_instance_counter: HashMap::from_iter([
                         (BuiltinName::pedersen, 39),
-                            (BuiltinName::range_check, 1435),
+                        (BuiltinName::range_check, 1435),
                         (BuiltinName::segment_arena, 2),
                     ]),
                 },
@@ -1429,7 +1429,7 @@ mod tests {
                     n_memory_holes: 222,
                     builtin_instance_counter: HashMap::from_iter([
                         (BuiltinName::range_check, 272),
-                            (BuiltinName::pedersen, 26),
+                        (BuiltinName::pedersen, 26),
                         (BuiltinName::poseidon, 1)
                     ]),
                 },
