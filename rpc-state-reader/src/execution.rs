@@ -20,8 +20,8 @@ use blockifier_reexecution::state_reader::compile::{
 };
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    class_hash,
     block::{BlockInfo, BlockNumber},
+    class_hash,
     contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     felt,
@@ -353,17 +353,26 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::{HashMap, HashSet}, thread};
+    use std::{
+        collections::{HashMap, HashSet},
+        thread,
+    };
 
     use blockifier::{
         execution::call_info::{CallInfo, ChargedResources, EventSummary, ExecutionSummary},
         fee::resources::{StarknetResources, StateResources},
         state::cached_state::StateChangesCount,
     };
-    use cairo_vm::{types::builtin_name::BuiltinName, vm::runners::cairo_runner::ExecutionResources};
+    use cairo_vm::{
+        types::builtin_name::BuiltinName, vm::runners::cairo_runner::ExecutionResources,
+    };
     use pretty_assertions_sorted::assert_eq_sorted;
     use starknet_api::{
-        block::BlockNumber, class_hash, core::ClassHash, execution_resources::{GasAmount, GasVector}, state::StorageKey
+        block::BlockNumber,
+        class_hash,
+        core::ClassHash,
+        execution_resources::{GasAmount, GasVector},
+        state::StorageKey,
     };
     use test_case::test_case;
 
