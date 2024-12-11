@@ -369,7 +369,6 @@ mod tests {
     use starknet_api::{
         block::BlockNumber,
         class_hash,
-        core::ClassHash,
         execution_resources::{GasAmount, GasVector},
         state::StorageKey,
     };
@@ -3282,12 +3281,6 @@ mod tests {
         let previous_block = BlockNumber(block_number - 1);
         let (tx_info, _, _) = execute_tx(hash, chain, previous_block);
         let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
-        let versioned_constants =
-            VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
-                validate_max_n_steps: u32::MAX,
-                invoke_tx_max_n_steps: u32::MAX,
-                max_recursion_depth: usize::MAX,
-            });
         let state_resources = StateResources::new_for_testing(starknet_chg, n_allocated_keys);
         let starknet_rsc = StarknetResources::new(
             calldata_length,
