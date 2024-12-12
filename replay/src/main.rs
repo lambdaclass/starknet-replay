@@ -1,6 +1,3 @@
-use std::thread;
-use std::time::Duration;
-
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::errors::StateError;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -17,7 +14,12 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
 use {
-    crate::benchmark::{execute_block_range, fetch_block_range_data, fetch_transaction_data},
+    crate::benchmark::{
+        execute_block_range, fetch_block_range_data, fetch_transaction_data, save_executions,
+    },
+    std::path::PathBuf,
+    std::thread,
+    std::time::Duration,
     std::{ops::Div, time::Instant},
 };
 
@@ -68,6 +70,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_end: u64,
         chain: String,
         number_of_runs: usize,
+        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
+        output: PathBuf,
     },
     #[cfg(feature = "benchmark")]
     #[clap(about = "Measures the time it takes to run a single transaction.
@@ -78,6 +82,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         chain: String,
         block: u64,
         number_of_runs: usize,
+        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
+        output: PathBuf,
     },
 }
 
@@ -150,6 +156,7 @@ fn main() {
             block_end,
             chain,
             number_of_runs,
+            output,
         } => {
             let block_start = BlockNumber(block_start);
             let block_end = BlockNumber(block_end);
@@ -174,15 +181,27 @@ fn main() {
                 block_range_data
             };
 
+            // We pause the main thread to differentiate
+            // caching from benchmarking from within a profiler
+            #[cfg(feature = "profiling")]
+            thread::sleep(Duration::from_secs(1));
+
             {
                 let _benchmark_span = info_span!("benchmarking block range").entered();
+
+                let mut executions = Vec::new();
+
+                info!("executing block range");
                 let before_execution = Instant::now();
-
                 for _ in 0..number_of_runs {
-                    execute_block_range(&mut block_range_data);
+                    executions.push(execute_block_range(&mut block_range_data));
                 }
-
                 let execution_time = before_execution.elapsed();
+
+                info!("saving execution info");
+                let execution = executions.into_iter().flatten().collect::<Vec<_>>();
+                save_executions(&output, execution).expect("failed to save execution info");
+
                 let total_run_time = execution_time.as_secs_f64();
                 let average_run_time = total_run_time.div(number_of_runs as f64);
                 info!(
@@ -201,6 +220,7 @@ fn main() {
             block,
             chain,
             number_of_runs,
+            output,
         } => {
             let chain = parse_network(&chain);
             let block = BlockNumber(block);
@@ -229,17 +249,25 @@ fn main() {
 
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
+            #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
             {
                 let _benchmark_span = info_span!("benchmarking transaction").entered();
+
+                let mut executions = Vec::new();
+
+                info!("executing block range");
                 let before_execution = Instant::now();
-
                 for _ in 0..number_of_runs {
-                    execute_block_range(&mut block_range_data);
+                    executions.push(execute_block_range(&mut block_range_data));
                 }
-
                 let execution_time = before_execution.elapsed();
+
+                info!("saving execution info");
+                let execution = executions.into_iter().flatten().collect::<Vec<_>>();
+                save_executions(&output, execution).expect("failed to save execution info");
+
                 let total_run_time = execution_time.as_secs_f64();
                 let average_run_time = total_run_time.div(number_of_runs as f64);
                 info!(
