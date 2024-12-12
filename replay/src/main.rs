@@ -183,6 +183,7 @@ fn main() {
 
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
+            #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
             {
@@ -248,7 +249,7 @@ fn main() {
 
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
-            #[cfg(profiling)]
+            #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
             {
