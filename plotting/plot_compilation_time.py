@@ -18,7 +18,7 @@ def canonicalize_compilation_time(event):
     compilation_span = find_span(event, "contract compilation")
     if compilation_span is None:
         return None
-    
+
     return {
         "class hash": compilation_span["class_hash"],
         "time": float(event["fields"]["time"]),
