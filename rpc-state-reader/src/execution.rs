@@ -82,7 +82,7 @@ pub fn execute_tx(
     );
 
     let exec_flags = ExecutionFlags {
-        charge_fee: true,
+        charge_fee: false,
         only_query: false,
         validate: true,
     };
@@ -258,7 +258,7 @@ pub fn execute_tx_with_blockifier(
     transaction_hash: TransactionHash,
 ) -> TransactionExecutionResult<TransactionExecutionInfo> {
     let exec_flags = ExecutionFlags {
-        charge_fee: true,
+        charge_fee: false,
         only_query: false,
         validate: true,
     };
