@@ -12,7 +12,7 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = "0.2.4"
+cairo-native = "0.2.5-rc1"
 # Sequencer Dependencies
 starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "2ad9ecad71bd71304b80c36992f41568c82313ad" } # replay
 blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "2ad9ecad71bd71304b80c36992f41568c82313ad", features = ["cairo_native"] } # replay
