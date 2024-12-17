@@ -22,7 +22,7 @@ jobs:
       CAIRO_NATIVE_RUNTIME_LIBRARY: libcairo_native_runtime.a
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.82.0
+      - uses: dtolnay/rust-toolchain@1.83.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.82.0
+      - uses: dtolnay/rust-toolchain@1.83.0
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
@@ -137,7 +137,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           df -h
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.82.0
+        uses: dtolnay/rust-toolchain@1.83.0
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Add LLVM Debian repository
@@ -178,7 +178,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.82.0
+        uses: dtolnay/rust-toolchain@1.83.0
       - name: Rust `$PATH` workaround.
         run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - uses: Homebrew/actions/setup-homebrew@master
