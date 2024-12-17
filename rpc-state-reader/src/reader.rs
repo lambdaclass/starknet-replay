@@ -223,7 +223,7 @@ impl RpcStateReader {
     }
 
     pub fn get_class_info(&self, class_hash: &ClassHash) -> anyhow::Result<ClassInfo> {
-        match self.get_contract_class(&class_hash)? {
+        match self.get_contract_class(class_hash)? {
             SNContractClass::Sierra(sierra) => {
                 let abi_length = sierra.abi.len();
                 let sierra_length = sierra.sierra_program.len();
