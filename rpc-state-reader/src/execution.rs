@@ -1,27 +1,23 @@
 use crate::{
     objects::{RpcTransactionReceipt, RpcTransactionTrace},
-    reader::{RpcChain, RpcStateReader},
+    reader::{PairRpcStateReader, RpcChain, RpcStateReader},
 };
+use anyhow::Context;
 use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     state::{cached_state::CachedState, state_api::StateReader},
     test_utils::MAX_FEE,
-    transaction::account_transaction::ExecutionFlags,
     transaction::{
+        account_transaction::ExecutionFlags,
         objects::{TransactionExecutionInfo, TransactionExecutionResult},
         transaction_execution::Transaction as BlockiTransaction,
         transactions::ExecutableTransaction,
     },
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
-use blockifier_reexecution::state_reader::compile::{
-    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
-};
-use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber},
-    contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     felt,
     hash::StarkHash,
@@ -92,19 +88,19 @@ pub fn execute_tx(
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
             BlockiTransaction::from_api(tx, tx_hash, None, None, None, exec_flags).unwrap()
         }
-        SNTransaction::Declare(ref declare_tx) => {
-            let block_number = block_context.block_info().block_number;
-            let network = parse_to_rpc_chain(&block_context.chain_info().chain_id.to_string());
-            // we need to retrieve the next block in order to get the contract_class
-            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader
-                .get_contract_class(&declare_tx.class_hash())
-                .unwrap();
-            let class_info = calculate_class_info_for_testing(contract_class);
+        // SNTransaction::Declare(ref declare_tx) => {
+        //     let block_number = block_context.block_info().block_number;
+        //     let network = parse_to_rpc_chain(&block_context.chain_info().chain_id.to_string());
+        //     // we need to retrieve the next block in order to get the contract_class
+        //     let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+        //     let contract_class = next_reader
+        //         .get_contract_class(&declare_tx.class_hash())
+        //         .unwrap();
+        //     let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
-                .unwrap()
-        }
+        //     BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
+        //         .unwrap()
+        // }
         SNTransaction::L1Handler(_) => {
             BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, exec_flags).unwrap()
         }
@@ -116,34 +112,6 @@ pub fn execute_tx(
         trace,
         receipt,
     )
-}
-
-fn calculate_class_info_for_testing(contract_class: SNContractClass) -> ClassInfo {
-    match contract_class {
-        SNContractClass::Sierra(s) => {
-            let abi = s.abi.len();
-            let program_length = s.sierra_program.len();
-            let sierra_version = SierraVersion::extract_from_program(&s.sierra_program).unwrap();
-            ClassInfo::new(
-                &sierra_to_contact_class_v1(s).unwrap(),
-                program_length,
-                abi,
-                sierra_version,
-            )
-            .unwrap()
-        }
-        SNContractClass::Legacy(l) => {
-            let abi = l.abi.clone().unwrap().len();
-
-            ClassInfo::new(
-                &legacy_to_contract_class_v0(l).unwrap(),
-                0,
-                abi,
-                SierraVersion::DEPRECATED,
-            )
-            .unwrap()
-        }
-    }
 }
 
 pub fn execute_tx_configurable_with_state(
@@ -201,19 +169,19 @@ pub fn execute_tx_configurable_with_state(
         SNTransaction::Invoke(_) | SNTransaction::DeployAccount(_) => {
             BlockiTransaction::from_api(tx, tx_hash, None, None, None, exec_flags).unwrap()
         }
-        SNTransaction::Declare(ref declare_tx) => {
-            let block_number = block_context.block_info().block_number;
-            let network = parse_to_rpc_chain(&chain_id.to_string());
-            // we need to retrieve the next block in order to get the contract_class
-            let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
-            let contract_class = next_reader
-                .get_contract_class(&declare_tx.class_hash())
-                .unwrap();
-            let class_info = calculate_class_info_for_testing(contract_class);
+        // SNTransaction::Declare(ref declare_tx) => {
+        //     let block_number = block_context.block_info().block_number;
+        //     let network = parse_to_rpc_chain(&chain_id.to_string());
+        //     // we need to retrieve the next block in order to get the contract_class
+        //     let next_reader = RpcStateReader::new(network, block_number.next().unwrap());
+        //     let contract_class = next_reader
+        //         .get_contract_class(&declare_tx.class_hash())
+        //         .unwrap();
+        //     let class_info = calculate_class_info_for_testing(contract_class);
 
-            BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
-                .unwrap()
-        }
+        //     BlockiTransaction::from_api(tx, tx_hash, Some(class_info), None, None, exec_flags)
+        //         .unwrap()
+        // }
         SNTransaction::L1Handler(_) => {
             BlockiTransaction::from_api(tx, tx_hash, None, Some(MAX_FEE), None, exec_flags).unwrap()
         }
@@ -307,17 +275,8 @@ pub fn execute_tx_with_blockifier(
     account_transaction.execute(state, &context)
 }
 
-fn parse_to_rpc_chain(network: &str) -> RpcChain {
-    match network {
-        "alpha-mainnet" => RpcChain::MainNet,
-        "alpha4" => RpcChain::TestNet,
-        "alpha4-2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name {}", network),
-    }
-}
-
-pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
-    let block_info = reader.get_block_info().unwrap();
+pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockContext> {
+    let block_info = reader.get_block_info()?;
     let mut versioned_constants =
         VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
             validate_max_n_steps: u32::MAX,
@@ -327,19 +286,15 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
     versioned_constants.disable_cairo0_redeclaration = false;
 
     let fee_token_addresses = FeeTokenAddresses {
-        strk_fee_token_address: ContractAddress(
-            felt!("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
-                .try_into()
-                .unwrap(),
-        ),
-        eth_fee_token_address: ContractAddress(
-            felt!("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-                .try_into()
-                .unwrap(),
-        ),
+        strk_fee_token_address: ContractAddress(patricia_key!(
+            "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+        )),
+        eth_fee_token_address: ContractAddress(patricia_key!(
+            "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+        )),
     };
 
-    BlockContext::new(
+    Ok(BlockContext::new(
         block_info,
         ChainInfo {
             chain_id: reader.get_chain_id(),
@@ -347,7 +302,92 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> BlockContext {
         },
         versioned_constants,
         BouncerConfig::max(),
-    )
+    ))
+}
+
+pub fn fetch_blockifier_transaction(
+    pair_reader: &PairRpcStateReader,
+    flags: ExecutionFlags,
+    hash: TransactionHash,
+) -> anyhow::Result<BlockiTransaction> {
+    let transaction = pair_reader.current.get_transaction(&hash)?;
+
+    let class_info = if let SNTransaction::Declare(declare) = &transaction {
+        Some(pair_reader.next.get_class_info(&declare.class_hash())?)
+    } else {
+        None
+    };
+
+    let fee = if let SNTransaction::L1Handler(_) = &transaction {
+        Some(MAX_FEE)
+    } else {
+        None
+    };
+
+    let transaction =
+        BlockiTransaction::from_api(transaction, hash.clone(), class_info, fee, None, flags)?;
+
+    Ok(transaction)
+}
+
+/// Fetches and executes the given transaction.
+///
+/// Internally, it creates its own blank state, so it may fail when executing
+/// a transaction in the middle of a block, if it depends on a previous transaction
+/// of the same block.
+pub fn execute_transaction(
+    hash: &TransactionHash,
+    block_number: BlockNumber,
+    chain: RpcChain,
+    flags: ExecutionFlags,
+) -> anyhow::Result<TransactionExecutionInfo> {
+    let (transaction, context) = fetch_transaction(hash, block_number, chain, flags)?;
+
+    let previous_block_number = block_number
+        .prev()
+        .context("block number had no previous")?;
+    let current_reader = RpcStateReader::new(chain, previous_block_number);
+    let mut state = CachedState::new(current_reader);
+    let execution_info = execute_transaction_with_state(&mut state, &transaction, &context)?;
+
+    Ok(execution_info)
+}
+
+/// Fetches all information needed to execute a given transaction
+///
+/// Due to limitations in the CachedState, we need to fetch this information
+/// separately, and can't be done with only the CachedState
+pub fn fetch_transaction(
+    hash: &TransactionHash,
+    block_number: BlockNumber,
+    chain: RpcChain,
+    flags: ExecutionFlags,
+) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
+    let previous_block_number = block_number
+        .prev()
+        .context("block number had no previous")?;
+    let current_reader = RpcStateReader::new(chain, previous_block_number);
+    let next_reader = RpcStateReader::new(chain, block_number);
+
+    let pair_reader = PairRpcStateReader {
+        current: current_reader,
+        next: next_reader,
+    };
+
+    let transaction = fetch_blockifier_transaction(&pair_reader, flags, hash.clone())?;
+    let context = fetch_block_context(&pair_reader.current)?;
+
+    Ok((transaction, context))
+}
+
+pub fn execute_transaction_with_state(
+    state: &mut CachedState<impl StateReader>,
+    transaction: &BlockiTransaction,
+    context: &BlockContext,
+) -> anyhow::Result<TransactionExecutionInfo> {
+    let execution_info = transaction.execute(state, &context)?;
+
+    Ok(execution_info)
 }
 
 #[cfg(test)]
@@ -3314,7 +3354,7 @@ mod tests {
     /// time, helping to uncover any possible concurrency bug that we may have
     fn test_concurrency(tx_hash: &str, block_number: u64, chain: RpcChain) {
         let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(block_number - 1));
-        let context = fetch_block_context(&reader);
+        let context = fetch_block_context(&reader).unwrap();
         let tx_hash = TransactionHash(felt!(tx_hash));
         let tx = reader.get_transaction(&tx_hash).unwrap();
 
