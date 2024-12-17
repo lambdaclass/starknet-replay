@@ -21,6 +21,7 @@ use starknet_api::{
 
 pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockContext> {
     let block_info = reader.get_block_info()?;
+
     let mut versioned_constants =
         VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
             validate_max_n_steps: u32::MAX,
@@ -37,13 +38,14 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockConte
             "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
         )),
     };
+    let chain_info = ChainInfo {
+        chain_id: reader.get_chain_id(),
+        fee_token_addresses,
+    };
 
     Ok(BlockContext::new(
         block_info,
-        ChainInfo {
-            chain_id: reader.get_chain_id(),
-            fee_token_addresses,
-        },
+        chain_info,
         versioned_constants,
         BouncerConfig::max(),
     ))
