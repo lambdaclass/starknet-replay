@@ -5940,6 +5940,7 @@ checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
 name = "replay"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "blockifier",
  "clap",
  "dotenvy",
@@ -6146,6 +6147,7 @@ checksum = "afab94fb28594581f62d981211a9a4d53cc8130bbcbbb89a0440d9b8e81a7746"
 name = "rpc-state-reader"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "blockifier",
  "blockifier_reexecution",
  "cairo-lang-starknet-classes",

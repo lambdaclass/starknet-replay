@@ -12,7 +12,8 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = { path = "../cairo_native" }
+cairo-native = "0.2.4"
+anyhow = "1.0"
 # Sequencer Dependencies
 starknet_api = { path = "../sequencer/crates/starknet_api" } # replay
 blockifier = { path = "../sequencer/crates/blockifier", features = ["cairo_native"] } # replay
