@@ -15,6 +15,9 @@ use blockifier::{
     },
     state::state_api::{StateReader, StateResult},
 };
+use blockifier_reexecution::state_reader::compile::{
+    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+};
 use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
@@ -23,6 +26,7 @@ use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    contract_class::{ClassInfo, SierraVersion},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -84,6 +88,11 @@ const RETRY_SLEEP_MS: u64 = 10000;
 pub struct RpcStateReader {
     chain: RpcChain,
     inner: GatewayRpcStateReader,
+}
+
+pub struct PairRpcStateReader {
+    pub current: RpcStateReader,
+    pub next: RpcStateReader,
 }
 
 impl RpcStateReader {
@@ -211,6 +220,35 @@ impl RpcStateReader {
             self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
         .map_err(serde_err_to_state_err)
+    }
+
+    pub fn get_class_info(&self, class_hash: &ClassHash) -> anyhow::Result<ClassInfo> {
+        match self.get_contract_class(&class_hash)? {
+            SNContractClass::Sierra(sierra) => {
+                let abi_length = sierra.abi.len();
+                let sierra_length = sierra.sierra_program.len();
+                let version = SierraVersion::extract_from_program(&sierra.sierra_program)?;
+                Ok(ClassInfo::new(
+                    &sierra_to_contact_class_v1(sierra)?,
+                    sierra_length,
+                    abi_length,
+                    version,
+                )?)
+            }
+            SNContractClass::Legacy(legacy) => {
+                let abi_length = legacy
+                    .abi
+                    .clone()
+                    .expect("legendary contract should have abi")
+                    .len();
+                Ok(ClassInfo::new(
+                    &legacy_to_contract_class_v0(legacy)?,
+                    0,
+                    abi_length,
+                    SierraVersion::DEPRECATED,
+                )?)
+            }
+        }
     }
 }
 
