@@ -3,7 +3,7 @@ use anyhow::Context;
 use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::cached_state::CachedState,
     test_utils::MAX_FEE,
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
@@ -91,7 +91,7 @@ pub fn execute_transaction(
         .context("block number had no previous")?;
     let current_reader = RpcStateReader::new(chain, previous_block_number);
     let mut state = CachedState::new(current_reader);
-    let execution_info = execute_transaction_with_state(&mut state, &transaction, &context)?;
+    let execution_info = transaction.execute(&mut state, &context)?;
 
     Ok(execution_info)
 }
@@ -121,16 +121,6 @@ pub fn fetch_transaction(
     let context = fetch_block_context(&pair_reader.current)?;
 
     Ok((transaction, context))
-}
-
-pub fn execute_transaction_with_state(
-    state: &mut CachedState<impl StateReader>,
-    transaction: &BlockiTransaction,
-    context: &BlockContext,
-) -> anyhow::Result<TransactionExecutionInfo> {
-    let execution_info = transaction.execute(state, context)?;
-
-    Ok(execution_info)
 }
 
 #[cfg(test)]
