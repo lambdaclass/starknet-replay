@@ -13,6 +13,7 @@ serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
 cairo-native = "0.2.4"
+anyhow = "1.0"
 # Sequencer Dependencies
 starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "eb3d5537d2148262ce4dc8edbd7794ec030e017b" } # replay
 blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "eb3d5537d2148262ce4dc8edbd7794ec030e017b", features = ["cairo_native"] } # replay
