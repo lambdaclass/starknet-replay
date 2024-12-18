@@ -20,10 +20,11 @@ use {
         execute_block_range, fetch_block_range_data, fetch_transaction_data, save_executions,
     },
     std::path::PathBuf,
-    std::thread,
-    std::time::Duration,
     std::{ops::Div, time::Instant},
 };
+
+#[cfg(feature = "profiling")]
+use {std::thread, std::time::Duration};
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
