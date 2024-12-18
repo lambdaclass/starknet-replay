@@ -1,4 +1,4 @@
-use crate::reader::{PairRpcStateReader, RpcChain, RpcStateReader};
+use crate::reader::{RpcChain, RpcStateReader};
 use anyhow::Context;
 use blockifier::{
     bouncer::BouncerConfig,
@@ -52,14 +52,14 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockConte
 }
 
 pub fn fetch_blockifier_transaction(
-    pair_reader: &PairRpcStateReader,
+    reader: &RpcStateReader,
     flags: ExecutionFlags,
     hash: TransactionHash,
 ) -> anyhow::Result<BlockiTransaction> {
-    let transaction = pair_reader.current.get_transaction(&hash)?;
+    let transaction = reader.get_transaction(&hash)?;
 
     let class_info = if let SNTransaction::Declare(declare) = &transaction {
-        Some(pair_reader.next.get_class_info(&declare.class_hash())?)
+        Some(reader.get_class_info(&declare.class_hash())?)
     } else {
         None
     };
@@ -91,8 +91,8 @@ pub fn execute_transaction(
     let previous_block_number = block_number
         .prev()
         .context("block number had no previous")?;
-    let current_reader = RpcStateReader::new(chain, previous_block_number);
-    let mut state = CachedState::new(current_reader);
+    let previous_reader = RpcStateReader::new(chain, previous_block_number);
+    let mut state = CachedState::new(previous_reader);
     let execution_info = transaction.execute(&mut state, &context)?;
 
     Ok(execution_info)
@@ -108,19 +108,9 @@ pub fn fetch_transaction(
     chain: RpcChain,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
-    let previous_block_number = block_number
-        .prev()
-        .context("block number had no previous")?;
-    let current_reader = RpcStateReader::new(chain, previous_block_number);
-    let next_reader = RpcStateReader::new(chain, block_number);
-
-    let pair_reader = PairRpcStateReader {
-        current: current_reader,
-        next: next_reader,
-    };
-
-    let transaction = fetch_blockifier_transaction(&pair_reader, flags, *hash)?;
-    let context = fetch_block_context(&pair_reader.current)?;
+    let reader = RpcStateReader::new(chain, block_number);
+    let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
+    let context = fetch_block_context(&reader)?;
 
     Ok((transaction, context))
 }

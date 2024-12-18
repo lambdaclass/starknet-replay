@@ -12,7 +12,7 @@ use blockifier::{
 };
 use rpc_state_reader::{
     execution::{fetch_block_context, fetch_blockifier_transaction},
-    reader::{PairRpcStateReader, RpcChain, RpcStateReader},
+    reader::{RpcChain, RpcStateReader},
 };
 use serde::Serialize;
 use starknet_api::{
@@ -45,17 +45,11 @@ pub fn fetch_block_range_data(
 
     for block_number in block_start.0..=block_end.0 {
         // For each block
-
         let block_number = BlockNumber(block_number);
-        let current_reader = RpcStateReader::new(chain, block_number.prev().unwrap());
-        let next_reader = RpcStateReader::new(chain, block_number);
-        let pair_reader = PairRpcStateReader {
-            current: current_reader,
-            next: next_reader,
-        };
+        let reader = RpcStateReader::new(chain, block_number);
 
         // Fetch block context
-        let block_context = fetch_block_context(&pair_reader.next).unwrap();
+        let block_context = fetch_block_context(&reader).unwrap();
 
         let flags = ExecutionFlags {
             only_query: false,
@@ -64,24 +58,21 @@ pub fn fetch_block_range_data(
         };
 
         // Fetch transactions for the block
-        let transactions = pair_reader
-            .next
+        let transactions = reader
             .get_block_with_txs()
             .unwrap()
             .transactions
             .into_iter()
             .map(|transaction| {
-                fetch_blockifier_transaction(
-                    &pair_reader,
-                    flags.clone(),
-                    transaction.transaction_hash,
-                )
-                .unwrap()
+                fetch_blockifier_transaction(&reader, flags.clone(), transaction.transaction_hash)
+                    .unwrap()
             })
             .collect::<Vec<_>>();
 
         // Create cached state
-        let cached_state = CachedState::new(OptionalStateReader::new(pair_reader.current));
+        let previous_block_number = block_number.prev().unwrap();
+        let previous_reader = RpcStateReader::new(chain, previous_block_number);
+        let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
         block_caches.push((cached_state, block_context, transactions));
     }
@@ -182,15 +173,11 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    let current_reader = RpcStateReader::new(chain, block.prev().unwrap());
-    let next_reader = RpcStateReader::new(chain, block);
-    let pair_reader = PairRpcStateReader {
-        current: current_reader,
-        next: next_reader,
-    };
+    // For each block
+    let reader = RpcStateReader::new(chain, block);
 
     // Fetch block context
-    let block_context = fetch_block_context(&pair_reader.next).unwrap();
+    let block_context = fetch_block_context(&reader).unwrap();
 
     let flags = ExecutionFlags {
         only_query: false,
@@ -200,11 +187,13 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
 
     // Fetch transaction
     let tx_hash = TransactionHash(felt!(tx));
-    let transaction = fetch_blockifier_transaction(&pair_reader, flags.clone(), tx_hash).unwrap();
+    let transaction = fetch_blockifier_transaction(&reader, flags.clone(), tx_hash).unwrap();
     let transactions = vec![transaction];
 
     // Create cached state
-    let cached_state = CachedState::new(OptionalStateReader::new(pair_reader.current));
+    let previous_block_number = block.prev().unwrap();
+    let previous_reader = RpcStateReader::new(chain, previous_block_number);
+    let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
     (cached_state, block_context, transactions)
 }
