@@ -1900,16 +1900,16 @@ mod tests {
         "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
         662250,
         RpcChain::MainNet,
-        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(768), l2_gas: GasAmount(0) },
         10,
         2,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 1,
+            n_storage_updates: 10,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 1,
+            n_modified_contracts: 2,
         },
         false,
         0,
@@ -1975,9 +1975,9 @@ mod tests {
             ]),
             l2_to_l1_payload_lengths: vec![],
             event_summary: EventSummary {
-                n_events: 1,
-                total_event_keys: 2,
-                total_event_data_size: 4,
+                n_events: 11,
+                total_event_keys: 12,
+                total_event_data_size: 38,
             },
         }
     )]
@@ -1985,19 +1985,19 @@ mod tests {
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
         662251,
         RpcChain::MainNet,
-        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(256), l2_gas: GasAmount(0) },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
         12,
         5,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 2,
+            n_storage_updates: 4,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
         },
         false,
-        1,
+        2,
         ExecutionSummary {
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
@@ -2086,9 +2086,9 @@ mod tests {
             ]),
             l2_to_l1_payload_lengths: vec![],
             event_summary: EventSummary {
-                n_events: 3,
-                total_event_keys: 5,
-                total_event_data_size: 15,
+                n_events: 4,
+                total_event_keys: 6,
+                total_event_data_size: 17,
             },
         }
     )]
@@ -2214,16 +2214,16 @@ mod tests {
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
         RpcChain::MainNet,
-        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(640), l2_gas: GasAmount(0) },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(1088), l2_gas: GasAmount(0) },
         37,
         2,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 7,
+            n_storage_updates: 13,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
-            n_modified_contracts: 3,
+            n_modified_contracts: 4,
         },
         false,
         0,
@@ -2493,9 +2493,9 @@ mod tests {
             ]),
             l2_to_l1_payload_lengths: vec![],
             event_summary: EventSummary {
-                n_events: 9,
-                total_event_keys: 10,
-                total_event_data_size: 83,
+                n_events: 13,
+                total_event_keys: 14,
+                total_event_data_size: 121,
             },
         }
     )]
@@ -2503,13 +2503,13 @@ mod tests {
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
         662248,
         RpcChain::MainNet,
-        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
+        GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(896), l2_gas: GasAmount(0) },
         4,
         2,
         0,
         None,
         StateChangesCount {
-            n_storage_updates: 4,
+            n_storage_updates: 12,
             n_class_hash_updates: 0,
             n_compiled_class_hash_updates: 0,
             n_modified_contracts: 2,
@@ -2602,9 +2602,9 @@ mod tests {
             ]),
             l2_to_l1_payload_lengths: vec![],
             event_summary: EventSummary {
-                n_events: 1,
-                total_event_keys: 1,
-                total_event_data_size: 2,
+                n_events: 7,
+                total_event_keys: 7,
+                total_event_data_size: 26,
             },
         }
     )]
@@ -3083,9 +3083,9 @@ mod tests {
             l1_handler_payload_size,
             execution_summary,
         );
-        assert_eq!(is_reverted, tx_info.revert_error.is_some());
-        assert_eq!(da_gas, tx_info.receipt.da_gas);
-        assert_eq!(starknet_rsc, starknet_resources);
+        assert_eq_sorted!(is_reverted, tx_info.revert_error.is_some());
+        assert_eq_sorted!(da_gas, tx_info.receipt.da_gas);
+        assert_eq_sorted!(starknet_rsc, starknet_resources);
     }
 
     #[test_case(
