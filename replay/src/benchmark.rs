@@ -59,14 +59,11 @@ pub fn fetch_block_range_data(
 
         // Fetch transactions for the block
         let transactions = reader
-            .get_block_with_txs()
+            .get_block_with_tx_hashes()
             .unwrap()
             .transactions
             .into_iter()
-            .map(|transaction| {
-                fetch_blockifier_transaction(&reader, flags.clone(), transaction.transaction_hash)
-                    .unwrap()
-            })
+            .map(|hash| fetch_blockifier_transaction(&reader, flags.clone(), hash).unwrap())
             .collect::<Vec<_>>();
 
         // Create cached state
@@ -173,7 +170,6 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    // For each block
     let reader = RpcStateReader::new(chain, block);
 
     // Fetch block context
