@@ -90,11 +90,6 @@ pub struct RpcStateReader {
     inner: GatewayRpcStateReader,
 }
 
-pub struct PairRpcStateReader {
-    pub current: RpcStateReader,
-    pub next: RpcStateReader,
-}
-
 impl RpcStateReader {
     pub fn new(chain: RpcChain, block_number: BlockNumber) -> Self {
         let config = build_config(chain);
