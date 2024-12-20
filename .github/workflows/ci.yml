@@ -162,7 +162,7 @@ jobs:
           make runtime
           echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
 
   test_macos:
     name: Test (macOS, Apple silicon)
@@ -198,4 +198,4 @@ jobs:
           make runtime
           echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
