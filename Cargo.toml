@@ -18,3 +18,4 @@ starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9b
 blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9b471edee20fbb00af13f84aebe8ddbe96db948f", features = ["cairo_native"] } # replay
 starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9b471edee20fbb00af13f84aebe8ddbe96db948f" } # replay
 blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9b471edee20fbb00af13f84aebe8ddbe96db948f" } # replay
+sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "e015746b4a7e541853725c2773a7909db37f8f6d" }
