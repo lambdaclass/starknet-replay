@@ -350,7 +350,14 @@ fn compile_sierra_cc(
 
         RunnableCompiledClass::V1(casm_cc.try_into().unwrap())
     } else {
-        let executor = utils::get_native_executor(&sierra_cc, class_hash);
+        let executor = if cfg!(feature = "with-sierra-emu") {
+            let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
+            sierra_emu::VirtualMachine::new_starknet(program, &sierra_cc.entry_points_by_type)
+                .into()
+        } else {
+            utils::get_native_executor(&sierra_cc, class_hash).into()
+        };
+
         let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
         let casm = CompiledClassV1::try_from(casm).unwrap();
 
