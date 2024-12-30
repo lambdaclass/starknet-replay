@@ -8,6 +8,7 @@ edition = "2021"
 # We use this feature to avoid using cairo_native in the Replay crate.
 only_casm = []
 with-sierra-emu = []
+with-trace-dump = []
 
 [dependencies]
 ureq = { version = "2.7.1", features = ["json"] }

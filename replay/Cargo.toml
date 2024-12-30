@@ -11,6 +11,7 @@ structured_logging = []
 profiling = []
 state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
+with-trace-dump = ["rpc-state-reader/with-trace-dump"]
 
 [dependencies]
 # starknet specific crates
