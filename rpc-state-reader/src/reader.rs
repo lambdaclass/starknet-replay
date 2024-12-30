@@ -352,8 +352,11 @@ fn compile_sierra_cc(
     } else {
         let executor = if cfg!(feature = "with-sierra-emu") {
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
-            sierra_emu::VirtualMachine::new_starknet(program, &sierra_cc.entry_points_by_type)
-                .into()
+            (program, sierra_cc.entry_points_by_type.clone()).into()
+        } else if cfg!(feature = "with-trace-dump") {
+            let program = sierra_cc.extract_sierra_program().unwrap();
+            let executor = utils::get_native_executor(&sierra_cc, class_hash);
+            (executor, program).into()
         } else {
             utils::get_native_executor(&sierra_cc, class_hash).into()
         };
