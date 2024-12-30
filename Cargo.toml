@@ -12,10 +12,10 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = "0.2.5-rc0"
+cairo-native = { path = "../cairo_native" }
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "07c2f4eff93749dbcd48e81863fa34c871ecf638" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "07c2f4eff93749dbcd48e81863fa34c871ecf638", features = ["cairo_native"] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "07c2f4eff93749dbcd48e81863fa34c871ecf638" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "07c2f4eff93749dbcd48e81863fa34c871ecf638" } # replay
-sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "e015746b4a7e541853725c2773a7909db37f8f6d" }
+starknet_api = { path = "../sequencer/crates/starknet_api" } # replay
+blockifier = { path = "../sequencer/crates/blockifier", features = ["cairo_native"] } # replay
+starknet_gateway = { path = "../sequencer/crates/starknet_gateway" } # replay
+blockifier_reexecution = { path = "../sequencer/crates/blockifier_reexecution" } # replay
+sierra-emu = { path = "../sierra-emu" }
