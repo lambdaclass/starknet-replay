@@ -19,7 +19,6 @@ jobs:
       MLIR_SYS_190_PREFIX: /usr/lib/llvm-19/
       LLVM_SYS_191_PREFIX: /usr/lib/llvm-19/
       TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
-      CAIRO_NATIVE_RUNTIME_LIBRARY: libcairo_native_runtime.a
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.83.0
@@ -35,7 +34,7 @@ jobs:
       - name: Install LLVM
         run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy -Z bindeps --all-targets --all-features -- -D warnings
 
   format:
     name: rustfmt
@@ -149,20 +148,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get upgrade -y
       - name: Install LLVM
         run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
-      - name: Checkout cairo_native
-        uses: actions/checkout@v4
-        with:
-          repository: lambdaclass/cairo_native
-          ref: 76e83965d3bf1252eb6c68200a3accd5fd1ec004
-          path: cairo_native
-      - name: Build Cairo Native Runtime Library
-        shell: bash
-        run: |
-          cd cairo_native
-          make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
-        run: cargo test --all-features
+        run: cargo test -Z bindeps --all-features
 
   test_macos:
     name: Test (macOS, Apple silicon)
@@ -186,16 +173,5 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
         run: brew install llvm@19 --quiet
-      - name: Checkout cairo_native
-        uses: actions/checkout@v4
-        with:
-          repository: lambdaclass/cairo_native
-          ref: 76e83965d3bf1252eb6c68200a3accd5fd1ec004
-          path: cairo_native
-      - name: Build Cairo Native Runtime Library
-        run: |
-          cd cairo_native
-          make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
-        run: cargo test --all-features
+        run: cargo test -Z bindeps --all-features
