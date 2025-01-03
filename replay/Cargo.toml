@@ -10,6 +10,7 @@ only_cairo_vm = ["rpc-state-reader/only_casm"]
 structured_logging = []
 profiling = []
 state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
+with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
 
 [dependencies]
 # starknet specific crates
