@@ -114,7 +114,13 @@ impl RpcStateReader {
         method: &str,
         params: impl Serialize,
     ) -> RPCStateReaderResult<Value> {
-        retry(|| self.inner.send_rpc_request(method, &params))
+        let result = retry(|| self.inner.send_rpc_request(method, &params));
+
+        if let Err(RPCStateReaderError::ReqwestError(err)) = result {
+            Err(RPCStateReaderError::ReqwestError(err.without_url()))
+        } else {
+            result
+        }
     }
 
     pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
