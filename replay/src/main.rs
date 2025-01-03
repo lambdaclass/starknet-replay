@@ -336,10 +336,13 @@ fn show_execution_data(
     {
         use std::path::Path;
 
-        #[cfg(feature = "only_cairo_vm")]
-        let root = Path::new("state_dumps/vm");
-        #[cfg(not(feature = "only_cairo_vm"))]
-        let root = Path::new("state_dumps/native");
+        let root = if cfg!(feature = "only_cairo_vm") {
+            Path::new("state_dumps/vm")
+        } else if cfg!(feature = "with-sierra-emu") {
+            Path::new("state_dumps/emu")
+        } else {
+            Path::new("state_dumps/native")
+        };
         let root = root.join(format!("block{}", block_number));
 
         std::fs::create_dir_all(&root).ok();
