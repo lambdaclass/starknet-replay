@@ -47,7 +47,7 @@ use ureq::json;
 
 use crate::{
     cache::RpcCachedState,
-    objects::{self, BlockHeader, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
