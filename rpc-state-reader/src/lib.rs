@@ -9,6 +9,7 @@ mod tests {
     use blockifier::state::state_api::StateReader;
     use pretty_assertions_sorted::{assert_eq, assert_eq_sorted};
     use starknet_api::{
+        block::BlockNumber,
         class_hash,
         core::{ContractAddress, Nonce},
         felt,
@@ -31,7 +32,7 @@ mod tests {
 
     #[test]
     fn test_get_contract_class_cairo1() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
 
         let class_hash =
             class_hash!("0298e56befa6d1446b86ed5b900a9ba51fd2faa683cd6f50e8f833c0fb847216");
@@ -44,7 +45,7 @@ mod tests {
 
     #[test]
     fn test_get_contract_class_cairo0() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
 
         let class_hash =
             class_hash!("025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918");
@@ -53,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_get_class_hash_at() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
         let address =
             contract_address!("00b081f7ba1efc6fe98770b09a827ae373ef2baa6116b3d2a0bf5154136573a9");
 
@@ -65,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_get_nonce_at() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::TestNet);
+        let rpc_state = RpcStateReader::new(RpcChain::TestNet, BlockNumber(700000));
         // Contract deployed by xqft which will not be used again, so nonce changes will not break
         // this test.
         let address =
@@ -78,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_get_storage_at() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
         let address =
             contract_address!("00b081f7ba1efc6fe98770b09a827ae373ef2baa6116b3d2a0bf5154136573a9");
         let key = StorageKey(patricia_key!(0u128));
@@ -91,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_get_transaction() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
         let tx_hash = TransactionHash(
             StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
                 .unwrap(),
@@ -102,7 +103,7 @@ mod tests {
 
     #[test]
     fn test_get_block_info() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
 
         assert!(rpc_state.get_block_info().is_ok());
     }
@@ -111,7 +112,7 @@ mod tests {
     // https://alpha-mainnet.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x035673e42bd485ae699c538d8502f730d1137545b22a64c094ecdaf86c59e592
     #[test]
     fn test_get_transaction_trace() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
 
         let tx_hash = TransactionHash(
             StarkHash::from_hex(
@@ -249,7 +250,7 @@ mod tests {
 
     #[test]
     fn test_get_transaction_receipt() {
-        let rpc_state = RpcStateReader::new_latest(RpcChain::MainNet);
+        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
         let tx_hash = TransactionHash(
             StarkHash::from_hex("06da92cfbdceac5e5e94a1f40772d6c79d34f011815606742658559ec77b6955")
                 .unwrap(),
