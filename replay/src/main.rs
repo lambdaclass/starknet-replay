@@ -5,6 +5,7 @@ use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
+use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcChain, RpcStateReader};
@@ -295,16 +296,17 @@ fn parse_network(network: &str) -> RpcChain {
     }
 }
 
-fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcStateReader> {
+fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcCachedStateReader> {
     let previous_block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(network);
-    let rpc_reader = RpcStateReader::new(rpc_chain, previous_block_number);
+    let rpc_reader =
+        RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, previous_block_number));
 
     CachedState::new(rpc_reader)
 }
 
 fn show_execution_data(
-    state: &mut CachedState<RpcStateReader>,
+    state: &mut CachedState<RpcCachedStateReader>,
     tx_hash_str: String,
     chain_str: &str,
     block_number: u64,
