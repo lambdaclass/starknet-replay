@@ -1,3 +1,4 @@
+pub mod cache;
 pub mod execution;
 pub mod objects;
 pub mod reader;
