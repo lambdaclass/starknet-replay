@@ -101,13 +101,6 @@ mod tests {
         rpc_state.get_transaction(&tx_hash).unwrap();
     }
 
-    #[test]
-    fn test_get_block_info() {
-        let rpc_state = RpcStateReader::new(RpcChain::MainNet, BlockNumber(700000));
-
-        assert!(rpc_state.get_block_info().is_ok());
-    }
-
     // Tested with the following query to the Feeder Gateway API:
     // https://alpha-mainnet.starknet.io/feeder_gateway/get_transaction_trace?transactionHash=0x035673e42bd485ae699c538d8502f730d1137545b22a64c094ecdaf86c59e592
     #[test]

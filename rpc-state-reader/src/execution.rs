@@ -1,6 +1,11 @@
-use crate::reader::{RpcChain, RpcStateReader};
+use crate::{
+    cache::RpcCachedStateReader,
+    objects::BlockHeader,
+    reader::{RpcChain, RpcStateReader},
+};
 use anyhow::Context;
 use blockifier::{
+    blockifier::block::validated_gas_prices,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     state::cached_state::CachedState,
@@ -12,15 +17,21 @@ use blockifier::{
     },
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
+use blockifier_reexecution::state_reader::compile::{
+    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+};
+use starknet::core::types::ContractClass;
 use starknet_api::{
-    block::BlockNumber,
+    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     patricia_key,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 
-pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockContext> {
-    let block_info = reader.get_block_info()?;
+pub fn fetch_block_context(reader: &RpcCachedStateReader) -> anyhow::Result<BlockContext> {
+    let block = reader.get_block_with_tx_hashes()?;
+    let block_info = get_block_info(block.header);
 
     let mut versioned_constants =
         VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
@@ -39,7 +50,7 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockConte
         )),
     };
     let chain_info = ChainInfo {
-        chain_id: reader.get_chain_id(),
+        chain_id: reader.reader.get_chain_id(),
         fee_token_addresses,
     };
 
@@ -52,14 +63,15 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockConte
 }
 
 pub fn fetch_blockifier_transaction(
-    reader: &RpcStateReader,
+    reader: &RpcCachedStateReader,
     flags: ExecutionFlags,
     hash: TransactionHash,
 ) -> anyhow::Result<BlockiTransaction> {
     let transaction = reader.get_transaction(&hash)?;
 
     let class_info = if let SNTransaction::Declare(declare) = &transaction {
-        Some(reader.get_class_info(&declare.class_hash())?)
+        let class = reader.get_contract_class(&declare.class_hash())?;
+        Some(get_class_info(class)?)
     } else {
         None
     };
@@ -108,14 +120,63 @@ pub fn fetch_transaction(
     chain: RpcChain,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
-    let mut reader = RpcStateReader::new(chain, block_number);
-    reader.load();
+    let reader = RpcStateReader::new(chain, block_number);
+    let cached_reader = RpcCachedStateReader::new(reader);
 
-    let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
-    let context = fetch_block_context(&reader)?;
+    let transaction = fetch_blockifier_transaction(&cached_reader, flags, *hash)?;
+    let context = fetch_block_context(&cached_reader)?;
 
-    reader.save();
     Ok((transaction, context))
+}
+
+pub fn get_block_info(header: BlockHeader) -> BlockInfo {
+    fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
+        NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
+    }
+
+    BlockInfo {
+        block_number: header.block_number,
+        sequencer_address: header.sequencer_address,
+        block_timestamp: header.timestamp,
+        gas_prices: validated_gas_prices(
+            parse_gas_price(header.l1_gas_price.price_in_wei),
+            parse_gas_price(header.l1_gas_price.price_in_fri),
+            parse_gas_price(header.l1_data_gas_price.price_in_wei),
+            parse_gas_price(header.l1_data_gas_price.price_in_fri),
+            NonzeroGasPrice::MIN,
+            NonzeroGasPrice::MIN,
+        ),
+        use_kzg_da: true,
+    }
+}
+
+pub fn get_class_info(class: ContractClass) -> anyhow::Result<ClassInfo> {
+    match class {
+        ContractClass::Sierra(sierra) => {
+            let abi_length = sierra.abi.len();
+            let sierra_length = sierra.sierra_program.len();
+            let version = SierraVersion::extract_from_program(&sierra.sierra_program)?;
+            Ok(ClassInfo::new(
+                &sierra_to_contact_class_v1(sierra)?,
+                sierra_length,
+                abi_length,
+                version,
+            )?)
+        }
+        ContractClass::Legacy(legacy) => {
+            let abi_length = legacy
+                .abi
+                .clone()
+                .expect("legendary contract should have abi")
+                .len();
+            Ok(ClassInfo::new(
+                &legacy_to_contract_class_v0(legacy)?,
+                0,
+                abi_length,
+                SierraVersion::DEPRECATED,
+            )?)
+        }
+    }
 }
 
 #[cfg(test)]

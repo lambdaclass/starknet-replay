@@ -11,6 +11,7 @@ use blockifier::{
     },
 };
 use rpc_state_reader::{
+    cache::RpcCachedStateReader,
     execution::{fetch_block_context, fetch_blockifier_transaction},
     reader::{RpcChain, RpcStateReader},
 };
@@ -47,6 +48,7 @@ pub fn fetch_block_range_data(
         // For each block
         let block_number = BlockNumber(block_number);
         let reader = RpcStateReader::new(chain, block_number);
+        let reader = RpcCachedStateReader::new(reader);
 
         // Fetch block context
         let block_context = fetch_block_context(&reader).unwrap();
@@ -171,6 +173,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
     let reader = RpcStateReader::new(chain, block);
+    let reader = RpcCachedStateReader::new(reader);
 
     // Fetch block context
     let block_context = fetch_block_context(&reader).unwrap();
