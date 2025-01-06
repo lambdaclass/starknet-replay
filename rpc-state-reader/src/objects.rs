@@ -1,7 +1,6 @@
 //! This module contains custom objects
 //! and how to deserialize them from RPC calls
 
-use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
 use starknet_api::{
     block::{BlockHash, BlockNumber, BlockStatus, BlockTimestamp, GasPrice},
@@ -46,8 +45,6 @@ pub struct RpcTransactionReceipt {
     pub events: Vec<Event>,
     #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
-    #[serde(deserialize_with = "deser::deserialize_execution_resources")]
-    pub execution_resources: ExecutionResources,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -108,70 +105,10 @@ pub struct ResourcePrice {
 /// Some types require their own deserializer, as their ir shape is slightly different
 /// from the ones in starknet. This module contains such deserializaction functions.
 pub mod deser {
-    use std::collections::HashMap;
-
-    use cairo_vm::{
-        types::builtin_name::BuiltinName, vm::runners::cairo_runner::ExecutionResources,
-    };
     use serde::{Deserialize, Deserializer};
     use starknet_api::transaction::{
         DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Transaction,
     };
-
-    pub fn deserialize_execution_resources<'de, D>(
-        deserializer: D,
-    ) -> Result<ExecutionResources, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: serde_json::Value = Deserialize::deserialize(deserializer)?;
-
-        // Parse n_steps
-        let n_steps: usize = serde_json::from_value(
-            value
-                .get("steps")
-                .ok_or(serde::de::Error::custom("missing field `n_steps`"))?
-                .clone(),
-        )
-        .map_err(|e| serde::de::Error::custom(e.to_string()))?;
-
-        // Parse n_memory_holes
-        let n_memory_holes: usize = if let Some(memory_holes) = value.get("memory_holes") {
-            serde_json::from_value(memory_holes.clone())
-                .map_err(|e| serde::de::Error::custom(e.to_string()))?
-        } else {
-            0
-        };
-
-        // Parse builtin instance counter
-        let builtn_names: [BuiltinName; 8] = [
-            BuiltinName::output,
-            BuiltinName::range_check,
-            BuiltinName::pedersen,
-            BuiltinName::ecdsa,
-            BuiltinName::keccak,
-            BuiltinName::bitwise,
-            BuiltinName::ec_op,
-            BuiltinName::poseidon,
-        ];
-        let mut builtin_instance_counter = HashMap::new();
-        for name in builtn_names {
-            let builtin_counter: Option<usize> = value
-                .get(format!("{}_applications", name.to_str()))
-                .and_then(|a| serde_json::from_value(a.clone()).ok());
-            if let Some(builtin_counter) = builtin_counter {
-                if builtin_counter > 0 {
-                    builtin_instance_counter.insert(name, builtin_counter);
-                }
-            };
-        }
-
-        Ok(ExecutionResources {
-            n_steps,
-            n_memory_holes,
-            builtin_instance_counter,
-        })
-    }
 
     pub fn deserialize_transaction<'de, D>(deserializer: D) -> Result<Transaction, D::Error>
     where
