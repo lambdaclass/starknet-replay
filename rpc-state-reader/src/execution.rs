@@ -120,11 +120,10 @@ pub fn fetch_transaction(
     chain: RpcChain,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
-    let reader = RpcStateReader::new(chain, block_number);
-    let cached_reader = RpcCachedStateReader::new(reader);
+    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block_number));
 
-    let transaction = fetch_blockifier_transaction(&cached_reader, flags, *hash)?;
-    let context = fetch_block_context(&cached_reader)?;
+    let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
+    let context = fetch_block_context(&reader)?;
 
     Ok((transaction, context))
 }
