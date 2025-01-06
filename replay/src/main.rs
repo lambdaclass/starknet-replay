@@ -319,8 +319,8 @@ fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcCached
 fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
     let block_number = BlockNumber(block_number);
     let rpc_chain = parse_network(network);
-    let rpc_reader = RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, block_number));
-    return rpc_reader;
+
+    RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, block_number))
 }
 
 fn show_execution_data(
