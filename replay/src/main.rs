@@ -103,9 +103,7 @@ fn main() {
             charge_fee,
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
-            state.state.load();
             show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
-            state.state.save();
         }
         ReplayExecute::Block {
             block_number,
@@ -115,7 +113,6 @@ fn main() {
             let _block_span = info_span!("block", number = block_number).entered();
 
             let mut state = build_cached_state(&chain, block_number - 1);
-            state.state.load();
 
             let transaction_hashes = get_transaction_hashes(&chain, block_number)
                 .expect("Unable to fetch the transaction hashes.");
@@ -128,8 +125,6 @@ fn main() {
                     charge_fee,
                 );
             }
-
-            state.state.save();
         }
         ReplayExecute::BlockRange {
             block_start,

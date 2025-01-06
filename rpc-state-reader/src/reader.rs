@@ -1,15 +1,12 @@
 use std::{
     cell::RefCell,
     env, fmt,
-    fs::{self, File},
-    path::PathBuf,
     sync::Arc,
     thread,
     time::{Duration, Instant},
 };
 
 use blockifier::{
-    blockifier::block::validated_gas_prices,
     execution::{
         contract_class::{
             CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
@@ -28,7 +25,7 @@ use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    block::BlockNumber,
     contract_class::{ClassInfo, SierraVersion},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
@@ -46,7 +43,7 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    cache::RpcCachedState,
+    cache::RpcCache,
     objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
@@ -88,8 +85,8 @@ const RETRY_SLEEP_MS: u64 = 10000;
 
 pub struct RpcStateReader {
     chain: RpcChain,
-    state: RefCell<RpcCachedState>,
-    block_number: BlockNumber,
+    state: RefCell<RpcCache>,
+    pub block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
 
@@ -103,22 +100,6 @@ impl RpcStateReader {
             state: Default::default(),
             block_number,
         }
-    }
-
-    pub fn load(&mut self) {
-        let path = PathBuf::from(format!("rpc_cache/{}.json", self.block_number));
-        let Ok(file) = File::open(path) else { return };
-        self.state = serde_json::from_reader(file).unwrap();
-    }
-
-    pub fn save(&self) {
-        let path = PathBuf::from(format!("rpc_cache/{}.json", self.block_number));
-        {
-            let parent = path.parent().unwrap();
-            fs::create_dir_all(parent).unwrap();
-        }
-        let file = File::create(path).unwrap();
-        serde_json::to_writer_pretty(file, &self.state).unwrap();
     }
 
     pub fn send_rpc_request_with_retry(
@@ -195,31 +176,6 @@ impl RpcStateReader {
             .insert(*hash, result.clone());
 
         Ok(result)
-    }
-
-    pub fn get_block_info(&self) -> StateResult<BlockInfo> {
-        // This function is inspired by sequencer's RpcStateReader::get_block_info
-
-        fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
-            NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
-        }
-
-        let header = self.get_block_with_tx_hashes()?.header;
-
-        Ok(BlockInfo {
-            block_number: header.block_number,
-            sequencer_address: header.sequencer_address,
-            block_timestamp: header.timestamp,
-            gas_prices: validated_gas_prices(
-                parse_gas_price(header.l1_gas_price.price_in_wei),
-                parse_gas_price(header.l1_gas_price.price_in_fri),
-                parse_gas_price(header.l1_data_gas_price.price_in_wei),
-                parse_gas_price(header.l1_data_gas_price.price_in_fri),
-                NonzeroGasPrice::MIN,
-                NonzeroGasPrice::MIN,
-            ),
-            use_kzg_da: true,
-        })
     }
 
     pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
@@ -422,18 +378,23 @@ impl StateReader for RpcStateReader {
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
-        Ok(match self.get_contract_class(&class_hash)? {
-            SNContractClass::Legacy(compressed_legacy_cc) => {
-                compile_legacy_cc(compressed_legacy_cc)
-            }
-            SNContractClass::Sierra(flattened_sierra_cc) => {
-                compile_sierra_cc(flattened_sierra_cc, class_hash)
-            }
-        })
+        Ok(compile_contract_class(
+            self.get_contract_class(&class_hash)?,
+            class_hash,
+        ))
     }
 
     fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
         self.inner.get_compiled_class_hash(class_hash)
+    }
+}
+
+pub fn compile_contract_class(class: SNContractClass, hash: ClassHash) -> RunnableCompiledClass {
+    match class {
+        SNContractClass::Legacy(compressed_legacy_cc) => compile_legacy_cc(compressed_legacy_cc),
+        SNContractClass::Sierra(flattened_sierra_cc) => {
+            compile_sierra_cc(flattened_sierra_cc, hash)
+        }
     }
 }
 
@@ -540,21 +501,7 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use starknet_api::block::FeeType;
-
     use super::*;
-
-    #[test]
-    fn test_get_block_info() {
-        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
-
-        let block = reader.get_block_info().unwrap();
-
-        assert_eq!(
-            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
-            22804578690
-        );
-    }
 
     #[test]
     fn test_get_block_with_tx_hashes() {
