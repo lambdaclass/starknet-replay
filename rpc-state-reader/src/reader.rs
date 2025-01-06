@@ -43,6 +43,7 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
+    cache::RpcCachedState,
     objects::{
         self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
         RpcTransactionTrace,
@@ -87,6 +88,7 @@ const RETRY_SLEEP_MS: u64 = 10000;
 
 pub struct RpcStateReader {
     chain: RpcChain,
+    state: RpcCachedState,
     inner: GatewayRpcStateReader,
 }
 
@@ -97,6 +99,7 @@ impl RpcStateReader {
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
             chain,
+            state: RpcCachedState::default(),
         }
     }
 
@@ -106,6 +109,7 @@ impl RpcStateReader {
         Self {
             inner: GatewayRpcStateReader::from_latest(&config),
             chain,
+            state: RpcCachedState::default(),
         }
     }
 

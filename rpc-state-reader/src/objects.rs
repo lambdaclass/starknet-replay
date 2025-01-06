@@ -4,7 +4,7 @@
 use cairo_vm::vm::runners::cairo_runner::ExecutionResources;
 use serde::{Deserialize, Serialize};
 use starknet_api::{
-    block::{BlockHash, BlockNumber, BlockStatus, BlockTimestamp},
+    block::{BlockHash, BlockNumber, BlockStatus, BlockTimestamp, GasPrice},
     core::{ContractAddress, GlobalRoot},
     data_availability::L1DataAvailabilityMode,
     hash::StarkHash,
@@ -12,7 +12,6 @@ use starknet_api::{
         fields::Fee, Event, MessageToL1, Transaction, TransactionExecutionStatus, TransactionHash,
     },
 };
-use starknet_gateway::rpc_objects::ResourcePrice;
 
 #[derive(Debug, Deserialize, Clone, Eq, PartialEq)]
 pub struct RpcTransactionTrace {
@@ -35,7 +34,7 @@ pub struct RpcCallInfo {
     pub revert_reason: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RpcTransactionReceipt {
     pub transaction_hash: TransactionHash,
     pub block_hash: StarkHash,
@@ -51,7 +50,7 @@ pub struct RpcTransactionReceipt {
     pub execution_resources: ExecutionResources,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FeePayment {
     pub amount: Fee,
     pub unit: String,
@@ -60,7 +59,7 @@ pub struct FeePayment {
 // The following structures are taken from https://github.com/starkware-libs/sequencer,
 // but modified to suit our particular needs.
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BlockHeader {
     pub block_hash: BlockHash,
     pub parent_hash: BlockHash,
@@ -74,7 +73,7 @@ pub struct BlockHeader {
     pub starknet_version: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BlockWithTxHahes {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<BlockStatus>,
@@ -98,6 +97,12 @@ pub struct TransactionWithHash {
     #[serde(flatten)]
     #[serde(deserialize_with = "deser::deserialize_transaction")]
     pub transaction: Transaction,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct ResourcePrice {
+    pub price_in_wei: GasPrice,
+    pub price_in_fri: GasPrice,
 }
 
 /// Some types require their own deserializer, as their ir shape is slightly different
