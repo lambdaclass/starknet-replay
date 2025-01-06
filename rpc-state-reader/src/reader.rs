@@ -1,5 +1,7 @@
 use std::{
     env, fmt,
+    fs::File,
+    path::PathBuf,
     sync::Arc,
     thread,
     time::{Duration, Instant},
@@ -89,6 +91,7 @@ const RETRY_SLEEP_MS: u64 = 10000;
 pub struct RpcStateReader {
     chain: RpcChain,
     state: RpcCachedState,
+    block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
 
@@ -100,9 +103,21 @@ impl RpcStateReader {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
             chain,
             state: RpcCachedState::default(),
+            block_number,
         }
     }
 
+    pub fn load(&mut self) {
+        let path = PathBuf::from(format!("rpc_cache/{}.json", self.block_number));
+        let Ok(file) = File::open(path) else { return };
+        self.state = serde_json::from_reader(file).unwrap();
+    }
+
+    pub fn save(&self) {
+        let path = PathBuf::from(format!("rpc_cache/{}.json", self.block_number));
+        let file = File::create(path).unwrap();
+        serde_json::to_writer_pretty(file, &self.state).unwrap();
+    }
 
     pub fn send_rpc_request_with_retry(
         &self,
