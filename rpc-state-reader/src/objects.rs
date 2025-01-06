@@ -12,7 +12,7 @@ use starknet_api::{
     },
 };
 
-#[derive(Debug, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct RpcTransactionTrace {
     pub validate_invocation: Option<RpcCallInfo>,
     #[serde(
@@ -24,7 +24,7 @@ pub struct RpcTransactionTrace {
     pub fee_transfer_invocation: Option<RpcCallInfo>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Default, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Default, Deserialize, Serialize)]
 pub struct RpcCallInfo {
     pub result: Option<Vec<StarkHash>>,
     pub calldata: Option<Vec<StarkHash>>,
