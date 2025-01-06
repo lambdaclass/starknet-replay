@@ -502,16 +502,6 @@ fn compare_execution(
     }
 }
 
-fn get_transaction_hashes(
-    network: &str,
-    block_number: u64,
-) -> Result<Vec<TransactionHash>, StateError> {
-    let network = parse_network(network);
-    let block_value = BlockNumber(block_number);
-    let rpc_state = RpcStateReader::new(network, block_value);
-    Ok(rpc_state.get_block_with_tx_hashes()?.transactions)
-}
-
 fn set_global_subscriber() {
     #[cfg(not(feature = "structured_logging"))]
     let default_env_filter =
