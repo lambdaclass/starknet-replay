@@ -152,7 +152,7 @@ impl RpcStateReader {
         self.state
             .borrow_mut()
             .get_contract_class
-            .insert(class_hash.clone(), result.clone());
+            .insert(*class_hash, result.clone());
 
         Ok(result)
     }
@@ -192,7 +192,7 @@ impl RpcStateReader {
         self.state
             .borrow_mut()
             .get_transaction_by_hash
-            .insert(hash.clone(), result.clone());
+            .insert(*hash, result.clone());
 
         Ok(result)
     }
@@ -270,7 +270,7 @@ impl RpcStateReader {
             .state
             .borrow_mut()
             .get_transaction_receipt
-            .insert(hash.clone(), result.clone());
+            .insert(*hash, result.clone());
 
         Ok(result)
     }
@@ -334,7 +334,7 @@ impl StateReader for RpcStateReader {
             .get_storage_at
             .get(&(contract_address, key))
         {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let get_storage_at_params = GetStorageAtParams {
@@ -366,7 +366,7 @@ impl StateReader for RpcStateReader {
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
         if let Some(result) = self.state.borrow().get_nonce_at.get(&contract_address) {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let get_nonce_params = GetNonceParams {
@@ -393,7 +393,7 @@ impl StateReader for RpcStateReader {
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
         if let Some(result) = self.state.borrow().get_class_hash_at.get(&contract_address) {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let get_class_hash_at_params = GetClassHashAtParams {
