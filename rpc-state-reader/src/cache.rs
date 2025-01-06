@@ -87,12 +87,7 @@ impl RpcCachedStateReader {
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_transaction_by_hash
-                .entry(hash.clone())
-            {
+            match self.state.borrow_mut().get_transaction_by_hash.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_transaction(hash)?;
@@ -109,7 +104,7 @@ impl RpcCachedStateReader {
                 .state
                 .borrow_mut()
                 .get_contract_class
-                .entry(class_hash.clone())
+                .entry(*class_hash)
             {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
@@ -126,12 +121,7 @@ impl RpcCachedStateReader {
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionTrace> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_transaction_trace
-                .entry(hash.clone())
-            {
+            match self.state.borrow_mut().get_transaction_trace.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_transaction_trace(hash)?;
@@ -147,12 +137,7 @@ impl RpcCachedStateReader {
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_transaction_receipt
-                .entry(hash.clone())
-            {
+            match self.state.borrow_mut().get_transaction_receipt.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_transaction_receipt(hash)?;
@@ -175,14 +160,12 @@ impl StateReader for RpcCachedStateReader {
                 .state
                 .borrow_mut()
                 .get_storage_at
-                .entry((contract_address.clone(), key.clone()))
+                .entry((contract_address, key))
             {
-                Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
+                Entry::Occupied(occupied_entry) => *occupied_entry.get(),
                 Entry::Vacant(vacant_entry) => {
-                    let result = self
-                        .reader
-                        .get_storage_at(contract_address.clone(), key.clone())?;
-                    vacant_entry.insert(result.clone());
+                    let result = self.reader.get_storage_at(contract_address, key)?;
+                    vacant_entry.insert(result);
                     result
                 }
             },
@@ -191,16 +174,11 @@ impl StateReader for RpcCachedStateReader {
 
     fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_nonce_at
-                .entry(contract_address.clone())
-            {
-                Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
+            match self.state.borrow_mut().get_nonce_at.entry(contract_address) {
+                Entry::Occupied(occupied_entry) => *occupied_entry.get(),
                 Entry::Vacant(vacant_entry) => {
-                    let result = self.reader.get_nonce_at(contract_address.clone())?;
-                    vacant_entry.insert(result.clone());
+                    let result = self.reader.get_nonce_at(contract_address)?;
+                    vacant_entry.insert(result);
                     result
                 }
             },
@@ -213,12 +191,12 @@ impl StateReader for RpcCachedStateReader {
                 .state
                 .borrow_mut()
                 .get_class_hash_at
-                .entry(contract_address.clone())
+                .entry(contract_address)
             {
-                Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
+                Entry::Occupied(occupied_entry) => *occupied_entry.get(),
                 Entry::Vacant(vacant_entry) => {
-                    let result = self.reader.get_class_hash_at(contract_address.clone())?;
-                    vacant_entry.insert(result.clone());
+                    let result = self.reader.get_class_hash_at(contract_address)?;
+                    vacant_entry.insert(result);
                     result
                 }
             },
@@ -230,7 +208,7 @@ impl StateReader for RpcCachedStateReader {
         class_hash: ClassHash,
     ) -> StateResult<blockifier::execution::contract_class::RunnableCompiledClass> {
         let class = self.get_contract_class(&class_hash)?;
-        return Ok(compile_contract_class(class, class_hash));
+        Ok(compile_contract_class(class, class_hash))
     }
 
     fn get_compiled_class_hash(
