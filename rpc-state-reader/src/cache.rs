@@ -41,6 +41,11 @@ pub struct RpcCache {
     pub get_transaction_trace: HashMap<TransactionHash, RpcTransactionTrace>,
 }
 
+/// A wrapper around `RpcStateReader` that caches all rpc calls.
+///
+/// On drop, the cache is saved to disk at `rpc_cache/{block_number}.json`.
+/// It's not safe to use multiple instances of this struct at the same time,
+/// as there is no mechanism for file locking.
 pub struct RpcCachedStateReader {
     pub reader: RpcStateReader,
     state: RefCell<RpcCache>,
