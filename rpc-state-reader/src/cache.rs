@@ -28,6 +28,7 @@ use crate::{
 #[derive(Default, Serialize, Deserialize)]
 pub struct RpcCache {
     pub get_block_with_tx_hashes: Option<BlockWithTxHahes>,
+    // we need to serialize it as a vector to allow non string key types
     #[serde_as(as = "Vec<(_, _)>")]
     pub get_transaction_by_hash: HashMap<TransactionHash, Transaction>,
     #[serde_as(as = "Vec<(_, _)>")]
