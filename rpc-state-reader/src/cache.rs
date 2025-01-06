@@ -15,6 +15,7 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
+use tracing::warn;
 
 use crate::{
     objects::{BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
@@ -72,7 +73,10 @@ impl RpcCachedStateReader {
 
             match File::open(path) {
                 Ok(file) => serde_json::from_reader(file).unwrap(),
-                Err(_) => RpcCache::default(),
+                Err(_) => {
+                    warn!("Cache for block {} was not found", reader.block_number);
+                    RpcCache::default()
+                }
             }
         };
 
