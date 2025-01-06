@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     env, fmt,
     sync::Arc,
     thread,
@@ -7,6 +6,7 @@ use std::{
 };
 
 use blockifier::{
+    blockifier::block::validated_gas_prices,
     execution::{
         contract_class::{
             CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
@@ -15,9 +15,6 @@ use blockifier::{
     },
     state::state_api::{StateReader, StateResult},
 };
-use blockifier_reexecution::state_reader::compile::{
-    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
-};
 use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
@@ -25,8 +22,7 @@ use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::BlockNumber,
-    contract_class::{ClassInfo, SierraVersion},
+    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -43,8 +39,10 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    cache::RpcCache,
-    objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{
+        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
+        RpcTransactionTrace,
+    },
     utils,
 };
 
@@ -85,7 +83,6 @@ const RETRY_SLEEP_MS: u64 = 10000;
 
 pub struct RpcStateReader {
     chain: RpcChain,
-    state: RefCell<RpcCache>,
     pub block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
@@ -97,7 +94,6 @@ impl RpcStateReader {
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
             chain,
-            state: Default::default(),
             block_number,
         }
     }
@@ -117,25 +113,13 @@ impl RpcStateReader {
     }
 
     pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
-        if let Some(result) = self.state.borrow().get_contract_class.get(class_hash) {
-            return Ok(result.clone());
-        }
-
         let params = json!({
             "block_id": self.inner.block_id,
             "class_hash": class_hash.to_string(),
         });
 
-        let result: SNContractClass =
-            serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
-                .map_err(serde_err_to_state_err)?;
-
-        self.state
-            .borrow_mut()
-            .get_contract_class
-            .insert(*class_hash, result.clone());
-
-        Ok(result)
+        serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
+            .map_err(serde_err_to_state_err)
     }
 
     pub fn get_chain_id(&self) -> ChainId {
@@ -155,109 +139,45 @@ impl RpcStateReader {
     }
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
-        if let Some(result) = self
-            .state
-            .borrow()
-            .get_transaction_by_hash
-            .get(hash)
-            .cloned()
-        {
-            return Ok(result);
-        }
-
         let params = json!([hash]);
 
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
-        let result = objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)?;
 
-        self.state
-            .borrow_mut()
-            .get_transaction_by_hash
-            .insert(*hash, result.clone());
-
-        Ok(result)
+        objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
 
     pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
-        if let Some(result) = self.state.borrow().get_block_with_tx_hashes.clone() {
-            return Ok(result);
-        }
-
         let params = GetBlockWithTxHashesParams {
             block_id: self.inner.block_id,
         };
 
-        let result: BlockWithTxHahes = serde_json::from_value(
+        serde_json::from_value(
             self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
         )
-        .map_err(serde_err_to_state_err)?;
+        .map_err(serde_err_to_state_err)
+    }
 
-        let _ = self
-            .state
-            .borrow_mut()
-            .get_block_with_tx_hashes
-            .insert(result.clone());
+    pub fn get_block_with_txs(&self) -> StateResult<BlockWithTxs> {
+        let params = GetBlockWithTxHashesParams {
+            block_id: self.inner.block_id,
+        };
 
-        Ok(result)
+        serde_json::from_value(
+            self.send_rpc_request_with_retry("starknet_getBlockWithTxs", params)?,
+        )
+        .map_err(serde_err_to_state_err)
     }
 
     pub fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
-        if let Some(result) = self
-            .state
-            .borrow()
-            .get_transaction_receipt
-            .get(hash)
-            .cloned()
-        {
-            return Ok(result);
-        }
-
         let params = json!([hash]);
 
-        let result: RpcTransactionReceipt = serde_json::from_value(
+        serde_json::from_value(
             self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
-        .map_err(serde_err_to_state_err)?;
-
-        let _ = self
-            .state
-            .borrow_mut()
-            .get_transaction_receipt
-            .insert(*hash, result.clone());
-
-        Ok(result)
-    }
-
-    pub fn get_class_info(&self, class_hash: &ClassHash) -> anyhow::Result<ClassInfo> {
-        match self.get_contract_class(class_hash)? {
-            SNContractClass::Sierra(sierra) => {
-                let abi_length = sierra.abi.len();
-                let sierra_length = sierra.sierra_program.len();
-                let version = SierraVersion::extract_from_program(&sierra.sierra_program)?;
-                Ok(ClassInfo::new(
-                    &sierra_to_contact_class_v1(sierra)?,
-                    sierra_length,
-                    abi_length,
-                    version,
-                )?)
-            }
-            SNContractClass::Legacy(legacy) => {
-                let abi_length = legacy
-                    .abi
-                    .clone()
-                    .expect("legendary contract should have abi")
-                    .len();
-                Ok(ClassInfo::new(
-                    &legacy_to_contract_class_v0(legacy)?,
-                    0,
-                    abi_length,
-                    SierraVersion::DEPRECATED,
-                )?)
-            }
-        }
+        .map_err(serde_err_to_state_err)
     }
 }
 
@@ -284,97 +204,60 @@ impl StateReader for RpcStateReader {
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> StateResult<cairo_vm::Felt252> {
-        if let Some(result) = self
-            .state
-            .borrow()
-            .get_storage_at
-            .get(&(contract_address, key))
-        {
-            return Ok(*result);
-        }
-
         let get_storage_at_params = GetStorageAtParams {
             block_id: self.inner.block_id,
             contract_address,
             key,
         };
 
-        let result = match self
-            .send_rpc_request_with_retry("starknet_getStorageAt", &get_storage_at_params)
-        {
+        let result =
+            self.send_rpc_request_with_retry("starknet_getStorageAt", &get_storage_at_params);
+        match result {
             Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
             Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
                 Ok(cairo_vm::Felt252::default())
             }
-            Err(e) => Err(e),
-        }?;
-
-        self.state
-            .borrow_mut()
-            .get_storage_at
-            .insert((contract_address, key), result);
-
-        Ok(result)
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
     ) -> StateResult<starknet_api::core::Nonce> {
-        if let Some(result) = self.state.borrow().get_nonce_at.get(&contract_address) {
-            return Ok(*result);
-        }
-
         let get_nonce_params = GetNonceParams {
             block_id: self.inner.block_id,
             contract_address,
         };
 
-        let result = match self.send_rpc_request_with_retry("starknet_getNonce", get_nonce_params) {
+        let result = self.send_rpc_request_with_retry("starknet_getNonce", get_nonce_params);
+        match result {
             Ok(value) => {
                 let nonce: Nonce = serde_json::from_value(value).map_err(serde_err_to_state_err)?;
                 Ok(nonce)
             }
             Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(Nonce::default()),
-            Err(e) => Err(e),
-        }?;
-
-        self.state
-            .borrow_mut()
-            .get_nonce_at
-            .insert(contract_address, result);
-
-        Ok(result)
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        if let Some(result) = self.state.borrow().get_class_hash_at.get(&contract_address) {
-            return Ok(*result);
-        }
-
         let get_class_hash_at_params = GetClassHashAtParams {
             contract_address,
             block_id: self.inner.block_id,
         };
 
-        let result = match self
-            .send_rpc_request_with_retry("starknet_getClassHashAt", get_class_hash_at_params)
-        {
+        let result =
+            self.send_rpc_request_with_retry("starknet_getClassHashAt", get_class_hash_at_params);
+        match result {
             Ok(value) => {
                 let class_hash: ClassHash =
                     serde_json::from_value(value).map_err(serde_err_to_state_err)?;
                 Ok(class_hash)
             }
             Err(RPCStateReaderError::ContractAddressNotFound(_)) => Ok(ClassHash::default()),
-            Err(e) => Err(e),
-        }?;
-
-        self.state
-            .borrow_mut()
-            .get_class_hash_at
-            .insert(contract_address, result);
-
-        Ok(result)
+            Err(e) => Err(e)?,
+        }
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
@@ -498,7 +381,21 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use starknet_api::block::FeeType;
+
     use super::*;
+
+    #[test]
+    fn test_get_block_info() {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
+
+        let block = reader.get_block_info().unwrap();
+
+        assert_eq!(
+            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
+            22804578690
+        );
+    }
 
     #[test]
     fn test_get_block_with_tx_hashes() {
