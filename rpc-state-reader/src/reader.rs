@@ -1,4 +1,5 @@
 use std::{
+    cell::RefCell,
     env, fmt,
     fs::File,
     path::PathBuf,
@@ -46,10 +47,7 @@ use ureq::json;
 
 use crate::{
     cache::RpcCachedState,
-    objects::{
-        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
-        RpcTransactionTrace,
-    },
+    objects::{self, BlockHeader, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
@@ -90,7 +88,7 @@ const RETRY_SLEEP_MS: u64 = 10000;
 
 pub struct RpcStateReader {
     chain: RpcChain,
-    state: RpcCachedState,
+    state: RefCell<RpcCachedState>,
     block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
@@ -102,7 +100,7 @@ impl RpcStateReader {
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
             chain,
-            state: RpcCachedState::default(),
+            state: Default::default(),
             block_number,
         }
     }
