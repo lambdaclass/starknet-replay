@@ -136,8 +136,8 @@ pub fn fetch_transaction_w_state(
     hash: &TransactionHash,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
-    let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
-    let context = fetch_block_context(&reader)?;
+    let transaction = fetch_blockifier_transaction(reader, flags, *hash)?;
+    let context = fetch_block_context(reader)?;
 
     Ok((transaction, context))
 }
