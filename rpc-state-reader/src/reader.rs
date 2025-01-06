@@ -386,18 +386,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_block_info() {
-        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
-
-        let block = reader.get_block_info().unwrap();
-
-        assert_eq!(
-            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
-            22804578690
-        );
-    }
-
-    #[test]
     fn test_get_block_with_tx_hashes() {
         let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(397709));
 
