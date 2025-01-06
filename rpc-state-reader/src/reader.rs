@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     env, fmt,
-    fs::File,
+    fs::{self, File},
     path::PathBuf,
     sync::Arc,
     thread,
@@ -113,6 +113,10 @@ impl RpcStateReader {
 
     pub fn save(&self) {
         let path = PathBuf::from(format!("rpc_cache/{}.json", self.block_number));
+        {
+            let parent = path.parent().unwrap();
+            fs::create_dir_all(parent).unwrap();
+        }
         let file = File::create(path).unwrap();
         serde_json::to_writer_pretty(file, &self.state).unwrap();
     }
@@ -273,21 +277,37 @@ impl StateReader for RpcStateReader {
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> StateResult<cairo_vm::Felt252> {
+        if let Some(result) = self
+            .state
+            .borrow()
+            .get_storage_at
+            .get(&(contract_address, key))
+        {
+            return Ok(result.clone());
+        }
+
         let get_storage_at_params = GetStorageAtParams {
             block_id: self.inner.block_id,
             contract_address,
             key,
         };
 
-        let result =
-            self.send_rpc_request_with_retry("starknet_getStorageAt", &get_storage_at_params);
-        match result {
+        let result = match self
+            .send_rpc_request_with_retry("starknet_getStorageAt", &get_storage_at_params)
+        {
             Ok(value) => Ok(serde_json::from_value(value).map_err(serde_err_to_state_err)?),
             Err(RPCStateReaderError::ContractAddressNotFound(_)) => {
                 Ok(cairo_vm::Felt252::default())
             }
-            Err(e) => Err(e)?,
-        }
+            Err(e) => Err(e),
+        }?;
+
+        self.state
+            .borrow_mut()
+            .get_storage_at
+            .insert((contract_address, key), result);
+
+        Ok(result)
     }
 
     fn get_nonce_at(
