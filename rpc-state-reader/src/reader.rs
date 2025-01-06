@@ -6,7 +6,6 @@ use std::{
 };
 
 use blockifier::{
-    blockifier::block::validated_gas_prices,
     execution::{
         contract_class::{
             CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
@@ -22,7 +21,7 @@ use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    block::BlockNumber,
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -39,10 +38,7 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    objects::{
-        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
-        RpcTransactionTrace,
-    },
+    objects::{self, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
@@ -384,7 +380,6 @@ fn bytecode_size(data: &[BigUintAsHex]) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use starknet_api::block::FeeType;
 
     use super::*;
 
