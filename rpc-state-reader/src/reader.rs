@@ -103,15 +103,6 @@ impl RpcStateReader {
         }
     }
 
-    pub fn new_latest(chain: RpcChain) -> Self {
-        let config = build_config(chain);
-
-        Self {
-            inner: GatewayRpcStateReader::from_latest(&config),
-            chain,
-            state: RpcCachedState::default(),
-        }
-    }
 
     pub fn send_rpc_request_with_retry(
         &self,
