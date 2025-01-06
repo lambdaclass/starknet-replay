@@ -200,17 +200,6 @@ impl RpcStateReader {
         .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_block_with_txs(&self) -> StateResult<BlockWithTxs> {
-        let params = GetBlockWithTxHashesParams {
-            block_id: self.inner.block_id,
-        };
-
-        serde_json::from_value(
-            self.send_rpc_request_with_retry("starknet_getBlockWithTxs", params)?,
-        )
-        .map_err(serde_err_to_state_err)
-    }
-
     pub fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
