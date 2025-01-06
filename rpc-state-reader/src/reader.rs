@@ -174,11 +174,27 @@ impl RpcStateReader {
     }
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
+        if let Some(result) = self
+            .state
+            .borrow()
+            .get_transaction_by_hash
+            .get(hash)
+            .cloned()
+        {
+            return Ok(result);
+        }
+
         let params = json!([hash]);
 
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
+        let result = objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)?;
 
-        objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
+        self.state
+            .borrow_mut()
+            .get_transaction_by_hash
+            .insert(hash.clone(), result.clone());
+
+        Ok(result)
     }
 
     pub fn get_block_info(&self) -> StateResult<BlockInfo> {
@@ -188,14 +204,7 @@ impl RpcStateReader {
             NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
         }
 
-        let params = GetBlockWithTxHashesParams {
-            block_id: self.inner.block_id,
-        };
-
-        let header: BlockHeader = serde_json::from_value(
-            self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
-        )
-        .map_err(serde_err_to_state_err)?;
+        let header = self.get_block_with_tx_hashes()?.header;
 
         Ok(BlockInfo {
             block_number: header.block_number,
@@ -214,26 +223,56 @@ impl RpcStateReader {
     }
 
     pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
+        if let Some(result) = self.state.borrow().get_block_with_tx_hashes.clone() {
+            return Ok(result);
+        }
+
         let params = GetBlockWithTxHashesParams {
             block_id: self.inner.block_id,
         };
 
-        serde_json::from_value(
+        let result: BlockWithTxHahes = serde_json::from_value(
             self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
         )
-        .map_err(serde_err_to_state_err)
+        .map_err(serde_err_to_state_err)?;
+
+        let _ = self
+            .state
+            .borrow_mut()
+            .get_block_with_tx_hashes
+            .insert(result.clone());
+
+        Ok(result)
     }
 
     pub fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
+        if let Some(result) = self
+            .state
+            .borrow()
+            .get_transaction_receipt
+            .get(hash)
+            .cloned()
+        {
+            return Ok(result);
+        }
+
         let params = json!([hash]);
 
-        serde_json::from_value(
+        let result: RpcTransactionReceipt = serde_json::from_value(
             self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
-        .map_err(serde_err_to_state_err)
+        .map_err(serde_err_to_state_err)?;
+
+        let _ = self
+            .state
+            .borrow_mut()
+            .get_transaction_receipt
+            .insert(hash.clone(), result.clone());
+
+        Ok(result)
     }
 
     pub fn get_class_info(&self, class_hash: &ClassHash) -> anyhow::Result<ClassInfo> {
