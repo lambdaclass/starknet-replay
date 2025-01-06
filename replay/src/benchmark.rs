@@ -47,8 +47,7 @@ pub fn fetch_block_range_data(
     for block_number in block_start.0..=block_end.0 {
         // For each block
         let block_number = BlockNumber(block_number);
-        let reader = RpcStateReader::new(chain, block_number);
-        let reader = RpcCachedStateReader::new(reader);
+        let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block_number));
 
         // Fetch block context
         let block_context = fetch_block_context(&reader).unwrap();
@@ -172,8 +171,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    let reader = RpcStateReader::new(chain, block);
-    let reader = RpcCachedStateReader::new(reader);
+    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block));
 
     // Fetch block context
     let block_context = fetch_block_context(&reader).unwrap();
