@@ -21,6 +21,9 @@ use crate::{
     reader::{compile_contract_class, RpcStateReader},
 };
 
+/// The RpcCache stores the result of RPC calls to memory (and disk)
+///
+/// Each field corresponds to a particular endpoint
 #[serde_as]
 #[derive(Default, Serialize, Deserialize)]
 pub struct RpcCache {
