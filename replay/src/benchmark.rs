@@ -25,7 +25,7 @@ use starknet_api::{
 };
 
 pub type BlockCachedData = (
-    CachedState<OptionalStateReader<RpcStateReader>>,
+    CachedState<OptionalStateReader<RpcCachedStateReader>>,
     BlockContext,
     Vec<BlockiTransaction>,
 );
@@ -69,7 +69,8 @@ pub fn fetch_block_range_data(
 
         // Create cached state
         let previous_block_number = block_number.prev().unwrap();
-        let previous_reader = RpcStateReader::new(chain, previous_block_number);
+        let previous_reader =
+            RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
         let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
         block_caches.push((cached_state, block_context, transactions));
@@ -189,7 +190,8 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
 
     // Create cached state
     let previous_block_number = block.prev().unwrap();
-    let previous_reader = RpcStateReader::new(chain, previous_block_number);
+    let previous_reader =
+        RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
     let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
     (cached_state, block_context, transactions)

@@ -6,7 +6,7 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction;
+use rpc_state_reader::execution::fetch_transaction_w_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcChain, RpcStateReader};
 use starknet_api::block::BlockNumber;
@@ -104,7 +104,16 @@ fn main() {
             charge_fee,
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
-            show_execution_data(&mut state, tx_hash, &chain, block_number, charge_fee);
+            let reader = build_reader(&chain, block_number);
+
+            show_execution_data(
+                &mut state,
+                &reader,
+                tx_hash,
+                &chain,
+                block_number,
+                charge_fee,
+            );
         }
         ReplayExecute::Block {
             block_number,
@@ -114,12 +123,16 @@ fn main() {
             let _block_span = info_span!("block", number = block_number).entered();
 
             let mut state = build_cached_state(&chain, block_number - 1);
+            let reader = build_reader(&chain, block_number);
 
-            let transaction_hashes = get_transaction_hashes(&chain, block_number)
-                .expect("Unable to fetch the transaction hashes.");
+            let transaction_hashes = reader
+                .get_block_with_tx_hashes()
+                .expect("Unable to fetch the transaction hashes.")
+                .transactions;
             for tx_hash in transaction_hashes {
                 show_execution_data(
                     &mut state,
+                    &reader,
                     tx_hash.0.to_hex_string(),
                     &chain,
                     block_number,
@@ -139,13 +152,16 @@ fn main() {
                 let _block_span = info_span!("block", number = block_number).entered();
 
                 let mut state = build_cached_state(&chain, block_number - 1);
+                let reader = build_reader(&chain, block_number);
 
-                let transaction_hashes = get_transaction_hashes(&chain, block_number)
-                    .expect("Unable to fetch the transaction hashes.");
-
+                let transaction_hashes = reader
+                    .get_block_with_tx_hashes()
+                    .expect("Unable to fetch the transaction hashes.")
+                    .transactions;
                 for tx_hash in transaction_hashes {
                     show_execution_data(
                         &mut state,
+                        &reader,
                         tx_hash.0.to_hex_string(),
                         &chain,
                         block_number,
@@ -297,16 +313,19 @@ fn parse_network(network: &str) -> RpcChain {
 }
 
 fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcCachedStateReader> {
-    let previous_block_number = BlockNumber(block_number);
-    let rpc_chain = parse_network(network);
-    let rpc_reader =
-        RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, previous_block_number));
-
+    let rpc_reader = build_reader(network, block_number);
     CachedState::new(rpc_reader)
+}
+fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
+    let block_number = BlockNumber(block_number);
+    let rpc_chain = parse_network(network);
+    let rpc_reader = RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, block_number));
+    return rpc_reader;
 }
 
 fn show_execution_data(
     state: &mut CachedState<RpcCachedStateReader>,
+    reader: &RpcCachedStateReader,
     tx_hash_str: String,
     chain_str: &str,
     block_number: u64,
@@ -317,7 +336,6 @@ fn show_execution_data(
     info!("starting execution");
 
     let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
-    let chain = parse_network(chain_str);
     let block_number = BlockNumber(block_number);
     let flags = ExecutionFlags {
         only_query: false,
@@ -325,7 +343,7 @@ fn show_execution_data(
         validate: true,
     };
 
-    let (tx, context) = match fetch_transaction(&tx_hash, block_number, chain, flags) {
+    let (tx, context) = match fetch_transaction_w_state(reader, &tx_hash, flags) {
         Ok(x) => x,
         Err(err) => {
             return error!("failed to fetch transaction: {err}");
@@ -376,7 +394,7 @@ fn show_execution_data(
         }
     };
 
-    match state.state.get_transaction_receipt(&tx_hash) {
+    match reader.get_transaction_receipt(&tx_hash) {
         Ok(rpc_receipt) => {
             compare_execution(execution_info, rpc_receipt);
         }
