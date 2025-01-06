@@ -128,6 +128,20 @@ pub fn fetch_transaction(
     Ok((transaction, context))
 }
 
+/// Fetches all information needed to execute a given transaction
+///
+/// Like `fetch_transaction`, but with a custom reader
+pub fn fetch_transaction_w_state(
+    reader: &RpcCachedStateReader,
+    hash: &TransactionHash,
+    flags: ExecutionFlags,
+) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
+    let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
+    let context = fetch_block_context(&reader)?;
+
+    Ok((transaction, context))
+}
+
 pub fn get_block_info(header: BlockHeader) -> BlockInfo {
     fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
         NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
