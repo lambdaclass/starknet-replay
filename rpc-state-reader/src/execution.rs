@@ -142,6 +142,7 @@ pub fn fetch_transaction_w_state(
     Ok((transaction, context))
 }
 
+/// Derives `BlockInfo` from the `BlockHeader`
 pub fn get_block_info(header: BlockHeader) -> BlockInfo {
     fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
         NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
@@ -163,6 +164,7 @@ pub fn get_block_info(header: BlockHeader) -> BlockInfo {
     }
 }
 
+/// Derives `ClassInfo` from the `ContractClass`
 pub fn get_class_info(class: ContractClass) -> anyhow::Result<ClassInfo> {
     match class {
         ContractClass::Sierra(sierra) => {
