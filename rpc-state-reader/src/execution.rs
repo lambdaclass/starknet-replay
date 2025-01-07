@@ -116,7 +116,7 @@ pub fn execute_transaction(
 /// Due to limitations in the CachedState, we need to fetch this information
 /// separately, and can't be done with only the CachedState
 ///
-/// It doesn't use the rpc cache. See `fetch_transaction_w_state` to specify a custom reader.:w
+/// It doesn't use the rpc cache. See `fetch_transaction_w_state` to specify a custom reader.
 pub fn fetch_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,

@@ -105,7 +105,14 @@ fn main() {
             let mut state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
 
-            show_execution_data(&mut state, &reader, tx_hash, &chain, charge_fee);
+            show_execution_data(
+                &mut state,
+                &reader,
+                tx_hash,
+                &chain,
+                block_number,
+                charge_fee,
+            );
         }
         ReplayExecute::Block {
             block_number,
@@ -127,6 +134,7 @@ fn main() {
                     &reader,
                     tx_hash.0.to_hex_string(),
                     &chain,
+                    block_number,
                     charge_fee,
                 );
             }
@@ -155,6 +163,7 @@ fn main() {
                         &reader,
                         tx_hash.0.to_hex_string(),
                         &chain,
+                        block_number,
                         charge_fee,
                     );
                 }
@@ -314,10 +323,11 @@ fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
 }
 
 fn show_execution_data(
-    state: &mut CachedState<RpcCachedStateReader>,
-    reader: &RpcCachedStateReader,
+    state: &mut CachedState<impl StateReader>,
+    reader: &impl StateReader,
     tx_hash_str: String,
     chain_str: &str,
+    block_number: u64,
     charge_fee: bool,
 ) {
     let _transaction_execution_span =
@@ -325,6 +335,7 @@ fn show_execution_data(
     info!("starting execution");
 
     let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
+    let block_number = BlockNumber(block_number);
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,
@@ -351,7 +362,7 @@ fn show_execution_data(
         } else {
             Path::new("state_dumps/native")
         };
-        let root = root.join(format!("block{}", reader.reader.block_number));
+        let root = root.join(format!("block{}", block_number));
 
         std::fs::create_dir_all(&root).ok();
 
