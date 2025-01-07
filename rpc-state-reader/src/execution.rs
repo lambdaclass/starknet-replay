@@ -91,6 +91,8 @@ pub fn fetch_blockifier_transaction(
 /// Internally, it creates its own blank state, so it may fail when executing
 /// a transaction in the middle of a block, if it depends on a previous transaction
 /// of the same block.
+///
+/// It doesn't use the rpc cache.
 pub fn execute_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
@@ -113,6 +115,8 @@ pub fn execute_transaction(
 ///
 /// Due to limitations in the CachedState, we need to fetch this information
 /// separately, and can't be done with only the CachedState
+///
+/// It doesn't use the rpc cache. See `fetch_transaction_w_state` to specify a custom reader.:w
 pub fn fetch_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
