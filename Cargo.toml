@@ -12,11 +12,11 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
-cairo-native = "0.2.5-rc0"
+cairo-native = "0.2.6"
 anyhow = "1.0"
 # Sequencer Dependencies
-sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "e015746b4a7e541853725c2773a7909db37f8f6d" }
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3fcee9d3d111f9784efd1af4033c4b0843cd1966" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3fcee9d3d111f9784efd1af4033c4b0843cd1966", features = ["cairo_native"] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3fcee9d3d111f9784efd1af4033c4b0843cd1966" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3fcee9d3d111f9784efd1af4033c4b0843cd1966" } # replay
+sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "b3c9d6bd193b2da881fab3dce57fe12c363aed86" }
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "640200cf926880975289f02de17c6ccae10f021f" } # replay
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "640200cf926880975289f02de17c6ccae10f021f", features = ["cairo_native"] } # replay
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "640200cf926880975289f02de17c6ccae10f021f" } # replay
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "640200cf926880975289f02de17c6ccae10f021f" } # replay
