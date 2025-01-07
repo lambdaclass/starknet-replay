@@ -1,5 +1,4 @@
 use crate::{
-    cache::RpcCachedStateReader,
     objects::BlockHeader,
     reader::{RpcChain, RpcStateReader, StateReader},
 };
@@ -29,7 +28,7 @@ use starknet_api::{
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 
-pub fn fetch_block_context(reader: &RpcCachedStateReader) -> anyhow::Result<BlockContext> {
+pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockContext> {
     let block = reader.get_block_with_tx_hashes()?;
     let block_info = get_block_info(block.header);
 
@@ -50,7 +49,7 @@ pub fn fetch_block_context(reader: &RpcCachedStateReader) -> anyhow::Result<Bloc
         )),
     };
     let chain_info = ChainInfo {
-        chain_id: reader.reader.get_chain_id(),
+        chain_id: reader.get_chain_id(),
         fee_token_addresses,
     };
 
@@ -63,7 +62,7 @@ pub fn fetch_block_context(reader: &RpcCachedStateReader) -> anyhow::Result<Bloc
 }
 
 pub fn fetch_blockifier_transaction(
-    reader: &RpcCachedStateReader,
+    reader: &impl StateReader,
     flags: ExecutionFlags,
     hash: TransactionHash,
 ) -> anyhow::Result<BlockiTransaction> {
@@ -120,8 +119,7 @@ pub fn fetch_transaction(
     chain: RpcChain,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
-    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block_number));
-
+    let reader = RpcStateReader::new(chain, block_number);
     let transaction = fetch_blockifier_transaction(&reader, flags, *hash)?;
     let context = fetch_block_context(&reader)?;
 
@@ -130,9 +128,9 @@ pub fn fetch_transaction(
 
 /// Fetches all information needed to execute a given transaction
 ///
-/// Like `fetch_transaction`, but with a custom reader
+/// Like `fetch_transaction`, but with a custom reader.
 pub fn fetch_transaction_w_state(
-    reader: &RpcCachedStateReader,
+    reader: &impl StateReader,
     hash: &TransactionHash,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {

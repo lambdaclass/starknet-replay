@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet::core::types::ContractClass;
 use starknet_api::{
-    core::{ClassHash, ContractAddress, Nonce},
+    core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
@@ -149,6 +149,10 @@ impl StateReader for RpcCachedStateReader {
                 }
             },
         )
+    }
+
+    fn get_chain_id(&self) -> ChainId {
+        self.reader.get_chain_id()
     }
 }
 

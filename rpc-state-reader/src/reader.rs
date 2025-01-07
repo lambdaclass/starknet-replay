@@ -80,6 +80,7 @@ pub trait StateReader: BlockifierStateReader {
     fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace>;
     fn get_transaction_receipt(&self, hash: &TransactionHash)
         -> StateResult<RpcTransactionReceipt>;
+    fn get_chain_id(&self) -> ChainId;
 }
 
 // The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
@@ -115,10 +116,6 @@ impl RpcStateReader {
         } else {
             result
         }
-    }
-
-    pub fn get_chain_id(&self) -> ChainId {
-        self.chain.into()
     }
 }
 
@@ -171,6 +168,10 @@ impl StateReader for RpcStateReader {
             self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
         .map_err(serde_err_to_state_err)
+    }
+
+    fn get_chain_id(&self) -> ChainId {
+        self.chain.into()
     }
 }
 
