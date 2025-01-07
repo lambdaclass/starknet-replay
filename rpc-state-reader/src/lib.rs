@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_get_nonce_at() {
-        let rpc_state = RpcStateReader::new(RpcChain::TestNet, BlockNumber(700000));
+        let rpc_state = RpcStateReader::new(RpcChain::TestNet, BlockNumber(400000));
         // Contract deployed by xqft which will not be used again, so nonce changes will not break
         // this test.
         let address =
