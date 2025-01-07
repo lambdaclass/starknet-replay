@@ -6,7 +6,7 @@ pub mod utils;
 
 #[cfg(test)]
 mod tests {
-    use blockifier::state::state_api::StateReader;
+    use blockifier::state::state_api::StateReader as _;
     use pretty_assertions_sorted::{assert_eq, assert_eq_sorted};
     use starknet_api::{
         block::BlockNumber,
