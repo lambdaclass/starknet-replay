@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction_w_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
-use rpc_state_reader::reader::{RpcChain, RpcStateReader};
+use rpc_state_reader::reader::{RpcChain, RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};

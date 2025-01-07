@@ -3,7 +3,7 @@ use std::{error::Error, fs::File, path::Path, time::Duration};
 use blockifier::{
     context::BlockContext,
     execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::{cached_state::CachedState, state_api::StateReader as BlockifierStateReader},
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockiTransaction,
@@ -13,7 +13,7 @@ use blockifier::{
 use rpc_state_reader::{
     cache::RpcCachedStateReader,
     execution::{fetch_block_context, fetch_blockifier_transaction},
-    reader::{RpcChain, RpcStateReader},
+    reader::{RpcChain, RpcStateReader, StateReader},
 };
 use serde::Serialize;
 use starknet_api::{
@@ -200,9 +200,9 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
 /// An implementation of StateReader that can be disabled, panicking if atempted to be read from
 ///
 /// Used to ensure that no requests are made after disabling it.
-pub struct OptionalStateReader<S: StateReader>(pub Option<S>);
+pub struct OptionalStateReader<S: BlockifierStateReader>(pub Option<S>);
 
-impl<S: StateReader> OptionalStateReader<S> {
+impl<S: BlockifierStateReader> OptionalStateReader<S> {
     pub fn new(state_reader: S) -> Self {
         Self(Some(state_reader))
     }
@@ -218,7 +218,7 @@ impl<S: StateReader> OptionalStateReader<S> {
     }
 }
 
-impl<S: StateReader> StateReader for OptionalStateReader<S> {
+impl<S: BlockifierStateReader> BlockifierStateReader for OptionalStateReader<S> {
     fn get_storage_at(
         &self,
         contract_address: starknet_api::core::ContractAddress,

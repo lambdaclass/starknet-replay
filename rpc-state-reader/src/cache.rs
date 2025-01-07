@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use blockifier::state::state_api::{StateReader, StateResult};
+use blockifier::state::state_api::{StateReader as BlockifierStateReader, StateResult};
 use cairo_vm::Felt252;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -19,7 +19,7 @@ use tracing::warn;
 
 use crate::{
     objects::{BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
-    reader::{compile_contract_class, RpcStateReader},
+    reader::{compile_contract_class, RpcStateReader, StateReader},
 };
 
 /// The RpcCache stores the result of RPC calls to memory (and disk)
@@ -83,8 +83,10 @@ impl RpcCachedStateReader {
             state: RefCell::new(state),
         }
     }
+}
 
-    pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
+impl StateReader for RpcCachedStateReader {
+    fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
         if let Some(block) = &self.state.borrow().block {
             return Ok(block.clone());
         }
@@ -96,7 +98,7 @@ impl RpcCachedStateReader {
         Ok(result)
     }
 
-    pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
+    fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         Ok(match self.state.borrow_mut().transactions.entry(*hash) {
             Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
             Entry::Vacant(vacant_entry) => {
@@ -107,7 +109,7 @@ impl RpcCachedStateReader {
         })
     }
 
-    pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<ContractClass> {
+    fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<ContractClass> {
         Ok(
             match self.state.borrow_mut().contract_classes.entry(*class_hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
@@ -120,10 +122,7 @@ impl RpcCachedStateReader {
         )
     }
 
-    pub fn get_transaction_trace(
-        &self,
-        hash: &TransactionHash,
-    ) -> StateResult<RpcTransactionTrace> {
+    fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace> {
         Ok(
             match self.state.borrow_mut().transaction_traces.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
@@ -136,7 +135,7 @@ impl RpcCachedStateReader {
         )
     }
 
-    pub fn get_transaction_receipt(
+    fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
@@ -153,7 +152,7 @@ impl RpcCachedStateReader {
     }
 }
 
-impl StateReader for RpcCachedStateReader {
+impl BlockifierStateReader for RpcCachedStateReader {
     fn get_storage_at(
         &self,
         contract_address: ContractAddress,

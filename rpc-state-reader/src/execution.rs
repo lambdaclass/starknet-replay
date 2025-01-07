@@ -1,7 +1,7 @@
 use crate::{
     cache::RpcCachedStateReader,
     objects::BlockHeader,
-    reader::{RpcChain, RpcStateReader},
+    reader::{RpcChain, RpcStateReader, StateReader},
 };
 use anyhow::Context;
 use blockifier::{

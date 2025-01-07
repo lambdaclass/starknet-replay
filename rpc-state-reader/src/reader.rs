@@ -12,7 +12,7 @@ use blockifier::{
         },
         native::contract_class::NativeCompiledClassV1,
     },
-    state::state_api::{StateReader, StateResult},
+    state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
 use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
 use cairo_lang_utils::bigint::BigUintAsHex;
@@ -38,7 +38,7 @@ use tracing::{info, info_span};
 use ureq::json;
 
 use crate::{
-    objects::{self, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt, RpcTransactionTrace},
+    objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
     utils,
 };
 
@@ -72,6 +72,15 @@ impl From<RpcChain> for ChainId {
 
 const MAX_RETRIES: u32 = 10;
 const RETRY_SLEEP_MS: u64 = 10000;
+
+pub trait StateReader: BlockifierStateReader {
+    fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes>;
+    fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction>;
+    fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass>;
+    fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace>;
+    fn get_transaction_receipt(&self, hash: &TransactionHash)
+        -> StateResult<RpcTransactionReceipt>;
+}
 
 // The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
 // It uses sequencer's RpcStateReader under the hood in some situations, while in other situation
@@ -108,7 +117,13 @@ impl RpcStateReader {
         }
     }
 
-    pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
+    pub fn get_chain_id(&self) -> ChainId {
+        self.chain.into()
+    }
+}
+
+impl StateReader for RpcStateReader {
+    fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
             "class_hash": class_hash.to_string(),
@@ -118,14 +133,7 @@ impl RpcStateReader {
             .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_chain_id(&self) -> ChainId {
-        self.chain.into()
-    }
-
-    pub fn get_transaction_trace(
-        &self,
-        hash: &TransactionHash,
-    ) -> StateResult<RpcTransactionTrace> {
+    fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace> {
         let params = json!([hash]);
 
         serde_json::from_value(
@@ -134,7 +142,7 @@ impl RpcStateReader {
         .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
+    fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
 
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
@@ -142,7 +150,7 @@ impl RpcStateReader {
         objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
 
-    pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
+    fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
         let params = GetBlockWithTxHashesParams {
             block_id: self.inner.block_id,
         };
@@ -153,18 +161,7 @@ impl RpcStateReader {
         .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_block_with_txs(&self) -> StateResult<BlockWithTxs> {
-        let params = GetBlockWithTxHashesParams {
-            block_id: self.inner.block_id,
-        };
-
-        serde_json::from_value(
-            self.send_rpc_request_with_retry("starknet_getBlockWithTxs", params)?,
-        )
-        .map_err(serde_err_to_state_err)
-    }
-
-    pub fn get_transaction_receipt(
+    fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
@@ -194,7 +191,7 @@ fn build_config(chain: RpcChain) -> RpcStateReaderConfig {
     }
 }
 
-impl StateReader for RpcStateReader {
+impl BlockifierStateReader for RpcStateReader {
     fn get_storage_at(
         &self,
         contract_address: ContractAddress,
