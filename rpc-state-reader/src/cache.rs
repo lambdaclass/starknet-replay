@@ -23,27 +23,25 @@ use crate::{
 };
 
 /// The RpcCache stores the result of RPC calls to memory (and disk)
-///
-/// Each field corresponds to a particular endpoint
 #[serde_as]
 #[derive(Default, Serialize, Deserialize)]
 pub struct RpcCache {
-    pub get_block_with_tx_hashes: Option<BlockWithTxHahes>,
+    pub block: Option<BlockWithTxHahes>,
     // we need to serialize it as a vector to allow non string key types
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_transaction_by_hash: HashMap<TransactionHash, Transaction>,
+    pub transactions: HashMap<TransactionHash, Transaction>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_contract_class: HashMap<ClassHash, ContractClass>,
+    pub contract_classes: HashMap<ClassHash, ContractClass>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_storage_at: HashMap<(ContractAddress, StorageKey), Felt252>,
+    pub storage: HashMap<(ContractAddress, StorageKey), Felt252>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_nonce_at: HashMap<ContractAddress, Nonce>,
+    pub nonces: HashMap<ContractAddress, Nonce>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_class_hash_at: HashMap<ContractAddress, ClassHash>,
+    pub class_hashes: HashMap<ContractAddress, ClassHash>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_transaction_receipt: HashMap<TransactionHash, RpcTransactionReceipt>,
+    pub transaction_receipts: HashMap<TransactionHash, RpcTransactionReceipt>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub get_transaction_trace: HashMap<TransactionHash, RpcTransactionTrace>,
+    pub transaction_traces: HashMap<TransactionHash, RpcTransactionTrace>,
 }
 
 /// A wrapper around `RpcStateReader` that caches all rpc calls.
@@ -87,38 +85,31 @@ impl RpcCachedStateReader {
     }
 
     pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
-        if let Some(block) = &self.state.borrow().get_block_with_tx_hashes {
+        if let Some(block) = &self.state.borrow().block {
             return Ok(block.clone());
         }
 
         let result = self.reader.get_block_with_tx_hashes()?;
 
-        self.state.borrow_mut().get_block_with_tx_hashes = Some(result.clone());
+        self.state.borrow_mut().block = Some(result.clone());
 
         Ok(result)
     }
 
     pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
-        Ok(
-            match self.state.borrow_mut().get_transaction_by_hash.entry(*hash) {
-                Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
-                Entry::Vacant(vacant_entry) => {
-                    let result = self.reader.get_transaction(hash)?;
-                    vacant_entry.insert(result.clone());
-                    result
-                }
-            },
-        )
+        Ok(match self.state.borrow_mut().transactions.entry(*hash) {
+            Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
+            Entry::Vacant(vacant_entry) => {
+                let result = self.reader.get_transaction(hash)?;
+                vacant_entry.insert(result.clone());
+                result
+            }
+        })
     }
 
     pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<ContractClass> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_contract_class
-                .entry(*class_hash)
-            {
+            match self.state.borrow_mut().contract_classes.entry(*class_hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_contract_class(class_hash)?;
@@ -134,7 +125,7 @@ impl RpcCachedStateReader {
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionTrace> {
         Ok(
-            match self.state.borrow_mut().get_transaction_trace.entry(*hash) {
+            match self.state.borrow_mut().transaction_traces.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_transaction_trace(hash)?;
@@ -150,7 +141,7 @@ impl RpcCachedStateReader {
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
         Ok(
-            match self.state.borrow_mut().get_transaction_receipt.entry(*hash) {
+            match self.state.borrow_mut().transaction_receipts.entry(*hash) {
                 Entry::Occupied(occupied_entry) => occupied_entry.get().clone(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_transaction_receipt(hash)?;
@@ -172,7 +163,7 @@ impl StateReader for RpcCachedStateReader {
             match self
                 .state
                 .borrow_mut()
-                .get_storage_at
+                .storage
                 .entry((contract_address, key))
             {
                 Entry::Occupied(occupied_entry) => *occupied_entry.get(),
@@ -187,7 +178,7 @@ impl StateReader for RpcCachedStateReader {
 
     fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
         Ok(
-            match self.state.borrow_mut().get_nonce_at.entry(contract_address) {
+            match self.state.borrow_mut().nonces.entry(contract_address) {
                 Entry::Occupied(occupied_entry) => *occupied_entry.get(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_nonce_at(contract_address)?;
@@ -200,12 +191,7 @@ impl StateReader for RpcCachedStateReader {
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
         Ok(
-            match self
-                .state
-                .borrow_mut()
-                .get_class_hash_at
-                .entry(contract_address)
-            {
+            match self.state.borrow_mut().class_hashes.entry(contract_address) {
                 Entry::Occupied(occupied_entry) => *occupied_entry.get(),
                 Entry::Vacant(vacant_entry) => {
                     let result = self.reader.get_class_hash_at(contract_address)?;
