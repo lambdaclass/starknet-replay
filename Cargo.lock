@@ -781,7 +781,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "anyhow",
  "ark-ec 0.4.2",
@@ -828,7 +828,7 @@ dependencies = [
 [[package]]
 name = "blockifier_reexecution"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -1526,7 +1526,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.6"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=6a4efafa26d6a0424dee593d2091206c6e9f428d#6a4efafa26d6a0424dee593d2091206c6e9f428d"
+source = "git+https://github.com/lambdaclass/cairo_native.git?branch=runtime_artifact_dependency#3f100997317b2367682b1aeada4541c262313275"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1570,7 +1570,7 @@ dependencies = [
  "starknet-types-core",
  "stats_alloc",
  "tempfile",
- "thiserror 2.0.9",
+ "thiserror 2.0.10",
  "tracing",
  "tracing-subscriber",
  "utf8_iter",
@@ -1579,7 +1579,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.6"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=6a4efafa26d6a0424dee593d2091206c6e9f428d#6a4efafa26d6a0424dee593d2091206c6e9f428d"
+source = "git+https://github.com/lambdaclass/cairo_native.git?branch=runtime_artifact_dependency#3f100997317b2367682b1aeada4541c262313275"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.13.0",
@@ -3933,7 +3933,7 @@ checksum = "b248f5224d1d606005e02c97f5aa4e88eeb230488bcc03bc9ca4d7991399f2b5"
 [[package]]
 name = "infra_utils"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "tokio",
  "tracing",
@@ -4697,7 +4697,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -5172,7 +5172,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "base64 0.13.1",
  "cairo-lang-starknet-classes",
@@ -5191,7 +5191,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "clap",
  "infra_utils",
@@ -5206,7 +5206,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -5229,7 +5229,7 @@ dependencies = [
 [[package]]
 name = "papyrus_network_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "libp2p",
  "serde",
@@ -5238,7 +5238,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "quote",
  "syn 2.0.95",
@@ -5248,7 +5248,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5282,7 +5282,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -6818,7 +6818,7 @@ dependencies = [
  "starknet-curve 0.5.1",
  "starknet-types-core",
  "tempfile",
- "thiserror 2.0.9",
+ "thiserror 2.0.10",
  "tracing",
  "tracing-subscriber",
 ]
@@ -7221,7 +7221,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "bitvec",
  "cairo-lang-runner",
@@ -7248,7 +7248,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -7275,7 +7275,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "async-trait",
  "axum",
@@ -7303,7 +7303,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "async-trait",
  "axum",
@@ -7322,7 +7322,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "async-trait",
  "papyrus_network_types",
@@ -7336,7 +7336,7 @@ dependencies = [
 [[package]]
 name = "starknet_sequencer_infra"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "async-trait",
  "hyper 0.14.32",
@@ -7355,7 +7355,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_compile"
 version = "0.0.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=865e68baad3943f6f418ee65e7f1d4e104fd80c3#865e68baad3943f6f418ee65e7f1d4e104fd80c3"
+source = "git+https://github.com/lambdaclass/sequencer.git?branch=native-artifact-dependency#b44b3fcfb4acf42f7596c4b4878eba660c870205"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
@@ -7632,11 +7632,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.9"
+version = "2.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f072643fd0190df67a8bab670c20ef5d8737177d6ac6b2e9a236cb096206b2cc"
+checksum = "a3ac7f54ca534db81081ef1c1e7f6ea8a3ef428d2fc069097c079443d24124d3"
 dependencies = [
- "thiserror-impl 2.0.9",
+ "thiserror-impl 2.0.10",
 ]
 
 [[package]]
@@ -7652,9 +7652,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.9"
+version = "2.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b50fa271071aae2e6ee85f842e2e28ba8cd2c5fb67f11fcb1fd70b276f9e7d4"
+checksum = "9e9465d30713b56a37ede7185763c3492a91be2f5fa68d958c44e41ab9248beb"
 dependencies = [
  "proc-macro2",
  "quote",
