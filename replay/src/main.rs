@@ -5,7 +5,7 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction_w_state;
+use rpc_state_reader::execution::fetch_transaction_with_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcChain, RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
@@ -342,7 +342,7 @@ fn show_execution_data(
         validate: true,
     };
 
-    let (tx, context) = match fetch_transaction_w_state(reader, &tx_hash, flags) {
+    let (tx, context) = match fetch_transaction_with_state(reader, &tx_hash, flags) {
         Ok(x) => x,
         Err(err) => {
             return error!("failed to fetch transaction: {err}");

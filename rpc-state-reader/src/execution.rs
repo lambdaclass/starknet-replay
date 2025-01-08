@@ -133,7 +133,7 @@ pub fn fetch_transaction(
 /// Fetches all information needed to execute a given transaction
 ///
 /// Like `fetch_transaction`, but with a custom reader.
-pub fn fetch_transaction_w_state(
+pub fn fetch_transaction_with_state(
     reader: &impl StateReader,
     hash: &TransactionHash,
     flags: ExecutionFlags,
