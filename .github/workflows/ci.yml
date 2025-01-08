@@ -173,5 +173,13 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
         run: brew install llvm@19 --quiet
+
+      - name: Checkout cairo_native
+        uses: actions/checkout@v4
+        with:
+          repository: lambdaclass/cairo_native
+          ref: 6a4efafa26d6a0424dee593d2091206c6e9f428d
+          path: cairo_native
+
       - name: Test
         run: cargo +nightly test -Z bindeps

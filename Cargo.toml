@@ -13,8 +13,9 @@ serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", branch = "runtime_artifact_dependency" }
+anyhow = "1.0"
 # Sequencer Dependencies
-sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "e015746b4a7e541853725c2773a7909db37f8f6d" }
+sierra-emu = { git = "https://github.com/lambdaclass/sierra-emu.git", rev = "b3c9d6bd193b2da881fab3dce57fe12c363aed86" }
 starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", branch = "native-artifact-dependency" } # replay
 blockifier = { git = "https://github.com/lambdaclass/sequencer.git", branch = "native-artifact-dependency", features = ["cairo_native"] } # replay
 starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", branch = "native-artifact-dependency" } # replay
