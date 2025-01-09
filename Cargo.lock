@@ -6208,6 +6208,7 @@ dependencies = [
  "cairo-native",
  "cairo-vm",
  "flate2",
+ "fs2",
  "pretty_assertions_sorted",
  "serde",
  "serde_json",
