@@ -330,12 +330,16 @@ fn show_execution_data(
     block_number: u64,
     charge_fee: bool,
 ) {
-    let _transaction_execution_span =
-        info_span!("transaction", hash = tx_hash_str, chain_str).entered();
+    let _transaction_execution_span = info_span!(
+        "transaction",
+        hash = tx_hash_str,
+        chain = chain_str,
+        block = block_number
+    )
+    .entered();
     info!("starting execution");
 
     let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
-    let block_number = BlockNumber(block_number);
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,
