@@ -214,7 +214,7 @@ mod tests {
     };
     use pretty_assertions_sorted::assert_eq_sorted;
     use starknet_api::{
-        block::BlockNumber,
+        block::{BlockNumber, FeeType},
         class_hash,
         execution_resources::{GasAmount, GasVector},
         felt,
@@ -3233,5 +3233,18 @@ mod tests {
                 revert_reason: value.execution.failed.then_some("Default String".into()),
             }
         }
+    }
+
+    #[test]
+    fn test_get_block_info() {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
+
+        let block = reader.get_block_with_tx_hashes().unwrap();
+        let info = get_block_info(block.header);
+
+        assert_eq!(
+            info.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
+            22804578690
+        );
     }
 }
