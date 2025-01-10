@@ -3,7 +3,7 @@ use std::{error::Error, fs::File, path::Path, time::Duration};
 use blockifier::{
     context::BlockContext,
     execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::{cached_state::CachedState, state_api::StateReader as BlockifierStateReader},
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockiTransaction,
@@ -11,8 +11,9 @@ use blockifier::{
     },
 };
 use rpc_state_reader::{
+    cache::RpcCachedStateReader,
     execution::{fetch_block_context, fetch_blockifier_transaction},
-    reader::{RpcChain, RpcStateReader},
+    reader::{RpcChain, RpcStateReader, StateReader},
 };
 use serde::Serialize;
 use starknet_api::{
@@ -24,7 +25,7 @@ use starknet_api::{
 };
 
 pub type BlockCachedData = (
-    CachedState<OptionalStateReader<RpcStateReader>>,
+    CachedState<OptionalStateReader<RpcCachedStateReader>>,
     BlockContext,
     Vec<BlockiTransaction>,
 );
@@ -46,7 +47,7 @@ pub fn fetch_block_range_data(
     for block_number in block_start.0..=block_end.0 {
         // For each block
         let block_number = BlockNumber(block_number);
-        let reader = RpcStateReader::new(chain, block_number);
+        let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block_number));
 
         // Fetch block context
         let block_context = fetch_block_context(&reader).unwrap();
@@ -68,7 +69,8 @@ pub fn fetch_block_range_data(
 
         // Create cached state
         let previous_block_number = block_number.prev().unwrap();
-        let previous_reader = RpcStateReader::new(chain, previous_block_number);
+        let previous_reader =
+            RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
         let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
         block_caches.push((cached_state, block_context, transactions));
@@ -170,7 +172,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 }
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    let reader = RpcStateReader::new(chain, block);
+    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block));
 
     // Fetch block context
     let block_context = fetch_block_context(&reader).unwrap();
@@ -188,7 +190,8 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
 
     // Create cached state
     let previous_block_number = block.prev().unwrap();
-    let previous_reader = RpcStateReader::new(chain, previous_block_number);
+    let previous_reader =
+        RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
     let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
     (cached_state, block_context, transactions)
@@ -197,9 +200,9 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> 
 /// An implementation of StateReader that can be disabled, panicking if atempted to be read from
 ///
 /// Used to ensure that no requests are made after disabling it.
-pub struct OptionalStateReader<S: StateReader>(pub Option<S>);
+pub struct OptionalStateReader<S: BlockifierStateReader>(pub Option<S>);
 
-impl<S: StateReader> OptionalStateReader<S> {
+impl<S: BlockifierStateReader> OptionalStateReader<S> {
     pub fn new(state_reader: S) -> Self {
         Self(Some(state_reader))
     }
@@ -215,7 +218,7 @@ impl<S: StateReader> OptionalStateReader<S> {
     }
 }
 
-impl<S: StateReader> StateReader for OptionalStateReader<S> {
+impl<S: BlockifierStateReader> BlockifierStateReader for OptionalStateReader<S> {
     fn get_storage_at(
         &self,
         contract_address: starknet_api::core::ContractAddress,

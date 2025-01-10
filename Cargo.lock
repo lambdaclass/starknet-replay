@@ -6186,6 +6186,7 @@ dependencies = [
  "pretty_assertions_sorted",
  "serde",
  "serde_json",
+ "serde_with 3.12.0",
  "sierra-emu",
  "starknet",
  "starknet_api",

@@ -1,6 +1,10 @@
-use crate::reader::{RpcChain, RpcStateReader};
+use crate::{
+    objects::BlockHeader,
+    reader::{RpcChain, RpcStateReader, StateReader},
+};
 use anyhow::Context;
 use blockifier::{
+    blockifier::block::validated_gas_prices,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     state::cached_state::CachedState,
@@ -12,15 +16,21 @@ use blockifier::{
     },
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
+use blockifier_reexecution::state_reader::compile::{
+    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+};
+use starknet::core::types::ContractClass;
 use starknet_api::{
-    block::BlockNumber,
+    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     patricia_key,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 
-pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockContext> {
-    let block_info = reader.get_block_info()?;
+pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockContext> {
+    let block = reader.get_block_with_tx_hashes()?;
+    let block_info = get_block_info(block.header);
 
     let mut versioned_constants =
         VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
@@ -52,14 +62,15 @@ pub fn fetch_block_context(reader: &RpcStateReader) -> anyhow::Result<BlockConte
 }
 
 pub fn fetch_blockifier_transaction(
-    reader: &RpcStateReader,
+    reader: &impl StateReader,
     flags: ExecutionFlags,
     hash: TransactionHash,
 ) -> anyhow::Result<BlockiTransaction> {
     let transaction = reader.get_transaction(&hash)?;
 
     let class_info = if let SNTransaction::Declare(declare) = &transaction {
-        Some(reader.get_class_info(&declare.class_hash())?)
+        let class = reader.get_contract_class(&declare.class_hash())?;
+        Some(get_class_info(class)?)
     } else {
         None
     };
@@ -80,6 +91,8 @@ pub fn fetch_blockifier_transaction(
 /// Internally, it creates its own blank state, so it may fail when executing
 /// a transaction in the middle of a block, if it depends on a previous transaction
 /// of the same block.
+///
+/// It doesn't use the rpc cache.
 pub fn execute_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
@@ -102,6 +115,8 @@ pub fn execute_transaction(
 ///
 /// Due to limitations in the CachedState, we need to fetch this information
 /// separately, and can't be done with only the CachedState
+///
+/// It doesn't use the rpc cache. See `fetch_transaction_w_state` to specify a custom reader.
 pub fn fetch_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
@@ -113,6 +128,72 @@ pub fn fetch_transaction(
     let context = fetch_block_context(&reader)?;
 
     Ok((transaction, context))
+}
+
+/// Fetches all information needed to execute a given transaction
+///
+/// Like `fetch_transaction`, but with a custom reader.
+pub fn fetch_transaction_with_state(
+    reader: &impl StateReader,
+    hash: &TransactionHash,
+    flags: ExecutionFlags,
+) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
+    let transaction = fetch_blockifier_transaction(reader, flags, *hash)?;
+    let context = fetch_block_context(reader)?;
+
+    Ok((transaction, context))
+}
+
+/// Derives `BlockInfo` from the `BlockHeader`
+pub fn get_block_info(header: BlockHeader) -> BlockInfo {
+    fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
+        NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
+    }
+
+    BlockInfo {
+        block_number: header.block_number,
+        sequencer_address: header.sequencer_address,
+        block_timestamp: header.timestamp,
+        gas_prices: validated_gas_prices(
+            parse_gas_price(header.l1_gas_price.price_in_wei),
+            parse_gas_price(header.l1_gas_price.price_in_fri),
+            parse_gas_price(header.l1_data_gas_price.price_in_wei),
+            parse_gas_price(header.l1_data_gas_price.price_in_fri),
+            NonzeroGasPrice::MIN,
+            NonzeroGasPrice::MIN,
+        ),
+        use_kzg_da: true,
+    }
+}
+
+/// Derives `ClassInfo` from the `ContractClass`
+pub fn get_class_info(class: ContractClass) -> anyhow::Result<ClassInfo> {
+    match class {
+        ContractClass::Sierra(sierra) => {
+            let abi_length = sierra.abi.len();
+            let sierra_length = sierra.sierra_program.len();
+            let version = SierraVersion::extract_from_program(&sierra.sierra_program)?;
+            Ok(ClassInfo::new(
+                &sierra_to_contact_class_v1(sierra)?,
+                sierra_length,
+                abi_length,
+                version,
+            )?)
+        }
+        ContractClass::Legacy(legacy) => {
+            let abi_length = legacy
+                .abi
+                .clone()
+                .expect("legendary contract should have abi")
+                .len();
+            Ok(ClassInfo::new(
+                &legacy_to_contract_class_v0(legacy)?,
+                0,
+                abi_length,
+                SierraVersion::DEPRECATED,
+            )?)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -133,7 +214,7 @@ mod tests {
     };
     use pretty_assertions_sorted::assert_eq_sorted;
     use starknet_api::{
-        block::BlockNumber,
+        block::{BlockNumber, FeeType},
         class_hash,
         execution_resources::{GasAmount, GasVector},
         felt,
@@ -3152,5 +3233,18 @@ mod tests {
                 revert_reason: value.execution.failed.then_some("Default String".into()),
             }
         }
+    }
+
+    #[test]
+    fn test_get_block_info() {
+        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
+
+        let block = reader.get_block_with_tx_hashes().unwrap();
+        let info = get_block_info(block.header);
+
+        assert_eq!(
+            info.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
+            22804578690
+        );
     }
 }
