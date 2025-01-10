@@ -1,12 +1,13 @@
 use std::{
     collections::HashMap,
     fs::{self, File},
-    io::{self, Read, Write},
+    io::{self, Read},
     path::PathBuf,
     sync::{OnceLock, RwLock},
     time::Instant,
 };
 
+use blockifier::execution::contract_class::CompiledClassV1;
 use cairo_lang_starknet_classes::contract_class::{ContractClass, ContractEntryPoints};
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, OptLevel};
@@ -136,4 +137,48 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
             executor
         }
     }
+}
+
+pub fn get_casm_compiled_class(class: ContractClass, class_hash: ClassHash) -> CompiledClassV1 {
+    let path = PathBuf::from(format!(
+        "compiled_programs/{}.casm.json",
+        class_hash.to_hex_string(),
+    ));
+
+    let casm_class = if path.exists() {
+        let file = File::open(path).unwrap();
+        serde_json::from_reader(file).unwrap()
+    } else {
+        info!("starting vm contract compilation");
+
+        let pre_compilation_instant = Instant::now();
+
+        let casm_class =
+        cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(
+            class,
+            false,
+            usize::MAX,
+        )
+        .unwrap();
+
+        let compilation_time = pre_compilation_instant.elapsed().as_millis();
+
+        tracing::info!(
+            time = compilation_time,
+            size = bytecode_size(&casm_class.bytecode),
+            "vm contract compilation finished"
+        );
+
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+
+        let file = File::create(path).unwrap();
+        serde_json::to_writer_pretty(file, &casm_class).unwrap();
+
+        casm_class
+    };
+    CompiledClassV1::try_from(casm_class).unwrap()
+}
+
+pub fn bytecode_size(data: &[BigUintAsHex]) -> usize {
+    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
 }
