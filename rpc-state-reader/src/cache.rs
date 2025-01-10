@@ -66,13 +66,17 @@ impl Drop for RpcCachedStateReader {
             .read(true)
             .write(true)
             .create(true)
+            .truncate(false)
             .open(path)
             .unwrap();
         file.lock_exclusive().unwrap();
 
-        if let Ok(new_state) = serde_json::from_reader::<_, RpcCache>(&file) {
-            merge_cache(self.state.get_mut(), new_state);
+        // try to read old cache, and merge it with the current one
+        if let Ok(old_state) = serde_json::from_reader::<_, RpcCache>(&file) {
+            merge_cache(self.state.get_mut(), old_state);
         }
+
+        // overwrite the file with the new cache
         file.set_len(0).unwrap();
         file.seek(std::io::SeekFrom::Start(0)).unwrap();
 
