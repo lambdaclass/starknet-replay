@@ -1,6 +1,5 @@
 use std::{
     collections::BTreeMap,
-    error::Error,
     fs::{self, File},
     path::Path,
 };
@@ -31,12 +30,12 @@ pub fn dump_state_diff(
     state: &mut CachedState<impl StateReader>,
     execution_info: &TransactionExecutionInfo,
     path: &Path,
-) -> Result<(), Box<dyn Error>> {
+) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
 
-    let state_maps = SerializableStateMaps::from(state.get_initial_reads()?);
+    let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
     let execution_info = SerializableExecutionInfo::new(execution_info);
     let info = Info {
         execution_info,
@@ -49,7 +48,7 @@ pub fn dump_state_diff(
     Ok(())
 }
 
-pub fn dump_error(err: &TransactionExecutionError, path: &Path) -> Result<(), Box<dyn Error>> {
+pub fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
