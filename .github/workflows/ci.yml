@@ -7,6 +7,9 @@ on:
   merge_group:
     types: [checks_requested]
 
+env:
+  CAIRO_NATIVE_REF: 6a4efafa26d6a0424dee593d2091206c6e9f428d
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -152,7 +155,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: 6a4efafa26d6a0424dee593d2091206c6e9f428d
+          ref:  ${{ env.CAIRO_NATIVE_REF }}
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         shell: bash
@@ -189,7 +192,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: lambdaclass/cairo_native
-          ref: 6a4efafa26d6a0424dee593d2091206c6e9f428d
+          ref:  ${{ env.CAIRO_NATIVE_REF }}
           path: cairo_native
       - name: Build Cairo Native Runtime Library
         run: |
