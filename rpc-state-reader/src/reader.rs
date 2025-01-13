@@ -123,7 +123,7 @@ impl StateReader for RpcStateReader {
     fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
-            "class_hash": class_hash.to_string(),
+            "class_hash": class_hash.to_hex_string(),
         });
 
         serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
@@ -293,7 +293,7 @@ fn compile_sierra_cc(
 
     let _span = info_span!(
         "contract compilation",
-        class_hash = class_hash.to_string(),
+        class_hash = class_hash.to_hex_string(),
         length = bytecode_size(&sierra_cc.sierra_program)
     )
     .entered();
