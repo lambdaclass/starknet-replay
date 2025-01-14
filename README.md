@@ -73,6 +73,11 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run block-range 90000 90002 mainnet
 ```
 
+> [!IMPORTANT]
+> Compiled contracts are cached to disk at `compiled_programs` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
+>
+> Make sure to remove the directory every time you update the Cairo Native version. Running `make clean` will automatically remove it.
+
 ### Benchmarks
 
 To run benchmarks with the replay crate, you can use either `bench-block-range` or `bench-tx` commands. These make sure to cache all needed information (including cairo native compilation) before the actual execution. To use it you must compile the binary under the benchmark flag.
