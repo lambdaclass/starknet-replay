@@ -2,11 +2,13 @@ use std::{
     cell::RefCell,
     collections::{hash_map::Entry, HashMap},
     fs::{self, File},
+    io::Seek,
     path::PathBuf,
 };
 
 use blockifier::state::state_api::{StateReader as BlockifierStateReader, StateResult};
 use cairo_vm::Felt252;
+use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet::core::types::ContractClass;
@@ -59,8 +61,27 @@ impl Drop for RpcCachedStateReader {
         let path = PathBuf::from(format!("rpc_cache/{}.json", self.reader.block_number));
         let parent = path.parent().unwrap();
         fs::create_dir_all(parent).unwrap();
-        let file = File::create(path).unwrap();
-        serde_json::to_writer_pretty(file, &self.state).unwrap();
+
+        let mut file = File::options()
+            .read(true)
+            .write(true)
+            .create(true)
+            .truncate(false)
+            .open(path)
+            .unwrap();
+        file.lock_exclusive().unwrap();
+
+        // try to read old cache, and merge it with the current one
+        if let Ok(old_state) = serde_json::from_reader::<_, RpcCache>(&file) {
+            merge_cache(self.state.get_mut(), old_state);
+        }
+
+        // overwrite the file with the new cache
+        file.set_len(0).unwrap();
+        file.seek(std::io::SeekFrom::Start(0)).unwrap();
+
+        serde_json::to_writer_pretty(&file, &self.state).unwrap();
+        file.unlock().unwrap();
     }
 }
 
@@ -70,9 +91,14 @@ impl RpcCachedStateReader {
             let path = PathBuf::from(format!("rpc_cache/{}.json", reader.block_number));
 
             match File::open(path) {
-                Ok(file) => serde_json::from_reader(file).unwrap(),
+                Ok(file) => {
+                    file.lock_shared().unwrap();
+                    let state = serde_json::from_reader(&file).unwrap();
+                    file.unlock().unwrap();
+                    state
+                }
                 Err(_) => {
-                    warn!("Cache for block {} was not found", reader.block_number);
+                    warn!("Failed to read cache for block {}", reader.block_number);
                     RpcCache::default()
                 }
             }
@@ -219,4 +245,19 @@ impl BlockifierStateReader for RpcCachedStateReader {
     ) -> StateResult<starknet_api::core::CompiledClassHash> {
         todo!();
     }
+}
+
+fn merge_cache(cache: &mut RpcCache, other: RpcCache) {
+    if cache.block.is_none() {
+        cache.block = other.block
+    }
+    cache.transactions.extend(other.transactions);
+    cache.contract_classes.extend(other.contract_classes);
+    cache.storage.extend(other.storage);
+    cache.nonces.extend(other.nonces);
+    cache.class_hashes.extend(other.class_hashes);
+    cache
+        .transaction_receipts
+        .extend(other.transaction_receipts);
+    cache.transaction_traces.extend(other.transaction_traces);
 }
