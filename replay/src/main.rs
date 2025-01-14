@@ -507,8 +507,8 @@ fn compare_execution(
 
 fn set_global_subscriber() {
     #[cfg(not(feature = "structured_logging"))]
-    let default_env_filter =
-        EnvFilter::try_new("replay=info").expect("hard-coded env filter should be valid");
+    let default_env_filter = EnvFilter::try_new("replay=info,rpc_state_reader=info")
+        .expect("hard-coded env filter should be valid");
 
     #[cfg(feature = "structured_logging")]
     let default_env_filter =
