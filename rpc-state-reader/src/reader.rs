@@ -1,21 +1,12 @@
-use std::{
-    env, fmt,
-    sync::Arc,
-    thread,
-    time::{Duration, Instant},
-};
+use std::{env, fmt, sync::Arc, thread, time::Duration};
 
 use blockifier::{
     execution::{
-        contract_class::{
-            CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
-        },
+        contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
         native::contract_class::NativeCompiledClassV1,
     },
     state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
-use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
-use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
@@ -34,12 +25,12 @@ use starknet_gateway::{
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
-use tracing::{info, info_span};
+use tracing::info_span;
 use ureq::json;
 
 use crate::{
     objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
-    utils,
+    utils::{self, bytecode_size, get_casm_compiled_class, get_native_executor},
 };
 
 /// Starknet chains supported in Infura.
@@ -123,7 +114,7 @@ impl StateReader for RpcStateReader {
     fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
-            "class_hash": class_hash.to_string(),
+            "class_hash": class_hash.to_hex_string(),
         });
 
         serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
@@ -293,41 +284,26 @@ fn compile_sierra_cc(
 
     let _span = info_span!(
         "contract compilation",
-        class_hash = class_hash.to_string(),
+        class_hash = class_hash.to_hex_string(),
         length = bytecode_size(&sierra_cc.sierra_program)
     )
     .entered();
 
     if cfg!(feature = "only_casm") {
-        info!("starting vm contract compilation");
-
-        let pre_compilation_instant = Instant::now();
-
-        let casm_cc =
-        cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
-
-        let compilation_time = pre_compilation_instant.elapsed().as_millis();
-
-        tracing::info!(
-            time = compilation_time,
-            size = bytecode_size(&casm_cc.bytecode),
-            "vm contract compilation finished"
-        );
-
-        RunnableCompiledClass::V1(casm_cc.try_into().unwrap())
+        let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
+        RunnableCompiledClass::V1(casm_compiled_class)
     } else {
         let executor = if cfg!(feature = "with-sierra-emu") {
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
             sierra_emu::VirtualMachine::new_starknet(program, &sierra_cc.entry_points_by_type)
                 .into()
         } else {
-            utils::get_native_executor(&sierra_cc, class_hash).into()
+            get_native_executor(&sierra_cc, class_hash).into()
         };
 
-        let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
-        let casm = CompiledClassV1::try_from(casm).unwrap();
+        let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
 
-        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(executor, casm))
+        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(executor, casm_compiled_class))
     }
 }
 
@@ -367,10 +343,6 @@ fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Va
 
         thread::sleep(Duration::from_millis(RETRY_SLEEP_MS))
     }
-}
-
-fn bytecode_size(data: &[BigUintAsHex]) -> usize {
-    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
 }
 
 #[cfg(test)]
