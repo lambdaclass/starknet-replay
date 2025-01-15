@@ -8,7 +8,7 @@ on:
     types: [checks_requested]
 
 env:
-  CAIRO_NATIVE_REF: e9151aa8420a138f70febb721f8979d3dd2f7223
+  CAIRO_NATIVE_REF: v0.2.8
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
