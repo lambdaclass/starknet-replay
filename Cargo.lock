@@ -6189,7 +6189,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 3.12.0",
- "sierra-emu",
  "starknet",
  "starknet_api",
  "starknet_gateway",

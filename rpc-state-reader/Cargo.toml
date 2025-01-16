@@ -29,7 +29,6 @@ blockifier_reexecution = { workspace = true }
 starknet_gateway = { workspace = true }
 tracing = { workspace = true }
 anyhow.workspace = true
-sierra-emu.workspace = true
 fs2.workspace = true
 
 [dev-dependencies]
