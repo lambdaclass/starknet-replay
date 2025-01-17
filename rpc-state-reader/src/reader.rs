@@ -1,28 +1,18 @@
-use std::{
-    env, fmt,
-    sync::Arc,
-    thread,
-    time::{Duration, Instant},
-};
+use std::{env, fmt, sync::Arc, thread, time::Duration};
 
 use blockifier::{
-    blockifier::block::validated_gas_prices,
     execution::{
-        contract_class::{
-            CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
-        },
+        contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
         native::contract_class::NativeCompiledClassV1,
     },
-    state::state_api::{StateReader, StateResult},
+    state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
-use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
-use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
 use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
-    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    block::BlockNumber,
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
@@ -35,15 +25,12 @@ use starknet_gateway::{
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
-use tracing::{info, info_span};
+use tracing::info_span;
 use ureq::json;
 
 use crate::{
-    objects::{
-        self, BlockHeader, BlockWithTxHahes, BlockWithTxs, RpcTransactionReceipt,
-        RpcTransactionTrace,
-    },
-    utils,
+    objects::{self, BlockWithTxHahes, RpcTransactionReceipt, RpcTransactionTrace},
+    utils::{self, bytecode_size, get_casm_compiled_class, get_native_executor},
 };
 
 /// Starknet chains supported in Infura.
@@ -77,12 +64,23 @@ impl From<RpcChain> for ChainId {
 const MAX_RETRIES: u32 = 10;
 const RETRY_SLEEP_MS: u64 = 10000;
 
+pub trait StateReader: BlockifierStateReader {
+    fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes>;
+    fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction>;
+    fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass>;
+    fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace>;
+    fn get_transaction_receipt(&self, hash: &TransactionHash)
+        -> StateResult<RpcTransactionReceipt>;
+    fn get_chain_id(&self) -> ChainId;
+}
+
 // The following structure is heavily inspired by the underlying starkware-libs/sequencer implementation.
 // It uses sequencer's RpcStateReader under the hood in some situations, while in other situation
 // the actual implementation has been copied and modified to our needs.
 
 pub struct RpcStateReader {
     chain: RpcChain,
+    pub block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
 
@@ -93,15 +91,7 @@ impl RpcStateReader {
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
             chain,
-        }
-    }
-
-    pub fn new_latest(chain: RpcChain) -> Self {
-        let config = build_config(chain);
-
-        Self {
-            inner: GatewayRpcStateReader::from_latest(&config),
-            chain,
+            block_number,
         }
     }
 
@@ -110,27 +100,28 @@ impl RpcStateReader {
         method: &str,
         params: impl Serialize,
     ) -> RPCStateReaderResult<Value> {
-        retry(|| self.inner.send_rpc_request(method, &params))
-    }
+        let result = retry(|| self.inner.send_rpc_request(method, &params));
 
-    pub fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
+        if let Err(RPCStateReaderError::ReqwestError(err)) = result {
+            Err(RPCStateReaderError::ReqwestError(err.without_url()))
+        } else {
+            result
+        }
+    }
+}
+
+impl StateReader for RpcStateReader {
+    fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({
             "block_id": self.inner.block_id,
-            "class_hash": class_hash.to_string(),
+            "class_hash": class_hash.to_hex_string(),
         });
 
         serde_json::from_value(self.send_rpc_request_with_retry("starknet_getClass", params)?)
             .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_chain_id(&self) -> ChainId {
-        self.chain.into()
-    }
-
-    pub fn get_transaction_trace(
-        &self,
-        hash: &TransactionHash,
-    ) -> StateResult<RpcTransactionTrace> {
+    fn get_transaction_trace(&self, hash: &TransactionHash) -> StateResult<RpcTransactionTrace> {
         let params = json!([hash]);
 
         serde_json::from_value(
@@ -139,7 +130,7 @@ impl RpcStateReader {
         .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
+    fn get_transaction(&self, hash: &TransactionHash) -> StateResult<Transaction> {
         let params = json!([hash]);
 
         let tx = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
@@ -147,39 +138,7 @@ impl RpcStateReader {
         objects::deser::transaction_from_json(tx).map_err(serde_err_to_state_err)
     }
 
-    pub fn get_block_info(&self) -> StateResult<BlockInfo> {
-        // This function is inspired by sequencer's RpcStateReader::get_block_info
-
-        fn parse_gas_price(price: GasPrice) -> NonzeroGasPrice {
-            NonzeroGasPrice::new(price).unwrap_or(NonzeroGasPrice::MIN)
-        }
-
-        let params = GetBlockWithTxHashesParams {
-            block_id: self.inner.block_id,
-        };
-
-        let header: BlockHeader = serde_json::from_value(
-            self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?,
-        )
-        .map_err(serde_err_to_state_err)?;
-
-        Ok(BlockInfo {
-            block_number: header.block_number,
-            sequencer_address: header.sequencer_address,
-            block_timestamp: header.timestamp,
-            gas_prices: validated_gas_prices(
-                parse_gas_price(header.l1_gas_price.price_in_wei),
-                parse_gas_price(header.l1_gas_price.price_in_fri),
-                parse_gas_price(header.l1_data_gas_price.price_in_wei),
-                parse_gas_price(header.l1_data_gas_price.price_in_fri),
-                NonzeroGasPrice::MIN,
-                NonzeroGasPrice::MIN,
-            ),
-            use_kzg_da: true,
-        })
-    }
-
-    pub fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
+    fn get_block_with_tx_hashes(&self) -> StateResult<BlockWithTxHahes> {
         let params = GetBlockWithTxHashesParams {
             block_id: self.inner.block_id,
         };
@@ -190,18 +149,7 @@ impl RpcStateReader {
         .map_err(serde_err_to_state_err)
     }
 
-    pub fn get_block_with_txs(&self) -> StateResult<BlockWithTxs> {
-        let params = GetBlockWithTxHashesParams {
-            block_id: self.inner.block_id,
-        };
-
-        serde_json::from_value(
-            self.send_rpc_request_with_retry("starknet_getBlockWithTxs", params)?,
-        )
-        .map_err(serde_err_to_state_err)
-    }
-
-    pub fn get_transaction_receipt(
+    fn get_transaction_receipt(
         &self,
         hash: &TransactionHash,
     ) -> StateResult<RpcTransactionReceipt> {
@@ -211,6 +159,10 @@ impl RpcStateReader {
             self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?,
         )
         .map_err(serde_err_to_state_err)
+    }
+
+    fn get_chain_id(&self) -> ChainId {
+        self.chain.into()
     }
 }
 
@@ -231,7 +183,7 @@ fn build_config(chain: RpcChain) -> RpcStateReaderConfig {
     }
 }
 
-impl StateReader for RpcStateReader {
+impl BlockifierStateReader for RpcStateReader {
     fn get_storage_at(
         &self,
         contract_address: ContractAddress,
@@ -294,18 +246,23 @@ impl StateReader for RpcStateReader {
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
-        Ok(match self.get_contract_class(&class_hash)? {
-            SNContractClass::Legacy(compressed_legacy_cc) => {
-                compile_legacy_cc(compressed_legacy_cc)
-            }
-            SNContractClass::Sierra(flattened_sierra_cc) => {
-                compile_sierra_cc(flattened_sierra_cc, class_hash)
-            }
-        })
+        Ok(compile_contract_class(
+            self.get_contract_class(&class_hash)?,
+            class_hash,
+        ))
     }
 
     fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
         self.inner.get_compiled_class_hash(class_hash)
+    }
+}
+
+pub fn compile_contract_class(class: SNContractClass, hash: ClassHash) -> RunnableCompiledClass {
+    match class {
+        SNContractClass::Legacy(compressed_legacy_cc) => compile_legacy_cc(compressed_legacy_cc),
+        SNContractClass::Sierra(flattened_sierra_cc) => {
+            compile_sierra_cc(flattened_sierra_cc, hash)
+        }
     }
 }
 
@@ -327,28 +284,14 @@ fn compile_sierra_cc(
 
     let _span = info_span!(
         "contract compilation",
-        class_hash = class_hash.to_string(),
+        class_hash = class_hash.to_hex_string(),
         length = bytecode_size(&sierra_cc.sierra_program)
     )
     .entered();
 
     if cfg!(feature = "only_casm") {
-        info!("starting vm contract compilation");
-
-        let pre_compilation_instant = Instant::now();
-
-        let casm_cc =
-        cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
-
-        let compilation_time = pre_compilation_instant.elapsed().as_millis();
-
-        tracing::info!(
-            time = compilation_time,
-            size = bytecode_size(&casm_cc.bytecode),
-            "vm contract compilation finished"
-        );
-
-        RunnableCompiledClass::V1(casm_cc.try_into().unwrap())
+        let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
+        RunnableCompiledClass::V1(casm_compiled_class)
     } else {
         let executor = if cfg!(feature = "with-sierra-emu") {
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
@@ -358,13 +301,12 @@ fn compile_sierra_cc(
             let executor = utils::get_native_executor(&sierra_cc, class_hash);
             (executor, program).into()
         } else {
-            utils::get_native_executor(&sierra_cc, class_hash).into()
+            get_native_executor(&sierra_cc, class_hash).into()
         };
 
-        let casm = CasmContractClass::from_contract_class(sierra_cc, false, usize::MAX).unwrap();
-        let casm = CompiledClassV1::try_from(casm).unwrap();
+        let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
 
-        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(executor, casm))
+        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(executor, casm_compiled_class))
     }
 }
 
@@ -406,27 +348,10 @@ fn retry(f: impl Fn() -> RPCStateReaderResult<Value>) -> RPCStateReaderResult<Va
     }
 }
 
-fn bytecode_size(data: &[BigUintAsHex]) -> usize {
-    data.iter().map(|n| n.value.to_bytes_be().len()).sum()
-}
-
 #[cfg(test)]
 mod tests {
-    use starknet_api::block::FeeType;
 
     use super::*;
-
-    #[test]
-    fn test_get_block_info() {
-        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
-
-        let block = reader.get_block_info().unwrap();
-
-        assert_eq!(
-            block.gas_prices.l1_gas_price(&FeeType::Eth).get().0,
-            22804578690
-        );
-    }
 
     #[test]
     fn test_get_block_with_tx_hashes() {

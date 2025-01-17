@@ -12,10 +12,12 @@ tracing = "0.1"
 serde_json = "1.0.116"
 serde_with = "3.11.0"
 serde = "1.0.197"
+fs2 = "0.4.3"
+# Remember to update CAIRO_NATIVE_REF env variable in the CI when updating this
 cairo-native = { path = "../cairo_native" }
+anyhow = "1.0"
 # Sequencer Dependencies
 starknet_api = { path = "../sequencer/crates/starknet_api" } # replay
 blockifier = { path = "../sequencer/crates/blockifier", features = ["cairo_native"] } # replay
 starknet_gateway = { path = "../sequencer/crates/starknet_gateway" } # replay
 blockifier_reexecution = { path = "../sequencer/crates/blockifier_reexecution" } # replay
-sierra-emu = { path = "../sierra-emu" }
