@@ -8,7 +8,7 @@ on:
     types: [checks_requested]
 
 env:
-  CAIRO_NATIVE_REF: 6a4efafa26d6a0424dee593d2091206c6e9f428d
+  CAIRO_NATIVE_REF: 5801a9d529f92ef2cf0edca20b12b2602fdb9636
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,7 +24,7 @@ jobs:
       TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.83.0
+      - uses: dtolnay/rust-toolchain@1.84.0
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.83.0
+      - uses: dtolnay/rust-toolchain@1.84.0
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
@@ -139,7 +139,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           df -h
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.83.0
+        uses: dtolnay/rust-toolchain@1.84.0
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Add LLVM Debian repository
@@ -180,7 +180,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup rust env
-        uses: dtolnay/rust-toolchain@1.83.0
+        uses: dtolnay/rust-toolchain@1.84.0
       - name: Rust `$PATH` workaround.
         run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - uses: Homebrew/actions/setup-homebrew@master
