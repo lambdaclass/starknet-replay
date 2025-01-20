@@ -22,6 +22,7 @@ test:
 
 clean:
 	cargo clean
+	rm -rf compiled_programs/
 
 deps:
 ifeq ($(UNAME), Darwin)
