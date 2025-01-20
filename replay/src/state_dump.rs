@@ -231,16 +231,7 @@ impl From<CallInfo> for SerializableCallInfo {
         accessed_storage_keys.sort();
 
         Self {
-            call: SerializableCallEntryPoint {
-                class_hash: value.call.class_hash,
-                code_address: value.call.code_address,
-                entry_point_type: value.call.entry_point_type,
-                entry_point_selector: value.call.entry_point_selector,
-                calldata: value.call.calldata,
-                storage_address: value.call.storage_address,
-                caller_address: value.call.caller_address,
-                call_type: value.call.call_type,
-            },
+            call: SerializableCallEntryPoint::from(value.call),
             execution: SerializableCallExecution {
                 retdata: value.execution.retdata,
                 events: value.execution.events,
@@ -269,8 +260,7 @@ struct SerializableCallEntryPoint {
     pub storage_address: ContractAddress,
     pub caller_address: ContractAddress,
     pub call_type: CallType,
-    // Ignore gas
-    // pub initial_gas: u64,
+    pub initial_gas: u64,
 }
 impl From<CallEntryPoint> for SerializableCallEntryPoint {
     fn from(value: CallEntryPoint) -> Self {
@@ -283,6 +273,7 @@ impl From<CallEntryPoint> for SerializableCallEntryPoint {
             storage_address: value.storage_address,
             caller_address: value.caller_address,
             call_type: value.call_type,
+            initial_gas: value.initial_gas,
         }
     }
 }
@@ -303,7 +294,7 @@ struct SerializableCallExecution {
 pub struct SerializableTransactionReceipt {
     pub resources: SerializableTransactionResources,
     pub da_gas: GasVector,
-    // Ignore gas
+    // Ignore fee
     // pub fee: Fee,
     // pub gas: GasVector,
 }
@@ -331,11 +322,6 @@ pub struct SerializableStateChangesCount {
     pub n_class_hash_updates: usize,
     pub n_compiled_class_hash_updates: usize,
     pub n_modified_contracts: usize,
-    // Remaining fields where private
-    // signature_length: usize,
-    // code_size: usize,
-    // total_event_keys: u128,
-    // total_event_data_size: u128,
 }
 
 #[derive(Serialize)]
