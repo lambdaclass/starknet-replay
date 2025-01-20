@@ -8,7 +8,6 @@ use blockifier::{
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo, FeeTokenAddresses},
     state::cached_state::CachedState,
-    test_utils::MAX_FEE,
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockiTransaction,
@@ -17,7 +16,7 @@ use blockifier::{
     versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
 };
 use blockifier_reexecution::state_reader::compile::{
-    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+    legacy_to_contract_class_v0, sierra_to_versioned_contract_class_v1,
 };
 use starknet::core::types::ContractClass;
 use starknet_api::{
@@ -25,6 +24,7 @@ use starknet_api::{
     contract_class::{ClassInfo, SierraVersion},
     core::ContractAddress,
     patricia_key,
+    test_utils::MAX_FEE,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 
@@ -172,9 +172,9 @@ pub fn get_class_info(class: ContractClass) -> anyhow::Result<ClassInfo> {
         ContractClass::Sierra(sierra) => {
             let abi_length = sierra.abi.len();
             let sierra_length = sierra.sierra_program.len();
-            let version = SierraVersion::extract_from_program(&sierra.sierra_program)?;
+            let (contract_class, version) = sierra_to_versioned_contract_class_v1(sierra)?;
             Ok(ClassInfo::new(
-                &sierra_to_contact_class_v1(sierra)?,
+                &contract_class,
                 sierra_length,
                 abi_length,
                 version,
