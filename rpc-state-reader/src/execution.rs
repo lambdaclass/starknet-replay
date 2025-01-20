@@ -474,7 +474,7 @@ mod tests {
                         (BuiltinName::range_check, 75),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -589,7 +589,7 @@ mod tests {
                         (BuiltinName::range_check, 74),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -695,7 +695,7 @@ mod tests {
                         (BuiltinName::range_check, 74),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -801,7 +801,7 @@ mod tests {
                         (BuiltinName::range_check, 76),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -894,7 +894,7 @@ mod tests {
                         (BuiltinName::range_check, 76),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -982,7 +982,7 @@ mod tests {
                         (BuiltinName::segment_arena, 2),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1298,7 +1298,7 @@ mod tests {
                         (BuiltinName::poseidon, 1)
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1424,7 +1424,7 @@ mod tests {
                         (BuiltinName::pedersen, 4),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1541,7 +1541,7 @@ mod tests {
                         (BuiltinName::range_check, 38),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1584,7 +1584,7 @@ mod tests {
                         (BuiltinName::range_check, 39),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1638,7 +1638,7 @@ mod tests {
                         (BuiltinName::pedersen, 3),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1739,7 +1739,7 @@ mod tests {
                         (BuiltinName::pedersen, 9),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -1859,7 +1859,7 @@ mod tests {
                         (BuiltinName::pedersen, 3),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2004,7 +2004,7 @@ mod tests {
                         (BuiltinName::range_check, 165),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2090,7 +2090,7 @@ mod tests {
                         (BuiltinName::pedersen, 1),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2200,7 +2200,7 @@ mod tests {
                         (BuiltinName::range_check, 161),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2319,7 +2319,7 @@ mod tests {
                         (BuiltinName::range_check, 4897),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2607,7 +2607,7 @@ mod tests {
                         (BuiltinName::pedersen, 3),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -2716,7 +2716,7 @@ mod tests {
                         (BuiltinName::pedersen, 43),
                     ]),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
@@ -3114,7 +3114,7 @@ mod tests {
                     n_memory_holes: 0,
                     builtin_instance_counter: HashMap::new(),
                 },
-                gas_for_fee: GasAmount(
+                gas_consumed: GasAmount(
                     0,
                 ),
             },
