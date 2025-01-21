@@ -32,3 +32,9 @@ deps:
 
 deps-macos: 
 	-brew install llvm@19 --quiet
+
+deps-bench:
+	cargo build --release --features benchmark
+	cp target/release/replay target/release/replay-bench-native
+	cargo build --release --features benchmark,only_cairo_vm
+	cp target/release/replay target/release/replay-bench-vm
