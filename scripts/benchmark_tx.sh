@@ -45,9 +45,6 @@ vm_data_output="$DATA_DIR/vm-$data_output"
 
 plotting_output="$DATA_DIR/plot-$TX-$NET"
 
-echo "Benchmarking $LAPS times $NET transaction $TX"
-echo
-
 echo "Executing with Native"
 $NATIVE_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$native_data_output" > "$native_log_output"
 
@@ -55,7 +52,6 @@ native_time_secs=$(jq .average_time.secs "$native_data_output")
 native_time_nanos=$(jq .average_time.nanos "$native_data_output")
 native_time=$(bc -l <<< "$native_time_secs * 1000000000 + $native_time_nanos")
 echo "Average Native time: $native_time ns"
-echo
 
 echo "Executing with VM"
 $VM_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$vm_data_output" > "$vm_log_output"
@@ -64,7 +60,6 @@ vm_time_secs=$(jq .average_time.secs "$vm_data_output")
 vm_time_nanos=$(jq .average_time.nanos "$vm_data_output")
 vm_time=$(bc -l <<< "$vm_time_secs * 1000000000 + $vm_time_nanos")
 echo "Average VM time: $vm_time ns"
-echo
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
 echo "Native Speedup: $speedup"
