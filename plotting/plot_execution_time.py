@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
 import io
@@ -11,10 +12,13 @@ parser = ArgumentParser("Stress Test Plotter")
 parser.add_argument("native_data")
 parser.add_argument("vm_data")
 parser.add_argument("-s", "--speedup", action="store_true")
+parser.add_argument("-o", "--output")
 args = parser.parse_args()
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
+
+mpl.rcParams["figure.figsize"] = [16, 9]
 
 
 def load_dataset(path, f):
@@ -148,6 +152,10 @@ ax.set_xlabel("Speedup")
 ax.set_ylabel("Class Hash")
 ax.set_title("Speedup by Contract Class")
 
+if args.output:
+    figure_name = f"{args.output}.svg"
+    plt.savefig(figure_name)
+
 if args.speedup:
     fig, ax = plt.subplots()
     sns.violinplot(
@@ -158,5 +166,9 @@ if args.speedup:
     )
     ax.set_xlabel("Speedup")
     ax.set_title("Speedup Distribution")
+    if args.output:
+        figure_name = f"{args.output}-speedup.svg"
+        plt.savefig(figure_name)
 
-plt.show()
+if not args.output:
+    plt.show()
