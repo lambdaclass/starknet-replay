@@ -66,22 +66,12 @@ data_by_selector.columns = data_by_selector.columns.map("_".join)
 if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
     raise Exception("Native and VM should have the same number of samples")
 
-# calculate speedup
-data_by_selector["speedup"] = (
-    data_by_selector["total_time_vm"] / data_by_selector["total_time_native"]
-)
-total_native = data_by_selector["total_time_native"].sum() / 10e9
-total_vm = data_by_selector["total_time_vm"].sum() / 10e9
-print(f"Total Native: {total_native} seconds")
-print(f"Total VM: {total_vm} seconds")
-print("Total Speedup:", total_vm / total_native)
-
 # sort by decreasing time
 data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
 
-s = io.StringIO()
-data_by_selector.to_csv(s)
-print(s.getvalue())
+if args.output:
+    file_name = f"{args.output}.csv"
+    data_by_selector.to_csv(file_name)
 
 # GROUP BY CLASS
 
