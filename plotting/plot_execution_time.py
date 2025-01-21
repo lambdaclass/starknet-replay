@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import io
+import json
 from utils import format_hash
 
 parser = ArgumentParser("Stress Test Plotter")
@@ -17,7 +18,13 @@ pd.set_option("display.max_rows", None)
 
 
 def load_dataset(path, f):
-    return pd.read_json(path).apply(f, axis=1).dropna().apply(pd.Series)
+    data = json.load(open(path))
+    return (
+        pd.DataFrame(data["class_executions"])
+        .apply(f, axis=1)
+        .dropna()
+        .apply(pd.Series)
+    )
 
 
 def process_row(row):
