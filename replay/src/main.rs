@@ -1,4 +1,3 @@
-use benchmark::BenchmarkingData;
 use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -20,6 +19,7 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 use {
     crate::benchmark::{
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
+        BenchmarkingData,
     },
     std::path::PathBuf,
     std::time::Instant,
