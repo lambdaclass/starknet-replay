@@ -1,3 +1,4 @@
+use benchmark::BenchmarkingData;
 use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -17,10 +18,10 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 #[cfg(feature = "benchmark")]
 use {
     crate::benchmark::{
-        execute_block_range, fetch_block_range_data, fetch_transaction_data, save_executions,
+        aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
     },
     std::path::PathBuf,
-    std::{ops::Div, time::Instant},
+    std::time::Instant,
 };
 
 #[cfg(feature = "profiling")]
@@ -218,17 +219,26 @@ fn main() {
                 let execution_time = before_execution.elapsed();
 
                 info!("saving execution info");
-                let execution = executions.into_iter().flatten().collect::<Vec<_>>();
-                save_executions(&output, execution).expect("failed to save execution info");
 
-                let total_run_time = execution_time.as_secs_f64();
-                let average_run_time = total_run_time.div(number_of_runs as f64);
+                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
+                let class_executions = aggregate_executions(executions);
+
+                let average_time = execution_time.div_f32(number_of_runs as f32);
+
+                let benchmarking_data = BenchmarkingData {
+                    average_time,
+                    class_executions,
+                };
+
+                let file = std::fs::File::create(output).unwrap();
+                serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+
                 info!(
                     block_start = block_start.0,
                     block_end = block_end.0,
                     number_of_runs,
-                    total_run_time,
-                    average_run_time,
+                    total_run_time = execution_time.as_secs_f64(),
+                    average_run_time = average_time.as_secs_f64(),
                     "benchmark finished",
                 );
             }
@@ -272,7 +282,7 @@ fn main() {
             thread::sleep(Duration::from_secs(1));
 
             {
-                let _benchmark_span = info_span!("benchmarking transaction").entered();
+                let _benchmark_span = info_span!("benchmarking block range").entered();
 
                 let mut executions = Vec::new();
 
@@ -284,17 +294,26 @@ fn main() {
                 let execution_time = before_execution.elapsed();
 
                 info!("saving execution info");
-                let execution = executions.into_iter().flatten().collect::<Vec<_>>();
-                save_executions(&output, execution).expect("failed to save execution info");
 
-                let total_run_time = execution_time.as_secs_f64();
-                let average_run_time = total_run_time.div(number_of_runs as f64);
+                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
+                let class_executions = aggregate_executions(executions);
+
+                let average_time = execution_time.div_f32(number_of_runs as f32);
+
+                let benchmarking_data = BenchmarkingData {
+                    average_time,
+                    class_executions,
+                };
+
+                let file = std::fs::File::create(output).unwrap();
+                serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+
                 info!(
                     tx = tx,
                     block = block.0,
                     number_of_runs,
-                    total_run_time,
-                    average_run_time,
+                    total_run_time = execution_time.as_secs_f64(),
+                    average_run_time = average_time.as_secs_f64(),
                     "benchmark finished",
                 );
             }
