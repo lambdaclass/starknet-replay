@@ -126,22 +126,38 @@ To compare the outputs, you can use the following scripts. Some of them required
 
 ### Plotting
 
-In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the replay with the `structured_logging` feature, and redirect the output to a file. You should do it with both Native execution and VM execution.
+In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the benchmarks.
 
-Make sure to erase the `compiled_programs` directory, then run:
+First, make sure to removed the `compiled_programs` directory and build the benchmarking binaries.
+```bash
+rm -rf compiled_programs
+make deps-bench
+```
 
+Then, you can benchmark a single transaction by running:
 ```bash
 ./scripts/benchmark_tx.sh <tx> <net> <block> <laps>
 ```
-
-This generates four files:
-- `{native,vm}-data-$tx-$net.json`: Contains the execution time of each contract call
-- `{native,vm}-logs-$tx-$net.json`: Contains the output of running the benchmark
 
 If you want to benchmark a full block, you could run:
 ```bash
 ./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
 ```
+
+If you just want quick benchmarks, run:
+```bash
+./scripts/benchmark.sh
+```
+
+This generates the following files in the `bench_data` directory: 
+- `{native,vm}-data-$tx-$net.json`: Contains the execution time of each contract call.
+- `{native,vm}-logs-$tx-$net.json`: Contains the output of running the benchmark. It contains information needed by some plotting scripts.
+These files are used by the plotting scripts.
+
+Aditionally, the scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
+- `plot-$tx-$net.svg`
+- `plot-$tx-$net-speedup.svg`
+- `plot-$tx-$net.csv`
 
 Once you have done this, you can use the plotting scripts:
 
