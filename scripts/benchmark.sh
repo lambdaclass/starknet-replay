@@ -4,7 +4,6 @@
 
 dir=$(dirname "$0")
 benchmark_tx_script="$dir/benchmark_tx.sh"
-benchmark_block_script="$dir/benchmark_block.sh"
 
 cases=(
   "0x01e06dfbd41e559ee5edd313ab95605331873a5aed09bf1c7312456b7aa2a1c7 testnet 291652 10000"
@@ -18,18 +17,5 @@ for case in "${cases[@]}"; do
   echo "Benchmarking tx $tx from $net $laps times"
   echo
   $benchmark_tx_script "$tx" "$net" "$block" "$laps"
-  echo
-done
-
-cases=(
-  "874000 874049 mainnet 50"
-)
-
-for case in "${cases[@]}"; do
-  read -r start end net laps <<< "$case"
-
-  echo "Benchmarking blocks $start to $end from $net $laps times"
-  echo
-  $benchmark_block_script "$start" "$end" "$net" "$laps"
   echo
 done
