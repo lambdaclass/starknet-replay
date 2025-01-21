@@ -14,9 +14,5 @@ cases=(
 for case in "${cases[@]}"; do
   read -r tx net block laps <<< "$case"
 
-  echo
-  echo "Benchmarking $tx from $net $laps times"
-  echo
-
   $benchmark_tx_script "$tx" "$net" "$block" "$laps"
 done
