@@ -15,10 +15,12 @@ if ! [ "$#" -ge "4" ]; then
     exit 1
 fi
 
-NATIVE_TARGET=target/release/replay-bench-native
-VM_TARGET=target/release/replay-bench-vm
+DIR=$(dirname "$0")
+NATIVE_TARGET=$DIR/../target/release/replay-bench-native
+VM_TARGET=$DIR/../target/release/replay-bench-vm
+PLOTTING_SCRIPT=$DIR/../plotting/plot_execution_time.py
 
-if [ ! -x $NATIVE_TARGET ] || [ ! -x $VM_TARGET ]; then
+if [ ! -x "$NATIVE_TARGET" ] || [ ! -x "$VM_TARGET" ]; then
     echo "benchmark target is missing, please run: make deps-bench"
     exit 1
 fi
@@ -38,6 +40,8 @@ vm_log_output="$DATA_DIR/vm-$log_output"
 data_output="data-$TX-$NET.json"
 native_data_output="$DATA_DIR/native-$data_output"
 vm_data_output="$DATA_DIR/vm-$data_output"
+
+plotting_output="$DATA_DIR/plot-$TX-$NET"
 
 echo "Benchmarking $LAPS times $NET transaction $TX"
 echo
@@ -62,3 +66,5 @@ echo
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
 echo "Native Speedup: $speedup"
+
+python "$PLOTTING_SCRIPT" "$native_data_output" "$vm_data_output" --speedup --output "$plotting_output"
