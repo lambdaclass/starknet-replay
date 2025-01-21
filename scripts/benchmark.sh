@@ -15,6 +15,8 @@ cases=(
 for case in "${cases[@]}"; do
   read -r tx net block laps <<< "$case"
 
+  echo "Benchmarking tx $tx from $net $laps times"
+  echo
   $benchmark_tx_script "$tx" "$net" "$block" "$laps"
   echo
 done
@@ -26,6 +28,8 @@ cases=(
 for case in "${cases[@]}"; do
   read -r start end net laps <<< "$case"
 
+  echo "Benchmarking blocks $start to $end from $net $laps times"
+  echo
   $benchmark_block_script "$start" "$end" "$net" "$laps"
   echo
 done
