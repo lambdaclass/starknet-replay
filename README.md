@@ -128,7 +128,7 @@ To compare the outputs, you can use the following scripts. Some of them required
 
 In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the benchmarks.
 
-First, make sure to removed the `compiled_programs` directory and build the benchmarking binaries.
+First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
 ```bash
 rm -rf compiled_programs
 make deps-bench
@@ -154,7 +154,7 @@ This generates the following files in the `bench_data` directory:
 - `{native,vm}-logs-$tx-$net.json`: Contains the output of running the benchmark. It contains information needed by some plotting scripts.
 These files are used by the plotting scripts.
 
-Aditionally, the scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
+Additionally, the scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
 - `plot-$tx-$net.svg`
 - `plot-$tx-$net-speedup.svg`
 - `plot-$tx-$net.csv`
