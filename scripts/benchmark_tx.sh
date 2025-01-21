@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 usage() {
 cat <<EOF
 Usage: $0 <tx> <net> <block> <laps>
