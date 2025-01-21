@@ -53,7 +53,7 @@ $NATIVE_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$native_data_output" >
 
 native_time_secs=$(jq .average_time.secs "$native_data_output")
 native_time_nanos=$(jq .average_time.nanos "$native_data_output")
-native_time=$(bc -l <<< "$native_time_secs * 1e9 + $native_time_nanos")
+native_time=$(bc -l <<< "$native_time_secs * 1000000000 + $native_time_nanos")
 echo "Average Native time: $native_time ns"
 echo
 
@@ -62,7 +62,7 @@ $VM_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$vm_data_output" > "$vm_lo
 
 vm_time_secs=$(jq .average_time.secs "$vm_data_output")
 vm_time_nanos=$(jq .average_time.nanos "$vm_data_output")
-vm_time=$(bc -l <<< "$vm_time_secs * 1e9 + $vm_time_nanos")
+vm_time=$(bc -l <<< "$vm_time_secs * 1000000000 + $vm_time_nanos")
 echo "Average VM time: $vm_time ns"
 echo
 
