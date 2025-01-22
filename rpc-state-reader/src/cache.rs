@@ -81,7 +81,7 @@ impl Drop for RpcCachedStateReader {
         file.seek(std::io::SeekFrom::Start(0)).unwrap();
 
         serde_json::to_writer_pretty(&file, &self.state).unwrap();
-        file.unlock().unwrap();
+        fs2::FileExt::unlock(&file).unwrap();
     }
 }
 
@@ -92,9 +92,9 @@ impl RpcCachedStateReader {
 
             match File::open(path) {
                 Ok(file) => {
-                    file.lock_shared().unwrap();
+                    fs2::FileExt::lock_shared(&file).unwrap();
                     let state = serde_json::from_reader(&file).unwrap();
-                    file.unlock().unwrap();
+                    fs2::FileExt::unlock(&file).unwrap();
                     state
                 }
                 Err(_) => {

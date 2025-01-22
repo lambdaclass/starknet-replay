@@ -18,8 +18,8 @@ serde_json = { version = "1.0", features = [
 ] }
 serde_with = { workspace = true, features = ["macros"] }
 starknet_api = {workspace = true}
-cairo-lang-starknet-classes = "=2.10.0-rc.0"
-cairo-lang-utils = "=2.10.0-rc.0"
+cairo-lang-starknet-classes = "2.10.0-rc.1"
+cairo-lang-utils = "2.10.0-rc.1"
 cairo-native = { workspace = true }
 starknet = "0.6.0"
 flate2 = "1.0.25"
@@ -29,7 +29,6 @@ blockifier_reexecution = { workspace = true }
 starknet_gateway = { workspace = true }
 tracing = { workspace = true }
 anyhow.workspace = true
-sierra-emu.workspace = true
 fs2.workspace = true
 
 [dev-dependencies]
