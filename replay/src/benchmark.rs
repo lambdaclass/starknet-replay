@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{error::Error, fs::File, path::Path, time::Duration, collections::HashMap};
 
 use blockifier::{
     context::BlockContext,
@@ -84,7 +84,7 @@ pub fn fetch_block_range_data(
 /// Can also be used to fill up the cache
 pub fn execute_block_range(
     block_range_data: &mut Vec<BlockCachedData>,
-) -> Vec<TransactionExecutionInfo> {
+) -> Vec<(BlockNumber, TransactionExecutionInfo)> {
     let mut executions = Vec::new();
 
     for (state, block_context, transactions) in block_range_data {
@@ -98,7 +98,7 @@ pub fn execute_block_range(
             let execution = transaction.execute(&mut transactional_state, block_context);
             let Ok(execution) = execution else { continue };
 
-            executions.push(execution);
+            executions.push((block_context.block_info().block_number, execution));
         }
     }
 
@@ -118,24 +118,32 @@ pub struct ClassExecutionInfo {
     time: Duration,
 }
 
-pub fn aggregate_executions(executions: Vec<TransactionExecutionInfo>) -> Vec<ClassExecutionInfo> {
-    executions
-        .into_iter()
-        .flat_map(|execution| {
-            let mut classes = Vec::new();
+pub fn save_executions(
+    path: &Path,
+    executions: Vec<(BlockNumber, TransactionExecutionInfo)>,
+) -> Result<(), Box<dyn Error>> {
+    let mut block_executions: HashMap::<BlockNumber, Vec<HashMap<String,_>>> = HashMap::new();
 
-            if let Some(call) = execution.validate_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.execute_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.fee_transfer_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            classes
-        })
-        .collect::<Vec<_>>()
+    for (block_number, execution) in executions {
+        let mut tx_execution: HashMap<String,_> = HashMap::new();
+
+        if let Some(call) = execution.validate_call_info {
+            tx_execution.insert("validate_call_info".to_string(), get_class_executions(call));
+        }
+        if let Some(call) = execution.execute_call_info {
+            tx_execution.insert("execute_call_info".to_string(), get_class_executions(call));
+        }
+        if let Some(call) = execution.fee_transfer_call_info {
+            tx_execution.insert("fee_transfer_call_info".to_string(), get_class_executions(call));
+        }
+
+        block_executions.entry(block_number).or_insert_with(Vec::new).push(tx_execution);
+    }
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &block_executions)?;
+
+    Ok(())
 }
 
 fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
