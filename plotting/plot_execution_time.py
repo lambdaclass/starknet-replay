@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
-import io
 import json
 from utils import format_hash
 
