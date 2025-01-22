@@ -144,9 +144,9 @@ If you want to benchmark a full block, you could run:
 ./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
 ```
 
-If you just want quick benchmarks, run:
+If you just want to benchmarks a few different transactions, run:
 ```bash
-./scripts/benchmark.sh
+./scripts/benchmark_txs.sh
 ```
 
 This generates the following files in the `bench_data` directory: 
