@@ -32,7 +32,9 @@ pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockCon
     let block = reader.get_block_with_tx_hashes()?;
 
     let version = StarknetVersion::try_from(block.header.starknet_version.as_str())?;
-    let versioned_constants = VersionedConstants::get(&version)?.clone();
+    let versioned_constants = VersionedConstants::get(&version)
+        .unwrap_or_else(|_| VersionedConstants::latest_constants())
+        .clone();
 
     let block_info = get_block_info(block.header);
 
