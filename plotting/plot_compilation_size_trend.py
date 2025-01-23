@@ -1,37 +1,16 @@
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils import load_log, find_span
+from utils import load_compilation_logs
 
 argument_parser = ArgumentParser("Stress Test Plotter")
 argument_parser.add_argument("logs_path")
 arguments = argument_parser.parse_args()
 
 
-def canonicalize(event):
-    if "contract compilation finished" not in event["fields"]["message"]:
-        return None
-
-    compilation_span = find_span(event, "contract compilation")
-    if compilation_span is None:
-        return None
-
-    if "vm" in event["fields"]["message"]:
-        executor = "vm"
-    elif "native" in event["fields"]["message"]:
-        executor = "native"
-    else:
-        raise Exception("Invalid Executor")
-
-    return {
-        "class hash": compilation_span["class_hash"],
-        "length": compilation_span["length"] / 1024,
-        "size": event["fields"]["size"] / 1024,
-        "executor": executor,
-    }
-
-
-dataset = load_log(arguments.logs_path, canonicalize)
+dataset = load_compilation_logs(
+    arguments.logs_path,
+)
 
 figure, ax = plt.subplots()
 
