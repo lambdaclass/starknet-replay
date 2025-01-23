@@ -13,12 +13,12 @@ use blockifier::{
 use rpc_state_reader::{
     cache::RpcCachedStateReader,
     execution::{fetch_block_context, fetch_blockifier_transaction},
-    reader::{RpcChain, RpcStateReader, StateReader},
+    reader::{RpcStateReader, StateReader},
 };
 use serde::Serialize;
 use starknet_api::{
     block::BlockNumber,
-    core::{ClassHash, EntryPointSelector},
+    core::{ChainId, ClassHash, EntryPointSelector},
     felt,
     hash::StarkHash,
     transaction::TransactionHash,
@@ -40,14 +40,14 @@ pub type BlockCachedData = (
 pub fn fetch_block_range_data(
     block_start: BlockNumber,
     block_end: BlockNumber,
-    chain: RpcChain,
+    chain: ChainId,
 ) -> Vec<BlockCachedData> {
     let mut block_caches = Vec::new();
 
     for block_number in block_start.0..=block_end.0 {
         // For each block
         let block_number = BlockNumber(block_number);
-        let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block_number));
+        let reader = RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), block_number));
 
         // Fetch block context
         let block_context = fetch_block_context(&reader).unwrap();
@@ -70,7 +70,7 @@ pub fn fetch_block_range_data(
         // Create cached state
         let previous_block_number = block_number.prev().unwrap();
         let previous_reader =
-            RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
+            RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), previous_block_number));
         let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
 
         block_caches.push((cached_state, block_context, transactions));
@@ -171,8 +171,8 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     classes
 }
 
-pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: RpcChain) -> BlockCachedData {
-    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain, block));
+pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: ChainId) -> BlockCachedData {
+    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), block));
 
     // Fetch block context
     let block_context = fetch_block_context(&reader).unwrap();
