@@ -7,8 +7,9 @@ use clap::{Parser, Subcommand};
 use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction_with_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
-use rpc_state_reader::reader::{RpcChain, RpcStateReader, StateReader};
+use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
+use starknet_api::core::ChainId;
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
@@ -302,12 +303,11 @@ fn main() {
     }
 }
 
-fn parse_network(network: &str) -> RpcChain {
+fn parse_network(network: &str) -> ChainId {
     match network.to_lowercase().as_str() {
-        "mainnet" => RpcChain::MainNet,
-        "testnet" => RpcChain::TestNet,
-        "testnet2" => RpcChain::TestNet2,
-        _ => panic!("Invalid network name, it should be one of: mainnet, testnet, testnet2"),
+        "mainnet" => ChainId::Mainnet,
+        "testnet" => ChainId::Sepolia,
+        _ => panic!("Invalid network name, it should be one of: mainnet, testnet"),
     }
 }
 

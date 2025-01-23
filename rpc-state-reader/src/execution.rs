@@ -1,12 +1,12 @@
 use crate::{
     objects::BlockHeader,
-    reader::{RpcChain, RpcStateReader, StateReader},
+    reader::{RpcStateReader, StateReader},
 };
 use anyhow::Context;
 use blockifier::{
     blockifier::block::validated_gas_prices,
     bouncer::BouncerConfig,
-    context::{BlockContext, ChainInfo, FeeTokenAddresses},
+    context::{BlockContext, ChainInfo},
     state::cached_state::CachedState,
     test_utils::MAX_FEE,
     transaction::{
@@ -14,42 +14,32 @@ use blockifier::{
         transaction_execution::Transaction as BlockiTransaction,
         transactions::ExecutableTransaction,
     },
-    versioned_constants::{VersionedConstants, VersionedConstantsOverrides},
+    versioned_constants::VersionedConstants,
 };
-use blockifier_reexecution::state_reader::compile::{
-    legacy_to_contract_class_v0, sierra_to_contact_class_v1,
+use blockifier_reexecution::state_reader::{
+    compile::{legacy_to_contract_class_v0, sierra_to_contact_class_v1},
+    utils::get_fee_token_addresses,
 };
 use starknet::core::types::ContractClass;
 use starknet_api::{
-    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice},
+    block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice, StarknetVersion},
     contract_class::{ClassInfo, SierraVersion},
-    core::ContractAddress,
-    patricia_key,
+    core::ChainId,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 
 pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockContext> {
     let block = reader.get_block_with_tx_hashes()?;
+
+    let version = StarknetVersion::try_from(block.header.starknet_version.as_str())?;
+    let versioned_constants = VersionedConstants::get(&version)?.clone();
+
     let block_info = get_block_info(block.header);
 
-    let mut versioned_constants =
-        VersionedConstants::get_versioned_constants(VersionedConstantsOverrides {
-            validate_max_n_steps: u32::MAX,
-            invoke_tx_max_n_steps: u32::MAX,
-            max_recursion_depth: usize::MAX,
-        });
-    versioned_constants.disable_cairo0_redeclaration = false;
-
-    let fee_token_addresses = FeeTokenAddresses {
-        strk_fee_token_address: ContractAddress(patricia_key!(
-            "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
-        )),
-        eth_fee_token_address: ContractAddress(patricia_key!(
-            "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-        )),
-    };
+    let chain_id = reader.get_chain_id();
+    let fee_token_addresses = get_fee_token_addresses(&chain_id);
     let chain_info = ChainInfo {
-        chain_id: reader.get_chain_id(),
+        chain_id,
         fee_token_addresses,
     };
 
@@ -96,10 +86,10 @@ pub fn fetch_blockifier_transaction(
 pub fn execute_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
-    chain: RpcChain,
+    chain: ChainId,
     flags: ExecutionFlags,
 ) -> anyhow::Result<TransactionExecutionInfo> {
-    let (transaction, context) = fetch_transaction(hash, block_number, chain, flags)?;
+    let (transaction, context) = fetch_transaction(hash, block_number, chain.clone(), flags)?;
 
     let previous_block_number = block_number
         .prev()
@@ -120,7 +110,7 @@ pub fn execute_transaction(
 pub fn fetch_transaction(
     hash: &TransactionHash,
     block_number: BlockNumber,
-    chain: RpcChain,
+    chain: ChainId,
     flags: ExecutionFlags,
 ) -> anyhow::Result<(BlockiTransaction, BlockContext)> {
     let reader = RpcStateReader::new(chain, block_number);
@@ -216,28 +206,29 @@ mod tests {
     use starknet_api::{
         block::{BlockNumber, FeeType},
         class_hash,
+        core::ContractAddress,
         execution_resources::{GasAmount, GasVector},
-        felt,
+        felt, patricia_key,
         state::StorageKey,
     };
     use test_case::test_case;
 
     use super::*;
-    use crate::{objects::RpcCallInfo, reader::RpcChain};
+    use crate::objects::RpcCallInfo;
 
     #[test_case(
         "0x00b6d59c19d5178886b4c939656167db0660fe325345138025a3cc4175b21897",
         200304,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore["Doesn't revert in newest blockifier version"]
     )]
     #[test_case(
         "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
         200303,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore["broken on both due to a cairo-vm error"]
     )]
-    fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: RpcChain) {
+    fn blockifier_test_case_reverted_tx(hash: &str, block_number: u64, chain: ChainId) {
         let hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
@@ -246,9 +237,9 @@ mod tests {
             validate: true,
         };
 
-        let tx_info = execute_transaction(&hash, block_number, chain, flags).unwrap();
+        let tx_info = execute_transaction(&hash, block_number, chain.clone(), flags).unwrap();
 
-        let next_reader = RpcStateReader::new(chain, block_number);
+        let next_reader = RpcStateReader::new(chain.clone(), block_number);
         let trace = next_reader.get_transaction_trace(&hash).unwrap();
 
         assert_eq!(
@@ -263,83 +254,83 @@ mod tests {
         // Declare tx
         "0x60506c49e65d84e2cdd0e9142dc43832a0a59cb6a9cbcce1ab4f57c20ba4afb",
         347900,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
         90007,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x025844447697eb7d5df4d8268b23aef6c11de4087936048278c2559fc35549eb",
         197001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
         197001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
         169929,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
         169929,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
         169929,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         // review later
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         // fails in blockifier
         "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
         186552,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
         317093,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
         398052,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
         281514,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
         351269,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
         351226,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     // DeployAccount for different account providers:
 
@@ -347,76 +338,76 @@ mod tests {
     #[test_case(
         "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
         422882,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     // Argent X (v5.7.0)
     #[test_case(
         "0x74820d4a1ac6e832a51a8938959e6f15a247f7d34daea2860d4880c27bc2dfd",
         475946,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
         638867,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
         641976,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
         654001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
         654001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
         654001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
         653001,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore["takes to long"]
     )]
     #[test_case(
         "0x5a030fd81f14a1cf29a2e5259d3f2c9960018ade2d135269760e6fb4802ac02",
         653001,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore["halts execution"]
     )]
     #[test_case(
         "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
         653001,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
     #[test_case(
         "0x3330b29e8b99dedef79f5c7cdc2b510c590155add29dcc5e2f92d176d8e19d",
         653001,
-        RpcChain::MainNet
+        ChainId::Mainnet
         => ignore
     )]
-    fn blockifier_tx(hash: &str, block_number: u64, chain: RpcChain) {
+    fn blockifier_tx(hash: &str, block_number: u64, chain: ChainId) {
         let hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
@@ -425,9 +416,9 @@ mod tests {
             validate: true,
         };
 
-        let tx_info = execute_transaction(&hash, block_number, chain, flags).unwrap();
+        let tx_info = execute_transaction(&hash, block_number, chain.clone(), flags).unwrap();
 
-        let next_reader = RpcStateReader::new(chain, block_number);
+        let next_reader = RpcStateReader::new(chain.clone(), block_number);
         let trace = next_reader.get_transaction_trace(&hash).unwrap();
 
         // We cannot currently check fee & resources
@@ -450,7 +441,7 @@ mod tests {
     #[test_case(
         "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
         648462,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(192), l2_gas: GasAmount(0) },
         7,
         3,
@@ -565,7 +556,7 @@ mod tests {
     #[test_case(
         "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
         661815,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         9,
         2,
@@ -671,7 +662,7 @@ mod tests {
     #[test_case(
         "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
         662246,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         9,
         2,
@@ -777,7 +768,7 @@ mod tests {
     #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         7,
         2,
@@ -870,7 +861,7 @@ mod tests {
     #[test_case(
         "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
         654770,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(320), l2_gas: GasAmount(0) },
         7,
         2,
@@ -957,7 +948,7 @@ mod tests {
     #[test_case(
         "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
         653019,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(640), l2_gas: GasAmount(0) },
         28,
         2,
@@ -1273,7 +1264,7 @@ mod tests {
     #[test_case(
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
         650558,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(448), l2_gas: GasAmount(0) },
         24,
         3,
@@ -1400,7 +1391,7 @@ mod tests {
     #[test_case(
         "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
         351226,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         3,
         0,
@@ -1518,7 +1509,7 @@ mod tests {
     #[test_case(
         "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
         317093,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         6,
         2,
@@ -1561,7 +1552,7 @@ mod tests {
     #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         8,
         2,
@@ -1614,7 +1605,7 @@ mod tests {
     #[test_case(
         "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
         654001,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         5,
         0,
@@ -1715,7 +1706,7 @@ mod tests {
     #[test_case(
         "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
         186549,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
         7,
         2,
@@ -1834,7 +1825,7 @@ mod tests {
     #[test_case(
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
         662252,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(448), l2_gas: GasAmount(0) },
         18,
         2,
@@ -1980,7 +1971,7 @@ mod tests {
     #[test_case(
         "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
         662250,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(768), l2_gas: GasAmount(0) },
         10,
         2,
@@ -2065,7 +2056,7 @@ mod tests {
     #[test_case(
         "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
         662251,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(384), l2_gas: GasAmount(0) },
         12,
         5,
@@ -2176,7 +2167,7 @@ mod tests {
     #[test_case(
         "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
         351269,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         3,
         0,
@@ -2294,7 +2285,7 @@ mod tests {
     #[test_case(
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(1088), l2_gas: GasAmount(0) },
         37,
         2,
@@ -2583,7 +2574,7 @@ mod tests {
     #[test_case(
         "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
         662248,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(896), l2_gas: GasAmount(0) },
         4,
         2,
@@ -2692,7 +2683,7 @@ mod tests {
     #[test_case(
         "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
         536893,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(896), l2_gas: GasAmount(0) },
         24,
         4,
@@ -3093,7 +3084,7 @@ mod tests {
     #[test_case(
         "0x01351387ef63fd6fe5ec10fa57df9e006b2450b8c68d7eec8cfc7d220abc7eda",
         644700,
-        RpcChain::MainNet,
+        ChainId::Mainnet,
         GasVector { l1_gas: GasAmount(0), l1_data_gas: GasAmount(128), l2_gas: GasAmount(0) },
         8,
         2,
@@ -3134,7 +3125,7 @@ mod tests {
     fn test_transaction_info(
         hash: &str,
         block_number: u64,
-        chain: RpcChain,
+        chain: ChainId,
         da_gas: GasVector,
         calldata_length: usize,
         signature_length: usize,
@@ -3172,12 +3163,12 @@ mod tests {
     #[test_case(
         "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
         662249,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     #[test_case(
         "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
         662252,
-        RpcChain::MainNet
+        ChainId::Mainnet
     )]
     /// Ideally contract executions should be independent from one another.
     /// In practice we use the same loaded dynamic shared library for each
@@ -3186,7 +3177,7 @@ mod tests {
     /// different executions of the same contract. This test executes a single
     /// transaction (therefore, the same contracts) multiple times at the same
     /// time, helping to uncover any possible concurrency bug that we may have
-    fn test_concurrency(tx_hash: &str, block_number: u64, chain: RpcChain) {
+    fn test_concurrency(tx_hash: &str, block_number: u64, chain: ChainId) {
         let hash = TransactionHash(felt!(tx_hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
@@ -3194,7 +3185,7 @@ mod tests {
             charge_fee: false,
             validate: true,
         };
-        let (tx, context) = fetch_transaction(&hash, block_number, chain, flags).unwrap();
+        let (tx, context) = fetch_transaction(&hash, block_number, chain.clone(), flags).unwrap();
 
         let mut handles = Vec::new();
 
@@ -3203,7 +3194,7 @@ mod tests {
             let tx = tx.clone();
 
             let previous_block_number = block_number.prev().unwrap();
-            let current_reader = RpcStateReader::new(chain, previous_block_number);
+            let current_reader = RpcStateReader::new(chain.clone(), previous_block_number);
             let mut cache = CachedState::new(current_reader);
 
             handles.push(thread::spawn(move || {
@@ -3237,7 +3228,7 @@ mod tests {
 
     #[test]
     fn test_get_block_info() {
-        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(169928));
+        let reader = RpcStateReader::new(ChainId::Mainnet, BlockNumber(169928));
 
         let block = reader.get_block_with_tx_hashes().unwrap();
         let info = get_block_info(block.header);
