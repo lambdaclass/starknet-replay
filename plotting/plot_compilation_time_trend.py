@@ -32,7 +32,7 @@ sns.regplot(
 )
 
 ax.set_xlabel("Sierra size (KiB)")
-ax.set_ylabel("Compilation Time (ns)")
+ax.set_ylabel("Compilation Time (ms)")
 ax.set_title("Native Compilation Time Trend")
 ax.legend()
 

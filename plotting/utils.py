@@ -31,9 +31,9 @@ def load_compilation_logs(path):
 
         return {
             "class hash": compilation_span["class_hash"],
-            "time": float(event["fields"]["time"]),
-            "size": float(event["fields"]["size"]) / 1024,
-            "length": float(compilation_span["length"]) / 1024,
+            "time": float(event["fields"]["time"]),  # ms
+            "size": float(event["fields"]["size"]) / 2**10,  # KiB
+            "length": float(compilation_span["length"]) / 2**10,  # KiB
             "executor": executor,
         }
 
