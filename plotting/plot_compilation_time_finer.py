@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import PercentFormatter
-from utils import load_log, find_span
+from utils import load_jsonl, find_span
 
 
 argument_parser = ArgumentParser("Stress Test Plotter")
@@ -72,7 +72,7 @@ def canonicalize(event):
     return None
 
 
-dataset = load_log(arguments.logs_path, canonicalize)
+dataset = load_jsonl(arguments.logs_path, canonicalize)
 
 dataset = dataset.pivot(index=["class hash"], columns="type", values="time")
 dataset = dataset.sum()
