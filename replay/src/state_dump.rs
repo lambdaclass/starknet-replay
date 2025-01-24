@@ -14,10 +14,7 @@ use blockifier::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::{
-        errors::TransactionExecutionError,
-        objects::{RevertError, TransactionExecutionInfo},
-    },
+    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -117,7 +114,7 @@ struct SerializableExecutionInfo {
     validate_call_info: Option<SerializableCallInfo>,
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
-    revert_error: Option<RevertError>,
+    revert_error: Option<String>,
     receipt: TransactionReceipt,
 }
 
@@ -135,7 +132,7 @@ impl SerializableExecutionInfo {
             validate_call_info: validate_call_info.clone().map(From::<CallInfo>::from),
             execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
             fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
-            revert_error,
+            revert_error: revert_error.map(|x| x.to_string()),
             receipt,
         }
     }
