@@ -9,7 +9,7 @@ benchmark = ["dep:serde", "dep:serde_json", "dep:serde_with"]
 only_cairo_vm = ["rpc-state-reader/only_casm"]
 structured_logging = []
 profiling = ["blockifier/profiling"]
-state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core", "blockifier/transaction_serde"]
+state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
 with-trace-dump = ["rpc-state-reader/with-trace-dump"]
 

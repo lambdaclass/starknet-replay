@@ -5,15 +5,28 @@ use std::{
 };
 
 use blockifier::{
+    execution::{
+        call_info::{CallExecution, CallInfo},
+        entry_point::{CallEntryPoint, CallType},
+    },
+    fee::receipt::TransactionReceipt,
     state::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
+    transaction::{
+        errors::TransactionExecutionError,
+        objects::{RevertError, TransactionExecutionInfo},
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_api::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
+use starknet_api::{
+    contract_class::EntryPointType,
+    core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
+    state::StorageKey,
+    transaction::fields::Calldata,
+};
 use starknet_types_core::felt::Felt;
 
 pub fn dump_state_diff(
@@ -26,8 +39,9 @@ pub fn dump_state_diff(
     }
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
+    let execution_info = SerializableExecutionInfo::new(execution_info.clone());
     let info = Info {
-        execution_info: execution_info.clone(),
+        execution_info,
         state_maps,
     };
 
@@ -65,7 +79,7 @@ struct ErrorInfo {
 
 #[derive(Serialize)]
 struct Info {
-    execution_info: TransactionExecutionInfo,
+    execution_info: SerializableExecutionInfo,
     state_maps: SerializableStateMaps,
 }
 
@@ -93,6 +107,128 @@ impl From<StateMaps> for SerializableStateMaps {
             storage: value.storage.into_iter().collect(),
             compiled_class_hashes: value.compiled_class_hashes.into_iter().collect(),
             declared_contracts: value.declared_contracts.into_iter().collect(),
+        }
+    }
+}
+
+/// From `blockifier::transaction::objects::TransactionExecutionInfo`
+#[derive(Serialize)]
+struct SerializableExecutionInfo {
+    validate_call_info: Option<SerializableCallInfo>,
+    execute_call_info: Option<SerializableCallInfo>,
+    fee_transfer_call_info: Option<SerializableCallInfo>,
+    revert_error: Option<RevertError>,
+    receipt: TransactionReceipt,
+}
+
+impl SerializableExecutionInfo {
+    pub fn new(execution_info: TransactionExecutionInfo) -> Self {
+        let TransactionExecutionInfo {
+            validate_call_info,
+            execute_call_info,
+            fee_transfer_call_info,
+            revert_error,
+            receipt,
+        } = execution_info;
+
+        Self {
+            validate_call_info: validate_call_info.clone().map(From::<CallInfo>::from),
+            execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
+            fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
+            revert_error,
+            receipt,
+        }
+    }
+}
+
+/// From `blockifier::execution::call_info::CallInfo`
+#[derive(Serialize)]
+struct SerializableCallInfo {
+    pub call: SerializableCallEntryPoint,
+    pub execution: CallExecution,
+    pub inner_calls: Vec<SerializableCallInfo>,
+    pub storage_read_values: Vec<Felt>,
+
+    // Convert HashSet to vector to avoid random order
+    pub accessed_storage_keys: Vec<StorageKey>,
+    pub read_class_hash_values: Vec<ClassHash>,
+    // Convert HashSet to vector to avoid random order
+    pub accessed_contract_addresses: Vec<ContractAddress>,
+}
+
+impl From<CallInfo> for SerializableCallInfo {
+    fn from(value: CallInfo) -> Self {
+        let CallInfo {
+            call,
+            execution,
+            inner_calls,
+            storage_read_values,
+            accessed_storage_keys,
+            read_class_hash_values,
+            accessed_contract_addresses,
+            resources: _resources,
+            tracked_resource: _tracked_resource,
+            time: _time,
+        } = value;
+
+        let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
+        accessed_storage_keys.sort();
+
+        let mut accessed_contract_addresses =
+            accessed_contract_addresses.into_iter().collect::<Vec<_>>();
+        accessed_contract_addresses.sort();
+
+        Self {
+            call: SerializableCallEntryPoint::from(call),
+            execution,
+            inner_calls: inner_calls
+                .into_iter()
+                .map(From::<CallInfo>::from)
+                .collect(),
+            storage_read_values,
+            accessed_storage_keys,
+            read_class_hash_values,
+            accessed_contract_addresses,
+        }
+    }
+}
+
+/// From `blockifier::execution::entry_point::CallEntryPoint`
+#[derive(Serialize)]
+struct SerializableCallEntryPoint {
+    pub class_hash: Option<ClassHash>,
+    pub code_address: Option<ContractAddress>,
+    pub entry_point_type: EntryPointType,
+    pub entry_point_selector: EntryPointSelector,
+    pub calldata: Calldata,
+    pub storage_address: ContractAddress,
+    pub caller_address: ContractAddress,
+    pub call_type: CallType,
+    pub initial_gas: u64,
+}
+impl From<CallEntryPoint> for SerializableCallEntryPoint {
+    fn from(value: CallEntryPoint) -> Self {
+        let CallEntryPoint {
+            class_hash,
+            code_address,
+            entry_point_type,
+            entry_point_selector,
+            calldata,
+            storage_address,
+            caller_address,
+            call_type,
+            initial_gas,
+        } = value;
+        Self {
+            class_hash,
+            code_address,
+            entry_point_type,
+            entry_point_selector,
+            calldata,
+            storage_address,
+            caller_address,
+            call_type,
+            initial_gas,
         }
     }
 }
