@@ -9,7 +9,10 @@ use blockifier::{
         call_info::{CallExecution, CallInfo},
         entry_point::{CallEntryPoint, CallType},
     },
-    fee::receipt::TransactionReceipt,
+    fee::{
+        receipt::TransactionReceipt,
+        resources::{ComputationResources, StarknetResources, TransactionResources},
+    },
     state::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
@@ -21,8 +24,9 @@ use serde_with::serde_as;
 use starknet_api::{
     contract_class::EntryPointType,
     core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
+    execution_resources::{GasAmount, GasVector},
     state::StorageKey,
-    transaction::fields::Calldata,
+    transaction::fields::{Calldata, Fee},
 };
 use starknet_types_core::felt::Felt;
 
@@ -115,7 +119,7 @@ struct SerializableExecutionInfo {
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
     revert_error: Option<String>,
-    receipt: TransactionReceipt,
+    receipt: SerializableTransactionReceipt,
 }
 
 impl SerializableExecutionInfo {
@@ -133,7 +137,7 @@ impl SerializableExecutionInfo {
             execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
             fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
             revert_error: revert_error.map(|x| x.to_string()),
-            receipt,
+            receipt: SerializableTransactionReceipt::from(receipt),
         }
     }
 }
@@ -226,6 +230,61 @@ impl From<CallEntryPoint> for SerializableCallEntryPoint {
             caller_address,
             call_type,
             initial_gas,
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct SerializableTransactionReceipt {
+    pub fee: Fee,
+    pub gas: GasVector,
+    pub da_gas: GasVector,
+    pub resources: SerializableTransactionResources,
+}
+
+#[derive(Serialize)]
+pub struct SerializableTransactionResources {
+    pub starknet_resources: StarknetResources,
+    pub computation: SerializableComputationResources,
+}
+
+#[derive(Serialize)]
+pub struct SerializableComputationResources {
+    pub n_reverted_steps: usize,
+    pub sierra_gas: GasAmount,
+    pub reverted_sierra_gas: GasAmount,
+}
+
+impl From<TransactionReceipt> for SerializableTransactionReceipt {
+    fn from(value: TransactionReceipt) -> Self {
+        let TransactionReceipt {
+            fee,
+            gas,
+            da_gas,
+            resources:
+                TransactionResources {
+                    starknet_resources,
+                    computation:
+                        ComputationResources {
+                            vm_resources: _vm_resources,
+                            n_reverted_steps,
+                            sierra_gas,
+                            reverted_sierra_gas,
+                        },
+                },
+        } = value;
+        Self {
+            fee,
+            gas,
+            da_gas,
+            resources: SerializableTransactionResources {
+                starknet_resources,
+                computation: SerializableComputationResources {
+                    n_reverted_steps,
+                    sierra_gas,
+                    reverted_sierra_gas,
+                },
+            },
         }
     }
 }
