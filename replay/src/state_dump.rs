@@ -5,11 +5,6 @@ use std::{
 };
 
 use blockifier::{
-    execution::{
-        call_info::{CallInfo, OrderedEvent, OrderedL2ToL1Message, Retdata},
-        entry_point::{CallEntryPoint, CallType},
-    },
-    fee::resources::StarknetResources,
     state::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
@@ -18,13 +13,7 @@ use blockifier::{
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet_api::{
-    contract_class::EntryPointType,
-    core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
-    execution_resources::GasVector,
-    state::StorageKey,
-    transaction::fields::Calldata,
-};
+use starknet_api::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
 use starknet_types_core::felt::Felt;
 
 pub fn dump_state_diff(
@@ -37,9 +26,8 @@ pub fn dump_state_diff(
     }
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
-    let execution_info = SerializableExecutionInfo::new(execution_info);
     let info = Info {
-        execution_info,
+        execution_info: execution_info.clone(),
         state_maps,
     };
 
@@ -77,7 +65,7 @@ struct ErrorInfo {
 
 #[derive(Serialize)]
 struct Info {
-    execution_info: SerializableExecutionInfo,
+    execution_info: TransactionExecutionInfo,
     state_maps: SerializableStateMaps,
 }
 
@@ -107,145 +95,4 @@ impl From<StateMaps> for SerializableStateMaps {
             declared_contracts: value.declared_contracts.into_iter().collect(),
         }
     }
-}
-
-/// From `blockifier::transaction::objects::TransactionExecutionInfo`
-#[derive(Serialize)]
-struct SerializableExecutionInfo {
-    validate_call_info: Option<SerializableCallInfo>,
-    execute_call_info: Option<SerializableCallInfo>,
-    fee_transfer_call_info: Option<SerializableCallInfo>,
-    receipt: SerializableTransactionReceipt,
-    reverted: Option<String>,
-}
-
-impl SerializableExecutionInfo {
-    pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
-        let reverted = execution_info.revert_error.clone().map(|f| f.to_string());
-        Self {
-            validate_call_info: execution_info
-                .validate_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            execute_call_info: execution_info
-                .execute_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            fee_transfer_call_info: execution_info
-                .fee_transfer_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            reverted,
-            receipt: SerializableTransactionReceipt {
-                resources: SerializableTransactionResources {
-                    starknet_resources: execution_info.receipt.resources.starknet_resources.clone(),
-                },
-                da_gas: execution_info.receipt.da_gas,
-            },
-        }
-    }
-}
-
-/// From `blockifier::execution::call_info::CallInfo`
-#[derive(Serialize)]
-struct SerializableCallInfo {
-    pub call: SerializableCallEntryPoint,
-    pub execution: SerializableCallExecution,
-    pub inner_calls: Vec<SerializableCallInfo>,
-    pub storage_read_values: Vec<Felt>,
-
-    // Convert HashSet to vector to avoid random order
-    pub accessed_storage_keys: Vec<StorageKey>,
-    pub read_class_hash_values: Vec<ClassHash>,
-    // Convert HashSet to vector to avoid random order
-    pub accessed_contract_addresses: Vec<ContractAddress>,
-}
-
-impl From<CallInfo> for SerializableCallInfo {
-    fn from(value: CallInfo) -> Self {
-        let mut accessed_storage_keys = value.accessed_storage_keys.into_iter().collect::<Vec<_>>();
-        accessed_storage_keys.sort();
-
-        let mut accessed_contract_addresses = value
-            .accessed_contract_addresses
-            .into_iter()
-            .collect::<Vec<_>>();
-        accessed_contract_addresses.sort();
-
-        Self {
-            call: SerializableCallEntryPoint::from(value.call),
-            execution: SerializableCallExecution {
-                retdata: value.execution.retdata,
-                events: value.execution.events,
-                l2_to_l1_messages: value.execution.l2_to_l1_messages,
-                failed: value.execution.failed,
-            },
-            inner_calls: value
-                .inner_calls
-                .into_iter()
-                .map(From::<CallInfo>::from)
-                .collect(),
-            storage_read_values: value.storage_read_values,
-            accessed_storage_keys,
-            read_class_hash_values: value.read_class_hash_values,
-            accessed_contract_addresses,
-        }
-    }
-}
-
-/// From `blockifier::execution::entry_point::CallEntryPoint`
-#[derive(Serialize)]
-struct SerializableCallEntryPoint {
-    pub class_hash: Option<ClassHash>,
-    pub code_address: Option<ContractAddress>,
-    pub entry_point_type: EntryPointType,
-    pub entry_point_selector: EntryPointSelector,
-    pub calldata: Calldata,
-    pub storage_address: ContractAddress,
-    pub caller_address: ContractAddress,
-    pub call_type: CallType,
-    pub initial_gas: u64,
-}
-impl From<CallEntryPoint> for SerializableCallEntryPoint {
-    fn from(value: CallEntryPoint) -> Self {
-        Self {
-            class_hash: value.class_hash,
-            code_address: value.code_address,
-            entry_point_type: value.entry_point_type,
-            entry_point_selector: value.entry_point_selector,
-            calldata: value.calldata,
-            storage_address: value.storage_address,
-            caller_address: value.caller_address,
-            call_type: value.call_type,
-            initial_gas: value.initial_gas,
-        }
-    }
-}
-
-/// From `blockifier::execution::call_info::CallExecution`
-#[derive(Serialize)]
-struct SerializableCallExecution {
-    pub retdata: Retdata,
-    pub events: Vec<OrderedEvent>,
-    pub l2_to_l1_messages: Vec<OrderedL2ToL1Message>,
-    pub failed: bool,
-    // Ignore gas consumed, as it's Native only
-    // pub gas_consumed: u64,
-}
-
-/// From `blockifier::fee::actual_cost::TransactionReceipt`
-#[derive(Serialize)]
-pub struct SerializableTransactionReceipt {
-    pub resources: SerializableTransactionResources,
-    pub da_gas: GasVector,
-    // Ignore fee, as it varies between Native and VM
-    // pub fee: Fee,
-    // pub gas: GasVector,
-}
-
-#[derive(Serialize)]
-pub struct SerializableTransactionResources {
-    pub starknet_resources: StarknetResources,
-    // Ignore computation, as its Native or VM only
-    // pub computation: ComputationResources,
 }
