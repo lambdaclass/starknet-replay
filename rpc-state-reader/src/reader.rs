@@ -25,7 +25,7 @@ use starknet_gateway::{
     },
     rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
 };
-use tracing::info_span;
+use tracing::{info_span, warn};
 use ureq::json;
 
 use crate::{
@@ -290,6 +290,7 @@ fn compile_legacy_cc(
         program,
         entry_points_by_type,
     });
+    warn!("Using Cairo 0 contract class: this transaction will no longer execute with native");
     RunnableCompiledClass::V0(CompiledClassV0(inner))
 }
 
