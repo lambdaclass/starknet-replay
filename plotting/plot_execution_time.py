@@ -1,23 +1,33 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
-import io
+import json
 from utils import format_hash
 
 parser = ArgumentParser("Stress Test Plotter")
 parser.add_argument("native_data")
 parser.add_argument("vm_data")
 parser.add_argument("-s", "--speedup", action="store_true")
+parser.add_argument("-o", "--output")
 args = parser.parse_args()
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
+mpl.rcParams["figure.figsize"] = [16, 9]
+
 
 def load_dataset(path, f):
-    return pd.read_json(path).apply(f, axis=1).dropna().apply(pd.Series)
+    data = json.load(open(path))
+    return (
+        pd.DataFrame(data["class_executions"])
+        .apply(f, axis=1)
+        .dropna()
+        .apply(pd.Series)
+    )
 
 
 def process_row(row):
@@ -55,22 +65,12 @@ data_by_selector.columns = data_by_selector.columns.map("_".join)
 if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
     raise Exception("Native and VM should have the same number of samples")
 
-# calculate speedup
-data_by_selector["speedup"] = (
-    data_by_selector["total_time_vm"] / data_by_selector["total_time_native"]
-)
-total_native = data_by_selector["total_time_native"].sum() / 10e9
-total_vm = data_by_selector["total_time_vm"].sum() / 10e9
-print(f"Total Native: {total_native} seconds")
-print(f"Total VM: {total_vm} seconds")
-print("Total Speedup:", total_vm / total_native)
-
 # sort by decreasing time
 data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
 
-s = io.StringIO()
-data_by_selector.to_csv(s)
-print(s.getvalue())
+if args.output:
+    file_name = f"{args.output}.csv"
+    data_by_selector.to_csv(file_name)
 
 # GROUP BY CLASS
 
@@ -141,6 +141,10 @@ ax.set_xlabel("Speedup")
 ax.set_ylabel("Class Hash")
 ax.set_title("Speedup by Contract Class")
 
+if args.output:
+    figure_name = f"{args.output}.svg"
+    plt.savefig(figure_name)
+
 if args.speedup:
     fig, ax = plt.subplots()
     sns.violinplot(
@@ -151,5 +155,9 @@ if args.speedup:
     )
     ax.set_xlabel("Speedup")
     ax.set_title("Speedup Distribution")
+    if args.output:
+        figure_name = f"{args.output}-speedup.svg"
+        plt.savefig(figure_name)
 
-plt.show()
+if not args.output:
+    plt.show()
