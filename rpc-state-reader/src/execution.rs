@@ -32,6 +32,8 @@ pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockCon
     let block = reader.get_block_with_tx_hashes()?;
 
     let version = StarknetVersion::try_from(block.header.starknet_version.as_str())?;
+
+    // we must use the starknet constants that corresponds to the starknet transaction's version
     let versioned_constants = VersionedConstants::get(&version)
         .unwrap_or_else(|_| VersionedConstants::latest_constants())
         .clone();
