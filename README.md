@@ -124,32 +124,58 @@ To compare the outputs, you can use the following scripts. Some of them required
    > ./scripts/delta_state_dumps.sh
    ```
 
-### Plotting
+### Benchmarking
 
-In the `plotting` directory, you can find python scripts to plot relevant information. Before using them, you must first execute the replay with the `structured_logging` feature, and redirect the output to a file. You should do it with both Native execution and VM execution.
+To run benchmarks manually, you must compile with release and the benchmark feature:
 
-Make sure to erase the `compiled_programs` directory, then run:
+```bash
+cargo run --release --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1000
+cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1000
+```
 
+However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
+
+First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
+```bash
+rm -rf compiled_programs
+make deps-bench
+```
+
+Then, you can benchmark a single transaction by running:
 ```bash
 ./scripts/benchmark_tx.sh <tx> <net> <block> <laps>
 ```
-
-This generates four files:
-- `{native,vm}-data-$tx-$net.json`: Contains the execution time of each contract call
-- `{native,vm}-logs-$tx-$net.json`: Contains the output of running the benchmark
 
 If you want to benchmark a full block, you could run:
 ```bash
 ./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
 ```
 
-Once you have done this, you can use the plotting scripts:
+If you just want to benchmarks a few different sample transactions, run:
+```bash
+./scripts/benchmark_txs.sh
+```
+
+This generates the following files in the `bench_data` directory: 
+- `{native,vm}-data-*.json` - execution time of each contract call.
+- `{native,vm}-data-*.json` - stdout from running the benchmark.
+
+Additionally, the benchmarking scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
+- `plot-*.svg` - bar plot for the execution time by contract class
+- `plot-*-speedup.svg` - violin plot for the speedup by contract class
+- `plot-*.csv` - raw csv preprocessed data
+
+## Plotting
+
+In the `plotting` directory, you can find python scripts to plot relevant information.
+
+To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
 
 - `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
 - `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
-- `python ./plotting/plot_compilation_memory_corr.py native-logs vm-logs`: Size of the compiled native libraries, by the associated Casm contract size.
-- `python ./plotting/plot_compilation_memory_trend.py native-logs vm-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
+- `python ./plotting/plot_compilation_memory_corr.py native-logs`: Size of the compiled native libraries, by the associated Casm contract size.
+- `python ./plotting/plot_compilation_memory_trend.py native-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
 - `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
-- `python ./plotting/plot_compilation_time_trend.py native-logs vm-logs`: Native and Casm compilation time, by the sierra contract size.
+- `python ./plotting/plot_compilation_time_trend.py native-logs`: Native and Casm compilation time, by the sierra contract size.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
 
