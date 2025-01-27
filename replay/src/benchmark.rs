@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error, fs::File, path::Path, time::Duration};
+use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use blockifier::{
     context::BlockContext,
