@@ -6,8 +6,12 @@ use std::{
 
 use blockifier::{
     execution::{
-        call_info::{CallInfo, OrderedEvent, OrderedL2ToL1Message, Retdata},
+        call_info::{CallExecution, CallInfo},
         entry_point::{CallEntryPoint, CallType},
+    },
+    fee::{
+        receipt::TransactionReceipt,
+        resources::{ComputationResources, StarknetResources, TransactionResources},
     },
     state::{
         cached_state::{CachedState, StateMaps, StorageEntry},
@@ -20,9 +24,9 @@ use serde_with::serde_as;
 use starknet_api::{
     contract_class::EntryPointType,
     core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
-    execution_resources::GasVector,
+    execution_resources::{GasAmount, GasVector},
     state::StorageKey,
-    transaction::fields::Calldata,
+    transaction::fields::{Calldata, Fee},
 };
 use starknet_types_core::felt::Felt;
 
@@ -36,7 +40,7 @@ pub fn dump_state_diff(
     }
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
-    let execution_info = SerializableExecutionInfo::new(execution_info);
+    let execution_info = SerializableExecutionInfo::new(execution_info.clone());
     let info = Info {
         execution_info,
         state_maps,
@@ -114,102 +118,26 @@ struct SerializableExecutionInfo {
     validate_call_info: Option<SerializableCallInfo>,
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
+    revert_error: Option<String>,
     receipt: SerializableTransactionReceipt,
-    reverted: Option<String>,
 }
 
 impl SerializableExecutionInfo {
-    pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
-        let reverted = execution_info.revert_error.clone().map(|f| f.to_string());
+    pub fn new(execution_info: TransactionExecutionInfo) -> Self {
+        let TransactionExecutionInfo {
+            validate_call_info,
+            execute_call_info,
+            fee_transfer_call_info,
+            revert_error,
+            receipt,
+        } = execution_info;
+
         Self {
-            validate_call_info: execution_info
-                .validate_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            execute_call_info: execution_info
-                .execute_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            fee_transfer_call_info: execution_info
-                .fee_transfer_call_info
-                .clone()
-                .map(From::<CallInfo>::from),
-            reverted,
-            receipt: SerializableTransactionReceipt {
-                resources: SerializableTransactionResources {
-                    starknet_resources: SerializableStarknetResources {
-                        calldata_length: execution_info
-                            .receipt
-                            .resources
-                            .starknet_resources
-                            .archival_data
-                            .calldata_length,
-                        state_changes_for_fee: SerializableStateChangesCount {
-                            n_storage_updates: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .state
-                                .state_changes_for_fee
-                                .state_changes_count
-                                .n_storage_updates,
-                            n_class_hash_updates: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .state
-                                .state_changes_for_fee
-                                .state_changes_count
-                                .n_class_hash_updates,
-                            n_compiled_class_hash_updates: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .state
-                                .state_changes_for_fee
-                                .state_changes_count
-                                .n_compiled_class_hash_updates,
-                            n_modified_contracts: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .state
-                                .state_changes_for_fee
-                                .state_changes_count
-                                .n_modified_contracts,
-                        },
-                        message_cost_info: SerializableMessageL1CostInfo {
-                            l2_to_l1_payload_lengths: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .messages
-                                .l2_to_l1_payload_lengths
-                                .clone(),
-                            message_segment_length: execution_info
-                                .receipt
-                                .resources
-                                .starknet_resources
-                                .messages
-                                .message_segment_length,
-                        },
-                        l1_handler_payload_size: execution_info
-                            .receipt
-                            .resources
-                            .starknet_resources
-                            .messages
-                            .l1_handler_payload_size,
-                        n_events: execution_info
-                            .receipt
-                            .resources
-                            .starknet_resources
-                            .archival_data
-                            .event_summary
-                            .n_events,
-                    },
-                },
-                da_gas: execution_info.receipt.da_gas,
-            },
+            validate_call_info: validate_call_info.clone().map(From::<CallInfo>::from),
+            execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
+            fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
+            revert_error: revert_error.map(|x| x.to_string()),
+            receipt: SerializableTransactionReceipt::from(receipt),
         }
     }
 }
@@ -218,42 +146,50 @@ impl SerializableExecutionInfo {
 #[derive(Serialize)]
 struct SerializableCallInfo {
     pub call: SerializableCallEntryPoint,
-    pub execution: SerializableCallExecution,
+    pub execution: CallExecution,
     pub inner_calls: Vec<SerializableCallInfo>,
     pub storage_read_values: Vec<Felt>,
+
     // Convert HashSet to vector to avoid random order
     pub accessed_storage_keys: Vec<StorageKey>,
+    pub read_class_hash_values: Vec<ClassHash>,
+    // Convert HashSet to vector to avoid random order
+    pub accessed_contract_addresses: Vec<ContractAddress>,
 }
 
 impl From<CallInfo> for SerializableCallInfo {
     fn from(value: CallInfo) -> Self {
-        let mut accessed_storage_keys = value.accessed_storage_keys.into_iter().collect::<Vec<_>>();
+        let CallInfo {
+            call,
+            execution,
+            inner_calls,
+            storage_read_values,
+            accessed_storage_keys,
+            read_class_hash_values,
+            accessed_contract_addresses,
+            resources: _resources,
+            tracked_resource: _tracked_resource,
+            time: _time,
+        } = value;
+
+        let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
         accessed_storage_keys.sort();
 
+        let mut accessed_contract_addresses =
+            accessed_contract_addresses.into_iter().collect::<Vec<_>>();
+        accessed_contract_addresses.sort();
+
         Self {
-            call: SerializableCallEntryPoint {
-                class_hash: value.call.class_hash,
-                code_address: value.call.code_address,
-                entry_point_type: value.call.entry_point_type,
-                entry_point_selector: value.call.entry_point_selector,
-                calldata: value.call.calldata,
-                storage_address: value.call.storage_address,
-                caller_address: value.call.caller_address,
-                call_type: value.call.call_type,
-            },
-            execution: SerializableCallExecution {
-                retdata: value.execution.retdata,
-                events: value.execution.events,
-                l2_to_l1_messages: value.execution.l2_to_l1_messages,
-                failed: value.execution.failed,
-            },
-            inner_calls: value
-                .inner_calls
+            call: SerializableCallEntryPoint::from(call),
+            execution,
+            inner_calls: inner_calls
                 .into_iter()
                 .map(From::<CallInfo>::from)
                 .collect(),
-            storage_read_values: value.storage_read_values,
+            storage_read_values,
             accessed_storage_keys,
+            read_class_hash_values,
+            accessed_contract_addresses,
         }
     }
 }
@@ -269,77 +205,86 @@ struct SerializableCallEntryPoint {
     pub storage_address: ContractAddress,
     pub caller_address: ContractAddress,
     pub call_type: CallType,
-    // Ignore gas
-    // pub initial_gas: u64,
+    pub initial_gas: u64,
 }
 impl From<CallEntryPoint> for SerializableCallEntryPoint {
     fn from(value: CallEntryPoint) -> Self {
+        let CallEntryPoint {
+            class_hash,
+            code_address,
+            entry_point_type,
+            entry_point_selector,
+            calldata,
+            storage_address,
+            caller_address,
+            call_type,
+            initial_gas,
+        } = value;
         Self {
-            class_hash: value.class_hash,
-            code_address: value.code_address,
-            entry_point_type: value.entry_point_type,
-            entry_point_selector: value.entry_point_selector,
-            calldata: value.calldata,
-            storage_address: value.storage_address,
-            caller_address: value.caller_address,
-            call_type: value.call_type,
+            class_hash,
+            code_address,
+            entry_point_type,
+            entry_point_selector,
+            calldata,
+            storage_address,
+            caller_address,
+            call_type,
+            initial_gas,
         }
     }
 }
 
-/// From `blockifier::execution::call_info::CallExecution`
-#[derive(Serialize)]
-struct SerializableCallExecution {
-    pub retdata: Retdata,
-    pub events: Vec<OrderedEvent>,
-    pub l2_to_l1_messages: Vec<OrderedL2ToL1Message>,
-    pub failed: bool,
-    // Ignore gas
-    // pub initial_gas: u64,
-}
-
-/// From `blockifier::fee::actual_cost::TransactionReceipt`
 #[derive(Serialize)]
 pub struct SerializableTransactionReceipt {
-    pub resources: SerializableTransactionResources,
+    pub fee: Fee,
+    pub gas: GasVector,
     pub da_gas: GasVector,
-    // Ignore gas
-    // pub fee: Fee,
-    // pub gas: GasVector,
+    pub resources: SerializableTransactionResources,
 }
 
 #[derive(Serialize)]
 pub struct SerializableTransactionResources {
-    pub starknet_resources: SerializableStarknetResources,
-    // Ignore only vm fields
-    // pub n_reverted_steps: usize,
-    // pub vm_resources: ExecutionResources,
+    pub starknet_resources: StarknetResources,
+    pub computation: SerializableComputationResources,
 }
 
 #[derive(Serialize)]
-pub struct SerializableStarknetResources {
-    pub calldata_length: usize,
-    pub state_changes_for_fee: SerializableStateChangesCount,
-    pub message_cost_info: SerializableMessageL1CostInfo,
-    pub l1_handler_payload_size: Option<usize>,
-    pub n_events: usize,
+pub struct SerializableComputationResources {
+    pub n_reverted_steps: usize,
+    pub sierra_gas: GasAmount,
+    pub reverted_sierra_gas: GasAmount,
 }
 
-#[derive(Serialize)]
-pub struct SerializableStateChangesCount {
-    pub n_storage_updates: usize,
-    pub n_class_hash_updates: usize,
-    pub n_compiled_class_hash_updates: usize,
-    pub n_modified_contracts: usize,
-    // Remaining fields where private
-    // signature_length: usize,
-    // code_size: usize,
-    // total_event_keys: u128,
-    // total_event_data_size: u128,
-}
-
-#[derive(Serialize)]
-pub struct SerializableMessageL1CostInfo {
-    pub l2_to_l1_payload_lengths: Vec<usize>,
-    pub message_segment_length: usize,
+impl From<TransactionReceipt> for SerializableTransactionReceipt {
+    fn from(value: TransactionReceipt) -> Self {
+        let TransactionReceipt {
+            fee,
+            gas,
+            da_gas,
+            resources:
+                TransactionResources {
+                    starknet_resources,
+                    computation:
+                        ComputationResources {
+                            vm_resources: _vm_resources,
+                            n_reverted_steps,
+                            sierra_gas,
+                            reverted_sierra_gas,
+                        },
+                },
+        } = value;
+        Self {
+            fee,
+            gas,
+            da_gas,
+            resources: SerializableTransactionResources {
+                starknet_resources,
+                computation: SerializableComputationResources {
+                    n_reverted_steps,
+                    sierra_gas,
+                    reverted_sierra_gas,
+                },
+            },
+        }
+    }
 }
