@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -5,9 +7,12 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction_with_state;
+use rpc_state_reader::execution::{
+    fetch_block_context, fetch_blockifier_transaction, fetch_transaction_with_state,
+};
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcChain, RpcStateReader, StateReader};
+use rpc_state_reader::utils::save_entry_point_execution;
 use starknet_api::block::BlockNumber;
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
@@ -85,6 +90,16 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         chain: String,
         block: u64,
         number_of_runs: usize,
+        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
+        output: PathBuf,
+    },
+    #[clap(
+        about = "Executes a range of blocks and writes down to a file every entrypoint executed."
+    )]
+    BlockCompose {
+        block_start: u64,
+        block_end: u64,
+        chain: String,
         #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
         output: PathBuf,
     },
@@ -298,6 +313,51 @@ fn main() {
                     "benchmark finished",
                 );
             }
+        }
+        ReplayExecute::BlockCompose {
+            block_start,
+            block_end,
+            chain,
+            output,
+        } => {
+            info!("executing block range: {} - {}", block_start, block_end);
+
+            let mut exec_entry_points = vec![];
+
+            for block_number in block_start..=block_end {
+                let _block_span = info_span!("block", number = block_number).entered();
+
+                let mut state = build_cached_state(&chain, block_number);
+                let reader = build_reader(&chain, block_number);
+
+                let block_context = fetch_block_context(&reader).unwrap();
+
+                let flags = ExecutionFlags {
+                    only_query: false,
+                    charge_fee: false,
+                    validate: true,
+                };
+
+                // fetch transactions
+                let txs = reader
+                    .get_block_with_tx_hashes()
+                    .unwrap()
+                    .transactions
+                    .into_iter()
+                    .map(|hash| {
+                        fetch_blockifier_transaction(&reader, flags.clone(), hash).unwrap()
+                    });
+
+                // execute transactions
+                for tx in txs {
+                    exec_entry_points.push((
+                        block_number,
+                        tx.execute(&mut state, &block_context).unwrap(),
+                    ));
+                }
+            }
+
+            save_entry_point_execution(&output, exec_entry_points).unwrap();
         }
     }
 }
