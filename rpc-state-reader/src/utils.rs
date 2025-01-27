@@ -18,7 +18,6 @@ use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::{Deserialize, Serialize};
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    block::BlockNumber,
     contract_class::EntryPointType,
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
