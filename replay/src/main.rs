@@ -11,7 +11,7 @@ use rpc_state_reader::execution::{
     fetch_block_context, fetch_blockifier_transaction, fetch_transaction_with_state,
 };
 use rpc_state_reader::objects::RpcTransactionReceipt;
-use rpc_state_reader::reader::{RpcChain, RpcStateReader, StateReader};
+use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use rpc_state_reader::utils::save_entry_point_execution;
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
@@ -26,7 +26,6 @@ use {
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
         BenchmarkingData,
     },
-    std::path::PathBuf,
     std::time::Instant,
 };
 
