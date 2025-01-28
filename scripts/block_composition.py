@@ -4,12 +4,17 @@ import pandas as pd
 TRANSFER_ENTRYPOINT_HASH = (
     '0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e'
 )
-SWAP_ENTRYPOINT_HASH = (
+SWAP_ENTRYPOINT_HASHES = [
+    # SWAP_ENTRYPOINT_HASH
     '0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29'
-)
-MULTI_ROUTE_SWAP_ENTRYPOINT_HASH = (
+    # SWAP_EXACT_TOKEN_TO_ENTRYPOINT_HASH
+    '0xe9f3b52dc560050c4c679481500c1b1e2ba7496b6a0831638c1acaedcbc6ac'
+    # MULTI_ROUTE_SWAP_ENTRYPOINT_HASH
     '0x1171593aa5bdadda4d6b0efde6cc94ee7649c3163d5efeb19da6c16d63a2a63'
-)
+    # SWAP_EXACT_TOKENS_FOR_TOKENS
+    '0x03276861cf5e05d6daf8f352cabb47df623eb10c383ab742fcc7abea94d5c5cc'
+]
+
 
 argument_parser = ArgumentParser('Block composition')
 argument_parser.add_argument('block_execution_info')
@@ -34,10 +39,7 @@ def count_transfers(transactions):
 
 def count_swaps(transactions):
     def is_swap(entrypoint):
-        return (
-            entrypoint['selector'] == SWAP_ENTRYPOINT_HASH
-            or entrypoint['selector'] == MULTI_ROUTE_SWAP_ENTRYPOINT_HASH
-        )
+        return any(lambda e: e == entrypoint for e in SWAP_ENTRYPOINT_HASHES)
 
     count = 0
 
