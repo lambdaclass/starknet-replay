@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
@@ -10,7 +8,6 @@ use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction_with_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
-use rpc_state_reader::utils::save_entry_point_execution;
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::felt;
@@ -26,6 +23,12 @@ use {
     },
     std::time::Instant,
 };
+
+#[cfg(feature = "structured_logging")]
+use rpc_state_reader::utils::save_entry_point_execution;
+
+#[cfg(any(feature = "benchmark", feature = "structured_logging"))]
+use std::path::PathBuf;
 
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
@@ -95,6 +98,7 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     #[clap(
         about = "Executes a range of blocks and writes down to a file every entrypoint executed."
     )]
+    #[cfg(feature = "structured_logging")]
     BlockCompose {
         block_start: u64,
         block_end: u64,
@@ -331,6 +335,7 @@ fn main() {
                 );
             }
         }
+        #[cfg(feature = "structured_logging")]
         ReplayExecute::BlockCompose {
             block_start,
             block_end,
@@ -364,11 +369,9 @@ fn main() {
                     });
 
                 // execute transactions
-                for (tx, block_context) in txs {
-                    exec_entry_points.push((
-                        block_number,
-                        tx.execute(&mut state, &block_context).unwrap(),
-                    ));
+                for (tx, context) in txs {
+                    exec_entry_points
+                        .push((block_number, tx.execute(&mut state, &context).unwrap()));
                 }
             }
 
