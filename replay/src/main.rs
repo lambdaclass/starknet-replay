@@ -7,9 +7,7 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::{
-    fetch_block_context, fetch_blockifier_transaction, fetch_transaction_with_state,
-};
+use rpc_state_reader::execution::fetch_transaction_with_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use rpc_state_reader::utils::save_entry_point_execution;
@@ -346,10 +344,8 @@ fn main() {
             for block_number in block_start..=block_end {
                 let _block_span = info_span!("block", number = block_number).entered();
 
-                let mut state = build_cached_state(&chain, block_number);
+                let mut state = build_cached_state(&chain, block_number - 1);
                 let reader = build_reader(&chain, block_number);
-
-                let block_context = fetch_block_context(&reader).unwrap();
 
                 let flags = ExecutionFlags {
                     only_query: false,
@@ -364,11 +360,11 @@ fn main() {
                     .transactions
                     .into_iter()
                     .map(|hash| {
-                        fetch_blockifier_transaction(&reader, flags.clone(), hash).unwrap()
+                        fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap()
                     });
 
                 // execute transactions
-                for tx in txs {
+                for (tx, block_context) in txs {
                     exec_entry_points.push((
                         block_number,
                         tx.execute(&mut state, &block_context).unwrap(),
