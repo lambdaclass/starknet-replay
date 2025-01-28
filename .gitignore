@@ -7,3 +7,5 @@ target/
 
 compiled_programs/
 state_dumps/
+rpc_cache
+bench_data

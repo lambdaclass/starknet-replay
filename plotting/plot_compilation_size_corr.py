@@ -10,30 +10,22 @@ arguments = argument_parser.parse_args()
 
 
 dataset = load_compilation_logs(arguments.logs_path)
+dataset = dataset.pivot_table(index="class hash", columns="executor")
+dataset.columns = ["_".join(a) for a in dataset.columns.to_flat_index()]
 
-fig, ax = plt.subplots()
+figure, ax = plt.subplots()
 
-sns.set_theme()
 sns.set_color_codes("bright")
 
 sns.regplot(
-    x="length",
-    y="time",
-    label="Native",
-    data=dataset[dataset["executor"] == "native"],
-    ax=ax,
-)
-sns.regplot(
-    x="length",
-    y="time",
-    label="Casm",
-    data=dataset[dataset["executor"] == "vm"],
+    x="size_native",
+    y="size_vm",
+    data=dataset,
     ax=ax,
 )
 
-ax.set_xlabel("Sierra size (KiB)")
-ax.set_ylabel("Compilation Time (ms)")
-ax.set_title("Native Compilation Time Trend")
-ax.legend()
+ax.set_xlabel("Native Compilation Size (KiB)")
+ax.set_ylabel("Casm Compilation Size (KiB)")
+ax.set_title("Compilation Size Correlation")
 
 plt.show()

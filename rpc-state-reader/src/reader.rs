@@ -1,4 +1,4 @@
-use std::{env, fmt, sync::Arc, thread, time::Duration};
+use std::{env, sync::Arc, thread, time::Duration};
 
 use blockifier::{
     execution::{
@@ -33,34 +33,6 @@ use crate::{
     utils::{self, bytecode_size, get_casm_compiled_class, get_native_executor},
 };
 
-/// Starknet chains supported in Infura.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
-pub enum RpcChain {
-    MainNet,
-    TestNet,
-    TestNet2,
-}
-
-impl fmt::Display for RpcChain {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            RpcChain::MainNet => write!(f, "starknet-mainnet"),
-            RpcChain::TestNet => write!(f, "starknet-goerli"),
-            RpcChain::TestNet2 => write!(f, "starknet-goerli2"),
-        }
-    }
-}
-
-impl From<RpcChain> for ChainId {
-    fn from(value: RpcChain) -> Self {
-        ChainId::Other(match value {
-            RpcChain::MainNet => "alpha-mainnet".to_string(),
-            RpcChain::TestNet => "alpha4".to_string(),
-            RpcChain::TestNet2 => "alpha4-2".to_string(),
-        })
-    }
-}
-
 const MAX_RETRIES: u32 = 10;
 const RETRY_SLEEP_MS: u64 = 10000;
 
@@ -79,14 +51,14 @@ pub trait StateReader: BlockifierStateReader {
 // the actual implementation has been copied and modified to our needs.
 
 pub struct RpcStateReader {
-    chain: RpcChain,
+    chain: ChainId,
     pub block_number: BlockNumber,
     inner: GatewayRpcStateReader,
 }
 
 impl RpcStateReader {
-    pub fn new(chain: RpcChain, block_number: BlockNumber) -> Self {
-        let config = build_config(chain);
+    pub fn new(chain: ChainId, block_number: BlockNumber) -> Self {
+        let config = build_config(&chain);
 
         Self {
             inner: GatewayRpcStateReader::from_number(&config, block_number),
@@ -162,19 +134,20 @@ impl StateReader for RpcStateReader {
     }
 
     fn get_chain_id(&self) -> ChainId {
-        self.chain.into()
+        self.chain.clone()
     }
 }
 
-fn build_config(chain: RpcChain) -> RpcStateReaderConfig {
+fn build_config(chain: &ChainId) -> RpcStateReaderConfig {
     let url = match chain {
-        RpcChain::MainNet => {
+        ChainId::Mainnet => {
             env::var("RPC_ENDPOINT_MAINNET").expect("Missing env var: RPC_ENDPOINT_MAINNET")
         }
-        RpcChain::TestNet => {
+        ChainId::Sepolia => {
             env::var("RPC_ENDPOINT_TESTNET").expect("Missing env var: RPC_ENDPOINT_TESTNET")
         }
-        RpcChain::TestNet2 => unimplemented!(),
+        ChainId::IntegrationSepolia => todo!(),
+        ChainId::Other(_) => todo!(),
     };
 
     RpcStateReaderConfig {
@@ -351,7 +324,7 @@ mod tests {
 
     #[test]
     fn test_get_block_with_tx_hashes() {
-        let reader = RpcStateReader::new(RpcChain::MainNet, BlockNumber(397709));
+        let reader = RpcStateReader::new(ChainId::Mainnet, BlockNumber(397709));
 
         let block = reader.get_block_with_tx_hashes().unwrap();
 
