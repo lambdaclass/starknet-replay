@@ -214,7 +214,7 @@ fn get_inner_class_executions(call: CallInfo) -> Vec<EntryPointExecution> {
     let mut classes = call
         .inner_calls
         .into_iter()
-        .flat_map(|call| get_inner_class_executions(call))
+        .flat_map(get_inner_class_executions)
         .collect::<Vec<_>>();
 
     if call.time.is_zero() {
