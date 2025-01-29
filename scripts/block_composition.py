@@ -1,18 +1,21 @@
 from argparse import ArgumentParser
 import pandas as pd
+import pprint
 
 TRANSFER_ENTRYPOINT_HASH = (
     '0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e'
 )
 SWAP_ENTRYPOINT_HASHES = [
     # SWAP_ENTRYPOINT_HASH
-    '0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29'
+    '0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29',
     # SWAP_EXACT_TOKEN_TO_ENTRYPOINT_HASH
-    '0xe9f3b52dc560050c4c679481500c1b1e2ba7496b6a0831638c1acaedcbc6ac'
+    '0xe9f3b52dc560050c4c679481500c1b1e2ba7496b6a0831638c1acaedcbc6ac',
     # MULTI_ROUTE_SWAP_ENTRYPOINT_HASH
-    '0x1171593aa5bdadda4d6b0efde6cc94ee7649c3163d5efeb19da6c16d63a2a63'
-    # SWAP_EXACT_TOKENS_FOR_TOKENS
-    '0x03276861cf5e05d6daf8f352cabb47df623eb10c383ab742fcc7abea94d5c5cc'
+    '0x1171593aa5bdadda4d6b0efde6cc94ee7649c3163d5efeb19da6c16d63a2a63',
+    # SWAP_EXACT_TOKENS_FOR_TOKENS (JediSwap)
+    '0x3276861cf5e05d6daf8f352cabb47df623eb10c383ab742fcc7abea94d5c5cc',
+    # SWAP_EXACT_TOKENS_FOR_TOKENS (10kSwap)
+    '0x2c0f7bf2d6cf5304c29171bf493feb222fef84bdaf17805a6574b0c2e8bcc87',
 ]
 
 
@@ -34,12 +37,12 @@ def count_transfers(transactions):
                 if exec_call['selector'] == TRANSFER_ENTRYPOINT_HASH:
                     count += 1
 
-    return count
+    return count / len(transactions) * 100 if len(transactions) > 0 else 0
 
 
 def count_swaps(transactions):
     def is_swap(entrypoint):
-        return any(lambda e: e == entrypoint for e in SWAP_ENTRYPOINT_HASHES)
+        return entrypoint['selector'] in SWAP_ENTRYPOINT_HASHES
 
     count = 0
 
@@ -47,13 +50,12 @@ def count_swaps(transactions):
         if tx == None:
             continue
 
-        if 'execute_call_info' in tx:
-            if any(
-                is_swap(entrypoint) for entrypoint in tx['execute_call_info']
-            ):
-                count += 1
+        if 'execute_call_info' in tx and any(
+            is_swap(entrypoint) for entrypoint in tx['execute_call_info']
+        ):
+            count += 1
 
-    return count
+    return count / len(transactions) * 100 if len(transactions) > 0 else 0
 
 
 def count_tx(transactions):
@@ -69,6 +71,6 @@ transfers_by_block = dataset.agg(count_transfers)
 swaps_by_block = dataset.agg(count_swaps)
 tx_by_block = dataset.agg(count_tx)
 
-print('AVERAGE TRANSFER IN BLOCK:', transfers_by_block.mean())
-print('AVERAGE SWAPS IN BLOCK:', swaps_by_block.mean())
-print('AVERAGE TX IN BLOCK:', tx_by_block.mean())
+print('TRANSFER IN BLOCK:', transfers_by_block.mean(), '%')
+print('SWAPS IN BLOCK:', swaps_by_block.mean(), '%')
+print('TXS IN BLOCK:', tx_by_block.mean())
