@@ -10,7 +10,6 @@ only_cairo_vm = ["rpc-state-reader/only_casm"]
 # The only-native feature uses native exclusively, with every cairo 1 contract
 only-native = ["blockifier/only-native"]
 structured_logging = []
-profiling = ["blockifier/profiling"]
 state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
 
