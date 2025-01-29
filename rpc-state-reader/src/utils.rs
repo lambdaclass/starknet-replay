@@ -217,10 +217,6 @@ fn get_inner_class_executions(call: CallInfo) -> Vec<EntryPointExecution> {
         .flat_map(get_inner_class_executions)
         .collect::<Vec<_>>();
 
-    if call.time.is_zero() {
-        panic!("contract time should never be zero, there is a bug somewhere")
-    }
-
     let top_class = EntryPointExecution {
         class_hash,
         selector: call.call.entry_point_selector,
