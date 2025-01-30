@@ -2,10 +2,11 @@ use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use blockifier::transaction::transactions::ExecutableTransaction;
+use chrono::DateTime;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction_with_state;
+use rpc_state_reader::execution::{fetch_block_context, fetch_transaction_with_state};
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
@@ -345,7 +346,7 @@ fn main() {
         } => {
             info!("executing block range: {} - {}", block_start, block_end);
 
-            let mut exec_entry_points = vec![];
+            let mut block_executions = Vec::new();
 
             for block_number in block_start..=block_end {
                 let _block_span = info_span!("block", number = block_number).entered();
@@ -359,24 +360,35 @@ fn main() {
                     validate: true,
                 };
 
+                let block_context = fetch_block_context(&reader).unwrap();
+
                 // fetch transactions
-                let txs = reader
+                let entrypoints = reader
                     .get_block_with_tx_hashes()
                     .unwrap()
                     .transactions
                     .into_iter()
                     .map(|hash| {
-                        fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap()
-                    });
+                        let (tx, _) =
+                            fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap();
+                        tx.execute(&mut state, &block_context).unwrap()
+                    })
+                    .collect::<Vec<_>>();
 
                 // execute transactions
-                for (tx, context) in txs {
-                    exec_entry_points
-                        .push((block_number, tx.execute(&mut state, &context).unwrap()));
-                }
+                // According to the starknet docs, a timestamp is "The time at which the block was created" in secons
+                let block_timestamp = DateTime::from_timestamp(
+                    block_context.block_info().block_timestamp.0 as i64,
+                    0,
+                )
+                .unwrap()
+                .to_string();
+                dbg!("block_timestamp_days {}", &block_timestamp);
+
+                block_executions.push((block_number, block_timestamp, entrypoints));
             }
 
-            save_entry_point_execution(&output, exec_entry_points).unwrap();
+            save_entry_point_execution(&output, block_executions).unwrap();
         }
     }
 }
