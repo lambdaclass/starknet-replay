@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import pandas as pd
+import json
 import pprint
 
 TRANSFER_ENTRYPOINT_HASH = (
@@ -63,14 +64,29 @@ def count_tx(transactions):
     return len(txs_without_none)
 
 
-dataset = pd.read_json(
-    arguments.block_execution_info, orient='index'
-).transpose()
+def load_data(path):
+    def process(block):
+        return {
+            'block': block['block_number'],
+            'timestamp': block['block_timestamp'],
+            'txs': count_tx(block['entrypoints']),
+            'transfers': count_transfers(block['entrypoints']),
+            'swaps': count_swaps(block['entrypoints']),
+        }
 
-transfers_by_block = dataset.agg(count_transfers)
-swaps_by_block = dataset.agg(count_swaps)
-tx_by_block = dataset.agg(count_tx)
+    blocks = json.load(open(path))
 
-print('TRANSFER IN BLOCK:', transfers_by_block.mean(), '%')
-print('SWAPS IN BLOCK:', swaps_by_block.mean(), '%')
-print('TXS IN BLOCK:', tx_by_block.mean())
+    df = pd.DataFrame(blocks).apply(process, axis=1).dropna().apply(pd.Series)
+
+    return df
+
+
+df = load_data(arguments.block_execution_info)
+
+df_by_timestamp = df.groupby('timestamp').agg(
+    avg_percentaje_txs=('txs', 'mean'),
+    avg_percentaje_transfers=('transfers', 'mean'),
+    avg_percentaje_swaps=('swaps', 'mean'),
+)
+
+print(df_by_timestamp)
