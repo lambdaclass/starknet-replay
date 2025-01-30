@@ -15,6 +15,8 @@ use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
+#[cfg(feature = "block-composition")]
+use block_composition::save_entry_point_execution;
 #[cfg(feature = "benchmark")]
 use {
     crate::benchmark::{
@@ -24,10 +26,7 @@ use {
     std::time::Instant,
 };
 
-#[cfg(feature = "structured_logging")]
-use rpc_state_reader::utils::save_entry_point_execution;
-
-#[cfg(any(feature = "benchmark", feature = "structured_logging"))]
+#[cfg(any(feature = "benchmark", feature = "block-composition"))]
 use std::path::PathBuf;
 
 #[cfg(feature = "profiling")]
@@ -35,6 +34,8 @@ use {std::thread, std::time::Duration};
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
+#[cfg(feature = "block-composition")]
+mod block_composition;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
@@ -95,10 +96,10 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
         output: PathBuf,
     },
+    #[cfg(feature = "block-composition")]
     #[clap(
         about = "Executes a range of blocks and writes down to a file every entrypoint executed."
     )]
-    #[cfg(feature = "structured_logging")]
     BlockCompose {
         block_start: u64,
         block_end: u64,
@@ -335,7 +336,7 @@ fn main() {
                 );
             }
         }
-        #[cfg(feature = "structured_logging")]
+        #[cfg(feature = "block-composition")]
         ReplayExecute::BlockCompose {
             block_start,
             block_end,
