@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    error::Error,
-    fs::{self, File},
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, error::Error, fs::File, path::Path};
 
 use blockifier::{execution::call_info::CallInfo, transaction::objects::TransactionExecutionInfo};
 use serde::Serialize;
@@ -27,9 +22,6 @@ pub fn save_entry_point_execution(
     executions: Vec<(u64, String, Vec<TransactionExecutionInfo>)>,
 ) -> Result<(), Box<dyn Error>> {
     let mut blocks: Vec<BlockEntryPoints> = Vec::new();
-    let dir_path = PathBuf::from("block-range_entrypoints_execution");
-    let _ = fs::create_dir_all(&dir_path);
-    let path = dir_path.join(format!("/{}", file_path.display()));
 
     for (block_number, block_timestamp, executions) in executions {
         let entrypoints = executions
@@ -67,7 +59,7 @@ pub fn save_entry_point_execution(
         });
     }
 
-    let file = File::create(path)?;
+    let file = File::create(file_path)?;
     serde_json::to_writer_pretty(file, &blocks)?;
 
     Ok(())
