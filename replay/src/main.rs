@@ -362,7 +362,7 @@ fn main() {
 
                 let block_context = fetch_block_context(&reader).unwrap();
 
-                // fetch transactions
+                // fetch and execute transactions
                 let entrypoints = reader
                     .get_block_with_tx_hashes()
                     .unwrap()
@@ -375,15 +375,12 @@ fn main() {
                     })
                     .collect::<Vec<_>>();
 
-                // execute transactions
-                // According to the starknet docs, a timestamp is "The time at which the block was created" in secons
                 let block_timestamp = DateTime::from_timestamp(
                     block_context.block_info().block_timestamp.0 as i64,
                     0,
                 )
                 .unwrap()
                 .to_string();
-                dbg!("block_timestamp_days {}", &block_timestamp);
 
                 block_executions.push((block_number, block_timestamp, entrypoints));
             }
