@@ -166,7 +166,8 @@ Additionally, the benchmarking scripts also run `plot_execution_time.py`, genera
 - `plot-*.csv` - raw csv preprocessed data
 
 ## Block Composition
-You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution.
+You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
+will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
 
 To generate the need information run this command:
 `cargo run --release -F block-composition block-compose <block_start> <block_end> <chain>`
