@@ -12,7 +12,6 @@ use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
-use state_dump::create_state_dump;
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -373,7 +372,7 @@ fn main() {
                             fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap();
                         let execution = tx.execute(&mut state, &block_context);
                         #[cfg(feature = "state_dump")]
-                        create_state_dump(&mut state, block_number, &hash.to_string(), &execution);
+                        state_dump::create_state_dump(&mut state, block_number, &hash.to_string(), &execution);
                         execution
                     })
                     .collect::<Vec<_>>();
