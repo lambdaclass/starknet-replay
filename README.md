@@ -156,7 +156,7 @@ If you just want to benchmarks a few different sample transactions, run:
 ./scripts/benchmark_txs.sh
 ```
 
-This generates the following files in the `bench_data` directory: 
+This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
 - `{native,vm}-data-*.json` - stdout from running the benchmark.
 
@@ -164,6 +164,12 @@ Additionally, the benchmarking scripts also run `plot_execution_time.py`, genera
 - `plot-*.svg` - bar plot for the execution time by contract class
 - `plot-*-speedup.svg` - violin plot for the speedup by contract class
 - `plot-*.csv` - raw csv preprocessed data
+
+## Block Composition
+You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution.
+
+To generate the need information run this command:
+`cargo run --release -F block-composition block-compose <block_start> <block_end> <chain>`
 
 ## Plotting
 
@@ -178,4 +184,4 @@ To run them, you must first execute the benchmarks to obtain both the execution 
 - `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
 - `python ./plotting/plot_compilation_time_trend.py native-logs`: Native and Casm compilation time, by the sierra contract size.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
-
+- `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.
