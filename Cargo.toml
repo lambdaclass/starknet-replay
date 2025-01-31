@@ -14,10 +14,10 @@ serde_with = "3.12.0"
 serde = "1.0.217"
 fs2 = "0.4.3"
 # Remember to update CAIRO_NATIVE_REF env variable in the CI when updating this
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", rev = "e9151aa8420a138f70febb721f8979d3dd2f7223" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", rev = "cdc16b29914771b54259715b1b0299f4f5b7b32f" }
 anyhow = "1.0"
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a2c843e38de27736276f67e9f6111cd6ab2d762b" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a2c843e38de27736276f67e9f6111cd6ab2d762b", features = ["cairo_native"] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a2c843e38de27736276f67e9f6111cd6ab2d762b" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a2c843e38de27736276f67e9f6111cd6ab2d762b" } # replay
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "f9b0f034e55c63103c11248b59b7f85da6eaef65" } # replay
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "f9b0f034e55c63103c11248b59b7f85da6eaef65", features = ["cairo_native"] } # replay
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "f9b0f034e55c63103c11248b59b7f85da6eaef65" } # replay
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "f9b0f034e55c63103c11248b59b7f85da6eaef65" } # replay
