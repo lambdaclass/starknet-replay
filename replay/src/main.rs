@@ -450,7 +450,7 @@ fn show_execution_data(
     let execution_info_result = tx.execute(state, &context);
 
     #[cfg(feature = "state_dump")]
-    create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
+    state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
