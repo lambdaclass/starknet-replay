@@ -25,8 +25,47 @@ use starknet_api::{
     transaction::fields::Calldata,
 };
 use starknet_types_core::felt::Felt;
+use tracing::error;
 
-pub fn dump_state_diff(
+pub fn create_state_dump(
+    state: &mut CachedState<impl StateReader>,
+    block_number: u64,
+    tx_hash_str: &str,
+    execution_info_result: &Result<TransactionExecutionInfo, TransactionExecutionError>,
+) {
+    use std::path::Path;
+
+    let root = if cfg!(feature = "only_cairo_vm") {
+        Path::new("state_dumps/vm")
+    } else if cfg!(feature = "with-sierra-emu") {
+        Path::new("state_dumps/emu")
+    } else {
+        Path::new("state_dumps/native")
+    };
+    let root = root.join(format!("block{}", block_number));
+
+    std::fs::create_dir_all(&root).ok();
+
+    let mut path = root.join(tx_hash_str);
+    path.set_extension("json");
+
+    match execution_info_result {
+        Ok(execution_info) => {
+            dump_state_diff(state, execution_info, &path)
+                .inspect_err(|err| error!("failed to dump state diff: {err}"))
+                .ok();
+        }
+        Err(err) => {
+            // If we have no execution info, we write the error
+            // to a file so that it can be compared anyway
+            dump_error(err, &path)
+                .inspect_err(|err| error!("failed to dump state diff: {err}"))
+                .ok();
+        }
+    }
+}
+
+fn dump_state_diff(
     state: &mut CachedState<impl StateReader>,
     execution_info: &TransactionExecutionInfo,
     path: &Path,
@@ -48,7 +87,7 @@ pub fn dump_state_diff(
     Ok(())
 }
 
-pub fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()> {
+fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
