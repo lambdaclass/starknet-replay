@@ -2,11 +2,10 @@ use blockifier::state::cached_state::CachedState;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use blockifier::transaction::transactions::ExecutableTransaction;
-use chrono::DateTime;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::{fetch_block_context, fetch_transaction_with_state};
+use rpc_state_reader::execution::fetch_transaction_with_state;
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
@@ -16,8 +15,6 @@ use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-#[cfg(feature = "block-composition")]
-use block_composition::save_entry_point_execution;
 #[cfg(feature = "benchmark")]
 use {
     crate::benchmark::{
@@ -25,6 +22,11 @@ use {
         BenchmarkingData,
     },
     std::time::Instant,
+};
+#[cfg(feature = "block-composition")]
+use {
+    block_composition::save_entry_point_execution, chrono::DateTime,
+    rpc_state_reader::execution::fetch_block_context,
 };
 
 #[cfg(any(feature = "benchmark", feature = "block-composition"))]
