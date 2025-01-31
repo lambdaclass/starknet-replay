@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 import json
-import pprint
 
 TRANSFER_ENTRYPOINT_HASH = (
     '0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e'
@@ -68,7 +69,7 @@ def load_data(path):
     def process(block):
         return {
             'block': block['block_number'],
-            'timestamp': block['block_timestamp'],
+            'timestamp': pd.Timestamp(block['block_timestamp']),
             'txs': count_tx(block['entrypoints']),
             'transfers': count_transfers(block['entrypoints']),
             'swaps': count_swaps(block['entrypoints']),
@@ -83,10 +84,38 @@ def load_data(path):
 
 df = load_data(arguments.block_execution_info)
 
-df_by_timestamp = df.groupby('timestamp').agg(
+df_by_timestamp = df.groupby(pd.Grouper(key='timestamp', freq='D')).agg(
     avg_percentaje_txs=('txs', 'mean'),
     avg_percentaje_transfers=('transfers', 'mean'),
     avg_percentaje_swaps=('swaps', 'mean'),
 )
 
-print(df_by_timestamp)
+figure, ax = plt.subplots()
+
+sns.lineplot(
+    data=df_by_timestamp,
+    x='timestamp',
+    y='avg_percentaje_txs',
+    ax=ax,
+    label='average txs',
+)
+sns.lineplot(
+    data=df_by_timestamp,
+    x='timestamp',
+    y='avg_percentaje_transfers',
+    ax=ax,
+    label='average transfers (%)',
+)
+sns.lineplot(
+    data=df_by_timestamp,
+    x='timestamp',
+    y='avg_percentaje_swaps',
+    ax=ax,
+    label='average swaps (%)',
+)
+
+ax.set_xlabel('day')
+ax.set_ylabel('average')
+ax.set_title('Block Composition')
+
+plt.show()
