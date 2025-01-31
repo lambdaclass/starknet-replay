@@ -14,7 +14,7 @@ use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    contract_class::EntryPointType,
+    contract_class::{EntryPointType, SierraVersion},
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
@@ -130,6 +130,14 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 }
 
 pub fn get_casm_compiled_class(class: ContractClass, _class_hash: ClassHash) -> CompiledClassV1 {
+    let sierra_program_values = class
+        .sierra_program
+        .iter()
+        .take(3)
+        .map(|felt| felt.value.clone())
+        .collect::<Vec<_>>();
+    let sierra_version = SierraVersion::extract_from_program(&sierra_program_values).unwrap();
+
     info!("starting vm contract compilation");
 
     let pre_compilation_instant = Instant::now();
@@ -150,7 +158,9 @@ pub fn get_casm_compiled_class(class: ContractClass, _class_hash: ClassHash) -> 
         "vm contract compilation finished"
     );
 
-    CompiledClassV1::try_from(casm_class).unwrap()
+    let versioned_casm = (casm_class, sierra_version);
+
+    CompiledClassV1::try_from(versioned_casm).unwrap()
 }
 
 pub fn bytecode_size(data: &[BigUintAsHex]) -> usize {
