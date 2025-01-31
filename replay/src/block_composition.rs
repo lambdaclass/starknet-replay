@@ -22,7 +22,14 @@ type BlockExecutionInfo = Vec<(
 struct BlockEntryPoints {
     block_number: u64,
     block_timestamp: String,
-    entrypoints: Vec<HashMap<String, Vec<EntryPointExecution>>>,
+    entrypoints: Vec<BlockEntryPoint>,
+}
+
+#[derive(Debug, Serialize)]
+struct BlockEntryPoint {
+    validate_call_info: Option<Vec<EntryPointExecution>>,
+    execute_call_info: Option<Vec<EntryPointExecution>>,
+    fee_transfer_call_info: Option<Vec<EntryPointExecution>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -31,6 +38,7 @@ struct EntryPointExecution {
     selector: EntryPointSelector,
 }
 
+/// Saves to a json the resulting list of `BlockEntryPoints`
 pub fn save_entry_point_execution(
     file_path: &Path,
     executions: BlockExecutionInfo,
@@ -46,26 +54,21 @@ pub fn save_entry_point_execution(
             .into_iter()
             .map(|execution_rst| {
                 let mut tx_execution = HashMap::new();
-
                 let execution = execution_rst.unwrap();
+                let mut block_entry_point = BlockEntrypoin {
+                    validate_call_info: None,
+                    execute_call_info: None,
+                    fee_transfer_call_info: None,
+                };
 
                 if let Some(call) = execution.validate_call_info {
-                    tx_execution.insert(
-                        "validate_call_info".to_string(),
-                        get_inner_class_executions(call),
-                    );
+                    block_entry_point.validate_call_info = get_inner_class_executions(call);
                 }
                 if let Some(call) = execution.execute_call_info {
-                    tx_execution.insert(
-                        "execute_call_info".to_string(),
-                        get_inner_class_executions(call),
-                    );
+                    block_entry_point.execute_call_info = get_inner_class_executions(call);
                 }
                 if let Some(call) = execution.fee_transfer_call_info {
-                    tx_execution.insert(
-                        "fee_transfer_call_info".to_string(),
-                        get_inner_class_executions(call),
-                    );
+                    block_entry_point.fee_transfer_call_info = get_inner_class_executions(call);
                 }
 
                 tx_execution
