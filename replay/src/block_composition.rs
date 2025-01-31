@@ -1,8 +1,22 @@
-use std::{collections::HashMap, error::Error, fs::File, path::Path};
+use std::{
+    collections::HashMap,
+    error::Error,
+    fs::{self, File},
+    path::Path,
+};
 
-use blockifier::{execution::call_info::CallInfo, transaction::objects::TransactionExecutionInfo};
+use blockifier::{
+    execution::call_info::CallInfo,
+    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
+};
 use serde::Serialize;
 use starknet_api::core::{ClassHash, EntryPointSelector};
+
+type BlockExecutionInfo = Vec<(
+    u64,
+    String,
+    Vec<Result<TransactionExecutionInfo, TransactionExecutionError>>,
+)>;
 
 #[derive(Debug, Serialize)]
 struct BlockEntryPoints {
@@ -19,15 +33,21 @@ struct EntryPointExecution {
 
 pub fn save_entry_point_execution(
     file_path: &Path,
-    executions: Vec<(u64, String, Vec<TransactionExecutionInfo>)>,
+    executions: BlockExecutionInfo,
 ) -> Result<(), Box<dyn Error>> {
+    if let Some(parent_path) = file_path.parent() {
+        fs::create_dir_all(parent_path)?;
+    }
+
     let mut blocks: Vec<BlockEntryPoints> = Vec::new();
 
     for (block_number, block_timestamp, executions) in executions {
         let entrypoints = executions
             .into_iter()
-            .map(|execution| {
+            .map(|execution_rst| {
                 let mut tx_execution = HashMap::new();
+
+                let execution = execution_rst.unwrap();
 
                 if let Some(call) = execution.validate_call_info {
                     tx_execution.insert(

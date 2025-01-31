@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -75,10 +76,17 @@ def load_data(path):
             'swaps': count_swaps(block['entrypoints']),
         }
 
-    blocks = json.load(open(path))
+    df = pd.DataFrame()
 
-    df = pd.DataFrame(blocks).apply(process, axis=1).dropna().apply(pd.Series)
+    for filename in os.listdir(path):
+        blocks = json.load(open(path + "/" + filename))
 
+        block_df = pd.DataFrame(blocks)
+
+        df = pd.concat([df, block_df])
+
+    df = df.apply(process, axis=1).dropna().apply(pd.Series)
+    print(df)
     return df
 
 
@@ -92,6 +100,7 @@ df_by_timestamp = df.groupby(pd.Grouper(key='timestamp', freq='D')).agg(
 
 figure, ax = plt.subplots()
 
+print(df_by_timestamp)
 sns.lineplot(
     data=df_by_timestamp,
     x='timestamp',

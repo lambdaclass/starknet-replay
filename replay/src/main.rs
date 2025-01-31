@@ -12,6 +12,7 @@ use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
+use state_dump::create_state_dump;
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -107,8 +108,6 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_start: u64,
         block_end: u64,
         chain: String,
-        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
-        output: PathBuf,
     },
 }
 
@@ -344,7 +343,6 @@ fn main() {
             block_start,
             block_end,
             chain,
-            output,
         } => {
             info!("executing block range: {} - {}", block_start, block_end);
 
@@ -373,7 +371,10 @@ fn main() {
                     .map(|hash| {
                         let (tx, _) =
                             fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap();
-                        tx.execute(&mut state, &block_context).unwrap()
+                        let execution = tx.execute(&mut state, &block_context);
+                        #[cfg(feature = "state_dump")]
+                        create_state_dump(&mut state, block_number, &hash.to_string(), &execution);
+                        execution
                     })
                     .collect::<Vec<_>>();
 
@@ -387,7 +388,12 @@ fn main() {
                 block_executions.push((block_number, block_timestamp, entrypoints));
             }
 
-            save_entry_point_execution(&output, block_executions).unwrap();
+            let path = PathBuf::from(format!(
+                "block_composition/block-compose-{}-{}-{}.json",
+                block_start, block_end, chain
+            ));
+
+            save_entry_point_execution(&path, block_executions).unwrap();
         }
     }
 }
@@ -445,38 +451,7 @@ fn show_execution_data(
     let execution_info_result = tx.execute(state, &context);
 
     #[cfg(feature = "state_dump")]
-    {
-        use std::path::Path;
-
-        let root = if cfg!(feature = "only_cairo_vm") {
-            Path::new("state_dumps/vm")
-        } else if cfg!(feature = "with-sierra-emu") {
-            Path::new("state_dumps/emu")
-        } else {
-            Path::new("state_dumps/native")
-        };
-        let root = root.join(format!("block{}", block_number));
-
-        std::fs::create_dir_all(&root).ok();
-
-        let mut path = root.join(&tx_hash_str);
-        path.set_extension("json");
-
-        match &execution_info_result {
-            Ok(execution_info) => {
-                state_dump::dump_state_diff(state, execution_info, &path)
-                    .inspect_err(|err| error!("failed to dump state diff: {err}"))
-                    .ok();
-            }
-            Err(err) => {
-                // If we have no execution info, we write the error
-                // to a file so that it can be compared anyway
-                state_dump::dump_error(err, &path)
-                    .inspect_err(|err| error!("failed to dump state diff: {err}"))
-                    .ok();
-            }
-        }
-    }
+    create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
