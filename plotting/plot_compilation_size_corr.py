@@ -13,7 +13,7 @@ dataset = load_compilation_logs(arguments.logs_path)
 dataset = dataset.pivot_table(index="class hash", columns="executor")
 dataset.columns = ["_".join(a) for a in dataset.columns.to_flat_index()]
 
-figure, ax = plt.subplots(figsize=(50, 5))
+figure, ax = plt.subplots()
 
 sns.set_color_codes("bright")
 

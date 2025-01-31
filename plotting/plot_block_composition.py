@@ -98,7 +98,7 @@ df_by_timestamp = df.groupby(pd.Grouper(key='timestamp', freq='D')).agg(
     avg_percentaje_swaps=('swaps', 'mean'),
 )
 
-figure, ax = plt.subplots()
+figure, ax = plt.subplots(figsize=(10, 5))
 
 print(df_by_timestamp)
 sns.lineplot(
