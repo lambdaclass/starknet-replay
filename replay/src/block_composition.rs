@@ -12,8 +12,8 @@ use serde::Serialize;
 use starknet_api::core::{ClassHash, EntryPointSelector};
 
 type BlockExecutionInfo = Vec<(
-    u64,
-    String,
+    u64, // block number
+    String, // block timestamp
     Vec<Result<TransactionExecutionInfo, TransactionExecutionError>>,
 )>;
 
