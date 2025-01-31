@@ -372,7 +372,12 @@ fn main() {
                             fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap();
                         let execution = tx.execute(&mut state, &block_context);
                         #[cfg(feature = "state_dump")]
-                        state_dump::create_state_dump(&mut state, block_number, &hash.to_string(), &execution);
+                        state_dump::create_state_dump(
+                            &mut state,
+                            block_number,
+                            &hash.to_string(),
+                            &execution,
+                        );
                         execution
                     })
                     .collect::<Vec<_>>();
