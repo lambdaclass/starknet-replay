@@ -100,10 +100,10 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();
-                let mut executor = AotContractExecutor::new_into(
+                let executor = AotContractExecutor::new_into(
                     &contract.extract_sierra_program().unwrap(),
-                    &path,
                     &contract.entry_points_by_type,
+                    &path,
                     OptLevel::Aggressive,
                 )
                 .unwrap();
