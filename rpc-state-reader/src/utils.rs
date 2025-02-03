@@ -120,7 +120,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                     )
                     .unwrap()
                     {
-                        None => sleep(Duration::from_secs(10)),
+                        None => sleep(Duration::from_secs(1)),
                         Some(e) => break e,
                     }
                 };
