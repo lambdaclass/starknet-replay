@@ -9,7 +9,12 @@ use std::{
 };
 
 use blockifier::execution::contract_class::CompiledClassV1;
-use cairo_lang_starknet_classes::{compiler_version::VersionId, contract_class::{version_id_from_serialized_sierra_program, ContractClass, ContractEntryPoints}};
+use cairo_lang_starknet_classes::{
+    compiler_version::VersionId,
+    contract_class::{
+        version_id_from_serialized_sierra_program, ContractClass, ContractEntryPoints,
+    },
+};
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
@@ -111,7 +116,8 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 let pre_compilation_instant = Instant::now();
                 let program = &contract.extract_sierra_program().unwrap();
-                let sierra_version = version_id_from_serialized_sierra_program(&contract.sierra_program);
+                let (sierra_version, _) =
+                    version_id_from_serialized_sierra_program(&contract.sierra_program).unwrap();
                 let executor = loop {
                     match AotContractExecutor::new_into(
                         &contract.extract_sierra_program().unwrap(),
