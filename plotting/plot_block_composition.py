@@ -183,23 +183,23 @@ sns.lineplot(
     x='timestamp',
     y='avg_percentage_transfers',
     ax=axs[1],
-    label='average transfers (%)',
+    label='average transfers',
 )
 sns.lineplot(
     data=df_by_timestamp,
     x='timestamp',
     y='avg_percentage_swaps',
     ax=axs[1],
-    label='average swaps (%)',
+    label='average swaps',
 )
 
-for ax in axs.flat:
-    ax.set(xlabel='day', ylabel='average')
+axs.flat[0].set(xlabel='day', ylabel='average')
+axs.flat[1].set(xlabel='day', ylabel='average (%)')
 
 fig.subplots_adjust(wspace=1, hspace=0.5)
 
 axs[0].set_title('Average txs, transfers and swaps in a block')
-axs[1].set_title('Average swaps and tranfers in a block (%)')
+axs[1].set_title('Average percentage of swaps and tranfers in a block')
 
 
 plt.show()
