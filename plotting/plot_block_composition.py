@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from utils import flatmap
 import json
 
 TRANSFER_ENTRYPOINT_HASH = (
@@ -35,12 +36,23 @@ def count_transfers(transactions):
             continue
 
         # in general, a pure transfer is made of two entrypoints: __execute__, transfer
-        if 'execute_call_info' in tx and len(tx['execute_call_info']) <= 2:
-            for exec_call in tx['execute_call_info']:
-                if exec_call['selector'] == TRANSFER_ENTRYPOINT_HASH:
+        if (
+            tx['execute_call_info'] != None
+            and len(tx['execute_call_info']) <= 2
+        ):
+            for entrypoint in tx['execute_call_info']:
+                if entrypoint['selector'] == TRANSFER_ENTRYPOINT_HASH:
                     count += 1
 
-    return count / len(transactions) * 100 if len(transactions) > 0 else 0
+    return count
+
+
+def count_transfers_ptg(transactions):
+    return (
+        count_transfers(transactions) / len(transactions) * 100
+        if len(transactions) > 0
+        else 0
+    )
 
 
 def count_swaps(transactions):
@@ -53,12 +65,20 @@ def count_swaps(transactions):
         if tx == None:
             continue
 
-        if 'execute_call_info' in tx and any(
+        if tx['execute_call_info'] != None and any(
             is_swap(entrypoint) for entrypoint in tx['execute_call_info']
         ):
             count += 1
 
-    return count / len(transactions) * 100 if len(transactions) > 0 else 0
+    return count
+
+
+def count_swaps_ptg(transactions):
+    return (
+        count_swaps(transactions) / len(transactions) * 100
+        if len(transactions) > 0
+        else 0
+    )
 
 
 def count_tx(transactions):
@@ -68,63 +88,118 @@ def count_tx(transactions):
 
 def load_data(path):
     def process(block):
+        # 'entrypoints' is an dict of groups of entrypoints (each with objectives)
+        # since each group is a tree of calls (an entrypoint can be called during the execution
+        # of another entrypoin) we need to flatten them make them process friendly
+        block['entrypoints'] = list(
+            map(flatten_call_trees, block['entrypoints'])
+        )
+
         return {
             'block': block['block_number'],
             'timestamp': pd.Timestamp(block['block_timestamp']),
             'txs': count_tx(block['entrypoints']),
             'transfers': count_transfers(block['entrypoints']),
             'swaps': count_swaps(block['entrypoints']),
+            'transfers_ptg': count_transfers_ptg(block['entrypoints']),
+            'swaps_ptg': count_swaps_ptg(block['entrypoints']),
         }
 
     df = pd.DataFrame()
 
     for filename in os.listdir(path):
-        blocks = json.load(open(path + "/" + filename))
+        blocks = json.load(open(path + '/' + filename))
 
         block_df = pd.DataFrame(blocks)
 
         df = pd.concat([df, block_df])
-
     df = df.apply(process, axis=1).dropna().apply(pd.Series)
-    print(df)
+
     return df
+
+
+def flatten_call_trees(entrypoints):
+    if entrypoints['validate_call_info'] != None:
+        entrypoints['validate_call_info'] = flatten_call_tree(
+            entrypoints['validate_call_info']
+        )
+
+    if entrypoints['execute_call_info'] != None:
+        entrypoints['execute_call_info'] = flatten_call_tree(
+            entrypoints['execute_call_info']
+        )
+
+    if entrypoints['fee_transfer_call_info'] != None:
+        entrypoints['fee_transfer_call_info'] = flatten_call_tree(
+            entrypoints['fee_transfer_call_info']
+        )
+
+    return entrypoints
+
+
+def flatten_call_tree(call_tree):
+    calls = list(flatmap(flatten_call_tree, call_tree['inner']))
+
+    calls.append(call_tree['root'])
+
+    return calls
 
 
 df = load_data(arguments.block_execution_info)
 
 df_by_timestamp = df.groupby(pd.Grouper(key='timestamp', freq='D')).agg(
-    avg_percentaje_txs=('txs', 'mean'),
-    avg_percentaje_transfers=('transfers', 'mean'),
-    avg_percentaje_swaps=('swaps', 'mean'),
+    avg_txs=('txs', 'mean'),
+    avg_transfers=('transfers', 'mean'),
+    avg_swaps=('swaps', 'mean'),
+    avg_percentage_transfers=('transfers_ptg', 'mean'),
+    avg_percentage_swaps=('swaps_ptg', 'mean'),
 )
 
-figure, ax = plt.subplots(figsize=(10, 5))
+fig, axs = plt.subplots(2, figsize=(10, 7))
 
-print(df_by_timestamp)
 sns.lineplot(
     data=df_by_timestamp,
     x='timestamp',
-    y='avg_percentaje_txs',
-    ax=ax,
+    y='avg_txs',
+    ax=axs[0],
     label='average txs',
 )
 sns.lineplot(
     data=df_by_timestamp,
     x='timestamp',
-    y='avg_percentaje_transfers',
-    ax=ax,
+    y='avg_transfers',
+    ax=axs[0],
+    label='average transfers',
+)
+sns.lineplot(
+    data=df_by_timestamp,
+    x='timestamp',
+    y='avg_swaps',
+    ax=axs[0],
+    label='average swaps',
+)
+sns.lineplot(
+    data=df_by_timestamp,
+    x='timestamp',
+    y='avg_percentage_transfers',
+    ax=axs[1],
     label='average transfers (%)',
 )
 sns.lineplot(
     data=df_by_timestamp,
     x='timestamp',
-    y='avg_percentaje_swaps',
-    ax=ax,
+    y='avg_percentage_swaps',
+    ax=axs[1],
     label='average swaps (%)',
 )
 
-ax.set_xlabel('day')
-ax.set_ylabel('average')
-ax.set_title('Block Composition')
+for ax in axs.flat:
+    ax.set(xlabel='day', ylabel='average')
+
+fig.subplots_adjust(wspace=1, hspace=0.5)
+
+axs[0].set_title('Average txs, transfers and swaps in a block')
+axs[1].set_title('Average swaps and tranfers in a block (%)')
+
 
 plt.show()
