@@ -95,21 +95,19 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
             ));
 
             let executor = if path.exists() {
-                AotContractExecutor::load(&path).unwrap()
+                AotContractExecutor::from_path(&path).unwrap()
             } else {
                 info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();
-                let mut executor = AotContractExecutor::new(
+                let mut executor = AotContractExecutor::new_into(
                     &contract.extract_sierra_program().unwrap(),
+                    &path,
                     &contract.entry_points_by_type,
                     OptLevel::Aggressive,
                 )
                 .unwrap();
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
-
-                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-                executor.save(&path).unwrap();
 
                 let library_size = fs::metadata(path).unwrap().len();
 
@@ -121,6 +119,8 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 executor
             };
+
+            let executor = executor.unwrap();
 
             cache.insert(class_hash, executor.clone());
 
