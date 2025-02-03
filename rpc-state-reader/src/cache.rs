@@ -2,7 +2,7 @@ use std::{
     cell::RefCell,
     collections::{hash_map::Entry, HashMap},
     fs::{self, File},
-    io::Seek,
+    io::{Seek, Write},
     path::PathBuf,
 };
 
@@ -81,6 +81,7 @@ impl Drop for RpcCachedStateReader {
         file.seek(std::io::SeekFrom::Start(0)).unwrap();
 
         serde_json::to_writer_pretty(&file, &self.state).unwrap();
+        file.flush().unwrap();
         fs2::FileExt::unlock(&file).unwrap();
     }
 }
