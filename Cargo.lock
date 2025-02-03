@@ -762,7 +762,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "anyhow",
  "ark-ec 0.4.2",
@@ -776,7 +776,7 @@ dependencies = [
  "cairo-lang-starknet-classes",
  "cairo-native",
  "cairo-vm",
- "derive_more 0.99.18",
+ "derive_more 0.99.19",
  "indexmap 2.7.1",
  "itertools 0.12.1",
  "keccak",
@@ -810,7 +810,7 @@ dependencies = [
 [[package]]
 name = "blockifier_reexecution"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -1541,7 +1541,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.2.9"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=a19c4fe67ae950d69eb307402c95d09f7898bfa7#a19c4fe67ae950d69eb307402c95d09f7898bfa7"
+source = "git+https://github.com/lambdaclass/cairo_native.git?rev=9f60ad3fae1c3ae7eac17665764032e9008d0662#9f60ad3fae1c3ae7eac17665764032e9008d0662"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -1594,7 +1594,7 @@ dependencies = [
 [[package]]
 name = "cairo-native-runtime"
 version = "0.2.9"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=a19c4fe67ae950d69eb307402c95d09f7898bfa7#a19c4fe67ae950d69eb307402c95d09f7898bfa7"
+source = "git+https://github.com/lambdaclass/cairo_native.git?rev=9f60ad3fae1c3ae7eac17665764032e9008d0662#9f60ad3fae1c3ae7eac17665764032e9008d0662"
 dependencies = [
  "cairo-lang-sierra-gas",
  "itertools 0.14.0",
@@ -2212,9 +2212,9 @@ dependencies = [
 
 [[package]]
 name = "derive_more"
-version = "0.99.18"
+version = "0.99.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f33878137e4dafd7fa914ad4e259e18a4e8e532b9617a2d0150262bf53abfce"
+checksum = "3da29a38df43d6f156149c9b43ded5e018ddff2a855cf2cfd62e8cd7d079c69f"
 dependencies = [
  "convert_case 0.4.0",
  "proc-macro2",
@@ -4393,7 +4393,7 @@ checksum = "3f0bee397dc9a7003e7bd34fffc1dc2d4c4fdc96530a0c439a5f98c9402bc7bf"
 dependencies = [
  "bitflags 2.8.0",
  "byteorder",
- "derive_more 0.99.18",
+ "derive_more 0.99.19",
  "indexmap 1.9.3",
  "libc",
  "lifetimed-bytes",
@@ -4749,7 +4749,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -5226,7 +5226,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "base64 0.13.1",
  "cairo-lang-starknet-classes",
@@ -5245,7 +5245,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "clap",
  "itertools 0.12.1",
@@ -5261,7 +5261,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -5284,7 +5284,7 @@ dependencies = [
 [[package]]
 name = "papyrus_network_types"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "libp2p",
  "serde",
@@ -5293,7 +5293,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "quote",
  "syn 2.0.98",
@@ -5303,7 +5303,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5338,7 +5338,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -7272,12 +7272,12 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "bitvec",
  "cairo-lang-runner",
  "cairo-lang-starknet-classes",
- "derive_more 0.99.18",
+ "derive_more 0.99.19",
  "hex",
  "indexmap 2.7.1",
  "itertools 0.12.1",
@@ -7300,7 +7300,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -7327,7 +7327,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "axum",
@@ -7357,7 +7357,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway_types"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "axum",
@@ -7376,7 +7376,7 @@ dependencies = [
 [[package]]
 name = "starknet_infra_utils"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "tokio",
  "tracing",
@@ -7385,7 +7385,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "papyrus_network_types",
@@ -7399,7 +7399,7 @@ dependencies = [
 [[package]]
 name = "starknet_sequencer_infra"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "hyper 0.14.32",
@@ -7419,7 +7419,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_multicompile"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
@@ -7440,7 +7440,7 @@ dependencies = [
 [[package]]
 name = "starknet_state_sync_types"
 version = "0.14.0-rc.0"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=ce2bd6b79ede4ea371c5501c25121cdd4550da5a#ce2bd6b79ede4ea371c5501c25121cdd4550da5a"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=f387482dc57315f7287a0320ccc7b5945780e40e#f387482dc57315f7287a0320ccc7b5945780e40e"
 dependencies = [
  "async-trait",
  "futures",
