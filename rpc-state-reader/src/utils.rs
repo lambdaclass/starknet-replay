@@ -1,10 +1,5 @@
 use std::{
-    collections::HashMap,
-    fs::{self},
-    io::{self, Read},
-    path::PathBuf,
-    sync::{OnceLock, RwLock},
-    time::Instant,
+    collections::HashMap, fs::{self}, io::{self, Read}, path::PathBuf, sync::{OnceLock, RwLock}, thread::sleep, time::{Duration, Instant}
 };
 
 use blockifier::execution::contract_class::CompiledClassV1;
@@ -95,18 +90,30 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
             ));
 
             let executor = if path.exists() {
-                AotContractExecutor::from_path(&path).unwrap()
+                loop {
+                    match AotContractExecutor::from_path(&path).unwrap() {
+                        None => sleep(Duration::from_secs(10)),
+                        Some(e) => break e
+                    }
+                }
             } else {
                 info!("starting native contract compilation");
 
                 let pre_compilation_instant = Instant::now();
-                let executor = AotContractExecutor::new_into(
-                    &contract.extract_sierra_program().unwrap(),
-                    &contract.entry_points_by_type,
-                    &path,
-                    OptLevel::Aggressive,
-                )
-                .unwrap();
+
+                let executor = loop {
+                    match AotContractExecutor::new_into(
+                        &contract.extract_sierra_program().unwrap(),
+                        &contract.entry_points_by_type,
+                        &path,
+                        OptLevel::Aggressive,
+                    )
+                    .unwrap() {
+                        None => sleep(Duration::from_secs(10)),
+                        Some(e) => break e
+                    }
+                };
+
                 let compilation_time = pre_compilation_instant.elapsed().as_millis();
 
                 let library_size = fs::metadata(path).unwrap().len();
@@ -119,8 +126,6 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 executor
             };
-
-            let executor = executor.unwrap();
 
             cache.insert(class_hash, executor.clone());
 
