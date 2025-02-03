@@ -48,9 +48,10 @@ def count_transfers(transactions):
 
 
 def count_transfers_ptg(transactions):
+    tx_len = count_tx(transactions)
     return (
-        count_transfers(transactions) / len(transactions) * 100
-        if len(transactions) > 0
+        count_transfers(transactions) / tx_len * 100
+        if tx_len > 0
         else 0
     )
 
@@ -74,9 +75,10 @@ def count_swaps(transactions):
 
 
 def count_swaps_ptg(transactions):
+    tx_len = count_tx(transactions)
     return (
-        count_swaps(transactions) / len(transactions) * 100
-        if len(transactions) > 0
+        count_swaps(transactions) / tx_len * 100
+        if tx_len > 0
         else 0
     )
 
