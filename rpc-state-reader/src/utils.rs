@@ -95,10 +95,14 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 }
             ));
 
+            if let Some(p) = path.parent() {
+                let _ = fs::create_dir_all(p);
+            }
+
             let executor = if path.exists() {
                 loop {
                     match AotContractExecutor::from_path(&path).unwrap() {
-                        None => sleep(Duration::from_secs(10)),
+                        None => sleep(Duration::from_secs(1)),
                         Some(e) => break e,
                     }
                 }
