@@ -1,5 +1,11 @@
 use std::{
-    collections::HashMap, fs::{self}, io::{self, Read}, path::PathBuf, sync::{OnceLock, RwLock}, thread::sleep, time::{Duration, Instant}
+    collections::HashMap,
+    fs::{self},
+    io::{self, Read},
+    path::PathBuf,
+    sync::{OnceLock, RwLock},
+    thread::sleep,
+    time::{Duration, Instant},
 };
 
 use blockifier::execution::contract_class::CompiledClassV1;
@@ -93,7 +99,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 loop {
                     match AotContractExecutor::from_path(&path).unwrap() {
                         None => sleep(Duration::from_secs(10)),
-                        Some(e) => break e
+                        Some(e) => break e,
                     }
                 }
             } else {
@@ -108,9 +114,10 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                         &path,
                         OptLevel::Aggressive,
                     )
-                    .unwrap() {
+                    .unwrap()
+                    {
                         None => sleep(Duration::from_secs(10)),
-                        Some(e) => break e
+                        Some(e) => break e,
                     }
                 };
 
