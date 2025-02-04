@@ -49,11 +49,7 @@ def count_transfers(transactions):
 
 def count_transfers_ptg(transactions):
     tx_len = count_tx(transactions)
-    return (
-        count_transfers(transactions) / tx_len * 100
-        if tx_len > 0
-        else 0
-    )
+    return count_transfers(transactions) / tx_len * 100 if tx_len > 0 else 0
 
 
 def count_swaps(transactions):
@@ -76,11 +72,7 @@ def count_swaps(transactions):
 
 def count_swaps_ptg(transactions):
     tx_len = count_tx(transactions)
-    return (
-        count_swaps(transactions) / tx_len * 100
-        if tx_len > 0
-        else 0
-    )
+    return count_swaps(transactions) / tx_len * 100 if tx_len > 0 else 0
 
 
 def count_tx(transactions):
@@ -90,9 +82,9 @@ def count_tx(transactions):
 
 def load_data(path):
     def process(block):
-        # 'entrypoints' is an dict of groups of entrypoints (each with objectives)
+        # An entrypoint is a dict of groups of entrypoints (each with objectives)
         # since each group is a tree of calls (an entrypoint can be called during the execution
-        # of another entrypoin) we need to flatten them make them process friendly
+        # of another) we need to flatten them to make them process friendly
         block['entrypoints'] = list(
             map(flatten_call_trees, block['entrypoints'])
         )
@@ -115,6 +107,7 @@ def load_data(path):
         block_df = pd.DataFrame(blocks)
 
         df = pd.concat([df, block_df])
+
     df = df.apply(process, axis=1).dropna().apply(pd.Series)
 
     return df
