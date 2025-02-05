@@ -99,7 +99,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 let _ = fs::create_dir_all(p);
             }
 
-            let executor = if path.exists() {
+            if path.exists() {
                 loop {
                     match AotContractExecutor::from_path(&path).unwrap() {
                         None => sleep(Duration::from_secs(1)),
@@ -152,22 +152,17 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                     "native contract compilation finished"
                 );
 
-                executor
+                            cache.insert(class_hash, e.clone());
+
+                            break e;
+                        }
+                        None => {
+                            sleep(Duration::from_secs(1));
+                            continue;
+                        }
+                    }
+                }
             };
-
-            cache.insert(class_hash, executor.clone());
-
-            {
-                let path = PathBuf::from(format!(
-                    "compiled_programs/{}.sierra",
-                    class_hash.to_hex_string()
-                ));
-                let program = contract.extract_sierra_program().unwrap();
-                let mut file = File::create(path).unwrap();
-                write!(file, "{}", program).unwrap();
-            }
-
-            executor
         }
     }
 }
