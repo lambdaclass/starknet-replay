@@ -144,7 +144,6 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                         continue;
                     }
                 }
-
             };
 
             cache.insert(class_hash, executor.clone());
