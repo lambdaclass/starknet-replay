@@ -112,7 +112,22 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 let pre_compilation_instant = Instant::now();
                 let (sierra_version, _) =
                     version_id_from_serialized_sierra_program(&contract.sierra_program).unwrap();
-                let executor = loop {
+                
+                loop {
+                    // it could be the case that the file was created after we've entered this branch
+                    // so we should load it instead of compiling it again
+                    if path.exists() {
+                        match AotContractExecutor::from_path(&path).unwrap() {
+                            None => {
+                                sleep(Duration::from_secs(1));
+                                continue;
+                            }
+                            Some(e) => break e,
+                        }
+                    }
+
+                    let pre_compilation_instant = Instant::now();
+
                     match AotContractExecutor::new_into(
                         &contract.extract_sierra_program().unwrap(),
                         &contract.entry_points_by_type,
