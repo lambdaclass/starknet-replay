@@ -113,7 +113,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 let (sierra_version, _) =
                     version_id_from_serialized_sierra_program(&contract.sierra_program).unwrap();
-                
+
                 loop {
                     // it could be the case that the file was created after we've entered this branch
                     // so we should load it instead of compiling it again
