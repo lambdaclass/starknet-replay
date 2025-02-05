@@ -162,7 +162,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                         }
                     }
                 }
-            };
+            }
         }
     }
 }
