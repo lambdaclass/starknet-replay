@@ -99,70 +99,57 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                 let _ = fs::create_dir_all(p);
             }
 
-            if path.exists() {
-                loop {
+            info!("starting native contract compilation");
+
+            let (sierra_version, _) =
+                version_id_from_serialized_sierra_program(&contract.sierra_program).unwrap();
+
+            let executor = loop {
+                // it could be the case that the file was created after we've entered this branch
+                // so we should load it instead of compiling it again
+                if path.exists() {
                     match AotContractExecutor::from_path(&path).unwrap() {
-                        None => sleep(Duration::from_secs(1)),
-                        Some(e) => break e,
-                    }
-                }
-            } else {
-                info!("starting native contract compilation");
-
-                let pre_compilation_instant = Instant::now();
-                let (sierra_version, _) =
-                    version_id_from_serialized_sierra_program(&contract.sierra_program).unwrap();
-
-                loop {
-                    // it could be the case that the file was created after we've entered this branch
-                    // so we should load it instead of compiling it again
-                    if path.exists() {
-                        match AotContractExecutor::from_path(&path).unwrap() {
-                            None => {
-                                sleep(Duration::from_secs(1));
-                                continue;
-                            }
-                            Some(e) => break e,
-                        }
-                    }
-
-                    let pre_compilation_instant = Instant::now();
-
-                    match AotContractExecutor::new_into(
-                        &contract.extract_sierra_program().unwrap(),
-                        &contract.entry_points_by_type,
-                        sierra_version,
-                        &path,
-                        OptLevel::Aggressive,
-                    )
-                    .unwrap()
-                    {
-                        None => sleep(Duration::from_secs(1)),
-                        Some(e) => break e,
-                    }
-                };
-
-                let compilation_time = pre_compilation_instant.elapsed().as_millis();
-
-                let library_size = fs::metadata(path).unwrap().len();
-
-                info!(
-                    time = compilation_time,
-                    size = library_size,
-                    "native contract compilation finished"
-                );
-
-                            cache.insert(class_hash, e.clone());
-
-                            break e;
-                        }
                         None => {
                             sleep(Duration::from_secs(1));
                             continue;
                         }
+                        Some(e) => break e,
                     }
                 }
-            }
+
+                let pre_compilation_instant = Instant::now();
+
+                match AotContractExecutor::new_into(
+                    &contract.extract_sierra_program().unwrap(),
+                    &contract.entry_points_by_type,
+                    sierra_version,
+                    &path,
+                    OptLevel::Aggressive,
+                )
+                .unwrap()
+                {
+                    Some(e) => {
+                        let library_size = fs::metadata(path).unwrap().len();
+
+                        info!(
+                            time = pre_compilation_instant.elapsed().as_millis(),
+                            size = library_size,
+                            "native contract compilation finished"
+                        );
+
+                        break e;
+                    }
+                    None => {
+                        sleep(Duration::from_secs(1));
+                        continue;
+                    }
+                }
+
+            };
+
+            cache.insert(class_hash, executor.clone());
+
+            executor
         }
     }
 }
