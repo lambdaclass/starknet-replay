@@ -59,7 +59,7 @@ pub struct RpcCachedStateReader {
 
 impl Drop for RpcCachedStateReader {
     fn drop(&mut self) {
-        let path = PathBuf::from(format!("rpc_cache/{}.json", self.reader.block_number));
+        let path = PathBuf::from(format!("rpc_cache/{}.json.gz", self.reader.block_number));
         let parent = path.parent().unwrap();
         fs::create_dir_all(parent).unwrap();
 
@@ -95,7 +95,7 @@ impl Drop for RpcCachedStateReader {
 impl RpcCachedStateReader {
     pub fn new(reader: RpcStateReader) -> Self {
         let state = {
-            let path = PathBuf::from(format!("rpc_cache/{}.json", reader.block_number));
+            let path = PathBuf::from(format!("rpc_cache/{}.json.gz", reader.block_number));
 
             match File::open(path) {
                 Ok(file) => {
