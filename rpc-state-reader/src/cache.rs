@@ -49,8 +49,8 @@ pub struct RpcCache {
 /// A wrapper around `RpcStateReader` that caches all rpc calls.
 ///
 /// On drop, the cache is saved to disk at `rpc_cache/{block_number}.json`.
-/// It's not safe to use multiple instances of this struct at the same time,
-/// as there is no mechanism for file locking.
+/// It's safe to use multiple instances of this struct at the same time,
+/// as there is a mechanism for file locking.
 pub struct RpcCachedStateReader {
     pub reader: RpcStateReader,
     state: RefCell<RpcCache>,
@@ -80,7 +80,7 @@ impl Drop for RpcCachedStateReader {
         file.set_len(0).unwrap();
         file.seek(std::io::SeekFrom::Start(0)).unwrap();
 
-        serde_json::to_writer_pretty(&file, &self.state).unwrap();
+        serde_json::to_writer(&file, &self.state).unwrap();
         file.flush().unwrap();
         fs2::FileExt::unlock(&file).unwrap();
     }
