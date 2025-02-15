@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+#
+# usage: cmp-state-dumps [-h] [-d]
+# Compare all files in the state_dumps directory and outputs a summary
+# options:
+#   -h, --help    show this help message and exit
+#   -d, --delete  removes matching files
+#
+# Uses a pool of worker threads that compare each state dump.
+# possible improvements: use a pool of workers for file removing.
 
 import argparse
 import glob
@@ -45,8 +54,13 @@ def compare(vm_dump_path: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="cmp-state-dumps")
-    parser.add_argument("-d", "--delete", action="store_true")
+    parser = argparse.ArgumentParser(
+        prog="cmp-state-dumps",
+        description="Compare all files in the state_dumps directory and outputs a summary",
+    )
+    parser.add_argument(
+        "-d", "--delete", action="store_true", help="removes matching files"
+    )
     config = parser.parse_args()
 
     files = glob.glob(f"{STATE_DUMPS_PATH}/{VM_DIRECTORY}/*/*.json")
