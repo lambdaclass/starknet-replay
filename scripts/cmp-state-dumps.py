@@ -3,34 +3,21 @@
 import argparse
 import glob
 import re
-from multiprocessing import Pool
+import multiprocessing as mp
+import os
 from collections import defaultdict
 
+POOL_SIZE = 16
 
-POOL_SIZE = 8
+STATE_DUMPS_PATH = "state_dumps"
+VM_DIRECTORY = "vm"
+NATIVE_DIRECTORY = "native"
 
-
-def main():
-    files = glob.glob("state_dumps/vm/*/*.json")
-
-    print(f"Starting comparison with {POOL_SIZE} workers")
-
-    with Pool(POOL_SIZE) as pool:
-        results = pool.map(compare, files)
-
-    print("Finished comparison")
-
-    stats = defaultdict(int)
-    for status, _, _ in results:
-        stats[status] += 1
-
-    print()
-    for key, count in stats.items():
-        print(key, count)
+LOG_PATH = "state_dumps/matching.log"
 
 
 def compare(vm_dump_path: str):
-    native_dump_path = vm_dump_path.replace("vm", "native")
+    native_dump_path = re.sub(VM_DIRECTORY, NATIVE_DIRECTORY, vm_dump_path, count=1)
 
     if not (m := re.findall(r"/(0x.*).json", vm_dump_path)):
         raise Exception("bad path")
@@ -48,11 +35,11 @@ def compare(vm_dump_path: str):
     except:  # noqa: E722
         return ("MISS", block, tx)
 
-    native_dump = re.sub(r".*revert_error.*", "", native_dump, 1)
-    vm_dump = re.sub(r".*revert_error.*", "", vm_dump, 1)
+    native_dump = re.sub(r".*revert_error.*", "", native_dump, count=1)
+    vm_dump = re.sub(r".*revert_error.*", "", vm_dump, count=1)
 
     if native_dump == vm_dump:
-        return ("MATCH", block, tx)
+        return ("MATCH", block, tx, vm_dump_path, native_dump_path)
     else:
         return ("DIFF", block, tx)
 
@@ -60,7 +47,32 @@ def compare(vm_dump_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="cmp-state-dumps")
     parser.add_argument("-d", "--delete", action="store_true")
-    global args
-    args = parser.parse_args()
+    config = parser.parse_args()
 
-    main()
+    files = glob.glob(f"{STATE_DUMPS_PATH}/{VM_DIRECTORY}/*/*.json")
+    files.sort(key=os.path.getmtime)
+
+    print(f"Starting comparison with {POOL_SIZE} workers")
+
+    stats = defaultdict(int)
+    with mp.Pool(POOL_SIZE) as pool, open(LOG_PATH, mode="a") as log:
+        for status, *info in pool.imap(compare, files):
+            stats[status] += 1
+
+            if status != "MATCH":
+                (block, tx) = info
+                print(status, block, tx)
+
+            elif status == "MATCH" and config.delete:
+                (block, tx, vm_dump_path, native_dump_path) = info
+
+                log.write(f"{block} {tx}\n")
+                log.flush()
+                os.remove(native_dump_path)
+                os.remove(vm_dump_path)
+
+    print("Finished comparison")
+
+    print()
+    for key, count in stats.items():
+        print(key, count)
