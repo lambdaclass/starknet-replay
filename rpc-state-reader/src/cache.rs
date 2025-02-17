@@ -8,6 +8,7 @@ use std::{
 
 use blockifier::state::state_api::{StateReader as BlockifierStateReader, StateResult};
 use cairo_vm::Felt252;
+use flate2::Compression;
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -58,7 +59,7 @@ pub struct RpcCachedStateReader {
 
 impl Drop for RpcCachedStateReader {
     fn drop(&mut self) {
-        let path = PathBuf::from(format!("rpc_cache/{}.json", self.reader.block_number));
+        let path = PathBuf::from(format!("rpc_cache/{}.json.gz", self.reader.block_number));
         let parent = path.parent().unwrap();
         fs::create_dir_all(parent).unwrap();
 
@@ -72,7 +73,8 @@ impl Drop for RpcCachedStateReader {
         file.lock_exclusive().unwrap();
 
         // try to read old cache, and merge it with the current one
-        if let Ok(old_state) = serde_json::from_reader::<_, RpcCache>(&file) {
+        let mut reader = flate2::read::GzDecoder::new(&file);
+        if let Ok(old_state) = serde_json::from_reader::<_, RpcCache>(&mut reader) {
             merge_cache(self.state.get_mut(), old_state);
         }
 
@@ -80,8 +82,12 @@ impl Drop for RpcCachedStateReader {
         file.set_len(0).unwrap();
         file.seek(std::io::SeekFrom::Start(0)).unwrap();
 
-        serde_json::to_writer(&file, &self.state).unwrap();
+        let mut writer = flate2::write::GzEncoder::new(&file, Compression::best());
+        serde_json::to_writer(&mut writer, &self.state).unwrap();
+        writer.finish().unwrap();
+
         file.flush().unwrap();
+
         fs2::FileExt::unlock(&file).unwrap();
     }
 }
@@ -89,12 +95,13 @@ impl Drop for RpcCachedStateReader {
 impl RpcCachedStateReader {
     pub fn new(reader: RpcStateReader) -> Self {
         let state = {
-            let path = PathBuf::from(format!("rpc_cache/{}.json", reader.block_number));
+            let path = PathBuf::from(format!("rpc_cache/{}.json.gz", reader.block_number));
 
             match File::open(path) {
                 Ok(file) => {
                     fs2::FileExt::lock_shared(&file).unwrap();
-                    let state = serde_json::from_reader(&file).unwrap();
+                    let mut reader = flate2::read::GzDecoder::new(&file);
+                    let state = serde_json::from_reader(&mut reader).unwrap();
                     fs2::FileExt::unlock(&file).unwrap();
                     state
                 }
