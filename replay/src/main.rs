@@ -21,15 +21,24 @@ use {
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
         BenchmarkingData,
     },
-    std::path::PathBuf,
     std::time::Instant,
 };
+#[cfg(feature = "block-composition")]
+use {
+    block_composition::save_entry_point_execution, chrono::DateTime,
+    rpc_state_reader::execution::fetch_block_context,
+};
+
+#[cfg(any(feature = "benchmark", feature = "block-composition"))]
+use std::path::PathBuf;
 
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
+#[cfg(feature = "block-composition")]
+mod block_composition;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
@@ -89,6 +98,15 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         number_of_runs: usize,
         #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
         output: PathBuf,
+    },
+    #[cfg(feature = "block-composition")]
+    #[clap(
+        about = "Executes a range of blocks and writes down to a file every entrypoint executed."
+    )]
+    BlockCompose {
+        block_start: u64,
+        block_end: u64,
+        chain: String,
     },
 }
 
@@ -319,6 +337,68 @@ fn main() {
                 );
             }
         }
+        #[cfg(feature = "block-composition")]
+        ReplayExecute::BlockCompose {
+            block_start,
+            block_end,
+            chain,
+        } => {
+            info!("executing block range: {} - {}", block_start, block_end);
+
+            let mut block_executions = Vec::new();
+
+            for block_number in block_start..=block_end {
+                let _block_span = info_span!("block", number = block_number).entered();
+
+                let mut state = build_cached_state(&chain, block_number - 1);
+                let reader = build_reader(&chain, block_number);
+
+                let flags = ExecutionFlags {
+                    only_query: false,
+                    charge_fee: false,
+                    validate: true,
+                };
+
+                let block_context = fetch_block_context(&reader).unwrap();
+
+                // fetch and execute transactions
+                let entrypoints = reader
+                    .get_block_with_tx_hashes()
+                    .unwrap()
+                    .transactions
+                    .into_iter()
+                    .map(|hash| {
+                        let (tx, _) =
+                            fetch_transaction_with_state(&reader, &hash, flags.clone()).unwrap();
+                        let execution = tx.execute(&mut state, &block_context);
+                        #[cfg(feature = "state_dump")]
+                        state_dump::create_state_dump(
+                            &mut state,
+                            block_number,
+                            &hash.to_string(),
+                            &execution,
+                        );
+                        execution
+                    })
+                    .collect::<Vec<_>>();
+
+                let block_timestamp = DateTime::from_timestamp(
+                    block_context.block_info().block_timestamp.0 as i64,
+                    0,
+                )
+                .unwrap()
+                .to_string();
+
+                block_executions.push((block_number, block_timestamp, entrypoints));
+            }
+
+            let path = PathBuf::from(format!(
+                "block_composition/block-compose-{}-{}-{}.json",
+                block_start, block_end, chain
+            ));
+
+            save_entry_point_execution(&path, block_executions).unwrap();
+        }
     }
 }
 
@@ -375,38 +455,7 @@ fn show_execution_data(
     let execution_info_result = tx.execute(state, &context);
 
     #[cfg(feature = "state_dump")]
-    {
-        use std::path::Path;
-
-        let root = if cfg!(feature = "only_cairo_vm") {
-            Path::new("state_dumps/vm")
-        } else if cfg!(feature = "with-sierra-emu") {
-            Path::new("state_dumps/emu")
-        } else {
-            Path::new("state_dumps/native")
-        };
-        let root = root.join(format!("block{}", block_number));
-
-        std::fs::create_dir_all(&root).ok();
-
-        let mut path = root.join(&tx_hash_str);
-        path.set_extension("json");
-
-        match &execution_info_result {
-            Ok(execution_info) => {
-                state_dump::dump_state_diff(state, execution_info, &path)
-                    .inspect_err(|err| error!("failed to dump state diff: {err}"))
-                    .ok();
-            }
-            Err(err) => {
-                // If we have no execution info, we write the error
-                // to a file so that it can be compared anyway
-                state_dump::dump_error(err, &path)
-                    .inspect_err(|err| error!("failed to dump state diff: {err}"))
-                    .ok();
-            }
-        }
-    }
+    state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
