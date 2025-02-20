@@ -7,6 +7,7 @@ use blockifier::{
     },
     state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
+use cairo_lang_starknet_classes::contract_class::version_id_from_serialized_sierra_program;
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
@@ -267,8 +268,15 @@ fn compile_sierra_cc(
         RunnableCompiledClass::V1(casm_compiled_class)
     } else {
         let executor = if cfg!(feature = "with-sierra-emu") {
+            let (sierra_version, _) =
+                version_id_from_serialized_sierra_program(&sierra_cc.sierra_program).unwrap();
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
-            (program, sierra_cc.entry_points_by_type.clone()).into()
+            (
+                program,
+                sierra_cc.entry_points_by_type.clone(),
+                sierra_version,
+            )
+                .into()
         } else {
             get_native_executor(&sierra_cc, class_hash).into()
         };
