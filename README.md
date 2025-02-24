@@ -71,6 +71,7 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461
 * cargo run block mainnet 648655
 * cargo run block-range 90000 90002 mainnet
+* cargo run block-txs mainnet 633538 0x021c594980fc2503b2e62a1bb9ce811e7ae22c1478fb0602146745edc9d03bb6 0x13e148692edfbbb4de5d983c6875780e2397e34a432a7355bf2172435ecec0e
 ```
 
 > [!IMPORTANT]
