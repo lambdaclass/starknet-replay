@@ -29,6 +29,7 @@ use {
     rpc_state_reader::execution::fetch_block_context,
 };
 
+use std::collections::HashSet;
 #[cfg(any(feature = "benchmark", feature = "block-composition"))]
 use std::path::PathBuf;
 
@@ -56,6 +57,14 @@ enum ReplayExecute {
         tx_hash: String,
         chain: String,
         block_number: u64,
+        #[arg(short, long)]
+        charge_fee: bool,
+    },
+    #[clap(about = "Execute a set of transactions from a given block.")]
+    BlockTxs {
+        chain: String,
+        block_number: u64,
+        txs: Vec<String>,
         #[arg(short, long)]
         charge_fee: bool,
     },
@@ -148,6 +157,39 @@ fn main() {
                 .get_block_with_tx_hashes()
                 .expect("Unable to fetch the transaction hashes.")
                 .transactions;
+            for tx_hash in transaction_hashes {
+                show_execution_data(
+                    &mut state,
+                    &reader,
+                    tx_hash.0.to_hex_string(),
+                    &chain,
+                    block_number,
+                    charge_fee,
+                );
+            }
+        }
+        ReplayExecute::BlockTxs {
+            chain,
+            block_number,
+            txs,
+            charge_fee,
+        } => {
+            let _block_span = info_span!("block", number = block_number).entered();
+
+            let txs: HashSet<TransactionHash> = HashSet::from_iter(
+                txs.into_iter()
+                    .map(|hash| TransactionHash(felt!(hash.as_str()))),
+            );
+
+            let mut state = build_cached_state(&chain, block_number - 1);
+            let reader = build_reader(&chain, block_number);
+
+            let transaction_hashes = reader
+                .get_block_with_tx_hashes()
+                .expect("Unable to fetch the transaction hashes.")
+                .transactions
+                .into_iter()
+                .filter(|tx| txs.contains(tx));
             for tx_hash in transaction_hashes {
                 show_execution_data(
                     &mut state,
