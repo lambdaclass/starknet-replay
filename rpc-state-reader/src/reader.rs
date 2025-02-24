@@ -277,6 +277,10 @@ fn compile_sierra_cc(
                 sierra_version,
             )
                 .into()
+        } else if cfg!(feature = "with-trace-dump") {
+            let program = sierra_cc.extract_sierra_program().unwrap();
+            let executor = utils::get_native_executor(&sierra_cc, class_hash);
+            (executor, program).into()
         } else {
             get_native_executor(&sierra_cc, class_hash).into()
         };

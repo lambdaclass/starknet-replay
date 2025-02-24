@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
-    fs::{self},
-    io::{self, Read},
+    fs::{self, File},
+    io::{self, Read, Write},
     path::PathBuf,
     sync::{OnceLock, RwLock},
     thread::sleep,
@@ -149,6 +149,16 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
             };
 
             cache.insert(class_hash, executor.clone());
+
+            {
+                let path = PathBuf::from(format!(
+                    "compiled_programs/{}.sierra",
+                    class_hash.to_hex_string()
+                ));
+                let program = contract.extract_sierra_program().unwrap();
+                let mut file = File::create(path).unwrap();
+                write!(file, "{}", program).unwrap();
+            }
 
             executor
         }
