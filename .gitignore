@@ -10,3 +10,6 @@ state_dumps/
 rpc_cache
 bench_data
 block_composition/
+
+# Avoid Scarb.lock
+contracts/*.lock
