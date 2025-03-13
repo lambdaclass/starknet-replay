@@ -1,6 +1,5 @@
 use cairo_native_control_contract::{
-    IMerkleTreeDispatcher, IMerkleTreeDispatcherTrait, IMerkleTreeSafeDispatcher,
-    IMerkleTreeSafeDispatcherTrait, Proof, IntegerHasherImpl
+    IMerkleTreeDispatcher, IMerkleTreeDispatcherTrait, IntegerHasherImpl, Proof,
 };
 use core::hash::{HashStateExTrait, HashStateTrait};
 use core::poseidon::PoseidonTrait;
@@ -61,7 +60,7 @@ fn test_generate_proof_verify() {
     dispatcher.create_new_tree(array);
 
     let proof = dispatcher.generate_proof(1);
-    
+
     assert!(dispatcher.verify(proof));
 }
 
@@ -79,9 +78,9 @@ fn test_wrong_proof_verify() {
     let h2 = PoseidonTrait::new().update_with(2).finalize();
 
     let h12 = PoseidonTrait::new().update_with((h1, h2)).finalize();
-    
-    let wrong_proof = Proof { data: 1, index: 0, hashes: array![h1, h12, h2]};
-    
+
+    let wrong_proof = Proof { data: 1, index: 0, hashes: array![h1, h12, h2] };
+
     assert!(!dispatcher.verify(wrong_proof));
 }
 
@@ -95,6 +94,6 @@ fn test_input_proof_verify() {
     let array = array![1, 2, 3, 4];
 
     dispatcher.create_new_tree(array);
-    
+
     dispatcher.generate_proof(6);
 }

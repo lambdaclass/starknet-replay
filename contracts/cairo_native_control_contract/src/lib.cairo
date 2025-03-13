@@ -32,7 +32,10 @@ mod errors {
 mod CairoNativeControl {
     use core::hash::{HashStateExTrait, HashStateTrait};
     use core::poseidon::PoseidonTrait;
-    use starknet::storage::{Map, MutableVecTrait, StoragePointerReadAccess, StorageMapReadAccess, StorageMapWriteAccess, Vec, VecTrait};
+    use starknet::storage::{
+        Map, MutableVecTrait, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        Vec, VecTrait,
+    };
     use starknet::{ContractAddress, get_caller_address};
     use super::{IntegerHasher, Proof};
 
@@ -41,7 +44,7 @@ mod CairoNativeControl {
         pub trees: Vec<Vec<felt252>>,
         // each caller address is associated to a tree through
         // the latter's index allocation
-        pub caller_tree: Map<ContractAddress, u64>
+        pub caller_tree: Map<ContractAddress, u64>,
     }
 
     #[abi(embed_v0)]
@@ -49,7 +52,9 @@ mod CairoNativeControl {
         fn create_new_tree(ref self: ContractState, data: Array<i32>) -> Array<felt252> {
             let mut data_len = data.len();
 
-            assert(data_len > 0 && (data_len & data_len - 1) == 0, super::errors::INVALID_DATA_LENGTH);
+            assert(
+                data_len > 0 && (data_len & data_len - 1) == 0, super::errors::INVALID_DATA_LENGTH,
+            );
 
             let mut array_hashes = ArrayTrait::new();
             let mut offset = 0;
@@ -83,19 +88,20 @@ mod CairoNativeControl {
 
         fn generate_proof(self: @ContractState, data: i32) -> Proof {
             let caller_index = self.read_caller_index();
-            let tree_index = self.find_leaf_index(caller_index, data.to_hash()).expect(super::errors::INVALID_PROOF_INPUT);
+            let tree_index = self
+                .find_leaf_index(caller_index, data.to_hash())
+                .expect(super::errors::INVALID_PROOF_INPUT);
             let mut proof = array![];
-            
+
             let mut data_len = self.tree_len(self.read_caller_index());
             let mut i = tree_index;
 
             while data_len > 1 {
-                let data_hash =
-                    if i % 2 == 0 {
-                        self.tree_at(caller_index, i + 1)
-                    } else {
-                        self.tree_at(caller_index, i - 1)
-                    };
+                let data_hash = if i % 2 == 0 {
+                    self.tree_at(caller_index, i + 1)
+                } else {
+                    self.tree_at(caller_index, i - 1)
+                };
 
                 proof.append(data_hash);
 
@@ -119,7 +125,7 @@ mod CairoNativeControl {
                     } else {
                         PoseidonTrait::new().update_with((p, curr_hash)).finalize()
                     };
-                
+
                 index /= 2;
             }
 
@@ -131,12 +137,12 @@ mod CairoNativeControl {
     impl InternalCallerIndexTreeImpl of InternalCallerIndexTree {
         fn read_caller_index(self: @ContractState) -> u64 {
             let caller = get_caller_address();
-            
+
             StorageMapReadAccess::read(self.caller_tree, caller)
         }
         fn write_caller_index(ref self: ContractState, index: u64) {
             let caller = get_caller_address();
-            
+
             StorageMapWriteAccess::write(self.caller_tree, caller, index)
         }
     }
