@@ -25,7 +25,7 @@ pub struct Proof {
 
 mod errors {
     pub const INVALID_DATA_LENGTH: felt252 = 'Data length is not power of 2';
-    pub const INVALID_PROOF_INPUT: felt252 = 'The input to generate the proof';
+    pub const INVALID_PROOF_INPUT: felt252 = 'Invalid input prove';
 }
 
 #[starknet::contract]
@@ -83,10 +83,7 @@ mod CairoNativeControl {
 
         fn generate_proof(self: @ContractState, data: i32) -> Proof {
             let caller_index = self.read_caller_index();
-            let tree_index = match self.find_leaf_index(caller_index, data.to_hash()) {
-                Option::Some(idx) => idx,
-                Option::None => panic!("{}", super::errors::INVALID_PROOF_INPUT);
-            }
+            let tree_index = self.find_leaf_index(caller_index, data.to_hash()).expect(super::errors::INVALID_PROOF_INPUT);
             let mut proof = array![];
             
             let mut data_len = self.tree_len(self.read_caller_index());

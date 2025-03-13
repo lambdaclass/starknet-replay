@@ -77,17 +77,24 @@ fn test_wrong_proof_verify() {
 
     let h1 = PoseidonTrait::new().update_with(1).finalize();
     let h2 = PoseidonTrait::new().update_with(2).finalize();
-    let h3 = PoseidonTrait::new().update_with(3).finalize();
-    let h4 = PoseidonTrait::new().update_with(4).finalize();
 
     let h12 = PoseidonTrait::new().update_with((h1, h2)).finalize();
-    let h34 = PoseidonTrait::new().update_with((h3, h4)).finalize();
-
-    let h1234 = PoseidonTrait::new().update_with((h12, h34)).finalize();
     
     let wrong_proof = Proof { data: 1, index: 0, hashes: array![h1, h12, h2]};
     
     assert!(!dispatcher.verify(wrong_proof));
 }
 
+#[test]
+#[should_panic(expected: 'Invalid input prove')]
+fn test_input_proof_verify() {
+    let contract_address = deploy_contract("CairoNativeControl");
 
+    let dispatcher = IMerkleTreeDispatcher { contract_address };
+
+    let array = array![1, 2, 3, 4];
+
+    dispatcher.create_new_tree(array);
+    
+    dispatcher.generate_proof(6);
+}
