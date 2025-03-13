@@ -1,3 +1,5 @@
+// Inspired by https://starknet-by-example.voyager.online/applications/merkle_tree
+
 #[generate_trait]
 pub impl IntegerHasherImpl of IntegerHasher {
     fn to_hash(self: i32) -> felt252 {
@@ -48,7 +50,7 @@ mod CairoNativeControl {
     }
 
     #[abi(embed_v0)]
-    impl MerkleTreeImpl of super::IMerkleTree<ContractState> {
+    impl IMerkleTreeImpl of super::IMerkleTree<ContractState> {
         fn create_new_tree(ref self: ContractState, data: Array<i32>) -> Array<felt252> {
             let mut data_len = data.len();
 
