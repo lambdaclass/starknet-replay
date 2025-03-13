@@ -10,3 +10,14 @@ state_dumps/
 rpc_cache
 bench_data
 block_composition/
+
+# Contracts
+
+# Avoid Scarb.lock
+contracts/*.lock
+contracts/target
+contracts/.snfoundry_cache/
+contracts/snfoundry_trace/
+contracts/coverage/
+contracts/profile/ 
+
