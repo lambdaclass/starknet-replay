@@ -89,7 +89,7 @@ fn test_wrong_proof_verify() {
 
 #[test]
 #[should_panic(expected: 'Invalid input prove')]
-fn test_input_proof_verify() {
+fn test_invalid_input_proof_verify() {
     let contract_address = deploy_contract("CairoNativeControl");
 
     let dispatcher = IMerkleTreeDispatcher { contract_address };
