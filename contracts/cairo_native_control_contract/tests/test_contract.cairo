@@ -1,9 +1,12 @@
 use cairo_native_control_contract::{
-    IMerkleTreeDispatcher, IMerkleTreeDispatcherTrait, IntegerHasherImpl, Proof,
+    CairoNativeControl, IMerkleTreeDispatcher, IMerkleTreeDispatcherTrait, Proof, events,
 };
 use core::hash::{HashStateExTrait, HashStateTrait};
 use core::poseidon::PoseidonTrait;
-use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
+use snforge_std::{
+    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait, declare,
+    spy_events,
+};
 use starknet::ContractAddress;
 
 fn deploy_contract(name: ByteArray) -> ContractAddress {
@@ -38,8 +41,8 @@ fn test_create_merkle_tree() {
 }
 
 #[test]
-#[should_panic(expected: 'Data length is not power of 2')]
-fn test_invalid_legth() {
+#[should_panic(expected: 'invalid length, should pow of 2')]
+fn test_invalid_length() {
     let contract_address = deploy_contract("CairoNativeControl");
 
     let dispatcher = IMerkleTreeDispatcher { contract_address };
@@ -96,4 +99,41 @@ fn test_input_proof_verify() {
     dispatcher.create_new_tree(array);
 
     dispatcher.generate_proof(6);
+}
+
+#[test]
+fn test_events() {
+    let contract_address = deploy_contract("CairoNativeControl");
+
+    let dispatcher = IMerkleTreeDispatcher { contract_address };
+
+    let array = array![1, 2, 3, 4];
+
+    let h1 = PoseidonTrait::new().update_with(1).finalize();
+    let h2 = PoseidonTrait::new().update_with(2).finalize();
+    let h3 = PoseidonTrait::new().update_with(3).finalize();
+    let h4 = PoseidonTrait::new().update_with(4).finalize();
+
+    let h12 = PoseidonTrait::new().update_with((h1, h2)).finalize();
+    let h34 = PoseidonTrait::new().update_with((h3, h4)).finalize();
+
+    let h1234 = PoseidonTrait::new().update_with((h12, h34)).finalize();
+
+    let mut spy_events = spy_events();
+
+    dispatcher.create_new_tree(array);
+
+    println!("Events {:?}", spy_events.get_events());
+
+    spy_events
+        .assert_emitted(
+            @array![
+                (
+                    contract_address,
+                    CairoNativeControl::Event::MerkleTreeEvent(
+                        events::MerkleTreeEvent { root: h1234 },
+                    ),
+                ),
+            ],
+        );
 }

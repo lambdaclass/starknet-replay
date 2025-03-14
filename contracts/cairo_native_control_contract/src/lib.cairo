@@ -1,15 +1,7 @@
 // Inspired by https://starknet-by-example.voyager.online/applications/merkle_tree
 
-#[generate_trait]
-pub impl IntegerHasherImpl of IntegerHasher {
-    fn to_hash(self: i32) -> felt252 {
-        let mut serialize_array = ArrayTrait::new();
-
-        self.serialize(ref serialize_array);
-
-        core::poseidon::poseidon_hash_span(serialize_array.span())
-    }
-}
+pub mod events;
+pub mod traits;
 
 #[starknet::interface]
 pub trait IMerkleTree<TContractState> {
@@ -26,20 +18,23 @@ pub struct Proof {
 }
 
 mod errors {
-    pub const INVALID_DATA_LENGTH: felt252 = 'Data length is not power of 2';
+    pub const INVALID_DATA_LENGTH: felt252 = 'invalid length, should pow of 2';
     pub const INVALID_PROOF_INPUT: felt252 = 'Invalid input prove';
 }
 
 #[starknet::contract]
-mod CairoNativeControl {
+pub mod CairoNativeControl {
     use core::hash::{HashStateExTrait, HashStateTrait};
     use core::poseidon::PoseidonTrait;
+    use starknet::event::EventEmitter;
     use starknet::storage::{
         Map, MutableVecTrait, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         Vec, VecTrait,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use super::{IntegerHasher, Proof};
+    use super::traits::IntegerHasher;
+    use super::events::MerkleTreeEvent;
+    use super::{Proof, errors};
 
     #[storage]
     struct Storage {
@@ -49,14 +44,18 @@ mod CairoNativeControl {
         pub caller_tree: Map<ContractAddress, u64>,
     }
 
+    #[event]
+    #[derive(Drop, PartialEq, Debug, starknet::Event)]
+    pub enum Event {
+        MerkleTreeEvent: MerkleTreeEvent,
+    }
+
     #[abi(embed_v0)]
     impl IMerkleTreeImpl of super::IMerkleTree<ContractState> {
         fn create_new_tree(ref self: ContractState, data: Array<i32>) -> Array<felt252> {
             let mut data_len = data.len();
 
-            assert(
-                data_len > 0 && (data_len & data_len - 1) == 0, super::errors::INVALID_DATA_LENGTH,
-            );
+            assert(data_len > 0 && (data_len & data_len - 1) == 0, errors::INVALID_DATA_LENGTH);
 
             let mut array_hashes = ArrayTrait::new();
             let mut offset = 0;
@@ -84,6 +83,8 @@ mod CairoNativeControl {
 
             self.write_caller_index(self.trees.len());
             self.write_tree(self.read_caller_index(), array_hashes.span());
+
+            self.emit(MerkleTreeEvent { root: array_hashes.at(array_hashes.len() - 1).clone() });
 
             array_hashes
         }
