@@ -94,9 +94,9 @@ pub mod CairoNativeControl {
             let tree_index = self
                 .find_leaf_index(caller_index, data.to_hash())
                 .expect(super::errors::INVALID_PROOF_INPUT);
-            let mut proof = array![];
 
-            let mut data_len = self.tree_len(self.read_caller_index());
+            let mut proof = array![];
+            let mut data_len = self.tree_len(caller_index);
             let mut i = tree_index;
 
             while data_len > 1 {
@@ -171,7 +171,6 @@ pub mod CairoNativeControl {
         }
         fn write_tree(ref self: ContractState, caller_index: u64, tree: Span<felt252>) {
             self.trees.allocate();
-
             for h in tree {
                 self.trees.at(caller_index).push(*h);
             }
