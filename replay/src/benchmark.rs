@@ -3,7 +3,10 @@ use std::time::Duration;
 use blockifier::{
     context::BlockContext,
     execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
-    state::{cached_state::CachedState, errors::StateError, state_api::StateReader as BlockifierStateReader},
+    state::{
+        cached_state::CachedState, errors::StateError,
+        state_api::StateReader as BlockifierStateReader,
+    },
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockiTransaction,
@@ -206,13 +209,12 @@ impl<S: BlockifierStateReader> OptionalStateReader<S> {
     }
 
     pub fn get_inner(&self) -> Result<&S, StateError> {
-        match self.0
-            .as_ref() {
-                Some(reader) => Ok(reader),
-                None => Err(StateError::StateReadError(
-                    "atempted to read from a disabled state reader".to_string(),
-                ))
-            }
+        match self.0.as_ref() {
+            Some(reader) => Ok(reader),
+            None => Err(StateError::StateReadError(
+                "atempted to read from a disabled state reader".to_string(),
+            )),
+        }
     }
 
     pub fn disable(&mut self) {
