@@ -210,7 +210,7 @@ impl<S: BlockifierStateReader> OptionalStateReader<S> {
 
     pub fn get_inner(&self) -> Result<&S, StateError> {
         self.0.as_ref().ok_or(StateError::StateReadError(
-            "atempted to read from a disabled state reader".to_string(),
+            "Atempted to read from a disabled state reader".to_string(),
         ))
     }
 
