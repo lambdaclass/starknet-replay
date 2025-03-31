@@ -3,7 +3,10 @@ use std::time::Duration;
 use blockifier::{
     context::BlockContext,
     execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
-    state::{cached_state::CachedState, state_api::StateReader as BlockifierStateReader},
+    state::{
+        cached_state::CachedState, errors::StateError,
+        state_api::StateReader as BlockifierStateReader,
+    },
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockiTransaction,
@@ -205,10 +208,10 @@ impl<S: BlockifierStateReader> OptionalStateReader<S> {
         Self(Some(state_reader))
     }
 
-    pub fn get_inner(&self) -> &S {
-        self.0
-            .as_ref()
-            .expect("atempted to read from a disabled state reader")
+    pub fn get_inner(&self) -> Result<&S, StateError> {
+        self.0.as_ref().ok_or(StateError::StateReadError(
+            "Atempted to read from a disabled state reader".to_string(),
+        ))
     }
 
     pub fn disable(&mut self) {
@@ -222,34 +225,34 @@ impl<S: BlockifierStateReader> BlockifierStateReader for OptionalStateReader<S> 
         contract_address: starknet_api::core::ContractAddress,
         key: starknet_api::state::StorageKey,
     ) -> blockifier::state::state_api::StateResult<StarkHash> {
-        self.get_inner().get_storage_at(contract_address, key)
+        self.get_inner()?.get_storage_at(contract_address, key)
     }
 
     fn get_nonce_at(
         &self,
         contract_address: starknet_api::core::ContractAddress,
     ) -> blockifier::state::state_api::StateResult<starknet_api::core::Nonce> {
-        self.get_inner().get_nonce_at(contract_address)
+        self.get_inner()?.get_nonce_at(contract_address)
     }
 
     fn get_class_hash_at(
         &self,
         contract_address: starknet_api::core::ContractAddress,
     ) -> blockifier::state::state_api::StateResult<starknet_api::core::ClassHash> {
-        self.get_inner().get_class_hash_at(contract_address)
+        self.get_inner()?.get_class_hash_at(contract_address)
     }
 
     fn get_compiled_class(
         &self,
         class_hash: starknet_api::core::ClassHash,
     ) -> blockifier::state::state_api::StateResult<RunnableCompiledClass> {
-        self.get_inner().get_compiled_class(class_hash)
+        self.get_inner()?.get_compiled_class(class_hash)
     }
 
     fn get_compiled_class_hash(
         &self,
         class_hash: starknet_api::core::ClassHash,
     ) -> blockifier::state::state_api::StateResult<starknet_api::core::CompiledClassHash> {
-        self.get_inner().get_compiled_class_hash(class_hash)
+        self.get_inner()?.get_compiled_class_hash(class_hash)
     }
 }
