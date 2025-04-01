@@ -18,12 +18,12 @@ serde_json = { version = "1.0", features = [
 ] }
 serde_with = { workspace = true, features = ["macros"] }
 starknet_api = {workspace = true}
-cairo-lang-starknet-classes = "2.10.0"
-cairo-lang-utils = "2.10.0"
+cairo-lang-starknet-classes = "2.12.0-dev.0"
+cairo-lang-utils = "2.12.0-dev.0"
 cairo-native = { workspace = true }
 starknet = "0.6.0"
 flate2 = "1.0.25"
-cairo-vm = "1.0.2"
+cairo-vm = "2.0.1"
 blockifier = { workspace = true }
 blockifier_reexecution = { workspace = true }
 starknet_gateway = { workspace = true }
