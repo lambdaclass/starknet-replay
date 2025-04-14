@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, path::Path, time::Duration};
+use std::time::Duration;
 
 use blockifier::{
     context::BlockContext,
@@ -118,11 +118,8 @@ pub struct ClassExecutionInfo {
     time: Duration,
 }
 
-pub fn save_executions(
-    path: &Path,
-    executions: Vec<TransactionExecutionInfo>,
-) -> Result<(), Box<dyn Error>> {
-    let classes = executions
+pub fn aggregate_executions(executions: Vec<TransactionExecutionInfo>) -> Vec<ClassExecutionInfo> {
+    executions
         .into_iter()
         .flat_map(|execution| {
             let mut classes = Vec::new();
@@ -138,12 +135,7 @@ pub fn save_executions(
             }
             classes
         })
-        .collect::<Vec<_>>();
-
-    let file = File::create(path)?;
-    serde_json::to_writer_pretty(file, &classes)?;
-
-    Ok(())
+        .collect::<Vec<_>>()
 }
 
 fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {

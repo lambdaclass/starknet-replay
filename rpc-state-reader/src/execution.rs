@@ -16,7 +16,7 @@ use blockifier::{
     versioned_constants::VersionedConstants,
 };
 use blockifier_reexecution::state_reader::{
-    compile::{legacy_to_contract_class_v0, sierra_to_contact_class_v1},
+    compile::{legacy_to_contract_class_v0, sierra_to_versioned_contract_class_v1},
     utils::get_fee_token_addresses,
 };
 use starknet::core::types::ContractClass;
@@ -24,6 +24,7 @@ use starknet_api::{
     block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice, StarknetVersion},
     contract_class::{ClassInfo, SierraVersion},
     core::ChainId,
+    test_utils::MAX_FEE,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
 

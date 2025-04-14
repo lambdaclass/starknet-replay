@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
-    fs::{self},
-    io::{self, Read},
+    fs::{self, File},
+    io::{self, Read, Write},
     path::PathBuf,
     sync::{OnceLock, RwLock},
     thread::sleep,
@@ -9,13 +9,15 @@ use std::{
 };
 
 use blockifier::execution::contract_class::CompiledClassV1;
-use cairo_lang_starknet_classes::contract_class::{ContractClass, ContractEntryPoints};
+use cairo_lang_starknet_classes::contract_class::{
+    version_id_from_serialized_sierra_program, ContractClass, ContractEntryPoints,
+};
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, OptLevel};
 use serde::Deserialize;
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
-    contract_class::EntryPointType,
+    contract_class::{EntryPointType, SierraVersion},
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
@@ -147,6 +149,16 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
             };
 
             cache.insert(class_hash, executor.clone());
+
+            {
+                let path = PathBuf::from(format!(
+                    "compiled_programs/{}.sierra",
+                    class_hash.to_hex_string()
+                ));
+                let program = contract.extract_sierra_program().unwrap();
+                let mut file = File::create(path).unwrap();
+                write!(file, "{}", program).unwrap();
+            }
 
             executor
         }

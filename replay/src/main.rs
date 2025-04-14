@@ -444,7 +444,7 @@ fn main() {
     }
 }
 
-fn parse_network(network: &str) -> RpcChain {
+fn parse_network(network: &str) -> ChainId {
     match network.to_lowercase().as_str() {
         "mainnet" => ChainId::Mainnet,
         "testnet" => ChainId::Sepolia,
