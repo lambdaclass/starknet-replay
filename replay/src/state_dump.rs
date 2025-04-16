@@ -194,6 +194,7 @@ struct SerializableCallInfo {
     pub read_class_hash_values: Vec<ClassHash>,
     // Convert HashSet to vector to avoid random order
     pub accessed_contract_addresses: Vec<ContractAddress>,
+    pub call_counter: usize,
 }
 
 impl From<CallInfo> for SerializableCallInfo {
@@ -209,6 +210,7 @@ impl From<CallInfo> for SerializableCallInfo {
             resources: _resources,
             tracked_resource: _tracked_resource,
             time: _time,
+            call_counter,
         } = value;
 
         let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
@@ -229,6 +231,7 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values,
             accessed_contract_addresses,
+            call_counter,
         }
     }
 }
