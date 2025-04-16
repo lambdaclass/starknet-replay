@@ -80,6 +80,11 @@ fn dump_state_diff(
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
     let execution_info = SerializableExecutionInfo::new(execution_info.clone());
+    #[derive(Serialize)]
+    struct Info {
+        execution_info: SerializableExecutionInfo,
+        state_maps: SerializableStateMaps,
+    }
     let info = Info {
         execution_info,
         state_maps,
@@ -106,6 +111,45 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
     Ok(())
 }
 
+pub fn create_call_state_dump(
+    state: &mut CachedState<impl StateReader>,
+    tx: &str,
+    call_info: &CallInfo,
+) -> anyhow::Result<()> {
+    use std::path::Path;
+
+    let root = if cfg!(feature = "only_cairo_vm") {
+        Path::new("call_state_dumps/vm")
+    } else if cfg!(feature = "with-sierra-emu") {
+        Path::new("call_state_dumps/emu")
+    } else {
+        Path::new("call_state_dumps/native")
+    };
+
+    std::fs::create_dir_all(root).ok();
+
+    let mut path = root.join(tx);
+    path.set_extension("json");
+
+    let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
+    let call_info = SerializableCallInfo::from(call_info.clone());
+
+    #[derive(Serialize)]
+    struct Info {
+        call_info: SerializableCallInfo,
+        state_maps: SerializableStateMaps,
+    }
+    let info = Info {
+        call_info,
+        state_maps,
+    };
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &info)?;
+
+    Ok(())
+}
+
 // The error messages is different between CairoVM and Cairo Native. That is way
 // we must ignore them while comparing the state dumps. To make ignoring them
 // easier, we name the field that contains the error message as "reverted" both
@@ -115,12 +159,6 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
 #[derive(Serialize)]
 struct ErrorInfo {
     reverted: String,
-}
-
-#[derive(Serialize)]
-struct Info {
-    execution_info: SerializableExecutionInfo,
-    state_maps: SerializableStateMaps,
 }
 
 /// From `blockifier::state::cached_state::StateMaps`
@@ -157,7 +195,7 @@ struct SerializableExecutionInfo {
     validate_call_info: Option<SerializableCallInfo>,
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
-    revert_error: Option<String>,
+    reverted: Option<String>,
     receipt: SerializableTransactionReceipt,
 }
 
@@ -175,7 +213,7 @@ impl SerializableExecutionInfo {
             validate_call_info: validate_call_info.clone().map(From::<CallInfo>::from),
             execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
             fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
-            revert_error: revert_error.map(|x| x.to_string()),
+            reverted: revert_error.map(|x| x.to_string()),
             receipt: SerializableTransactionReceipt::from(receipt),
         }
     }
@@ -194,6 +232,7 @@ struct SerializableCallInfo {
     pub read_class_hash_values: Vec<ClassHash>,
     // Convert HashSet to vector to avoid random order
     pub accessed_contract_addresses: Vec<ContractAddress>,
+    pub call_counter: usize,
 }
 
 impl From<CallInfo> for SerializableCallInfo {
@@ -209,6 +248,7 @@ impl From<CallInfo> for SerializableCallInfo {
             resources: _resources,
             tracked_resource: _tracked_resource,
             time: _time,
+            call_counter,
         } = value;
 
         let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
@@ -229,6 +269,7 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values,
             accessed_contract_addresses,
+            call_counter,
         }
     }
 }

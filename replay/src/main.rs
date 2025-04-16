@@ -1,4 +1,11 @@
+use blockifier::execution::contract_class::TrackedResource;
+use blockifier::execution::entry_point::{
+    EntryPointExecutionContext, EntryPointRevertInfo, ExecutableCallEntryPoint,
+    SierraGasRevertTracker,
+};
+use blockifier::execution::execution_utils::execute_entry_point_call;
 use blockifier::state::cached_state::CachedState;
+use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use blockifier::transaction::transactions::ExecutableTransaction;
@@ -10,6 +17,8 @@ use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
+use starknet_api::execution_resources::GasAmount;
+
 use starknet_api::felt;
 use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
@@ -30,8 +39,9 @@ use {
 };
 
 use std::collections::HashSet;
-#[cfg(any(feature = "benchmark", feature = "block-composition"))]
+use std::fs::File;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
@@ -115,6 +125,12 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     BlockCompose {
         block_start: u64,
         block_end: u64,
+        chain: String,
+    },
+    Call {
+        call_path: PathBuf,
+        tx: String,
+        block_number: u64,
         chain: String,
     },
 }
@@ -440,6 +456,81 @@ fn main() {
             ));
 
             save_entry_point_execution(&path, block_executions).unwrap();
+        }
+        ReplayExecute::Call {
+            call_path,
+            tx,
+            block_number,
+            chain,
+        } => {
+            let mut state = build_cached_state(&chain, block_number - 1);
+            let reader = build_reader(&chain, block_number);
+
+            let call_file = File::open(call_path).unwrap();
+            let call: ExecutableCallEntryPoint = serde_json::from_reader(call_file).unwrap();
+
+            // We fetch the compile class from the next block, instead of the current block.
+            // This ensures that it always exists.
+            let compiled_class = reader.get_compiled_class(call.class_hash).unwrap();
+
+            // I built this context from trial and error. The
+            // best solution is to save the execution context from the original
+            // complete execution, and use it here. For the sake of simplicity
+            // I created a mocked version that probably won't work in every
+            // escenario, but seems to work good enough.
+            let mut context = {
+                let tx_hash = TransactionHash(felt!(tx.as_str()));
+                let flags = ExecutionFlags {
+                    only_query: false,
+                    charge_fee: false,
+                    validate: true,
+                };
+                let (tx, block_context) =
+                    fetch_transaction_with_state(&reader, &tx_hash, flags).unwrap();
+
+                let tx_context = Arc::new(block_context.to_tx_context(&tx));
+                let mut context = EntryPointExecutionContext::new_invoke(
+                    tx_context,
+                    false,
+                    SierraGasRevertTracker::new(GasAmount::MAX),
+                );
+
+                let storage_class_hash = state.get_class_hash_at(call.storage_address).unwrap();
+
+                context.revert_infos.0.push(EntryPointRevertInfo::new(
+                    call.storage_address,
+                    storage_class_hash,
+                    context.n_emitted_events,
+                    context.n_sent_messages_to_l1,
+                ));
+
+                context
+                    .tracked_resource_stack
+                    .push(TrackedResource::SierraGas);
+
+                context
+            };
+
+            let call_info_result =
+                execute_entry_point_call(call, compiled_class, &mut state, &mut context);
+
+            let call_info = match call_info_result {
+                Ok(x) => x,
+                Err(err) => {
+                    error!("execution failed: {}", err);
+                    return;
+                }
+            };
+
+            info!(
+                "execution finished successfuly {:?}",
+                call_info.execution.retdata
+            );
+
+            #[cfg(feature = "state_dump")]
+            {
+                state_dump::create_call_state_dump(&mut state, &tx, &call_info).unwrap();
+            }
         }
     }
 }
