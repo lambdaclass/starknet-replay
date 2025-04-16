@@ -126,7 +126,7 @@ pub fn create_call_state_dump(
         Path::new("call_state_dumps/native")
     };
 
-    std::fs::create_dir_all(&root).ok();
+    std::fs::create_dir_all(root).ok();
 
     let mut path = root.join(tx);
     path.set_extension("json");
@@ -147,7 +147,7 @@ pub fn create_call_state_dump(
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &info)?;
 
-    return Ok(());
+    Ok(())
 }
 
 // The error messages is different between CairoVM and Cairo Native. That is way
