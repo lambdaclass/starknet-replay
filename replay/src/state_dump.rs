@@ -80,6 +80,11 @@ fn dump_state_diff(
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
     let execution_info = SerializableExecutionInfo::new(execution_info.clone());
+    #[derive(Serialize)]
+    struct Info {
+        execution_info: SerializableExecutionInfo,
+        state_maps: SerializableStateMaps,
+    }
     let info = Info {
         execution_info,
         state_maps,
@@ -106,6 +111,45 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
     Ok(())
 }
 
+pub fn create_call_state_dump(
+    state: &mut CachedState<impl StateReader>,
+    tx: &str,
+    call_info: &CallInfo,
+) -> anyhow::Result<()> {
+    use std::path::Path;
+
+    let root = if cfg!(feature = "only_cairo_vm") {
+        Path::new("call_state_dumps/vm")
+    } else if cfg!(feature = "with-sierra-emu") {
+        Path::new("call_state_dumps/emu")
+    } else {
+        Path::new("call_state_dumps/native")
+    };
+
+    std::fs::create_dir_all(&root).ok();
+
+    let mut path = root.join(tx);
+    path.set_extension("json");
+
+    let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
+    let call_info = SerializableCallInfo::from(call_info.clone());
+
+    #[derive(Serialize)]
+    struct Info {
+        call_info: SerializableCallInfo,
+        state_maps: SerializableStateMaps,
+    }
+    let info = Info {
+        call_info,
+        state_maps,
+    };
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &info)?;
+
+    return Ok(());
+}
+
 // The error messages is different between CairoVM and Cairo Native. That is way
 // we must ignore them while comparing the state dumps. To make ignoring them
 // easier, we name the field that contains the error message as "reverted" both
@@ -115,12 +159,6 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
 #[derive(Serialize)]
 struct ErrorInfo {
     reverted: String,
-}
-
-#[derive(Serialize)]
-struct Info {
-    execution_info: SerializableExecutionInfo,
-    state_maps: SerializableStateMaps,
 }
 
 /// From `blockifier::state::cached_state::StateMaps`
