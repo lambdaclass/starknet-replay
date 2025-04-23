@@ -473,11 +473,16 @@ fn main() {
             // This ensures that it always exists.
             let compiled_class = reader.get_compiled_class(call.class_hash).unwrap();
 
-            // I built this context from trial and error. The
-            // best solution is to save the execution context from the original
-            // complete execution, and use it here. For the sake of simplicity
-            // I created a mocked version that probably won't work in every
-            // escenario, but seems to work good enough.
+            // This mocked context was built from trial and error. It only sets
+            // the required field to execute a sample transaction, but probably
+            // won't work in every escenario. For example, if a transaction
+            // depends on a particular value of the context, it would probably
+            // fail.
+            //
+            // The actual solution is to save the exact execution context from
+            // the original complete execution, and use it here, restoring every
+            // single field. For the sake of simplicity I didn't do it, but it
+            // may be a valid approach in the future.
             let mut context = {
                 let tx_hash = TransactionHash(felt!(tx.as_str()));
                 let flags = ExecutionFlags {
