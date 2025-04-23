@@ -474,7 +474,7 @@ fn main() {
             let compiled_class = reader.get_compiled_class(call.class_hash).unwrap();
 
             // This mocked context was built from trial and error. It only sets
-            // the required field to execute a sample transaction, but probably
+            // the required fields to execute a sample transaction, but probably
             // won't work in every scenario. For example, if a transaction
             // depends on a particular value of the context, it would probably
             // fail.
