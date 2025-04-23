@@ -475,13 +475,13 @@ fn main() {
 
             // This mocked context was built from trial and error. It only sets
             // the required field to execute a sample transaction, but probably
-            // won't work in every escenario. For example, if a transaction
+            // won't work in every scenario. For example, if a transaction
             // depends on a particular value of the context, it would probably
             // fail.
             //
             // The actual solution is to save the exact execution context from
             // the original complete execution, and use it here, restoring every
-            // single field. For the sake of simplicity I didn't do it, but it
+            // single field. This was not chosen as the current implementation for the sake of simplicity, but it
             // may be a valid approach in the future.
             let mut context = {
                 let tx_hash = TransactionHash(felt!(tx.as_str()));

@@ -127,7 +127,7 @@ To compare the outputs, you can use the following scripts. Some of them required
 
 ### Replaying isolated calls
 
-The replay crate supports executing isolated calls inside of a transaction, although it probably won't work in every escenario.
+The replay crate supports executing isolated calls inside of a transaction, although it probably won't work in every scenario.
 
 First, obtain the full state dump of a transaction:
 
@@ -136,7 +136,7 @@ cargo run --features state_dump -- tx \
    0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79 mainnet 1000000
 ```
 
-Then, extract the desired call (by it's call index). In this case, I will try to reexecute starting from the third call (that is, with index 2).
+Then, extract the desired call (by its call index). In this case, I will try to re-execute starting from the third call (that is, with index 2).
 
 ```bash
 ./scripts/extract_call.py \
@@ -144,7 +144,7 @@ Then, extract the desired call (by it's call index). In this case, I will try to
    2 > call.json 
 ```
 
-Finally, reexecute it with the `call` command.
+Finally, re-execute it with the `call` command.
 
 ```bash
 cargo run -- call call.json \
