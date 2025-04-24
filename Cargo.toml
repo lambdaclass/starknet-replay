@@ -16,9 +16,9 @@ fs2 = "0.4.3"
 cairo-native = "0.4.1"
 anyhow = "1.0"
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "af6b8ec1a4b3a336f617ad2854b717fb643be719" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "af6b8ec1a4b3a336f617ad2854b717fb643be719", features = [
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "1167b95d60d84d29b4cba25b1c8337510841e335" } # replay
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "1167b95d60d84d29b4cba25b1c8337510841e335", features = [
     "cairo_native",
 ] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "af6b8ec1a4b3a336f617ad2854b717fb643be719" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "af6b8ec1a4b3a336f617ad2854b717fb643be719" } # replay
+starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "1167b95d60d84d29b4cba25b1c8337510841e335" } # replay
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "1167b95d60d84d29b4cba25b1c8337510841e335" } # replay
