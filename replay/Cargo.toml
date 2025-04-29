@@ -13,6 +13,7 @@ only-native = ["blockifier/only-native"]
 structured_logging = []
 state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
+with-trace-dump = ["blockifier/with-trace-dump"]
 profiling = []
 
 [dependencies]

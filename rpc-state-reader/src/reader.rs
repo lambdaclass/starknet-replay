@@ -3,7 +3,7 @@ use std::{env, sync::Arc, thread, time::Duration};
 use blockifier::{
     execution::{
         contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
-        native::contract_class::NativeCompiledClassV1,
+        native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
     },
     state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
@@ -278,7 +278,17 @@ fn compile_sierra_cc(
             )
                 .into()
         } else {
-            get_native_executor(&sierra_cc, class_hash).into()
+            #[cfg(feature = "with-trace-dump")]
+            {
+                ContractExecutor::AotTrace((
+                    get_native_executor(&sierra_cc, class_hash),
+                    sierra_cc.extract_sierra_program().unwrap(),
+                ))
+            }
+            #[cfg(not(feature = "with-trace-dump"))]
+            {
+                get_native_executor(&sierra_cc, class_hash).into()
+            }
         };
 
         let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
