@@ -210,10 +210,6 @@ In the `plotting` directory, you can find python scripts to plot relevant inform
 To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
 
 - `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
-- `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
-- `python ./plotting/plot_compilation_memory_corr.py native-logs`: Size of the compiled native libraries, by the associated Casm contract size.
-- `python ./plotting/plot_compilation_memory_trend.py native-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
-- `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
-- `python ./plotting/plot_compilation_time_trend.py native-logs`: Native and Casm compilation time, by the sierra contract size.
+- `python ./plotting/plot_compilation.py native-logs`: Plots the compilation statistics of Native.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
 - `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.
