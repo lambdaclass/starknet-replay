@@ -9,11 +9,16 @@ use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
 use blockifier::transaction::transactions::ExecutableTransaction;
+use cairo_lang_sierra::extensions::core::{CoreConcreteLibfunc, CoreLibfunc, CoreType};
+use cairo_lang_sierra::program_registry::ProgramRegistry;
+use cairo_lang_starknet_classes::contract_class::ContractClass;
 use clap::{Parser, Subcommand};
+use rpc_state_reader::utils;
+use starknet::core::types::ContractClass as SNContractClass;
 
 use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction_with_state;
-use rpc_state_reader::objects::RpcTransactionReceipt;
+use rpc_state_reader::objects::{RpcCallInfo, RpcTransactionReceipt};
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
@@ -577,6 +582,59 @@ fn show_execution_data(
     info!("starting execution");
 
     let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
+
+    let trace = match reader.get_transaction_trace(&tx_hash) {
+        Ok(trace) => trace,
+        Err(err) => {
+            return error!("failed to fetch transaction trace: {err}");
+        }
+    };
+    fn contains_circuit(reader: &impl StateReader, call_info: RpcCallInfo) -> bool {
+        if let Ok(SNContractClass::Sierra(flattened_class)) =
+            reader.get_contract_class(&call_info.class_hash)
+        {
+            let middle_class: utils::MiddleSierraContractClass = {
+                let v = serde_json::to_value(flattened_class).unwrap();
+                serde_json::from_value(v).unwrap()
+            };
+            let sierra_class = ContractClass {
+                sierra_program: middle_class.sierra_program,
+                contract_class_version: middle_class.contract_class_version,
+                entry_points_by_type: middle_class.entry_points_by_type,
+                sierra_program_debug_info: None,
+                abi: None,
+            };
+            let program = sierra_class
+                .extract_sierra_program()
+                .expect("failed to get sierra program");
+
+            let registry = ProgramRegistry::<CoreType, CoreLibfunc>::new(&program)
+                .expect("failed to build registry");
+
+            for libfunc in program.libfunc_declarations {
+                let concrete_libfunc = registry
+                    .get_libfunc(&libfunc.id)
+                    .expect("failed to get libfunc");
+
+                if matches!(concrete_libfunc, CoreConcreteLibfunc::Circuit(_)) {
+                    return true;
+                }
+            }
+        }
+
+        for inner_call_info in call_info.calls {
+            if contains_circuit(reader, inner_call_info) {
+                return true;
+            }
+        }
+
+        false
+    }
+    if !contains_circuit(reader, trace.execute_invocation.unwrap()) {
+        info!("skiping transaction - no circuits found");
+        return;
+    }
+
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,

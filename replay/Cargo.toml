@@ -20,6 +20,10 @@ profiling = []
 blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
+starknet_gateway = { workspace = true }
+starknet = "0.6.0"
+cairo-lang-starknet-classes = "2.11.2"
+cairo-lang-sierra = "2.11.2"
 starknet-types-core = { workspace = true, optional = true }
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }

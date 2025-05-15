@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use starknet_api::{
     block::{BlockHash, BlockNumber, BlockStatus, BlockTimestamp, GasPrice},
-    core::{ContractAddress, GlobalRoot},
+    core::{ClassHash, ContractAddress, GlobalRoot},
     data_availability::L1DataAvailabilityMode,
     hash::StarkHash,
     transaction::{
@@ -30,6 +30,7 @@ pub struct RpcCallInfo {
     pub calldata: Option<Vec<StarkHash>>,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub calls: Vec<RpcCallInfo>,
+    pub class_hash: ClassHash,
     pub revert_reason: Option<String>,
 }
 
