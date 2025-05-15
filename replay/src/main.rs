@@ -14,7 +14,7 @@ use cairo_lang_sierra::program_registry::ProgramRegistry;
 use cairo_lang_starknet_classes::contract_class::ContractClass;
 use clap::{Parser, Subcommand};
 use rpc_state_reader::utils;
-use starknet::core::types::ContractClass as SNContractClass;
+use starknet::core::types::{ContractClass as SNContractClass, FlattenedSierraClass};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::fetch_transaction_with_state;
@@ -590,9 +590,7 @@ fn show_execution_data(
         }
     };
     fn contains_circuit(reader: &impl StateReader, call_info: RpcCallInfo) -> bool {
-        if let Ok(SNContractClass::Sierra(flattened_class)) =
-            reader.get_contract_class(&call_info.class_hash)
-        {
+        fn class_contains_circuit(flattened_class: FlattenedSierraClass) -> bool {
             let middle_class: utils::MiddleSierraContractClass = {
                 let v = serde_json::to_value(flattened_class).unwrap();
                 serde_json::from_value(v).unwrap()
@@ -604,10 +602,9 @@ fn show_execution_data(
                 sierra_program_debug_info: None,
                 abi: None,
             };
-            let program = sierra_class
-                .extract_sierra_program()
-                .expect("failed to get sierra program");
-
+            let Ok(program) = sierra_class.extract_sierra_program() else {
+                return false;
+            };
             let registry = ProgramRegistry::<CoreType, CoreLibfunc>::new(&program)
                 .expect("failed to build registry");
 
@@ -619,6 +616,16 @@ fn show_execution_data(
                 if matches!(concrete_libfunc, CoreConcreteLibfunc::Circuit(_)) {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        if let Ok(SNContractClass::Sierra(flattened_class)) =
+            reader.get_contract_class(&call_info.class_hash)
+        {
+            if class_contains_circuit(flattened_class) {
+                return true;
             }
         }
 
