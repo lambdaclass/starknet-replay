@@ -637,8 +637,13 @@ fn show_execution_data(
 
         false
     }
-    if !contains_circuit(reader, trace.execute_invocation.unwrap()) {
-        info!("skiping transaction - no circuits found");
+    if let Some(execute_invocation) = trace.execute_invocation {
+        if !contains_circuit(reader, execute_invocation) {
+            info!("skiping transaction - no circuits found");
+            return;
+        }
+    } else {
+        info!("skiping transaction - no exeucte invocation found");
         return;
     }
 
