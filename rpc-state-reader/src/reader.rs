@@ -3,7 +3,7 @@ use std::{env, sync::Arc, thread, time::Duration};
 use blockifier::{
     execution::{
         contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
-        native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
+        native::contract_class::NativeCompiledClassV1,
     },
     state::state_api::{StateReader as BlockifierStateReader, StateResult},
 };
