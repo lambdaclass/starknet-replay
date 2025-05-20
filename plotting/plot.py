@@ -10,11 +10,17 @@ import seaborn as sns
 enabled_plots = (
     "Correlations Matrix",
     "Individual Correlations",
-    "Libfunc Pie",
+    "Sierra Libfunc Pie",
+    "LLVM Instruction Pie",
+    "MLIR by Libfunc Pie",
 )
 
-stat_files = glob.glob("compiled_programs/*.stats.json")
+SAMPLE_LIGHT_CONTRACT = "a"
+SAMPLE_HEAVY_CONTRACT = "b"
 
+sns.set_theme()
+
+stat_files = glob.glob("compiled_programs/*.stats.json")
 stats = []
 for stat_file in stat_files:
     class_hash = pathlib.Path(stat_file).name.removesuffix(".stats.json")
@@ -72,34 +78,56 @@ def group_small_entries(entries, cutoff):
     return new_entries
 
 
-if "Libfunc Pie" in enabled_plots:
+def plot_pie(light_contract, heavy_contract, attribute, title):
     sns.set_style("whitegrid")
     fig, (ax1, ax2) = plt.subplots(1, 2)
-    fig.suptitle("Libfunc Pie")
+    fig.suptitle(title)
 
-    heavy_contract = df.loc["0x45"]
-    light_contract = df.loc[
-        "0x7a42b40dbcfcbb8daf4741a54b2ce3880c773f65f347a01df2b02d8aae2ce33"
-    ]
-    heavy_libfuncs = heavy_contract["sierra_libfunc_frequency"]
-    light_libfuncs = light_contract["sierra_libfunc_frequency"]
-
-    cutoff = sum(heavy_libfuncs.values()) * 0.01
-    heavy_libfuncs = group_small_entries(heavy_libfuncs, cutoff)
-    ax1.pie(
-        heavy_libfuncs.values(),
-        labels=heavy_libfuncs.keys(),
-    )
-    ax1.set_title("Heavy Contract")
+    light_libfuncs = light_contract[attribute]
+    heavy_libfuncs = heavy_contract[attribute]
 
     cutoff = sum(light_libfuncs.values()) * 0.01
     light_libfuncs = group_small_entries(light_libfuncs, cutoff)
-    ax2.pie(
+    ax1.pie(
         light_libfuncs.values(),
         labels=light_libfuncs.keys(),
     )
-    ax2.set_title("Light Contract")
+    ax1.set_title("Light Contract")
+
+    cutoff = sum(heavy_libfuncs.values()) * 0.01
+    heavy_libfuncs = group_small_entries(heavy_libfuncs, cutoff)
+    ax2.pie(
+        heavy_libfuncs.values(),
+        labels=heavy_libfuncs.keys(),
+    )
+    ax2.set_title("Heavy Contract")
 
     sns.set_theme()
+
+
+heavy_contract = df.loc[SAMPLE_HEAVY_CONTRACT]
+light_contract = df.loc[SAMPLE_LIGHT_CONTRACT]
+
+
+if "Sierra Libfunc Pie" in enabled_plots:
+    plot_pie(
+        light_contract, heavy_contract, "sierra_libfunc_frequency", "Sierra Libfunc Pie"
+    )
+
+if "LLVM Instruction Pie" in enabled_plots:
+    plot_pie(
+        light_contract,
+        heavy_contract,
+        "llvmir_opcode_frequency",
+        "LLVM Instruction Pie",
+    )
+
+if "MLIR by Libfunc Pie" in enabled_plots:
+    plot_pie(
+        light_contract,
+        heavy_contract,
+        "mlir_operations_by_libfunc",
+        "MLIR by Libfunc Pie",
+    )
 
 plt.show()
