@@ -1,5 +1,6 @@
 import glob
 
+import itertools
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import seaborn as sns
 enabled_plots = (
     "Correlations Matrix",
     "Individual Correlations",
+    "Libfunc Pie",
 )
 
 stat_files = glob.glob("compiled_programs/*.stats.json")
@@ -60,3 +62,44 @@ if "Individual Correlations" in enabled_plots:
     sns.regplot(df, ax=ax4, x="sierra_statement_count", y="compilation_total_time_ms")
     ax4.set_title("Sierra Size vs. Compilation Time")
 
+
+def group_small_entries(entries, cutoff):
+    new_entries = {}
+    for key, group in itertools.groupby(
+        entries, lambda k: "others" if (entries[k] < cutoff) else k
+    ):
+        new_entries[key] = sum([entries[k] for k in list(group)])
+    return new_entries
+
+
+if "Libfunc Pie" in enabled_plots:
+    sns.set_style("whitegrid")
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle("Libfunc Pie")
+
+    heavy_contract = df.loc["0x45"]
+    light_contract = df.loc[
+        "0x7a42b40dbcfcbb8daf4741a54b2ce3880c773f65f347a01df2b02d8aae2ce33"
+    ]
+    heavy_libfuncs = heavy_contract["sierra_libfunc_frequency"]
+    light_libfuncs = light_contract["sierra_libfunc_frequency"]
+
+    cutoff = sum(heavy_libfuncs.values()) * 0.01
+    heavy_libfuncs = group_small_entries(heavy_libfuncs, cutoff)
+    ax1.pie(
+        heavy_libfuncs.values(),
+        labels=heavy_libfuncs.keys(),
+    )
+    ax1.set_title("Heavy Contract")
+
+    cutoff = sum(light_libfuncs.values()) * 0.01
+    light_libfuncs = group_small_entries(light_libfuncs, cutoff)
+    ax2.pie(
+        light_libfuncs.values(),
+        labels=light_libfuncs.keys(),
+    )
+    ax2.set_title("Light Contract")
+
+    sns.set_theme()
+
+plt.show()
