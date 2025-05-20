@@ -31,6 +31,12 @@ export RPC_ENDPOINT_MAINNET=rpc.endpoint.mainnet.com
 export RPC_ENDPOINT_TESTNET=rpc.endpoint.testnet.com
 ```
 
+On macos, you may also need to set the following to avoid linking errors:
+
+```bash
+export LIBRARY_PATH=/opt/homebrew/lib
+```
+
 Once you have installed dependencies and set the needed environment variables, you can build the project and run the tests:
 ```bash
 make build
