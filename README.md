@@ -26,10 +26,15 @@ Some environment variable are needed, you can automatically set them by sourcing
 export LLVM_SYS_191_PREFIX=/path/to/llvm-19
 export MLIR_SYS_190_PREFIX=/path/to/llvm-19
 export TABLEGEN_190_PREFIX=/path/to/llvm-19
-export CAIRO_NATIVE_RUNTIME_LIBRARY=/path/to/cairo_native/target/release/libcairo_native_runtime.a
 # RPC
 export RPC_ENDPOINT_MAINNET=rpc.endpoint.mainnet.com
 export RPC_ENDPOINT_TESTNET=rpc.endpoint.testnet.com
+```
+
+On macos, you may also need to set the following to avoid linking errors:
+
+```bash
+export LIBRARY_PATH=/opt/homebrew/lib
 ```
 
 Once you have installed dependencies and set the needed environment variables, you can build the project and run the tests:
@@ -55,14 +60,6 @@ Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/l
 Afterwards, compiling with the feature flag `cairo-native` will enable native execution. You can check out some example test code that uses it under `tests/cairo_native.rs`.
 
 #### Using ahead of time compilation with Native.
-
-Currently cairo-native with AOT needs a runtime library in a known place. For this you need to compile the [cairo-native-runtime](https://github.com/lambdaclass/cairo_native/tree/main/runtime) crate and point the following environment variable to a folder containing the dynamic library. The path **must** be an absolute path.
-
-```bash
-CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libcairo_native_runtime.a
-```
-
-If you don't do this you will get a linker error when using AOT.
 
 ## replay
 You can use the replay crate to execute transactions or blocks via the CLI. For example:
