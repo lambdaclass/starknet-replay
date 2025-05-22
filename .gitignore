@@ -10,3 +10,4 @@ state_dumps/
 rpc_cache
 bench_data
 block_composition/
+call_state_dumps
