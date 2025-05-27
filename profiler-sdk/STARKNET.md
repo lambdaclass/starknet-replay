@@ -62,3 +62,36 @@ Samples by Crate
   155    - 0.18 % - lambdaworks_crypto
   1      - 0    % - unknown
 ```
+
+# Understanding The Execution Flow
+
+The execution flow of a transaction can be visualized as:
+
+```
+┌────────┐  ┌───────────┐  ┌───────┐   ┌────────┐
+│ replay │─>│ sequencer │─>│ 0X... │─┬>│ native │
+└────────┘  └───────────┘  └───────┘ │ └────────┘
+                                     │ ┌────────┐  ┌───────────┐
+                                     └>│ native │─>│ sequencer │ ...
+                                       └────────┘  └───────────┘
+```
+
+- `replay`: We don't care for samples from this module.
+- `sequencer`: It may represent different things, depending on when it was called:
+  - The first sequencer box represents initial transaction validation and setup.
+  - The inner sequencer boxes represnet syscall, which include fetching storage, or calling an inner contract.
+- `0x`: Represents sierra code that was compiled to Native code.
+- `native`: It may represent different things, depending on when it was called.
+  - If it was called right after sierra code, it represents runtime or syscall handler execution.
+  - If it was called right after blockifier/replay, it represents contract compilation or executor loading.
+
+Given a sample, we can determine the crate it belong to by looking at the symbol
+name. For example, given the symbol name: `foo::bar::baz`, we know that we are
+execution function `baz` in crate `foo`.
+
+For the case of sierra contracts, we can't rely on symbol names, but instead
+rely on the library the current address corresponds to. In the case of our
+replay, these libraries contain the prefix "0x".
+
+With these knowledge, we can analyze each sample and determine where it belong
+to, building a report like the ones exampled above.
