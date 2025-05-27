@@ -172,6 +172,37 @@ fn filter_libs<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
     libs
 }
 
+fn filter_crates_and_libs<'p>(sample: Sample<'p>, crates: &[&str], libs: &[&str]) -> Vec<&'p str> {
+    let frame_stack = sample.stack().frame_stack();
+
+    let mut sources = frame_stack
+        .iter()
+        .filter_map(|frame| {
+            let symbol = frame.func().name();
+
+            if let Some(ccrate) = find_crate_for_symbol(symbol) {
+                if crates.iter().any(|c| ccrate.starts_with(c)) {
+                    return Some(ccrate);
+                }
+            }
+
+            let lib = &frame.native_symbol().lib().name;
+            if libs.iter().any(|l| lib.starts_with(l)) {
+                Some(lib)
+            } else {
+                None
+            }
+        })
+        .dedup()
+        .collect_vec();
+
+    if sources.is_empty() {
+        sources.push("unknown");
+    }
+
+    sources
+}
+
 fn section<G>(title: &str, profile: &Profile, grouper: G)
 where
     G: FnMut(Sample) -> Vec<String>,
@@ -210,14 +241,14 @@ fn main() {
     });
 
     section("Samples by Source", &profile, |sample| {
-        let libs = filter_libs(sample, &["replay", "0x"]);
-        let crates = filter_crates(sample, &["replay", "blockifier", "cairo_native"]);
+        let sources =
+            filter_crates_and_libs(sample, &["replay", "blockifier", "cairo_native"], &["0x"]);
 
-        if libs[0].starts_with("0x") {
+        if sources[0].starts_with("0x") {
             return vec!["MLIR".to_string()];
         }
 
-        if crates[0] == "cairo_native" && libs.get(1).is_some_and(|l| l.starts_with("0x")) {
+        if sources[0] == "cairo_native" && sources[1].starts_with("0x") {
             let mut groups = vec!["Runtime".to_string()];
 
             let frame_stack = sample.stack().frame_stack();
@@ -243,53 +274,32 @@ fn main() {
             return groups;
         }
 
-        if crates[0] == "replay" {
+        if sources[0] == "replay" {
             vec![]
         } else {
-            vec![crates[0].to_string()]
+            vec![sources[0].to_string()]
         }
     });
     section("Samples by Crate Call", &profile, |sample| {
-        let frame_stack = sample.stack().frame_stack();
-        let mut sources = frame_stack
-            .iter()
-            .filter_map(|frame| {
-                let symbol = frame.func().name();
-                let ccrate = find_crate_for_symbol(symbol);
+        let mut sources =
+            filter_crates_and_libs(sample, &["replay", "blockifier", "cairo_native"], &["0x"]);
 
-                if let Some(ccrate) = ccrate {
-                    if ["cairo_native", "blockifier", "replay"]
-                        .iter()
-                        .any(|c| ccrate.starts_with(c))
-                    {
-                        return Some(ccrate);
-                    }
-                }
-
-                if frame.native_symbol().lib().name.starts_with("0x") {
-                    Some("MLIR")
-                } else {
-                    None
-                }
-            })
-            .dedup()
-            .collect_vec();
-
-        if sources.is_empty() {
-            sources.push("unknown");
+        for source in &mut sources {
+            if source.starts_with("0x") {
+                *source = "MLIR"
+            }
         }
+
         if sources[0] == "replay" {
-            return vec![];
+            vec![]
+        } else if sources[0] == "unknown" {
+            sources.iter().map(|s| s.to_string()).collect_vec()
+        } else {
+            sources[..2]
+                .iter()
+                .map(|s| s.to_string())
+                .rev()
+                .collect_vec()
         }
-
-        if sources.len() < 2 {
-            sources.push(sources[0]);
-        };
-
-        sources[..2]
-            .iter()
-            .map(|s| s.to_string())
-            .rev()
-            .collect_vec()
     });
 }
