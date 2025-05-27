@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, fs::File, sync::LazyLock};
+use std::{collections::HashMap, fmt::Display, fs::File, ops::Div, sync::LazyLock};
 
 use itertools::Itertools;
 use profiler_sdk::{model::Sample, schema::Profile};
@@ -43,8 +43,6 @@ where
     for thread in &profile.threads {
         for sample_idx in 0..thread.samples.length {
             let sample = Sample::new(profile, thread, sample_idx);
-            let groups = grouper(sample);
-
             let symbol = sample.stack().frame().func().name();
 
             // If we encounter a sleep twice, something is wrong.
@@ -65,6 +63,7 @@ where
                 continue;
             }
 
+            let groups = grouper(sample);
             let mut current_tree = &mut tree;
             if groups.len() > 0 {
                 current_tree.count += 1;
@@ -86,23 +85,34 @@ impl Display for SampleTree {
             f: &mut std::fmt::Formatter<'_>,
             name: &str,
             level: usize,
+            total: u64,
         ) -> std::fmt::Result {
             let indent = " ".repeat(level);
 
-            writeln!(f, "{}{}: {}", indent, name, tree.count)?;
+            writeln!(
+                f,
+                "{}{:<6} - {:<5}% - {}",
+                indent,
+                tree.count,
+                ((tree.count * 100 * 100) as f64)
+                    .div(total as f64)
+                    .round()
+                    .div(100.0),
+                name
+            )?;
 
             let mut children = tree.children.iter().collect_vec();
             children.sort_by_key(|(_, v)| v.count);
             children.reverse();
 
             for (group, subtree) in children {
-                fmt_tree(subtree, f, group, level + 2)?;
+                fmt_tree(subtree, f, group, level + 2, total)?;
             }
 
             Ok(())
         }
 
-        fmt_tree(self, f, "total", 0)
+        fmt_tree(self, f, "total", 0, self.count)
     }
 }
 
