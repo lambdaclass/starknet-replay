@@ -4,6 +4,14 @@ use itertools::Itertools;
 use profiler_sdk::{model::Sample, schema::Profile};
 use regex::Regex;
 
+/// Represents the aggregated sample tree, containing the number of samples for
+/// each node.
+///
+// NOTE: Right now, the tree is constructed all at once, by determining
+// the groups that each sample belong to. I wonder if it would be better to
+// construct a generic tree first, containing the full profile information,
+// and transform it the way we do manually with samply. For example: "drop this
+// function", "merge this node", "flatten recursion for this symbol", etc.
 #[derive(Default)]
 pub struct SampleTree {
     count: u64,
