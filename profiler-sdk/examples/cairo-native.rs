@@ -36,7 +36,9 @@ where
             let groups = grouper(sample);
 
             let mut current_tree = &mut tree;
-            current_tree.count += 1;
+            if groups.len() > 0 {
+                current_tree.count += 1;
+            }
             for group in groups {
                 current_tree = current_tree.children.entry(group).or_default();
                 current_tree.count += 1;
