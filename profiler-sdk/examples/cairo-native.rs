@@ -220,7 +220,8 @@ where
 }
 
 fn main() {
-    let file = File::open("game-native.json").expect("failed to open profile");
+    let path = &std::env::args().collect_vec()[1];
+    let file = File::open(path).expect("failed to open profile");
     let profile: Profile = serde_json::from_reader(file).expect("failed to deserialize profile");
 
     section("Samples by Library", &profile, |sample| {
