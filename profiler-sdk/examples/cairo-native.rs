@@ -1,0 +1,238 @@
+use std::{collections::HashMap, fmt::Display, fs::File, sync::LazyLock};
+
+use itertools::Itertools;
+use profiler_sdk::{model::Sample, schema::Profile};
+use regex::Regex;
+
+#[derive(Default)]
+pub struct SampleTree {
+    count: u64,
+    children: HashMap<String, SampleTree>,
+}
+
+/// Applies the given grouper function for each sample in the profile.
+///
+/// The grouper function should return the heriarchy of groups that the
+/// sample belongs to. For example, if the function returns `["group1",
+/// "group2"]`, then the sample would be counted for `root`, `root.group1` and
+/// `root.group1.group2`.
+pub fn group_samples<G>(profile: &Profile, mut grouper: G) -> SampleTree
+where
+    G: FnMut(Sample) -> Vec<String>,
+{
+    let mut tree = SampleTree::default();
+
+    for thread in &profile.threads {
+        for sample_idx in 0..thread.samples.length {
+            let sample = Sample::new(profile, thread, sample_idx);
+            let groups = grouper(sample);
+
+            let mut current_tree = &mut tree;
+            current_tree.count += 1;
+            for group in groups {
+                current_tree = current_tree.children.entry(group).or_default();
+                current_tree.count += 1;
+            }
+        }
+    }
+
+    tree
+}
+
+impl Display for SampleTree {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        fn fmt_tree(
+            tree: &SampleTree,
+            f: &mut std::fmt::Formatter<'_>,
+            name: &str,
+            level: usize,
+        ) -> std::fmt::Result {
+            let indent = " ".repeat(level);
+
+            writeln!(f, "{}{}: {}", indent, name, tree.count)?;
+
+            let mut children = tree.children.iter().collect_vec();
+            children.sort_by_key(|(_, v)| v.count);
+            children.reverse();
+
+            for (group, subtree) in children {
+                fmt_tree(subtree, f, group, level + 2)?;
+            }
+
+            Ok(())
+        }
+
+        fmt_tree(self, f, "total", 0)
+    }
+}
+
+/// Finds the crate for the given symbol.
+///
+/// For example, given "crate::module::function", it would return "crate".
+fn find_crate_for_symbol<'p>(symbol: &'p str) -> Option<&'p str> {
+    static CRATE_PATTERN: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r#"^([\w\-]+)::"#).expect("inline regex should be valid"));
+
+    CRATE_PATTERN.captures(symbol).map(|c| {
+        c.get(1)
+            .expect("inline regex always has a capture group")
+            .as_str()
+    })
+}
+
+/// Traverses the call stack of the given sample, and returns the list of crates
+/// encountered, filtering for crates that match any of `mains`.
+///
+/// If no matching crate is found, it returns the name of the first symbol.
+fn filter_crates<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
+    let frame_stack = sample.stack().frame_stack();
+    let mut frames = frame_stack
+        .iter()
+        .map(|f| f.func().name())
+        .map(|s| find_crate_for_symbol(s).unwrap_or(s))
+        .filter(|s| mains.iter().any(|main_crate| s.starts_with(main_crate)))
+        .dedup()
+        .collect_vec();
+
+    if frames.is_empty() {
+        frames.push(&frame_stack[0].func().name());
+    }
+
+    frames
+}
+
+/// Traverses the call stack of the given sample, and returns the list of libs
+/// encountered, filtering for libs that match any of `mains`.
+///
+/// If no matching lib is found, it returns the name of the first lib.
+fn filter_libs<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
+    let lib_stack = sample.stack().lib_stack();
+
+    let mut libs = lib_stack
+        .iter()
+        .map(|f| f.name.as_str())
+        .filter(|s| mains.iter().any(|main| s.starts_with(main)))
+        .dedup()
+        .collect_vec();
+
+    if libs.is_empty() {
+        libs.push(&lib_stack[0].name);
+    }
+
+    libs
+}
+
+fn section<G>(title: &str, profile: &Profile, grouper: G)
+where
+    G: FnMut(Sample) -> Vec<String>,
+{
+    println!("{}", "=".repeat(title.len()));
+    println!("{}", title);
+    println!("{}", "=".repeat(title.len()));
+    println!();
+    println!("{}", group_samples(&profile, grouper));
+}
+
+fn main() {
+    let file = File::open("game-native.json").expect("failed to open profile");
+    let profile: Profile = serde_json::from_reader(file).expect("failed to deserialize profile");
+
+    section("Samples by Library", &profile, |sample| {
+        vec![filter_libs(sample, &["replay", "0x"])[0].to_string()]
+    });
+
+    section("Samples by Crate", &profile, |sample| {
+        vec![
+            filter_crates(
+                sample,
+                &[
+                    "blockifier",
+                    "cairo_native",
+                    "replay",
+                    "lambdaworks",
+                    "starknet",
+                ],
+            )[0]
+            .to_string(),
+        ]
+    });
+
+    section("Samples by Source", &profile, |sample| {
+        let libs = filter_libs(sample, &["replay", "0x"]);
+        let crates = filter_crates(sample, &["replay", "blockifier", "cairo_native"]);
+
+        if libs[0].starts_with("0x") {
+            return vec!["MLIR".to_string()];
+        }
+
+        if crates[0] == "cairo_native" && libs.get(1).is_some_and(|l| l.starts_with("0x")) {
+            let mut groups = vec!["Runtime".to_string()];
+
+            let frame_stack = sample.stack().frame_stack();
+
+            let last_mlir_frame = frame_stack
+                .iter()
+                .position(|frame| frame.native_symbol().lib().name.starts_with("0x"))
+                .expect("should find an MLIR frame eventually");
+
+            let first_runtime_symbol = frame_stack[last_mlir_frame - 1].func().name();
+
+            static FUNCTION_PATTERN: LazyLock<Regex> =
+                LazyLock::new(|| Regex::new(r#".*::([\w\-]+)"#).unwrap());
+
+            let first_runtime_func = FUNCTION_PATTERN
+                .captures(first_runtime_symbol)
+                .map(|c| c.get(1).unwrap().as_str())
+                .unwrap_or(first_runtime_symbol)
+                .to_string();
+
+            groups.push(first_runtime_func);
+
+            return groups;
+        }
+
+        return vec![crates[0].to_string()];
+    });
+    section("Samples by Crate Call", &profile, |sample| {
+        let frame_stack = sample.stack().frame_stack();
+        let mut sources = frame_stack
+            .iter()
+            .filter_map(|frame| {
+                let symbol = frame.func().name();
+                let ccrate = find_crate_for_symbol(symbol);
+
+                if let Some(ccrate) = ccrate {
+                    if ["cairo_native", "blockifier", "replay"]
+                        .iter()
+                        .any(|c| ccrate.starts_with(c))
+                    {
+                        return Some(ccrate);
+                    }
+                }
+
+                if frame.native_symbol().lib().name.starts_with("0x") {
+                    Some("MLIR")
+                } else {
+                    None
+                }
+            })
+            .dedup()
+            .collect_vec();
+
+        if sources.is_empty() {
+            let frame = frame_stack[0];
+            let symbol = frame.func().name();
+            sources.push(symbol);
+        }
+
+        if sources.len() < 2 {
+            sources.push(sources[0]);
+        };
+
+        sources[..2]
+            .iter()
+            .map(|s| s.to_string())
+            .rev()
+            .collect_vec()
+    });
+}
