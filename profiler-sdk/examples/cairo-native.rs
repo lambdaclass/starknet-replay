@@ -133,7 +133,7 @@ fn find_crate_for_symbol<'p>(symbol: &'p str) -> Option<&'p str> {
 /// Traverses the call stack of the given sample, and returns the list of crates
 /// encountered, filtering for crates that match any of `mains`.
 ///
-/// If no matching crate is found, it returns the name of the first symbol.
+/// If no matching crate is found, it returns a `["unknown"]`
 fn filter_crates<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
     let frame_stack = sample.stack().frame_stack();
     let mut frames = frame_stack
@@ -154,7 +154,7 @@ fn filter_crates<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
 /// Traverses the call stack of the given sample, and returns the list of libs
 /// encountered, filtering for libs that match any of `mains`.
 ///
-/// If no matching lib is found, it returns the name of the first lib.
+/// If no matching lib is found, it returns a `["unknown"]`
 fn filter_libs<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
     let lib_stack = sample.stack().lib_stack();
 
@@ -172,6 +172,11 @@ fn filter_libs<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
     libs
 }
 
+/// Traverses the frame stack of the given sample, and returns the list of
+/// libs or crates encountered, filtering for libs or crates that match any of
+/// `mains`. If both crate and lib match, only keeps the crate name
+///
+/// If no matching crate or lib is found, it returns a `["unknown"]`
 fn filter_crates_and_libs<'p>(sample: Sample<'p>, crates: &[&str], libs: &[&str]) -> Vec<&'p str> {
     let frame_stack = sample.stack().frame_stack();
 
