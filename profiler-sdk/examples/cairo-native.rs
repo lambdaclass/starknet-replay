@@ -30,10 +30,34 @@ where
 {
     let mut tree = SampleTree::default();
 
+    #[derive(PartialEq, Eq)]
+    enum Status {
+        BeforeSleep,
+        InSleep,
+        AfterSleep,
+    }
+    let mut status = Status::BeforeSleep;
+
     for thread in &profile.threads {
         for sample_idx in 0..thread.samples.length {
             let sample = Sample::new(profile, thread, sample_idx);
             let groups = grouper(sample);
+
+            let symbol = sample.stack().frame().func().name();
+
+            if status == Status::AfterSleep && symbol == "__semwait_signal" {
+                panic!()
+            }
+            if status == Status::InSleep && symbol != "__semwait_signal" {
+                status = Status::AfterSleep
+            }
+            if status == Status::BeforeSleep && symbol == "__semwait_signal" {
+                status = Status::InSleep
+            }
+
+            if status != Status::AfterSleep {
+                continue;
+            }
 
             let mut current_tree = &mut tree;
             if groups.len() > 0 {
