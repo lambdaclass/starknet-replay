@@ -32,7 +32,7 @@ where
 
     /// The replay sleeps for one second before the actual execution begin
     /// We need to skip all samples up to after the sleep.
-    #[derive(PartialEq, Eq)]
+    #[derive(PartialEq, Eq, Clone, Copy)]
     enum SleepStatus {
         Before,
         During,
@@ -45,19 +45,16 @@ where
             let sample = Sample::new(profile, thread, sample_idx);
             let symbol = sample.stack().frame().func().name();
 
-            // If we encounter a sleep twice, something is wrong.
-            if status == SleepStatus::After && symbol == "__semwait_signal" {
-                panic!()
+            match (status, symbol == "__semwait_signal") {
+                // If we find a sleep sample, we set status to Sleeping.
+                (SleepStatus::Before, true) => status = SleepStatus::During,
+                // If we see a non-sleep sample once we are sleeping, we finished sleeping
+                (SleepStatus::During, false) => status = SleepStatus::After,
+                // If we encounter a sleep twice, something is wrong.
+                (SleepStatus::After, true) => panic!("another sleep encountered"),
+                _ => (),
             }
-            // If we see another sample once we are sleeping, it means that we
-            // finished sleeping
-            if status == SleepStatus::During && symbol != "__semwait_signal" {
-                status = SleepStatus::After
-            }
-            // Look for the first sleep
-            if status == SleepStatus::Before && symbol == "__semwait_signal" {
-                status = SleepStatus::During
-            }
+
             // Only process after sleeping
             if status != SleepStatus::After {
                 continue;
