@@ -2,7 +2,25 @@
 
 This crate provides an example on how to process samples for a transaction replay with cairo native.
 
-## Usage
+## Obtaining a Profile
+
+First, build the replay crate:
+
+```bash
+cargo build --release --features benchmark,profiling
+```
+
+Then, benchmark a transaction:
+
+```bash
+samply record --  target/release/replay bench-tx ...
+```
+
+You can obtain a sample profile at: https://share.firefox.dev/3H8dGXU.
+
+To make the transaction more accurate, we suggest executing the transaction many times (with the `number_of_runs` arguments). The sample profile contains the execution of a single transaction 100k times.
+
+## Processing a Profile
 
 To process the samples, run:
 ```bash
