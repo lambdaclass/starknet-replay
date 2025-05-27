@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import seaborn as sns
 from matplotlib.ticker import PercentFormatter
 from utils import load_jsonl, find_span
@@ -8,7 +9,10 @@ from utils import load_jsonl, find_span
 
 argument_parser = ArgumentParser("Stress Test Plotter")
 argument_parser.add_argument("logs_path")
+argument_parser.add_argument("-o", "--output")
 arguments = argument_parser.parse_args()
+
+mpl.rcParams["figure.figsize"] = [12, 6.75]
 
 
 def canonicalize(event):
@@ -100,4 +104,8 @@ ax.xaxis.set_major_formatter(PercentFormatter(decimals=0))
 
 ax.set_xlabel("Step")
 
-plt.show()
+if arguments.output:
+    figure_name = f"{arguments.output}-compilation-time-finer.svg"
+    plt.savefig(figure_name)
+if not arguments.output:
+    plt.show()
