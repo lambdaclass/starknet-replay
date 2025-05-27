@@ -99,6 +99,7 @@ impl<'p> Stack<'p> {
             .map(|prefix_idx| Stack::new(self.profile, self.thread, prefix_idx))
     }
 
+    // TODO: Make this lazy. We sometime only need the first frames, and not the entire stack.
     pub fn frame_stack(&self) -> Vec<Frame<'p>> {
         let mut frames = Vec::new();
 
