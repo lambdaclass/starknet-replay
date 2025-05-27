@@ -9,9 +9,7 @@ To process the samples, run:
 cargo run --example cairo-native sample.json
 ```
 
-It will output different views of the same data. For example, the "Samples
-by Source" section will differentiate samples between: MLIR, Runtime, and
-Blockifier logic.
+It will output different views of the same data. For example, the "Samples by Source" section will differentiate samples between: MLIR, Runtime, and Blockifier logic.
 
 ```
 =================
@@ -45,8 +43,7 @@ Samples by Source
   1      - 0    % - unknown
 ```
 
-The section "Samples by Crate" is much simpler, and only differentiates between
-rust crates. MLIR execution is contained within "blockifier":
+The section "Samples by Crate" is much simpler, and only differentiates between rust crates. MLIR execution is contained within "blockifier":
 
 ```
 ================
@@ -85,13 +82,8 @@ The execution flow of a transaction can be visualized as:
   - If it was called right after sierra code, it represents runtime or syscall handler execution.
   - If it was called right after blockifier/replay, it represents contract compilation or executor loading.
 
-Given a sample, we can determine the crate it belong to by looking at the symbol
-name. For example, given the symbol name: `foo::bar::baz`, we know that we are
-execution function `baz` in crate `foo`.
+Given a sample, we can determine the crate it belong to by looking at the symbol name. For example, given the symbol name: `foo::bar::baz`, we know that we are execution function `baz` in crate `foo`.
 
-For the case of sierra contracts, we can't rely on symbol names, but instead
-rely on the library the current address corresponds to. In the case of our
-replay, these libraries contain the prefix "0x".
+For the case of sierra contracts, we can't rely on symbol names, but instead rely on the library the current address corresponds to. In the case of our replay, these libraries contain the prefix "0x".
 
-With these knowledge, we can analyze each sample and determine where it belong
-to, building a report like the ones exampled above.
+With these knowledge, we can analyze each sample and determine where it belong to, building a report like the ones exampled above.
