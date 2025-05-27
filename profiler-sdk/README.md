@@ -14,6 +14,6 @@ You can also reuse the profile of someone else, like this one: https://share.fir
 
 Once the firefox profiler has loaded the profile, you can download it to a `json.gz` file, which can be uncompressed to the raw `.json` profile file.
 
-## Cairo Native
+## Starknet
 
 The crate also contains the `cairo-native` example, that uses the provided utilities to process samples from a transaction execution. See [STARKNET](STARKNET.md) for more information.
