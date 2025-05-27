@@ -30,6 +30,8 @@ where
 {
     let mut tree = SampleTree::default();
 
+    /// The replay sleeps for one second before the actual execution begin
+    /// We need to skip all samples up to after the sleep.
     #[derive(PartialEq, Eq)]
     enum Status {
         BeforeSleep,
@@ -45,16 +47,20 @@ where
 
             let symbol = sample.stack().frame().func().name();
 
+            // If we encounter a sleep twice, something is wrong.
             if status == Status::AfterSleep && symbol == "__semwait_signal" {
                 panic!()
             }
+            // If we see another sample once we are sleeping, it means that we
+            // finished sleeping
             if status == Status::InSleep && symbol != "__semwait_signal" {
                 status = Status::AfterSleep
             }
+            // Look for the first sleep
             if status == Status::BeforeSleep && symbol == "__semwait_signal" {
                 status = Status::InSleep
             }
-
+            // Only process after sleeping
             if status != Status::AfterSleep {
                 continue;
             }
