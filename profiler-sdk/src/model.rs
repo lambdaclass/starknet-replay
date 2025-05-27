@@ -60,12 +60,11 @@ pub struct NativeSymbol<'p> {
 
 impl<'p> Sample<'p> {
     pub fn new(profile: &'p Profile, thread: &'p RawThread, idx: IndexIntoSampleTable) -> Self {
-        let sample = Self {
+        Self {
             profile,
             thread,
             idx,
-        };
-        sample
+        }
     }
 
     pub fn stack(&self) -> Stack<'p> {

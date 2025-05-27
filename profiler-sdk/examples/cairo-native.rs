@@ -33,12 +33,12 @@ where
     /// The replay sleeps for one second before the actual execution begin
     /// We need to skip all samples up to after the sleep.
     #[derive(PartialEq, Eq)]
-    enum Status {
-        BeforeSleep,
-        InSleep,
-        AfterSleep,
+    enum SleepStatus {
+        Before,
+        During,
+        After,
     }
-    let mut status = Status::BeforeSleep;
+    let mut status = SleepStatus::Before;
 
     for thread in &profile.threads {
         for sample_idx in 0..thread.samples.length {
@@ -46,26 +46,26 @@ where
             let symbol = sample.stack().frame().func().name();
 
             // If we encounter a sleep twice, something is wrong.
-            if status == Status::AfterSleep && symbol == "__semwait_signal" {
+            if status == SleepStatus::After && symbol == "__semwait_signal" {
                 panic!()
             }
             // If we see another sample once we are sleeping, it means that we
             // finished sleeping
-            if status == Status::InSleep && symbol != "__semwait_signal" {
-                status = Status::AfterSleep
+            if status == SleepStatus::During && symbol != "__semwait_signal" {
+                status = SleepStatus::After
             }
             // Look for the first sleep
-            if status == Status::BeforeSleep && symbol == "__semwait_signal" {
-                status = Status::InSleep
+            if status == SleepStatus::Before && symbol == "__semwait_signal" {
+                status = SleepStatus::During
             }
             // Only process after sleeping
-            if status != Status::AfterSleep {
+            if status != SleepStatus::After {
                 continue;
             }
 
             let groups = grouper(sample);
             let mut current_tree = &mut tree;
-            if groups.len() > 0 {
+            if !groups.is_empty() {
                 current_tree.count += 1;
             }
             for group in groups {
@@ -119,7 +119,7 @@ impl Display for SampleTree {
 /// Finds the crate for the given symbol.
 ///
 /// For example, given "crate::module::function", it would return "crate".
-fn find_crate_for_symbol<'p>(symbol: &'p str) -> Option<&'p str> {
+fn find_crate_for_symbol(symbol: &str) -> Option<&str> {
     static CRATE_PATTERN: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r#"^([\w\-]+)::"#).expect("inline regex should be valid"));
 
@@ -216,7 +216,7 @@ where
     println!("{}", title);
     println!("{}", "=".repeat(title.len()));
     println!();
-    println!("{}", group_samples(&profile, grouper));
+    println!("{}", group_samples(profile, grouper));
 }
 
 fn main() {
