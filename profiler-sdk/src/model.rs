@@ -20,7 +20,7 @@ use itertools::Itertools;
 
 use crate::schema::{
     IndexIntoFrameTable, IndexIntoFuncTable, IndexIntoLibs, IndexIntoNativeSymbolTable,
-    IndexIntoSampleTable, IndexIntoStackTable, Lib, Profile, RawThread,
+    IndexIntoSampleTable, IndexIntoStackTable, Lib, Profile, RawThread, Uint,
 };
 
 #[derive(Copy, Clone)]
@@ -73,6 +73,10 @@ impl<'p> Sample<'p> {
             self.thread,
             self.thread.samples.stack[self.idx],
         )
+    }
+
+    pub fn weight(&self) -> Uint {
+        self.thread.samples.weight[self.idx]
     }
 }
 

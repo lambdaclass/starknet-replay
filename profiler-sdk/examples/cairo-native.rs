@@ -66,11 +66,11 @@ where
             let groups = grouper(sample);
             let mut current_tree = &mut tree;
             if !groups.is_empty() {
-                current_tree.count += 1;
+                current_tree.count += sample.weight();
             }
             for group in groups {
                 current_tree = current_tree.children.entry(group).or_default();
-                current_tree.count += 1;
+                current_tree.count += sample.weight();
             }
         }
     }
