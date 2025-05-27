@@ -1,5 +1,5 @@
 [workspace]
-members = ["rpc-state-reader", "replay"]
+members = ["rpc-state-reader", "replay", "profiler-sdk"]
 
 
 # Explicitly set the resolver to the default for edition >= 2021
