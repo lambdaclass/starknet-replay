@@ -145,7 +145,7 @@ fn filter_crates<'p>(sample: Sample<'p>, mains: &[&str]) -> Vec<&'p str> {
         .collect_vec();
 
     if frames.is_empty() {
-        frames.push(&frame_stack[0].func().name());
+        frames.push("unknown");
     }
 
     frames
@@ -192,19 +192,21 @@ fn main() {
     });
 
     section("Samples by Crate", &profile, |sample| {
-        vec![
-            filter_crates(
-                sample,
-                &[
-                    "blockifier",
-                    "cairo_native",
-                    "replay",
-                    "lambdaworks",
-                    "starknet",
-                ],
-            )[0]
-            .to_string(),
-        ]
+        let crates = filter_crates(
+            sample,
+            &[
+                "blockifier",
+                "cairo_native",
+                "replay",
+                "lambdaworks",
+                "starknet",
+            ],
+        );
+        if crates[0] == "replay" {
+            vec![]
+        } else {
+            vec![crates[0].to_string()]
+        }
     });
 
     section("Samples by Source", &profile, |sample| {
@@ -241,7 +243,11 @@ fn main() {
             return groups;
         }
 
-        return vec![crates[0].to_string()];
+        if crates[0] == "replay" {
+            vec![]
+        } else {
+            vec![crates[0].to_string()]
+        }
     });
     section("Samples by Crate Call", &profile, |sample| {
         let frame_stack = sample.stack().frame_stack();
@@ -270,9 +276,10 @@ fn main() {
             .collect_vec();
 
         if sources.is_empty() {
-            let frame = frame_stack[0];
-            let symbol = frame.func().name();
-            sources.push(symbol);
+            sources.push("unknown");
+        }
+        if sources[0] == "replay" {
+            return vec![];
         }
 
         if sources.len() < 2 {
