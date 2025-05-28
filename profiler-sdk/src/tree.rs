@@ -55,6 +55,30 @@ impl<'p> Tree<'p> {
     }
 }
 
+/// Tree display mimicks how the firefox profiler does it:
+///
+///
+/// ```
+/// │ RATIO │ TOTAL │ SELF  │ TREE
+/// │       │       │       │
+/// │ 100.0 │ 46    │ 5     │ 0x6b97
+/// │ 89.1  │ 41    │ 5     │ └─ 0x62ebb
+/// │ 78.3  │ 36    │ 5     │    └─ 0x19c9b
+/// │ 67.4  │ 31    │ 5     │       └─ 0x462cb
+/// │ 56.5  │ 26    │ 5     │          └─ 0x435e3
+/// │ 19.6  │ 9     │ 1     │             ├─ 0x3e3e7
+/// │ 17.4  │ 8     │ 1     │             │  └─ 0xf86c7
+/// │ 15.2  │ 7     │ 1     │             │     └─ 0x1c31d7
+/// │ 13.0  │ 6     │ 1     │             │        └─ 0x1c91f3
+/// │ 10.9  │ 5     │ 1     │             │           └─ 0xf9417
+/// │ 8.7   │ 4     │ 1     │             │              └─ 0x12aaa3
+/// │ 6.5   │ 3     │ 1     │             │                 └─ 0x12e6f3
+/// │ 4.3   │ 2     │ 1     │             │                    └─ 0x169d8b
+/// │ 2.2   │ 1     │ 1     │             │                       └─ 0x16b5c4
+/// │ 26.1  │ 12    │ 4     │             └─ 0x41103
+/// │ 17.4  │ 8     │ 4     │                └─ 0x90af
+/// │ 8.7   │ 4     │ 4     │                   └─ 0x29b8
+/// ```
 impl<'p> Display for Tree<'p> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn count_inner(node: &Node) -> u64 {
