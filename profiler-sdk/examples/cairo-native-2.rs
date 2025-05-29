@@ -131,6 +131,47 @@ fn merge_funcs(profile: &mut Profile, thread_idx: usize, funcs: &[&str], new_fun
     }
 }
 
+fn collapse_recursion(profile: &mut Profile, thread_idx: usize, func_to_collapse: &str) {
+    let thread = &mut profile.threads[thread_idx];
+
+    let mut stack_to_new_prefix =
+        HashMap::<IndexIntoStackTable, Option<IndexIntoStackTable>>::new();
+
+    for stack in 0..thread.stack_table.length {
+        let prefix = thread.stack_table.prefix[stack];
+        let frame = thread.stack_table.frame[stack];
+        let func = thread.frame_table.func[frame];
+        let name_idx = thread.func_table.name[func];
+        let name = thread.string_array[name_idx].as_str();
+
+        // check if our prefix has been mapped.
+        // - None: Our prefix is not part of the of the function to collapse.
+        // - Some(None): The subtree prefix is the root of the whole tree.
+        // - Some(Some(stack_idx)): The subtree prefix is given by the stack index.
+        let subtree_prefix = prefix.and_then(|prefix| stack_to_new_prefix.get(&prefix).cloned());
+
+        match subtree_prefix {
+            None => {
+                if name == func_to_collapse {
+                    // if our prefix is not part of the function to colapse, and
+                    // the current function should be collapsed, then this node
+                    // is the root of the tree.
+                    stack_to_new_prefix.insert(stack, prefix);
+                }
+            }
+            Some(subtree_prefix) => {
+                // our prefix is part of the subtree of the function to colapse
+                stack_to_new_prefix.insert(stack, subtree_prefix);
+                if name == func_to_collapse {
+                    // if we find a recursive call, reparent the current node to
+                    // the root of the tree.
+                    thread.stack_table.prefix[stack] = subtree_prefix;
+                }
+            }
+        }
+    }
+}
+
 fn main() {
     let path = std::env::args()
         .nth(1)
@@ -144,6 +185,7 @@ fn main() {
         for resource_idx in 0..thread.resource_table.length {
             collapse_resource(&mut profile, 0, resource_idx);
         }
+        collapse_recursion(&mut profile, 0, "replay");
 
         merge_funcs(
             &mut profile,
@@ -155,21 +197,7 @@ fn main() {
             ],
             "MLIR".to_string(),
         );
-
-        merge_funcs(
-            &mut profile,
-            0,
-            &[
-                "libcompiler_rt.dylib",
-                "libdyld.dylib",
-                "libLLVM.dylib",
-                "libsystem_c.dylib",
-                "libsystem_kernel.dylib",
-                "libsystem_malloc.dylib",
-                "libsystem_platform.dylib",
-            ],
-            "lib.dylib".to_string(),
-        );
+        collapse_recursion(&mut profile, 0, "MLIR");
     }
 
     let tree = Tree::from_profile(&profile, 0);
