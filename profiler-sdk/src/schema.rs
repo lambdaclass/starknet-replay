@@ -175,7 +175,7 @@ pub struct RawSamplesTable {
 /// to identify the sample's stack. We take advantage of the fact that many call
 /// stacks in the profile have a shared prefix; storing these stacks as a tree
 /// saves a lot of space compared to storing them as actual lists of frames.
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct RawStackTable {

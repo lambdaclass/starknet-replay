@@ -11,6 +11,7 @@ pub struct Tree<'p> {
 pub struct Node<'p> {
     pub name: &'p str,
     pub count: u64,
+    pub subtotal: u64,
     pub subtree: Tree<'p>,
 }
 
@@ -22,10 +23,10 @@ impl<'p> Tree<'p> {
         for sample_idx in 0..thread.samples.length {
             let sample = Sample::new(profile, thread, sample_idx);
 
-            let frames = sample.stack().frame_stack().into_iter().rev();
+            let mut frames = sample.stack().frame_stack().into_iter().rev().peekable();
 
             let mut tree = &mut tree;
-            for frame in frames {
+            while let Some(frame) = frames.next() {
                 let symbol = frame.func().name();
 
                 let subtree_index = tree
@@ -39,15 +40,23 @@ impl<'p> Tree<'p> {
                             name: symbol,
                             count: 0,
                             subtree: Default::default(),
+                            subtotal: 0,
                         });
                         tree.children.len() - 1
                     }
                 };
 
                 let subtree = &mut tree.children[subtree_index];
-                subtree.count += sample.weight();
+
+                subtree.subtotal += sample.weight();
+                if frames.peek().is_none() {
+                    subtree.count += sample.weight();
+                }
 
                 tree = &mut subtree.subtree;
+
+                tree.children.sort_by_key(|n| n.subtotal);
+                tree.children.reverse();
             }
         }
 
@@ -81,15 +90,6 @@ impl<'p> Tree<'p> {
 /// ```
 impl<'p> Display for Tree<'p> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn count_inner(node: &Node) -> u64 {
-            node.subtree
-                .children
-                .iter()
-                .map(|n| count_inner(n))
-                .sum::<u64>()
-                + node.count
-        }
-
         fn inner<'p>(
             f: &mut std::fmt::Formatter<'_>,
             node: &Node<'p>,
@@ -97,14 +97,12 @@ impl<'p> Display for Tree<'p> {
             prefix: &str,
             marker: &str,
         ) -> std::fmt::Result {
-            let subtotal = node.subtree.children.iter().map(count_inner).sum::<u64>() + node.count;
-
-            let percentage = subtotal as f64 / total as f64 * 100.0;
+            let percentage = node.subtotal as f64 / total as f64 * 100.0;
 
             writeln!(
                 f,
-                "│ {:<5.1} │ {:<5} │ {:<5} │ {}{}{}",
-                percentage, subtotal, node.count, prefix, marker, node.name
+                "│ {:<5.1} │ {:<7} │ {:<7} │ {}{}{}",
+                percentage, node.subtotal, node.count, prefix, marker, node.name
             )?;
 
             let new_prefix = format!("{}{}", prefix, {
@@ -118,6 +116,7 @@ impl<'p> Display for Tree<'p> {
             });
 
             let mut children = node.subtree.children.iter().peekable();
+
             while let Some(child) = children.next() {
                 let new_marker = if children.peek().is_none() {
                     format!("└─ ")
@@ -131,10 +130,10 @@ impl<'p> Display for Tree<'p> {
             Ok(())
         }
 
-        writeln!(f, "│ RATIO │ TOTAL │ SELF  │ TREE",)?;
-        writeln!(f, "│       │       │       │     ",)?;
+        writeln!(f, "│ RATIO │  TOTAL  │  SELF   │ TREE",)?;
+        writeln!(f, "│       │         │         │     ",)?;
 
-        let total = self.children.iter().map(count_inner).sum::<u64>();
+        let total = self.children.iter().map(|n| n.subtotal).sum::<u64>();
 
         for children in &self.children {
             inner(f, children, total, "", "")?;
