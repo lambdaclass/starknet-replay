@@ -174,6 +174,10 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
 
 pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: ChainId) -> BlockCachedData {
     let reader = RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), block));
+
+    // Fetch block context
+    let block_context = fetch_block_context(&reader).unwrap();
+
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee: false,

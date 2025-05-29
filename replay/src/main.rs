@@ -28,7 +28,7 @@ use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-//#[cfg(feature = "benchmark")]
+#[cfg(feature = "benchmark")]
 use {
     crate::benchmark::{
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
@@ -50,7 +50,7 @@ use std::sync::Arc;
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
 
-//#[cfg(feature = "benchmark")]
+#[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
 mod block_composition;
