@@ -104,6 +104,33 @@ fn collapse_resource(
     }
 }
 
+fn merge_funcs(profile: &mut Profile, thread_idx: usize, funcs: &[&str], new_func_name: String) {
+    let mut new_func = None;
+
+    let thread = &mut profile.threads[thread_idx];
+    thread.string_array.push(new_func_name);
+    let new_func_name_idx = thread.string_array.len() - 1;
+
+    for stack in 0..thread.stack_table.length {
+        let frame = thread.stack_table.frame[stack];
+        let func = thread.frame_table.func[frame];
+        let name_idx = thread.func_table.name[func];
+        let name = thread.string_array[name_idx].as_str();
+
+        if !funcs.contains(&name) {
+            continue;
+        }
+
+        match new_func {
+            Some(new_func) => thread.frame_table.func[frame] = new_func,
+            None => {
+                thread.func_table.name[func] = new_func_name_idx;
+                new_func = Some(func);
+            }
+        }
+    }
+}
+
 fn main() {
     let path = std::env::args()
         .nth(1)
@@ -117,6 +144,32 @@ fn main() {
         for resource_idx in 0..thread.resource_table.length {
             collapse_resource(&mut profile, 0, resource_idx);
         }
+
+        merge_funcs(
+            &mut profile,
+            0,
+            &[
+                "0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.dylib",
+                "0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0.dylib",
+                "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017.dylib",
+            ],
+            "MLIR".to_string(),
+        );
+
+        merge_funcs(
+            &mut profile,
+            0,
+            &[
+                "libcompiler_rt.dylib",
+                "libdyld.dylib",
+                "libLLVM.dylib",
+                "libsystem_c.dylib",
+                "libsystem_kernel.dylib",
+                "libsystem_malloc.dylib",
+                "libsystem_platform.dylib",
+            ],
+            "lib.dylib".to_string(),
+        );
     }
 
     let tree = Tree::from_profile(&profile, 0);
