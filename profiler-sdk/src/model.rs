@@ -20,7 +20,8 @@ use itertools::Itertools;
 
 use crate::schema::{
     IndexIntoFrameTable, IndexIntoFuncTable, IndexIntoLibs, IndexIntoNativeSymbolTable,
-    IndexIntoSampleTable, IndexIntoStackTable, Lib, Profile, RawThread, Uint,
+    IndexIntoResourceTable, IndexIntoSampleTable, IndexIntoStackTable, Lib, Profile, RawThread,
+    Uint,
 };
 
 #[derive(Copy, Clone)]
@@ -175,6 +176,10 @@ impl<'p> Func<'p> {
     pub fn name(&self) -> &'p str {
         let name_idx = self.thread.func_table.name[self.idx];
         &self.thread.string_array[name_idx]
+    }
+
+    pub fn resource_idx(&self) -> IndexIntoResourceTable {
+        self.thread.func_table.resource[self.idx]
     }
 }
 
