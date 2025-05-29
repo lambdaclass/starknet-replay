@@ -67,7 +67,7 @@ pub struct ProfileMeta {
     /// The interval at which the threads are sampled.
     pub interval: Milliseconds,
     /// The OS and CPU. e.g. "Intel Mac OS X"
-    pub oscpu: String,
+    pub oscpu: Option<String>,
     /// This is the processed profile format version.
     pub preprocessed_profile_version: Uint,
     /// The name of the product, most likely "Firefox".
@@ -91,7 +91,9 @@ pub struct ProfileMeta {
     pub process_type: Value,
     pub paused_ranges: Vec<()>,
     pub marker_schema: Vec<()>,
+    #[serde(default)]
     pub uses_only_one_stack_type: bool,
+    #[serde(default)]
     pub source_code_is_not_on_searchfox: bool,
 }
 
@@ -128,6 +130,7 @@ pub struct RawThread {
     pub string_array: Vec<String>,
     pub markers: Value,
     pub paused_ranges: Vec<()>,
+    #[serde(default)]
     pub show_markers_in_timeline: bool,
 }
 
@@ -349,7 +352,7 @@ pub struct Lib {
     pub debug_path: String,
     /// e.g. "E54D3AF274383256B9F6144F83F3F7510,
     pub breakpad_id: String,
-    pub code_id: String,
+    pub code_id: Option<String>,
 }
 
 /// Object that holds the units of samples table values. Some of the values can be
