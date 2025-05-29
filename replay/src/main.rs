@@ -1,3 +1,7 @@
+use blockifier::blockifier::config::{
+    ConcurrencyConfig as BlockiConcurrencyConfig, TransactionExecutorConfig,
+};
+use blockifier::blockifier::transaction_executor::{TransactionExecutor, DEFAULT_STACK_SIZE};
 use blockifier::execution::contract_class::TrackedResource;
 use blockifier::execution::entry_point::{
     EntryPointExecutionContext, EntryPointRevertInfo, ExecutableCallEntryPoint,
@@ -12,7 +16,7 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction_with_state;
+use rpc_state_reader::execution::{fetch_transaction, fetch_transaction_with_state};
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
 use starknet_api::block::BlockNumber;
@@ -24,7 +28,7 @@ use starknet_api::transaction::{TransactionExecutionStatus, TransactionHash};
 use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-#[cfg(feature = "benchmark")]
+//#[cfg(feature = "benchmark")]
 use {
     crate::benchmark::{
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
@@ -46,7 +50,7 @@ use std::sync::Arc;
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
 
-#[cfg(feature = "benchmark")]
+//#[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
 mod block_composition;
@@ -58,6 +62,8 @@ mod state_dump;
 struct ReplayCLI {
     #[command(subcommand)]
     subcommand: ReplayExecute,
+    #[arg(short, long)]
+    concurrency: Option<ConcurrencyCofig>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -135,11 +141,33 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     },
 }
 
+struct ConcurrencyCofig {
+    n_workers: usize,
+    chunk_size: usize,
+}
+
 fn main() {
     dotenvy::dotenv().ok();
     set_global_subscriber();
 
     let cli = ReplayCLI::parse();
+
+    let execution_config = TransactionExecutorConfig {
+        concurrency_config: match cli.concurrency {
+            Some(c) => BlockiConcurrencyConfig {
+                enabled: true,
+                n_workers: c.n_workers,
+                chunk_size: c.chunk_size,
+            },
+            None => BlockiConcurrencyConfig {
+                enabled: false,
+                n_workers: 0,
+                chunk_size: 0,
+            },
+        },
+        stack_size: DEFAULT_STACK_SIZE,
+    };
+
     match cli.subcommand {
         ReplayExecute::Tx {
             tx_hash,
@@ -149,11 +177,13 @@ fn main() {
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
+            let tx_hash = TransactionHash(felt!(tx_hash));
 
             show_execution_data(
                 &mut state,
                 &reader,
-                tx_hash,
+                execution_config,
+                &[tx_hash],
                 &chain,
                 block_number,
                 charge_fee,
@@ -173,16 +203,16 @@ fn main() {
                 .get_block_with_tx_hashes()
                 .expect("Unable to fetch the transaction hashes.")
                 .transactions;
-            for tx_hash in transaction_hashes {
-                show_execution_data(
-                    &mut state,
-                    &reader,
-                    tx_hash.0.to_hex_string(),
-                    &chain,
-                    block_number,
-                    charge_fee,
-                );
-            }
+
+            show_execution_data(
+                &mut state,
+                &reader,
+                execution_config,
+                &transaction_hashes,
+                &chain,
+                block_number,
+                charge_fee,
+            );
         }
         ReplayExecute::BlockTxs {
             chain,
@@ -205,17 +235,18 @@ fn main() {
                 .expect("Unable to fetch the transaction hashes.")
                 .transactions
                 .into_iter()
-                .filter(|tx| txs.contains(tx));
-            for tx_hash in transaction_hashes {
-                show_execution_data(
-                    &mut state,
-                    &reader,
-                    tx_hash.0.to_hex_string(),
-                    &chain,
-                    block_number,
-                    charge_fee,
-                );
-            }
+                .filter(|tx| txs.contains(tx))
+                .collect();
+
+            show_execution_data(
+                &mut state,
+                &reader,
+                execution_config,
+                &transaction_hashes,
+                &chain,
+                block_number,
+                charge_fee,
+            );
         }
         ReplayExecute::BlockRange {
             block_start,
@@ -235,16 +266,16 @@ fn main() {
                     .get_block_with_tx_hashes()
                     .expect("Unable to fetch the transaction hashes.")
                     .transactions;
-                for tx_hash in transaction_hashes {
-                    show_execution_data(
-                        &mut state,
-                        &reader,
-                        tx_hash.0.to_hex_string(),
-                        &chain,
-                        block_number,
-                        charge_fee,
-                    );
-                }
+
+                show_execution_data(
+                    &mut state,
+                    &reader,
+                    execution_config,
+                    &transaction_hashes,
+                    &chain,
+                    block_number,
+                    charge_fee,
+                );
             }
         }
         #[cfg(feature = "benchmark")]
@@ -562,7 +593,8 @@ fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
 fn show_execution_data(
     state: &mut CachedState<impl StateReader>,
     reader: &impl StateReader,
-    tx_hash_str: String,
+    execution_config: TransactionExecutorConfig,
+    tx_hashes: &[TransactionHash],
     chain_str: &str,
     block_number: u64,
     charge_fee: bool,
@@ -576,21 +608,23 @@ fn show_execution_data(
     .entered();
     info!("starting execution");
 
-    let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,
         validate: true,
     };
 
-    let (tx, context) = match fetch_transaction_with_state(reader, &tx_hash, flags) {
-        Ok(x) => x,
-        Err(err) => {
-            return error!("failed to fetch transaction: {err}");
-        }
-    };
+    let block_context = fetch_block_context(reader).unwrap();
 
-    let execution_info_result = tx.execute(state, &context);
+    let executor = TransactionExecutor::new(state, block_context, execution_config);
+
+    let execution_result = {
+        let txs = tx_hashes
+            .into_iter()
+            .map(|hash| fetch_transaction(&hash, block_number, chain, flags))
+            .collect();
+        executor.execute_txs(txs)
+    };
 
     #[cfg(feature = "state_dump")]
     state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
