@@ -198,6 +198,22 @@ fn main() {
             "MLIR".to_string(),
         );
         collapse_recursion(&mut profile, 0, "MLIR");
+
+        merge_funcs(
+            &mut profile,
+            0,
+            &[
+                "libcompiler_rt.dylib",
+                "libdyld.dylib",
+                "libLLVM.dylib",
+                "libsystem_c.dylib",
+                "libsystem_kernel.dylib",
+                "libsystem_malloc.dylib",
+                "libsystem_platform.dylib",
+            ],
+            "lib.dylib".to_string(),
+        );
+        collapse_recursion(&mut profile, 0, "lib.dylib");
     }
 
     let tree = Tree::from_profile(&profile, 0);
