@@ -5,7 +5,10 @@ use std::{
 
 use profiler_sdk::{
     model::Frame,
-    schema::{IndexIntoResourceTable, IndexIntoStackTable, Profile, RawStackTable},
+    schema::{
+        IndexIntoFuncTable, IndexIntoResourceTable, IndexIntoStackTable, Profile, RawSamplesTable,
+        RawStackTable,
+    },
     tree::Tree,
 };
 
@@ -22,7 +25,6 @@ where
     let mut new_stack_table: RawStackTable = RawStackTable::default();
     // Maps old stack table indices to new stack table indices, for updating the other tables.
     let mut old_stack_to_new_stack = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
-    // let mut old_prefix_to_new_prefix = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
     // Lists stacks that we have already collapsed.
     let mut collapsed_stacks: HashSet<IndexIntoStackTable> = HashSet::new();
 
@@ -88,6 +90,59 @@ where
             .get(stack)
             .expect("all stack entries should be mapped");
     }
+}
+
+fn focus_on_function(
+    profile: &mut Profile,
+    thread_idx: usize,
+    func_to_collapse: IndexIntoFuncTable,
+) {
+    // We will build a new stack table, with the transformation applied.
+    let mut new_stack_table: RawStackTable = RawStackTable::default();
+    // Maps old stack table indices to new stack table indices, for updating the other tables.
+    // If a stack index is missing, the sample containing it should be removed.
+    let mut old_stack_to_new_stack = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
+
+    let stack_table_length = profile.threads[thread_idx].stack_table.length;
+    for stack_idx in 0..stack_table_length {
+        let frame_idx = profile.threads[thread_idx].stack_table.frame[stack_idx];
+        let prefix_idx = profile.threads[thread_idx].stack_table.prefix[stack_idx];
+        let func_idx = profile.threads[thread_idx].frame_table.func[frame_idx];
+
+        let new_prefix =
+            prefix_idx.and_then(|prefix_idx| old_stack_to_new_stack.get(&prefix_idx).cloned());
+        if new_prefix.is_some() || func_idx == func_to_collapse {
+            let new_stack_idx = new_stack_table.length;
+
+            new_stack_table.length += 1;
+            new_stack_table.frame.push(frame_idx);
+            new_stack_table.prefix.push(new_prefix);
+
+            old_stack_to_new_stack.insert(stack_idx, new_stack_idx);
+        }
+    }
+
+    let thread = &mut profile.threads[thread_idx];
+
+    // We will build a new sample table, with the transformation applied and
+    // without the samples outside of the focused function.
+    let mut new_sample_table: RawSamplesTable = RawSamplesTable::default();
+
+    for sample in 0..thread.samples.length {
+        let stack = thread.samples.stack[sample];
+        if let Some(new_stack) = old_stack_to_new_stack.get(&stack).cloned() {
+            new_sample_table.length += 1;
+            new_sample_table.stack.push(new_stack);
+            new_sample_table.time.push(thread.samples.time[sample]);
+            new_sample_table.weight.push(thread.samples.weight[sample]);
+            new_sample_table
+                .thread_cpu_delta
+                .push(thread.samples.thread_cpu_delta[sample]);
+        }
+    }
+
+    thread.stack_table = new_stack_table;
+    thread.samples = new_sample_table;
 }
 
 fn collapse_resource(
@@ -176,15 +231,26 @@ fn main() {
         .nth(1)
         .expect("expected profile path as first argument");
     let file = File::open(path).expect("failed to open profile");
-    let mut profile: Profile =
-        serde_json::from_reader(file).expect("failed to deserialize profile");
+    let profile: Profile = serde_json::from_reader(file).expect("failed to deserialize profile");
 
     {
-        let thread = &profile.threads[0];
-        for resource_idx in 0..thread.resource_table.length {
+        let mut profile = profile.clone();
+        for resource_idx in 0..profile.threads[0].resource_table.length {
             collapse_resource(&mut profile, 0, resource_idx);
         }
         collapse_recursion(&mut profile, 0, "replay");
+
+        let replay_function = profile.threads[0]
+            .func_table
+            .name
+            .iter()
+            .position(|&name_idx| {
+                let name = &profile.threads[0].string_array[name_idx];
+                name == "replay"
+            });
+        if let Some(replay_function) = replay_function {
+            focus_on_function(&mut profile, 0, replay_function);
+        }
 
         merge_funcs(
             &mut profile,
@@ -198,23 +264,8 @@ fn main() {
         );
         collapse_recursion(&mut profile, 0, "MLIR");
 
-        merge_funcs(
-            &mut profile,
-            0,
-            &[
-                "libcompiler_rt.dylib",
-                "libdyld.dylib",
-                "libLLVM.dylib",
-                "libsystem_c.dylib",
-                "libsystem_kernel.dylib",
-                "libsystem_malloc.dylib",
-                "libsystem_platform.dylib",
-            ],
-            "lib.dylib".to_string(),
-        );
-        collapse_recursion(&mut profile, 0, "lib.dylib");
+        println!("│ GROUP BY SHARED LIBRARY");
+        println!("│ -----------------------");
+        println!("{}", Tree::from_profile(&profile, 0));
     }
-
-    let tree = Tree::from_profile(&profile, 0);
-    println!("{}", tree);
 }
