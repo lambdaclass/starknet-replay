@@ -46,7 +46,7 @@ pub type IndexIntoNativeSymbolTable = usize;
 pub type ResourceTypeEnum = Uint;
 
 /// All of the data for a processed profile.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Profile {
@@ -59,7 +59,7 @@ pub struct Profile {
 }
 
 /// Meta information associated for the entire profile.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct ProfileMeta {
@@ -105,7 +105,7 @@ pub struct ProfileMeta {
 /// based on thread.pid.
 ///
 /// There is also a derived `Thread` type, see profile-derived.js.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct RawThread {
@@ -139,7 +139,7 @@ pub struct RawThread {
 /// fixed but configurable rate, e.g. every 1 millisecond. This table represents
 /// the minimal amount of information that is needed to represent that sampled
 /// function. Most of the entries are indices into other tables.
-#[derive(Deserialize)]
+#[derive(Clone, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct RawSamplesTable {
@@ -175,7 +175,7 @@ pub struct RawSamplesTable {
 /// to identify the sample's stack. We take advantage of the fact that many call
 /// stacks in the profile have a shared prefix; storing these stacks as a tree
 /// saves a lot of space compared to storing them as actual lists of frames.
-#[derive(Deserialize, Default)]
+#[derive(Clone, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct RawStackTable {
@@ -187,7 +187,7 @@ pub struct RawStackTable {
 /// Frames contain the context information about the function execution at the
 /// moment in time. The caller/callee relationship between frames is defined by
 /// the StackTable.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct FrameTable {
@@ -267,7 +267,7 @@ pub struct FrameTable {
 /// meaningful values in their fields. Symbolication will cause many funcs that
 /// were created upfront to become orphaned, as the frames that originally referred
 /// to them get reassigned to the canonical func for their actual function.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct FuncTable {
@@ -303,7 +303,7 @@ pub struct FuncTable {
 /// something that contains *all* symbols of a given library. But this table
 /// only contains a subset of those symbols, and mixes symbols from multiple
 /// libraries.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct NativeSymbolTable {
@@ -320,7 +320,7 @@ pub struct NativeSymbolTable {
 
 /// The ResourceTable holds additional information about functions. It tends to
 /// contain sparse arrays. Multiple functions can point to the same resource.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct ResourceTable {
@@ -336,7 +336,7 @@ pub struct ResourceTable {
 /// importantly, the symbolication API requires a debugName + breakpadId for
 /// each set of unsymbolicated addresses, to know where to obtain symbols for
 /// those addresses.
-#[derive(Deserialize, Clone)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Lib {
@@ -358,7 +358,7 @@ pub struct Lib {
 /// Object that holds the units of samples table values. Some of the values can be
 /// different depending on the platform, e.g. threadCPUDelta.
 /// See https://searchfox.org/mozilla-central/rev/851bbbd9d9a38c2785a24c13b6412751be8d3253/tools/profiler/core/platform.cpp#2601-2606
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct SampleUnits {
@@ -369,7 +369,7 @@ pub struct SampleUnits {
 }
 
 /// Unit of the values in the timeline. Used to differentiate size-profiles.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub enum TimelineUnit {
@@ -378,7 +378,7 @@ pub enum TimelineUnit {
 }
 
 /// Units of ThreadCPUDelta values for different platforms.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub enum ThreadCPUDeltaUnit {
@@ -390,7 +390,7 @@ pub enum ThreadCPUDeltaUnit {
 
 /// The Tid is most often a Number. However in some cases such as merged
 /// profiles we could generate a String.
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Tid {
     #[serde(untagged)]
