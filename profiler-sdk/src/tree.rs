@@ -1,7 +1,5 @@
 use std::fmt::Display;
 
-use itertools::Itertools;
-
 use crate::{model::Sample, schema::Profile};
 
 #[derive(Debug, Default)]
@@ -64,25 +62,6 @@ impl<'p> Tree<'p> {
 
         tree
     }
-
-    pub fn prune(&mut self, limit: f64) {
-        let total = self.children.iter().map(|n| n.subtotal).sum::<u64>();
-        self.prune_inner(total, limit);
-    }
-
-    fn prune_inner(&mut self, total: u64, limit: f64) {
-        self.children.retain_mut(|node| {
-            let percentage = node.subtotal as f64 / total as f64 * 100.0;
-
-            if percentage < limit {
-                node.count = node.subtotal;
-                false
-            } else {
-                node.subtree.prune_inner(total, limit);
-                true
-            }
-        });
-    }
 }
 
 /// Tree display mimicks how the firefox profiler does it:
@@ -109,11 +88,11 @@ impl<'p> Tree<'p> {
 /// │ 17.4  │ 8     │ 4     │                └─ 0x90af
 /// │ 8.7   │ 4     │ 4     │                   └─ 0x29b8
 /// ```
-impl<'p> Display for Tree<'p> {
+impl Display for Tree<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn inner<'p>(
+        fn inner(
             f: &mut std::fmt::Formatter<'_>,
-            node: &Node<'p>,
+            node: &Node<'_>,
             total: u64,
             prefix: &str,
             marker: &str,
@@ -128,11 +107,11 @@ impl<'p> Display for Tree<'p> {
 
             let new_prefix = format!("{}{}", prefix, {
                 if marker.is_empty() {
-                    format!("")
+                    "".to_string()
                 } else if marker == "├─ " {
-                    format!("│  ")
+                    "│  ".to_string()
                 } else {
-                    format!("   ")
+                    "   ".to_string()
                 }
             });
 
@@ -140,9 +119,9 @@ impl<'p> Display for Tree<'p> {
 
             while let Some(child) = children.next() {
                 let new_marker = if children.peek().is_none() {
-                    format!("└─ ")
+                    "└─ ".to_string()
                 } else {
-                    format!("├─ ")
+                    "├─ ".to_string()
                 };
 
                 inner(f, child, total, &new_prefix, &new_marker)?;
