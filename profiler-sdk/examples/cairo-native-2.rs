@@ -368,16 +368,6 @@ fn main() {
         collapse_frames(&mut profile, 0, "sierra".to_string(), |frame| {
             mlir_resources.contains(&frame.func().resource_idx())
         });
-        // Collapse recursion for Sierra.
-        {
-            let func = profile.threads[0]
-                .func_table
-                .name
-                .iter()
-                .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "sierra")
-                .expect("failed to find func");
-            collapse_recursion(&mut profile, 0, func);
-        }
 
         // Merge unimportant functions
         {
@@ -410,7 +400,6 @@ fn main() {
                     || name == "libsystem_platform.dylib"
                     || name == "libcompiler_rt.dylib"
                     || name == "invoke_trampoline"
-                    || name.contains("{{closure}}")
             });
             let funcs = profile.threads[0]
                 .func_table
@@ -436,6 +425,7 @@ fn main() {
                 .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "blockifier")
                 .expect("failed to find func");
             focus_on_function(&mut profile, 0, func);
+            collapse_recursion(&mut profile, 0, func);
         }
 
         // Collapse math libraries
