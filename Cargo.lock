@@ -8083,6 +8083,7 @@ dependencies = [
  "cairo-lang-starknet",
  "cairo-lang-starknet-classes",
  "cairo-native",
+ "clap",
  "serde_json",
 ]
 
