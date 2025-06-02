@@ -2,13 +2,20 @@ use std::fs::File;
 
 use cairo_lang_sierra::program::Program;
 use cairo_native::{Value, context::NativeContext, executor::AotNativeExecutor};
+use clap::{Parser, command};
+
+/// Executes a sierra json program with Cairo Native
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    // Path to sierra json file
+    sierra_path: String,
+}
 
 fn main() {
-    let mut args = std::env::args();
-    args.next();
+    let args = Args::parse();
 
-    let sierra_path = args.next().expect("expected cairo path as first argument");
-    let sierra_file = File::open(sierra_path).expect("failed to open sierra file");
+    let sierra_file = File::open(args.sierra_path).expect("failed to open sierra file");
 
     let sierra_program: Program =
         serde_json::from_reader(sierra_file).expect("failed to deserialize program");
