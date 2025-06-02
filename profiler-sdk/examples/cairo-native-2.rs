@@ -185,6 +185,46 @@ fn merge_funcs(profile: &mut Profile, thread_idx: usize, funcs: &[&str], new_fun
     }
 }
 
+fn collapse_function(
+    profile: &mut Profile,
+    thread_idx: usize,
+    func_to_collapse: IndexIntoFuncTable,
+) {
+    // Maps old stack table indices to new stack table indices, for updating the other tables.
+    let mut old_stack_to_new_stack = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
+    // Determines if a subtree should be collapsed.
+    let mut is_in_collapsed_subtree = HashSet::<IndexIntoStackTable>::new();
+
+    let thread = &mut profile.threads[thread_idx];
+    for stack in 0..thread.stack_table.length {
+        let frame = thread.stack_table.frame[stack];
+        let func = thread.frame_table.func[frame];
+        let prefix = thread.stack_table.prefix[stack];
+
+        if prefix.is_some_and(|prefix| is_in_collapsed_subtree.contains(&prefix)) {
+            // If the prefix should be collapsed, we map current stack to prefix stack.
+            let prefix = prefix.expect("we just checked that there is a prefix");
+            let new_prefix = old_stack_to_new_stack.get(&prefix).cloned().unwrap_or(0);
+            old_stack_to_new_stack.insert(stack, new_prefix);
+            is_in_collapsed_subtree.insert(stack);
+        } else {
+            // prefix won't be collapsed, so we keep the current stack entry.
+            old_stack_to_new_stack.insert(stack, stack);
+
+            if func == func_to_collapse {
+                // if the current function should me collapsed, mark all subtree for collapsing.
+                is_in_collapsed_subtree.insert(stack);
+            }
+        }
+    }
+
+    for stack in &mut thread.samples.stack {
+        *stack = *old_stack_to_new_stack
+            .get(stack)
+            .expect("all stack entries should be mapped");
+    }
+}
+
 fn collapse_recursion(profile: &mut Profile, thread_idx: usize, func_to_collapse: &str) {
     let thread = &mut profile.threads[thread_idx];
 
@@ -234,6 +274,9 @@ fn main() {
     let profile: Profile = serde_json::from_reader(file).expect("failed to deserialize profile");
 
     {
+        println!("│ GROUP BY SHARED LIBRARY");
+        println!("│ -----------------------");
+
         let mut profile = profile.clone();
         for resource_idx in 0..profile.threads[0].resource_table.length {
             collapse_resource(&mut profile, 0, resource_idx);
@@ -264,8 +307,76 @@ fn main() {
         );
         collapse_recursion(&mut profile, 0, "MLIR");
 
-        println!("│ GROUP BY SHARED LIBRARY");
-        println!("│ -----------------------");
         println!("{}", Tree::from_profile(&profile, 0));
+    }
+
+    {
+        println!("│ GROUP BY SYMBOL");
+        println!("│ ---------------");
+
+        let mut profile = profile.clone();
+
+        collapse_frames(&mut profile, 0, "blockifier".to_string(), |frame| {
+            let name = frame.func().name();
+            name.contains("blockifier")
+        });
+
+        let blockifier_function = profile.threads[0]
+            .func_table
+            .name
+            .iter()
+            .position(|&name_idx| {
+                let name = &profile.threads[0].string_array[name_idx];
+                name == "blockifier"
+            });
+        if let Some(replay_function) = blockifier_function {
+            focus_on_function(&mut profile, 0, replay_function);
+        }
+
+        collapse_recursion(&mut profile, 0, "invoke_trampoline");
+
+        let mut profile = profile.clone();
+        for resource_idx in 0..profile.threads[0].resource_table.length {
+            let name_idx = profile.threads[0].resource_table.name[resource_idx];
+            let name = &profile.threads[0].string_array[name_idx];
+
+            if name.starts_with("0x") {
+                collapse_resource(&mut profile, 0, resource_idx);
+            }
+        }
+
+        collapse_frames(&mut profile, 0, "math".to_string(), |frame| {
+            let name = frame.func().name();
+            name.contains("starknet_types_core")
+                || name.starts_with("rand")
+                || name.contains("lambdaworks")
+        });
+
+        let func_function = profile.threads[0]
+            .func_table
+            .name
+            .iter()
+            .position(|&name_idx| {
+                let name = &profile.threads[0].string_array[name_idx];
+                name == "math"
+            });
+        if let Some(math_function) = func_function {
+            collapse_function(&mut profile, 0, math_function);
+        }
+
+        merge_funcs(
+            &mut profile,
+            0,
+            &[
+                "0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.dylib",
+                "0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0.dylib",
+                "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017.dylib",
+            ],
+            "MLIR".to_string(),
+        );
+
+        let mut tree = Tree::from_profile(&profile, 0);
+        tree.prune(0.5);
+        println!("{}", tree);
     }
 }
