@@ -67,7 +67,7 @@ impl<'p> Tree<'p> {
 /// Tree display mimicks how the firefox profiler does it:
 ///
 ///
-/// ```
+/// ```txt
 /// │ RATIO │ TOTAL │ SELF  │ TREE
 /// │       │       │       │
 /// │ 100.0 │ 46    │ 5     │ 0x6b97
