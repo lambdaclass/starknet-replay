@@ -27,55 +27,59 @@ To process the samples, run:
 cargo run --example cairo-native sample.json
 ```
 
-It will output different views of the same data. For example, the "Samples by Source" section will differentiate samples between: MLIR, Runtime, and Blockifier logic.
+It will output two different representation of the same data.
 
+The first tree groups the calls by shared library.
 ```
-=================
-Samples by Source
-=================
-
-84135  - 100  % - total
-  75252  - 89.44% - Runtime
-    30424  - 36.16% - cairo_native__libfunc__ec__ec_state_init
-    15777  - 18.75% - cairo_native__libfunc__ec__ec_state_add_mul
-    15422  - 18.33% - cairo_native__libfunc__ec__ec_point_from_x_nz
-    7180   - 8.53 % - cairo_native__libfunc__pedersen
-    4483   - 5.33 % - cairo_native__libfunc__hades_permutation
-    1145   - 1.36 % - cairo_native__libfunc__ec__ec_state_try_finalize_nz
-    526    - 0.63 % - cairo_native__libfunc__ec__ec_state_add
-    82     - 0.1  % - wrap_emit_event
-    59     - 0.07 % - wrap_storage_read
-    40     - 0.05 % - cairo_native__libfunc__ec__ec_point_try_new_nz
-    27     - 0.03 % - wrap_get_execution_info_v2
-    22     - 0.03 % - wrap_get_execution_info
-    20     - 0.02 % - wrap_call_contract
-    18     - 0.02 % - wrap_library_call
-    9      - 0.01 % - cairo_native__dict_get
-    6      - 0.01 % - wrap_storage_write
-    6      - 0.01 % - cairo_native__get_costs_builtin
-    5      - 0.01 % - cairo_native__dict_drop
-    1      - 0    % - wrap_get_block_hash
-  5005   - 5.95 % - MLIR
-  3598   - 4.28 % - blockifier
-  279    - 0.33 % - cairo_native
-  1      - 0    % - unknown
+│ GROUP BY SHARED LIBRARY
+│ -----------------------
+│ RATIO │  TOTAL  │  SELF   │ TREE
+│       │         │         │
+│ 100.0 │ 109588  │ 78953   │ replay
+│ 21.0  │ 22961   │ 22961   │ ├─ libsystem_kernel.dylib
+│ 4.6   │ 5005    │ 4481    │ ├─ MLIR
+│ 0.3   │ 299     │ 259     │ │  ├─ libsystem_malloc.dylib
+│ 0.0   │ 38      │ 38      │ │  │  ├─ libsystem_platform.dylib
+│ 0.0   │ 2       │ 2       │ │  │  └─ libsystem_kernel.dylib
+│ 0.2   │ 224     │ 224     │ │  ├─ libcompiler_rt.dylib
+│ 0.0   │ 1       │ 1       │ │  └─ libdyld.dylib
+│ 1.1   │ 1249    │ 1033    │ ├─ libsystem_malloc.dylib
+│ 0.1   │ 128     │ 128     │ │  ├─ libsystem_platform.dylib
+│ 0.1   │ 88      │ 88      │ │  └─ libsystem_kernel.dylib
+│ 0.9   │ 1015    │ 1       │ ├─ libsystem_c.dylib
+│ 0.9   │ 1014    │ 1014    │ │  └─ libsystem_kernel.dylib
+│ 0.3   │ 338     │ 338     │ ├─ libsystem_platform.dylib
+│ 0.0   │ 54      │ 54      │ ├─ dyld
+│ 0.0   │ 13      │ 13      │ └─ libdyld.dylib
 ```
 
-The section "Samples by Crate" is much simpler, and only differentiates between rust crates. MLIR execution is contained within "blockifier":
-
+The second tree does more advanced processing, grouping by: blockifier, sierra, and runtime functions.
 ```
-================
-Samples by Crate
-================
-
-86468  - 100  % - total
-  75677  - 87.52% - lambdaworks_math
-  6971   - 8.06 % - blockifier
-  2951   - 3.41 % - starknet_types_core
-  557    - 0.64 % - cairo_native
-  156    - 0.18 % - starknet_api
-  155    - 0.18 % - lambdaworks_crypto
-  1      - 0    % - unknown
+│ GROUP BY SYMBOL
+│ ---------------
+│ RATIO │  TOTAL  │  SELF   │ TREE
+│       │         │         │
+│ 100.0 │ 84798   │ 4585    │ blockifier
+│ 94.6  │ 80213   │ 5005    │ └─ sierra
+│ 35.9  │ 30425   │ 30425   │    ├─ ...cairo_native__libfunc__ec__ec_state_init
+│ 18.6  │ 15777   │ 15777   │    ├─ ...cairo_native__libfunc__ec__ec_state_add_mul
+│ 18.2  │ 15422   │ 15422   │    ├─ ...cairo_native__libfunc__ec__ec_point_from_x_nz
+│ 8.5   │ 7180    │ 7180    │    ├─ ...cairo_native__libfunc__pedersen
+│ 5.3   │ 4483    │ 4483    │    ├─ ...cairo_native__libfunc__hades_permutation
+│ 1.4   │ 1145    │ 1145    │    ├─ ...cairo_native__libfunc__ec__ec_state_try_finalize_nz
+│ 0.6   │ 526     │ 526     │    ├─ ...cairo_native__libfunc__ec__ec_state_add
+│ 0.1   │ 72      │ 72      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_emit_event
+│ 0.0   │ 40      │ 40      │    ├─ ...cairo_native__libfunc__ec__ec_point_try_new_nz
+│ 0.0   │ 36      │ 36      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_storage_read
+│ 0.0   │ 26      │ 26      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_get_execution_info_v2
+│ 0.0   │ 19      │ 19      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_get_execution_info
+│ 0.0   │ 18      │ 18      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_call_contract
+│ 0.0   │ 13      │ 13      │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_library_call
+│ 0.0   │ 9       │ 9       │    ├─ ...cairo_native__dict_get
+│ 0.0   │ 6       │ 6       │    ├─ ...cairo_native__get_costs_builtin
+│ 0.0   │ 5       │ 5       │    ├─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_storage_write
+│ 0.0   │ 5       │ 5       │    ├─ ...cairo_native__dict_drop
+│ 0.0   │ 1       │ 1       │    └─ ...handler::StarknetSyscallHandlerCallbacks<T>::wrap_get_block_hash
 ```
 
 # Understanding The Execution Flow
