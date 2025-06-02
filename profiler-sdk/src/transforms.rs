@@ -11,6 +11,7 @@ use crate::{
     },
 };
 
+/// Collapses all frames that match the predicate, into a new function with the given name.
 pub fn collapse_frames<P>(profile: &mut Profile, thread_idx: usize, name: String, mut predicate: P)
 where
     P: FnMut(Frame) -> bool,
