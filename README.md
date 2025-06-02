@@ -26,10 +26,15 @@ Some environment variable are needed, you can automatically set them by sourcing
 export LLVM_SYS_191_PREFIX=/path/to/llvm-19
 export MLIR_SYS_190_PREFIX=/path/to/llvm-19
 export TABLEGEN_190_PREFIX=/path/to/llvm-19
-export CAIRO_NATIVE_RUNTIME_LIBRARY=/path/to/cairo_native/target/release/libcairo_native_runtime.a
 # RPC
 export RPC_ENDPOINT_MAINNET=rpc.endpoint.mainnet.com
 export RPC_ENDPOINT_TESTNET=rpc.endpoint.testnet.com
+```
+
+On macos, you may also need to set the following to avoid linking errors:
+
+```bash
+export LIBRARY_PATH=/opt/homebrew/lib
 ```
 
 Once you have installed dependencies and set the needed environment variables, you can build the project and run the tests:
@@ -55,14 +60,6 @@ Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/l
 Afterwards, compiling with the feature flag `cairo-native` will enable native execution. You can check out some example test code that uses it under `tests/cairo_native.rs`.
 
 #### Using ahead of time compilation with Native.
-
-Currently cairo-native with AOT needs a runtime library in a known place. For this you need to compile the [cairo-native-runtime](https://github.com/lambdaclass/cairo_native/tree/main/runtime) crate and point the following environment variable to a folder containing the dynamic library. The path **must** be an absolute path.
-
-```bash
-CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libcairo_native_runtime.a
-```
-
-If you don't do this you will get a linker error when using AOT.
 
 ## replay
 You can use the replay crate to execute transactions or blocks via the CLI. For example:
@@ -125,6 +122,36 @@ To compare the outputs, you can use the following scripts. Some of them required
    > ./scripts/delta_state_dumps.sh
    ```
 
+### Replaying isolated calls
+
+The replay crate supports executing isolated calls inside of a transaction, although it probably won't work in every scenario.
+
+First, obtain the full state dump of a transaction:
+
+```bash
+cargo run --features state_dump -- tx \
+   0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79 mainnet 1000000
+```
+
+Then, extract the desired call (by its call index). In this case, I will try to re-execute starting from the third call (that is, with index 2).
+
+```bash
+./scripts/extract_call.py \
+   state_dumps/native/block1000000/0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79.json \
+   2 > call.json 
+```
+
+Finally, re-execute it with the `call` command.
+
+```bash
+cargo run -- call call.json \
+   0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79 1000000 mainnet
+```
+
+The `state_dump` feature can be used to save the execution result to either
+- `call_state_dumps/native/{tx_hash}.json`
+- `call_state_dumps/vm/{tx_hash}.json`
+
 ### Benchmarking
 
 To run benchmarks manually, you must compile with release and the benchmark feature:
@@ -180,10 +207,6 @@ In the `plotting` directory, you can find python scripts to plot relevant inform
 To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
 
 - `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
-- `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
-- `python ./plotting/plot_compilation_memory_corr.py native-logs`: Size of the compiled native libraries, by the associated Casm contract size.
-- `python ./plotting/plot_compilation_memory_trend.py native-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
-- `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
-- `python ./plotting/plot_compilation_time_trend.py native-logs`: Native and Casm compilation time, by the sierra contract size.
+- `python ./plotting/plot_compilation.py native-logs`: Plots the compilation statistics of Native.
 - `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
 - `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.

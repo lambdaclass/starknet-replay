@@ -1,5 +1,6 @@
 use std::{env, sync::Arc, thread, time::Duration};
 
+use blockifier::execution::native::executor::ContractExecutor;
 use blockifier::{
     execution::{
         contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
@@ -271,14 +272,24 @@ fn compile_sierra_cc(
             let (sierra_version, _) =
                 version_id_from_serialized_sierra_program(&sierra_cc.sierra_program).unwrap();
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
-            (
+
+            ContractExecutor::Emu((
                 program,
                 sierra_cc.entry_points_by_type.clone(),
                 sierra_version,
-            )
-                .into()
+            ))
         } else {
-            get_native_executor(&sierra_cc, class_hash).into()
+            #[cfg(feature = "with-trace-dump")]
+            {
+                ContractExecutor::AotTrace((
+                    get_native_executor(&sierra_cc, class_hash),
+                    sierra_cc.extract_sierra_program().unwrap(),
+                ))
+            }
+            #[cfg(not(feature = "with-trace-dump"))]
+            {
+                ContractExecutor::Aot(get_native_executor(&sierra_cc, class_hash))
+            }
         };
 
         let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);

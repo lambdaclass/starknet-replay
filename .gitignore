@@ -13,3 +13,4 @@ block_composition/
 cairo2
 corelib
 cairo-*.tar
+call_state_dumps

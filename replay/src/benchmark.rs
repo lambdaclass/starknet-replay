@@ -156,10 +156,10 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         })
         .collect::<Vec<_>>();
 
-    if call.time.is_zero() {
-        panic!("contract time should never be zero, there is a bug somewhere")
-    }
-    let time = call.time - inner_time;
+    let time = call
+        .time
+        .checked_sub(inner_time)
+        .expect("time cannot be negative");
 
     let top_class = ClassExecutionInfo {
         class_hash,
