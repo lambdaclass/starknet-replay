@@ -1,15 +1,20 @@
 use std::fs::File;
 
 use cairo_lang_starknet_classes::contract_class::ContractClass;
+use clap::{Parser, command};
+
+/// Extracts sierra program from contract
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    // Path to cairo contract
+    contract_path: String,
+}
 
 fn main() {
-    let mut args = std::env::args();
-    args.next();
+    let args = Args::parse();
 
-    let contract_path = args
-        .next()
-        .expect("expected contract path as first argument");
-    let contract_file = File::open(contract_path).expect("failed to open contract file");
+    let contract_file = File::open(args.contract_path).expect("failed to open contract file");
 
     let contract: ContractClass =
         serde_json::from_reader(contract_file).expect("failed to parse contract");
