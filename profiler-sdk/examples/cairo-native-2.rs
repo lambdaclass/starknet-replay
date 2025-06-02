@@ -3,6 +3,7 @@ use std::{
     fs::File,
 };
 
+use itertools::Itertools;
 use profiler_sdk::{
     model::Frame,
     schema::{
@@ -239,6 +240,55 @@ fn collapse_recursion(profile: &mut Profile, thread_idx: usize, func_to_collapse
     }
 }
 
+fn merge_function(profile: &mut Profile, thread_idx: usize, function_to_merge: IndexIntoFuncTable) {
+    // We will build a new stack table, with the transformation applied.
+    let mut new_stack_table: RawStackTable = RawStackTable::default();
+    // Maps old stack table indices to new stack table indices, for updating the other tables.
+    let mut old_stack_to_new_stack = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
+
+    let thread = &profile.threads[thread_idx];
+    for stack in 0..thread.stack_table.length {
+        let prefix = thread.stack_table.prefix[stack];
+        let frame = thread.stack_table.frame[stack];
+        let func = thread.frame_table.func[frame];
+
+        let new_prefix = prefix.and_then(|prefix| old_stack_to_new_stack.get(&prefix).cloned());
+
+        if func == function_to_merge {
+            if let Some(new_prefix) = new_prefix {
+                old_stack_to_new_stack.insert(stack, new_prefix);
+            }
+        } else {
+            old_stack_to_new_stack.insert(stack, stack);
+        }
+
+        new_stack_table.length += 1;
+        new_stack_table.frame.push(frame);
+        new_stack_table.prefix.push(new_prefix);
+    }
+
+    let thread = &mut profile.threads[thread_idx];
+
+    // We will build a new sample table, with the transformation applied and
+    // without the samples outside of the focused function.
+    let mut new_sample_table: RawSamplesTable = RawSamplesTable::default();
+    for sample in 0..thread.samples.length {
+        let stack = thread.samples.stack[sample];
+        if let Some(new_stack) = old_stack_to_new_stack.get(&stack).cloned() {
+            new_sample_table.length += 1;
+            new_sample_table.stack.push(new_stack);
+            new_sample_table.time.push(thread.samples.time[sample]);
+            new_sample_table.weight.push(thread.samples.weight[sample]);
+            new_sample_table
+                .thread_cpu_delta
+                .push(thread.samples.thread_cpu_delta[sample]);
+        }
+    }
+
+    thread.stack_table = new_stack_table;
+    thread.samples = new_sample_table;
+}
+
 fn main() {
     let path = std::env::args()
         .nth(1)
@@ -268,7 +318,6 @@ fn main() {
         collapse_frames(&mut profile, 0, "MLIR".to_string(), |frame| {
             mlir_resources.contains(&frame.func().resource_idx())
         });
-
         // Collapse recursion of the replay resource.
         collapse_recursion(&mut profile, 0, "replay");
 
@@ -291,43 +340,109 @@ fn main() {
 
         let mut profile = profile.clone();
 
+        // Merge unimportant functions
+        let unimportant_functions = profile.threads[0]
+            .func_table
+            .name
+            .iter()
+            .positions(|&name_idx| {
+                let name = &profile.threads[0].string_array[name_idx];
+                name == "szone_malloc_should_clear"
+                    || name == "free_tiny"
+                    || name == "_platform_memtest"
+                    || name == "nanov2_malloc_type"
+                    || name == "_malloc_zone_malloc"
+                    || name == "free_small"
+                    || name == "_realloc"
+                    || name == "clock_gettime"
+            })
+            .collect_vec();
+        for func in unimportant_functions {
+            collapse_subtree(&mut profile, 0, func);
+        }
+        collapse_frames(&mut profile, 0, "lib".to_string(), |frame| {
+            let name = frame.func().name();
+            name.contains("std::")
+                || name.contains("core::")
+                || name.contains("hashbrown::")
+                || name.contains("alloc::")
+                || name.contains("serde_json::")
+                || name.contains("serde::")
+                || name.starts_with("<unknown")
+                || name.contains("hex::")
+                || name.contains("num_bigint::")
+                || name.contains("digest::")
+                || name.contains("sha3::")
+                || name.contains("keccak::")
+                || name.contains("block_buffer::")
+                || name.contains("cairo_vm::")
+                || name.contains("num_rational::")
+                || name.contains("num_integer::")
+                || name == "_tlv_get_addr"
+                || name == "__rust_dealloc"
+                || name == "szone_malloc_should_clear"
+                || name == "free_tiny"
+                || name == "_platform_memtest"
+                || name == "nanov2_malloc_type"
+                || name == "_malloc_zone_malloc"
+                || name == "free_small"
+                || name == "_realloc"
+                || name == "_platform_memset"
+                || name == "_platform_memmove"
+                || name == "clock_gettime"
+                || name == "__bzero"
+                || name == "_szone_free"
+                || name == "_nanov2_free"
+                || name == "_rdl_alloc"
+                || name == "_rdl_dealloc"
+                || name == "_free"
+                || name == "__rust_alloc"
+                || name == "invoke_trampoline"
+                || name == "__udivmodti4"
+                || name == "__umodti3"
+        });
+        let lib_function = profile.threads[0]
+            .func_table
+            .name
+            .iter()
+            .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "lib");
+        if let Some(lib_function) = lib_function {
+            merge_function(&mut profile, 0, lib_function);
+        }
+
+        // Collapse blockifier
         collapse_frames(&mut profile, 0, "blockifier".to_string(), |frame| {
             let name = frame.func().name();
-            name.contains("blockifier")
+            name.contains("blockifier") || name.contains("starknet_api")
         });
 
+        // Focus on blockifier
         let blockifier_function = profile.threads[0]
             .func_table
             .name
             .iter()
-            .position(|&name_idx| {
-                let name = &profile.threads[0].string_array[name_idx];
-                name == "blockifier"
-            });
-        if let Some(replay_function) = blockifier_function {
-            focus_on_function(&mut profile, 0, replay_function);
+            .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "blockifier");
+        if let Some(blockifier_function) = blockifier_function {
+            focus_on_function(&mut profile, 0, blockifier_function);
         }
 
-        collapse_recursion(&mut profile, 0, "invoke_trampoline");
+        // Collapse MLIR
+        collapse_frames(&mut profile, 0, "MLIR".to_string(), |frame| {
+            let resource_idx = frame.func().resource_idx();
+            let name_idx = frame.thread.resource_table.name[resource_idx];
+            let name = &frame.thread.string_array[name_idx];
+            name.starts_with("0x")
+        });
+        collapse_recursion(&mut profile, 0, "MLIR");
 
-        let mut profile = profile.clone();
-        for resource_idx in 0..profile.threads[0].resource_table.length {
-            let name_idx = profile.threads[0].resource_table.name[resource_idx];
-            let name = &profile.threads[0].string_array[name_idx];
-
-            if name.starts_with("0x") {
-                collapse_resource(&mut profile, 0, resource_idx);
-            }
-        }
-
+        // Collapse Math
         collapse_frames(&mut profile, 0, "math".to_string(), |frame| {
             let name = frame.func().name();
             name.contains("starknet_types_core")
                 || name.starts_with("rand")
                 || name.contains("lambdaworks")
         });
-
-        let func_function = profile.threads[0]
+        let math_function = profile.threads[0]
             .func_table
             .name
             .iter()
@@ -335,12 +450,51 @@ fn main() {
                 let name = &profile.threads[0].string_array[name_idx];
                 name == "math"
             });
-        if let Some(math_function) = func_function {
+        if let Some(math_function) = math_function {
             collapse_subtree(&mut profile, 0, math_function);
         }
 
-        let mut tree = Tree::from_profile(&profile, 0);
-        tree.prune(0.5);
-        println!("{}", tree);
+        // Collapse rpc_state_reader
+        collapse_frames(&mut profile, 0, "rpc_state_reader".to_string(), |frame| {
+            let name = frame.func().name();
+            name.contains("rpc_state_reader")
+        });
+        let rpc_state_reader_function =
+            profile.threads[0]
+                .func_table
+                .name
+                .iter()
+                .position(|&name_idx| {
+                    let name = &profile.threads[0].string_array[name_idx];
+                    name == "rpc_state_reader"
+                });
+        if let Some(rpc_state_reader_function) = rpc_state_reader_function {
+            collapse_subtree(&mut profile, 0, rpc_state_reader_function);
+        }
+
+        // Collapse cairo_native::executor
+        collapse_frames(
+            &mut profile,
+            0,
+            "cairo_native::executor".to_string(),
+            |frame| {
+                let name = frame.func().name();
+                name.contains("cairo_native::executor")
+            },
+        );
+        let cairo_native_executor_function =
+            profile.threads[0]
+                .func_table
+                .name
+                .iter()
+                .position(|&name_idx| {
+                    let name = &profile.threads[0].string_array[name_idx];
+                    name == "cairo_native::executor"
+                });
+        if let Some(cairo_native_executor_function) = cairo_native_executor_function {
+            collapse_subtree(&mut profile, 0, cairo_native_executor_function);
+        }
+
+        println!("{}", Tree::from_profile(&profile, 0));
     }
 }
