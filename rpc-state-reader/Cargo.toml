@@ -9,6 +9,7 @@ edition = "2021"
 only_casm = []
 with-sierra-emu = []
 with-trace-dump = ["blockifier/with-trace-dump"]
+with-libfunc-profiling = ["blockifier/with-libfunc-profiling"]
 
 [dependencies]
 ureq = { version = "2.7.1", features = ["json"] }

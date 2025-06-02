@@ -279,14 +279,14 @@ fn compile_sierra_cc(
                 sierra_version,
             ))
         } else {
-            #[cfg(feature = "with-trace-dump")]
+            #[cfg(any(feature = "with-trace-dump", feature = "with-libfunc-profiling"))]
             {
                 ContractExecutor::AotTrace((
                     get_native_executor(&sierra_cc, class_hash),
                     sierra_cc.extract_sierra_program().unwrap(),
                 ))
             }
-            #[cfg(not(feature = "with-trace-dump"))]
+            #[cfg(not(any(feature = "with-trace-dump", feature = "with-libfunc-profiling")))]
             {
                 ContractExecutor::Aot(get_native_executor(&sierra_cc, class_hash))
             }
