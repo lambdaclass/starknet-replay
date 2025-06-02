@@ -1,6 +1,6 @@
-use cairo_lang_compiler::{diagnostics::DiagnosticsReporter, CompilerConfig};
+use cairo_lang_compiler::{CompilerConfig, diagnostics::DiagnosticsReporter};
 use cairo_lang_starknet::compile::starknet_compile;
-use clap::{command, Parser};
+use clap::{Parser, command};
 
 /// Compiles a Cairo contract
 #[derive(Parser, Debug)]
