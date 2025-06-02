@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use itertools::Itertools;
+
 use crate::{model::Sample, schema::Profile};
 
 #[derive(Debug, Default)]
@@ -61,6 +63,25 @@ impl<'p> Tree<'p> {
         }
 
         tree
+    }
+
+    pub fn prune(&mut self, limit: f64) {
+        let total = self.children.iter().map(|n| n.subtotal).sum::<u64>();
+        self.prune_inner(total, limit);
+    }
+
+    fn prune_inner(&mut self, total: u64, limit: f64) {
+        self.children.retain_mut(|node| {
+            let percentage = node.subtotal as f64 / total as f64 * 100.0;
+
+            if percentage < limit {
+                node.count = node.subtotal;
+                false
+            } else {
+                node.subtree.prune_inner(total, limit);
+                true
+            }
+        });
     }
 }
 
