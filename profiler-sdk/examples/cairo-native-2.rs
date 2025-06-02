@@ -158,34 +158,7 @@ fn collapse_resource(
     });
 }
 
-fn merge_funcs(profile: &mut Profile, thread_idx: usize, funcs: &[&str], new_func_name: String) {
-    let mut new_func = None;
-
-    let thread = &mut profile.threads[thread_idx];
-    thread.string_array.push(new_func_name);
-    let new_func_name_idx = thread.string_array.len() - 1;
-
-    for stack in 0..thread.stack_table.length {
-        let frame = thread.stack_table.frame[stack];
-        let func = thread.frame_table.func[frame];
-        let name_idx = thread.func_table.name[func];
-        let name = thread.string_array[name_idx].as_str();
-
-        if !funcs.contains(&name) {
-            continue;
-        }
-
-        match new_func {
-            Some(new_func) => thread.frame_table.func[frame] = new_func,
-            None => {
-                thread.func_table.name[func] = new_func_name_idx;
-                new_func = Some(func);
-            }
-        }
-    }
-}
-
-fn collapse_function(
+fn collapse_subtree(
     profile: &mut Profile,
     thread_idx: usize,
     func_to_collapse: IndexIntoFuncTable,
@@ -278,34 +251,36 @@ fn main() {
         println!("│ -----------------------");
 
         let mut profile = profile.clone();
+
+        let mut mlir_resources = vec![];
+
+        // Collapse all resources except contract shared libraries.
         for resource_idx in 0..profile.threads[0].resource_table.length {
-            collapse_resource(&mut profile, 0, resource_idx);
+            let name = &profile.threads[0].string_array
+                [profile.threads[0].resource_table.name[resource_idx]];
+            if name.starts_with("0x") {
+                mlir_resources.push(resource_idx);
+            } else {
+                collapse_resource(&mut profile, 0, resource_idx);
+            }
         }
+        // Collapse all contract shared libraries into a single function.
+        collapse_frames(&mut profile, 0, "MLIR".to_string(), |frame| {
+            mlir_resources.contains(&frame.func().resource_idx())
+        });
+
+        // Collapse recursion of the replay resource.
         collapse_recursion(&mut profile, 0, "replay");
 
+        // Focus on the replay resource.
         let replay_function = profile.threads[0]
             .func_table
             .name
             .iter()
-            .position(|&name_idx| {
-                let name = &profile.threads[0].string_array[name_idx];
-                name == "replay"
-            });
+            .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "replay");
         if let Some(replay_function) = replay_function {
             focus_on_function(&mut profile, 0, replay_function);
         }
-
-        merge_funcs(
-            &mut profile,
-            0,
-            &[
-                "0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.dylib",
-                "0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0.dylib",
-                "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017.dylib",
-            ],
-            "MLIR".to_string(),
-        );
-        collapse_recursion(&mut profile, 0, "MLIR");
 
         println!("{}", Tree::from_profile(&profile, 0));
     }
@@ -361,19 +336,8 @@ fn main() {
                 name == "math"
             });
         if let Some(math_function) = func_function {
-            collapse_function(&mut profile, 0, math_function);
+            collapse_subtree(&mut profile, 0, math_function);
         }
-
-        merge_funcs(
-            &mut profile,
-            0,
-            &[
-                "0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.dylib",
-                "0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0.dylib",
-                "0x4247b4b4eef40ec5d47741f5cc911239c1bbd6768b86c240f4304687f70f017.dylib",
-            ],
-            "MLIR".to_string(),
-        );
 
         let mut tree = Tree::from_profile(&profile, 0);
         tree.prune(0.5);
