@@ -40,7 +40,7 @@ deps-bench:
 	cargo build --release --features benchmark,profiling,structured_logging,only_cairo_vm
 	cp target/release/replay target/release/replay-bench-vm
 
-CAIRO_2_VERSION := v2.12.0-dev.0
+CAIRO_2_VERSION := v2.12.0-dev.1
 CAIRO_2_TAR := cairo-${CAIRO_2_VERSION}-macos.tar
 
 # ej: make cairo-v2.0.0-macos.tar
