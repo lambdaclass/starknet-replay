@@ -84,6 +84,9 @@ impl RpcStateReader {
     }
 }
 
+unsafe impl Send for RpcStateReader {}
+unsafe impl Sync for RpcStateReader {}
+
 impl StateReader for RpcStateReader {
     fn get_contract_class(&self, class_hash: &ClassHash) -> StateResult<SNContractClass> {
         let params = json!({

@@ -16,9 +16,13 @@ use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::{fetch_transaction, fetch_transaction_with_state};
+use rpc_state_reader::execution::{
+    fetch_block_context, fetch_blockifier_transaction, fetch_transaction,
+    fetch_transaction_with_state,
+};
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
+use serde::Serialize;
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
@@ -177,7 +181,7 @@ fn main() {
         } => {
             let mut state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
-            let tx_hash = TransactionHash(felt!(tx_hash));
+            let tx_hash = TransactionHash(felt!(&tx_hash));
 
             show_execution_data(
                 &mut state,
@@ -236,7 +240,7 @@ fn main() {
                 .transactions
                 .into_iter()
                 .filter(|tx| txs.contains(tx))
-                .collect();
+                .collect::<Vec<_>>();
 
             show_execution_data(
                 &mut state,
@@ -591,7 +595,7 @@ fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
 }
 
 fn show_execution_data(
-    state: &mut CachedState<impl StateReader>,
+    state: CachedState<impl StateReader + Sync + Send>,
     reader: &impl StateReader,
     execution_config: TransactionExecutorConfig,
     tx_hashes: &[TransactionHash],
@@ -599,15 +603,6 @@ fn show_execution_data(
     block_number: u64,
     charge_fee: bool,
 ) {
-    let _transaction_execution_span = info_span!(
-        "transaction",
-        hash = tx_hash_str,
-        chain = chain_str,
-        block = block_number
-    )
-    .entered();
-    info!("starting execution");
-
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,
@@ -615,36 +610,36 @@ fn show_execution_data(
     };
 
     let block_context = fetch_block_context(reader).unwrap();
+    let txs = tx_hashes
+        .into_iter()
+        .map(|tx_hash| fetch_blockifier_transaction(reader, flags, *tx_hash).unwrap())
+        .collect::<Vec<_>>();
 
     let executor = TransactionExecutor::new(state, block_context, execution_config);
 
-    let execution_result = {
-        let txs = tx_hashes
-            .into_iter()
-            .map(|hash| fetch_transaction(&hash, block_number, chain, flags))
-            .collect();
-        executor.execute_txs(txs)
-    };
+    let execution_results = executor.execute_txs(&txs);
 
     #[cfg(feature = "state_dump")]
     state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
-    let execution_info = match execution_info_result {
-        Ok(x) => x,
-        Err(err) => {
-            error!("execution failed: {}", err);
-            return;
-        }
-    };
+    for result in execution_results {
+        let (execution_info, _) = match result {
+            Ok(x) => x,
+            Err(err) => {
+                error!("execution failed: {}", err);
+                return;
+            }
+        };
 
-    match reader.get_transaction_receipt(&tx_hash) {
-        Ok(rpc_receipt) => {
-            compare_execution(execution_info, rpc_receipt);
-        }
-        Err(_) => {
-            error!("failed to get transaction receipt, could not compare to rpc");
-        }
-    };
+        match reader.get_transaction_receipt(&execution_info.execute_call_info) {
+            Ok(rpc_receipt) => {
+                compare_execution(execution_info, rpc_receipt);
+            }
+            Err(_) => {
+                error!("failed to get transaction receipt, could not compare to rpc");
+            }
+        };
+    }
 }
 
 fn compare_execution(
