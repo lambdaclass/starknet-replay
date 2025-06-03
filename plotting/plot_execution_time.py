@@ -69,7 +69,7 @@ if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
 data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
 
 if args.output:
-    file_name = f"{args.output}.csv"
+    file_name = f"{args.output}-execution-time.csv"
     data_by_selector.to_csv(file_name)
 
 # GROUP BY CLASS
@@ -142,7 +142,7 @@ ax.set_ylabel("Class Hash")
 ax.set_title("Speedup by Contract Class")
 
 if args.output:
-    figure_name = f"{args.output}.svg"
+    figure_name = f"{args.output}-execution-time.svg"
     plt.savefig(figure_name)
 
 if args.speedup:
@@ -156,7 +156,7 @@ if args.speedup:
     ax.set_xlabel("Speedup")
     ax.set_title("Speedup Distribution")
     if args.output:
-        figure_name = f"{args.output}-speedup.svg"
+        figure_name = f"{args.output}-execution-speedup.svg"
         plt.savefig(figure_name)
 
 if not args.output:
