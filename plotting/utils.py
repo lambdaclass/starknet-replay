@@ -1,11 +1,5 @@
 import pandas as pd
-import itertools
 from pandas import DataFrame
-
-
-def flatmap(f, iterable):
-    return itertools.chain.from_iterable(map(f, iterable))
-
 
 def format_hash(class_hash):
     return f"{class_hash[:6]}..."
