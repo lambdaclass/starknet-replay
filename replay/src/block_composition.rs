@@ -1,3 +1,5 @@
+#![cfg(feature = "block-composition")]
+
 use std::{
     error::Error,
     fs::{self, File},
@@ -9,12 +11,19 @@ use blockifier::{
     transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
 use serde::Serialize;
-use starknet_api::core::{ClassHash, EntryPointSelector};
+use starknet_api::{
+    core::{ClassHash, EntryPointSelector},
+    execution_resources::GasVector,
+    transaction::TransactionHash,
+};
 
 type BlockExecutionInfo = Vec<(
     u64,    // block number
     String, // block timestamp
-    Vec<Result<TransactionExecutionInfo, TransactionExecutionError>>,
+    Vec<(
+        TransactionHash,
+        Result<TransactionExecutionInfo, TransactionExecutionError>,
+    )>,
 )>;
 
 #[derive(Debug, Serialize)]
@@ -32,15 +41,18 @@ struct BlockEntryPoints {
 
 #[derive(Debug, Serialize)]
 struct TxEntryPoint {
+    tx_hash: TransactionHash,
     validate_call_info: Option<CallTree>,
     execute_call_info: Option<CallTree>,
     fee_transfer_call_info: Option<CallTree>,
+    gas: GasVector,
+    da_gas: GasVector,
 }
-
 #[derive(Debug, Serialize)]
 struct EntryPointExecution {
     class_hash: ClassHash,
     selector: EntryPointSelector,
+    syscall_count: u64,
 }
 
 /// Saves to a json the resulting list of `BlockEntryPoints`
@@ -57,12 +69,15 @@ pub fn save_entry_point_execution(
     for (block_number, block_timestamp, executions) in executions {
         let entrypoints = executions
             .into_iter()
-            .map(|execution_rst| {
+            .map(|(tx_hash, execution_rst)| {
                 let execution = execution_rst.unwrap();
                 let mut block_entry_point = TxEntryPoint {
+                    tx_hash,
                     validate_call_info: None,
                     execute_call_info: None,
                     fee_transfer_call_info: None,
+                    gas: execution.receipt.gas,
+                    da_gas: execution.receipt.da_gas,
                 };
 
                 if let Some(call) = execution.validate_call_info {
@@ -100,6 +115,7 @@ fn get_inner_class_executions(call: CallInfo) -> CallTree {
     let top_class = EntryPointExecution {
         class_hash,
         selector: call.call.entry_point_selector,
+        syscall_count: call.syscall_counts,
     };
 
     let inner = call

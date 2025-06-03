@@ -249,6 +249,8 @@ impl From<CallInfo> for SerializableCallInfo {
             tracked_resource: _tracked_resource,
             time: _time,
             call_counter,
+            #[cfg(feature = "block-composition")]
+                syscall_counts: _,
         } = value;
 
         let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();

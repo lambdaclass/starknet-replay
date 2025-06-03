@@ -436,7 +436,7 @@ fn main() {
                             &hash.to_string(),
                             &execution,
                         );
-                        execution
+                        (hash, execution)
                     })
                     .collect::<Vec<_>>();
 

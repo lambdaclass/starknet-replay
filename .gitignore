@@ -7,6 +7,7 @@ target/
 
 compiled_programs/
 state_dumps/
+libfunc_profiles/
 rpc_cache
 bench_data
 block_composition/
