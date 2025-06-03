@@ -82,7 +82,7 @@ def size_to_time_correlations(df: pd.DataFrame):
     fig.subplots_adjust(hspace=0.3)
 
     outliers: pd.DataFrame = df[df["compilation_total_time_ms"] > 10 * 60 * 1000]  # type: ignore
-    df = df.drop(outliers.index)
+    df = df.drop(outliers.index)  # type: ignore
 
     sns.regplot(df, ax=ax1, x="sierra_statement_count", y="compilation_total_time_ms")
     ax1.set_title("Sierra Size vs. Compilation Time (w/o outliers)")
