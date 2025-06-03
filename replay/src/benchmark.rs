@@ -119,6 +119,7 @@ pub struct ClassExecutionInfo {
     class_hash: ClassHash,
     selector: EntryPointSelector,
     time: Duration,
+    gas_consumed: u64,
 }
 
 pub fn aggregate_executions(executions: Vec<TransactionExecutionInfo>) -> Vec<ClassExecutionInfo> {
@@ -146,12 +147,14 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     let class_hash = call.call.class_hash.unwrap();
 
     let mut inner_time = Duration::ZERO;
+    let mut inner_gas_consumed = 0;
 
     let mut classes = call
         .inner_calls
         .into_iter()
         .flat_map(|call| {
             inner_time += call.time;
+            inner_gas_consumed += call.execution.gas_consumed;
             get_class_executions(call)
         })
         .collect::<Vec<_>>();
@@ -161,10 +164,17 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         .checked_sub(inner_time)
         .expect("time cannot be negative");
 
+    let gas_consumed = call
+        .execution
+        .gas_consumed
+        .checked_sub(inner_gas_consumed)
+        .expect("gas cannot be negative");
+
     let top_class = ClassExecutionInfo {
         class_hash,
         selector: call.call.entry_point_selector,
         time,
+        gas_consumed,
     };
 
     classes.push(top_class);
