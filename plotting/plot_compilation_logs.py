@@ -55,16 +55,6 @@ dataset_vm: DataFrame = dataset[dataset["executor"] == "vm"]  # type: ignore
 dataset_pivoted = dataset.pivot_table(index="class hash", columns="executor")
 dataset_pivoted.columns = ["_".join(a) for a in dataset_pivoted.columns.to_flat_index()]
 
-# =====================
-# PLOT COMPILATION TIME
-# =====================
-
-figure, ax = plt.subplots()
-sns.violinplot(ax=ax, x="time", data=dataset_native, cut=0)
-ax.set_xlabel("Compilation Time (ms)")
-ax.set_title("Native Compilation Time")
-save("compilation-time")
-
 # ===========================
 # PLOT COMPILATION TIME TREND
 # ===========================
@@ -77,16 +67,6 @@ ax.set_ylabel("Compilation Time (ms)")
 ax.set_title("Native Compilation Time Trend")
 ax.legend()
 save("compilation-time-trend")
-
-# =====================
-# PLOT COMPILATION SIZE
-# =====================
-
-figure, ax = plt.subplots()
-sns.violinplot(ax=ax, x="size", data=dataset_native, cut=0)
-ax.set_xlabel("Library Size (KiB)")
-ax.set_title("Library Size by Contract")
-save("compilation-size")
 
 # ===========================
 # PLOT COMPILATION SIZE TREND
