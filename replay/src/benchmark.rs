@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use blockifier::{
     context::BlockContext,
@@ -9,8 +9,7 @@ use blockifier::{
     },
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
-        transaction_execution::Transaction as BlockiTransaction,
-        transactions::ExecutableTransaction,
+        transaction_execution::Transaction, transactions::ExecutableTransaction,
     },
 };
 use rpc_state_reader::{
@@ -30,7 +29,7 @@ use starknet_api::{
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcCachedStateReader>>,
     BlockContext,
-    Vec<BlockiTransaction>,
+    Vec<Transaction>,
 );
 
 /// Fetches context data to execute the given block range
@@ -87,7 +86,7 @@ pub fn fetch_block_range_data(
 /// Can also be used to fill up the cache
 pub fn execute_block_range(
     block_range_data: &mut Vec<BlockCachedData>,
-) -> Vec<TransactionExecutionInfo> {
+) -> Vec<(TransactionHash, TransactionExecutionInfo, Duration)> {
     let mut executions = Vec::new();
 
     for (state, block_context, transactions) in block_range_data {
@@ -98,10 +97,17 @@ pub fn execute_block_range(
 
         for transaction in transactions {
             // Execute each transaction
+
+            let pre_execution_instant = Instant::now();
             let execution = transaction.execute(&mut transactional_state, block_context);
             let Ok(execution) = execution else { continue };
+            let execution_time = pre_execution_instant.elapsed();
 
-            executions.push(execution);
+            executions.push((
+                Transaction::tx_hash(&transaction),
+                execution,
+                execution_time,
+            ));
         }
     }
 
@@ -110,7 +116,7 @@ pub fn execute_block_range(
 
 #[derive(Serialize)]
 pub struct BenchmarkingData {
-    pub average_time: Duration,
+    pub transaction_executions: Vec<TransactionExecutionBenchmark>,
     pub class_executions: Vec<ClassExecutionInfo>,
 }
 
@@ -118,28 +124,45 @@ pub struct BenchmarkingData {
 pub struct ClassExecutionInfo {
     class_hash: ClassHash,
     selector: EntryPointSelector,
-    time: Duration,
+    time_ns: u128,
     gas_consumed: u64,
 }
 
-pub fn aggregate_executions(executions: Vec<TransactionExecutionInfo>) -> Vec<ClassExecutionInfo> {
-    executions
-        .into_iter()
-        .flat_map(|execution| {
-            let mut classes = Vec::new();
+#[derive(Serialize)]
+pub struct TransactionExecutionBenchmark {
+    hash: TransactionHash,
+    time_ns: u128,
+    first_class: usize,
+}
 
-            if let Some(call) = execution.validate_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.execute_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.fee_transfer_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            classes
-        })
-        .collect::<Vec<_>>()
+pub fn aggregate_executions(
+    executions: Vec<(TransactionHash, TransactionExecutionInfo, Duration)>,
+) -> BenchmarkingData {
+    let mut class_executions = vec![];
+    let mut transaction_executions = vec![];
+
+    for (hash, execution, time) in executions {
+        transaction_executions.push(TransactionExecutionBenchmark {
+            hash,
+            time_ns: time.as_nanos(),
+            first_class: class_executions.len(),
+        });
+
+        if let Some(call) = execution.validate_call_info {
+            class_executions.append(&mut get_class_executions(call));
+        }
+        if let Some(call) = execution.execute_call_info {
+            class_executions.append(&mut get_class_executions(call));
+        }
+        if let Some(call) = execution.fee_transfer_call_info {
+            class_executions.append(&mut get_class_executions(call));
+        }
+    }
+
+    BenchmarkingData {
+        transaction_executions,
+        class_executions,
+    }
 }
 
 fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
@@ -173,7 +196,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     let top_class = ClassExecutionInfo {
         class_hash,
         selector: call.call.entry_point_selector,
-        time,
+        time_ns: time.as_nanos(),
         gas_consumed,
     };
 
