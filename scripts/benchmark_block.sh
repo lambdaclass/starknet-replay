@@ -43,8 +43,6 @@ data_output="data-$START-$END-$NET.json"
 native_data_output="$DATA_DIR/native-$data_output"
 vm_data_output="$DATA_DIR/vm-$data_output"
 
-plotting_output="$DATA_DIR/plot-$START-$END-$NET"
-
 echo "Executing with Native"
 $NATIVE_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$native_data_output" > "$native_log_output"
 
@@ -63,5 +61,3 @@ echo "Average VM time: $vm_time ns"
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
 echo "Native Speedup: $speedup"
-
-python "$PLOTTING_SCRIPT" "$native_data_output" "$vm_data_output" --speedup --output "$plotting_output"
