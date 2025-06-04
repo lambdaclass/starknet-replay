@@ -149,9 +149,9 @@ def mlir_by_libfunc_pie(df: pd.DataFrame):
 
 stats = []
 for stat_file in args.input:
-    class_hash = pathlib.Path(stat_file).name.removesuffix(".stats.json")
+    hash = pathlib.Path(stat_file).name.split(".", maxsplit=1)[0]
     stat = pd.read_json(stat_file, typ="series")
-    stat["hash"] = class_hash
+    stat["hash"] = hash
     stats.append(stat)
 df = pd.DataFrame(stats).set_index("hash")
 
