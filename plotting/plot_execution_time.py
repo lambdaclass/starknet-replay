@@ -54,6 +54,12 @@ df_txs = pd.merge(
     right_index=True,
     suffixes=("_native", "_vm"),
 )
+df_txs.loc[df_txs["gas_consumed_native"] == 0, "gas_consumed_native"] = (
+    df_txs.loc[df_txs["gas_consumed_native"] == 0, "steps_native"] * 100
+)
+df_txs.loc[df_txs["gas_consumed_vm"] == 0, "gas_consumed_vm"] = (
+    df_txs.loc[df_txs["gas_consumed_vm"] == 0, "steps_vm"] * 100
+)
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
 # print(df_txs.info())
@@ -229,10 +235,14 @@ def plot_calls_by_gas_unit(df_calls):
 
     native_mean_speed = df_native["speed"].mean()
     vm_mean_speed = df_vm["speed"].mean()
+
+    native_total_speed = df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
+    vm_total_speed = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
+
     ax1.text(
         0.01,
         0.99,
-        f"Mean: {native_mean_speed:.2f}",
+        f"Mean: {native_mean_speed:.2f}\nTotal: {native_total_speed:.2f}",
         transform=ax1.transAxes,
         fontsize=12,
         verticalalignment="top",
@@ -241,7 +251,7 @@ def plot_calls_by_gas_unit(df_calls):
     ax2.text(
         0.01,
         0.99,
-        f"Mean: {vm_mean_speed:.2f}",
+        f"Mean: {vm_mean_speed:.2f}\nTotal: {vm_total_speed:.2f}",
         transform=ax2.transAxes,
         fontsize=12,
         verticalalignment="top",
@@ -249,20 +259,84 @@ def plot_calls_by_gas_unit(df_calls):
     )
 
     max_gas_limit = 10e6 * 100
-    max_native_time = max_gas_limit / native_mean_speed / 1e9
+    max_native_time = max_gas_limit / native_total_speed / 1e9
     max_gas_limit = 10e6 * 100
-    max_vm_time = max_gas_limit / vm_mean_speed / 1e9
+    max_vm_time = max_gas_limit / vm_total_speed / 1e9
 
+    print("# Speed by Call")
     print(f"Max gas limit: {max_gas_limit:.0f} gas")
-    print(f"Native mean speed: {native_mean_speed:.2f} gas/ns")
+    print(f"Native total speed: {native_total_speed:.2f} gas/ns")
     print(f"Native Max time: {max_native_time:.2f} s")
-    print(f"VM mean speed: {vm_mean_speed:.2f} gas/ns")
+    print(f"VM total speed: {vm_total_speed:.2f} gas/ns")
     print(f"VM Max time: {max_vm_time:.2f} s")
+    print()
 
 
-plot_calls_by_class_hash(df_calls)
-plot_tx_speedup(df_txs)
-plot_calls_by_gas_usage(df_calls)
+def plot_txs_by_gas_unit(df_txs):
+    _, (ax1, ax2) = plt.subplots(1, 2)
+
+    df_txs["speed_native"] = df_txs["gas_consumed_native"] / df_txs["time_ns_native"]
+    df_txs["speed_vm"] = df_txs["gas_consumed_vm"] / df_txs["time_ns_vm"]
+
+    sns.violinplot(
+        ax=ax1,
+        data=df_txs,
+        x="speed_native",
+    )
+    ax1.set_title("Native Speed (gas/ns)")
+    ax1.set_xlabel("Speed (gas/ns)")
+    sns.violinplot(
+        ax=ax2,
+        data=df_txs,
+        x="speed_vm",
+    )
+    ax2.set_title("VM Speed (gas/ns)")
+    ax2.set_xlabel("Speed (gas/ns)")
+
+    native_mean_speed = df_txs["speed_native"].mean()
+    vm_mean_speed = df_txs["speed_vm"].mean()
+    native_total_speed = (
+        df_txs["gas_consumed_native"].sum() / df_txs["time_ns_native"].sum()
+    )
+    vm_total_speed = df_txs["gas_consumed_vm"].sum() / df_txs["time_ns_vm"].sum()
+
+    ax1.text(
+        0.01,
+        0.99,
+        f"Mean: {native_mean_speed:.2f}\nTotal: {native_total_speed:.2f}",
+        transform=ax1.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+    ax2.text(
+        0.01,
+        0.99,
+        f"Mean: {vm_mean_speed:.2f}\nTotal: {vm_total_speed:.2f}",
+        transform=ax2.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    max_gas_limit = 10e6 * 100
+    max_native_time = max_gas_limit / native_total_speed / 1e9
+    max_gas_limit = 10e6 * 100
+    max_vm_time = max_gas_limit / vm_total_speed / 1e9
+
+    print("# Speed by Transaction")
+    print(f"Max gas limit: {max_gas_limit:.0f} gas")
+    print(f"Native total speed: {native_total_speed:.2f} gas/ns")
+    print(f"Native Max time: {max_native_time:.2f} s")
+    print(f"VM total speed: {vm_total_speed:.2f} gas/ns")
+    print(f"VM Max time: {max_vm_time:.2f} s")
+    print()
+
+
+# plot_calls_by_class_hash(df_calls)
+# plot_tx_speedup(df_txs)
+# plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
+plot_txs_by_gas_unit(df_txs)
 
 plt.show()
