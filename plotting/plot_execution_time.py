@@ -208,7 +208,7 @@ def plot_calls_by_gas_usage(df_calls: DataFrame):
 
 
 def plot_calls_by_gas_unit(df_calls):
-    _, (ax1, ax2) = plt.subplots(1, 2)
+    fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 
@@ -258,6 +258,8 @@ def plot_calls_by_gas_unit(df_calls):
         horizontalalignment="left",
     )
 
+    fig.suptitle("Speed by Call")
+
     max_gas_limit = 10e6 * 100
     max_native_time = max_gas_limit / native_total_speed / 1e9
     max_gas_limit = 10e6 * 100
@@ -273,7 +275,7 @@ def plot_calls_by_gas_unit(df_calls):
 
 
 def plot_txs_by_gas_unit(df_txs):
-    _, (ax1, ax2) = plt.subplots(1, 2)
+    fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_txs["speed_native"] = df_txs["gas_consumed_native"] / df_txs["time_ns_native"]
     df_txs["speed_vm"] = df_txs["gas_consumed_vm"] / df_txs["time_ns_vm"]
@@ -319,6 +321,8 @@ def plot_txs_by_gas_unit(df_txs):
         horizontalalignment="left",
     )
 
+    fig.suptitle("Speed by Transaction")
+
     max_gas_limit = 10e6 * 100
     max_native_time = max_gas_limit / native_total_speed / 1e9
     max_gas_limit = 10e6 * 100
@@ -333,9 +337,9 @@ def plot_txs_by_gas_unit(df_txs):
     print()
 
 
-# plot_calls_by_class_hash(df_calls)
-# plot_tx_speedup(df_txs)
-# plot_calls_by_gas_usage(df_calls)
+plot_calls_by_class_hash(df_calls)
+plot_tx_speedup(df_txs)
+plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
 plot_txs_by_gas_unit(df_txs)
 
