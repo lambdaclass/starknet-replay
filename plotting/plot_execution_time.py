@@ -1,163 +1,250 @@
+import json
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
-import json
-from utils import format_hash
+import numpy as np
+import scipy
+
+from pandas import DataFrame
 
 parser = ArgumentParser("Stress Test Plotter")
 parser.add_argument("native_data")
 parser.add_argument("vm_data")
-parser.add_argument("-s", "--speedup", action="store_true")
 parser.add_argument("-o", "--output")
 args = parser.parse_args()
 
-pd.set_option("display.max_columns", None)
-pd.set_option("display.max_rows", None)
-
-mpl.rcParams["figure.figsize"] = [16, 9]
-
-
-def load_dataset(path, f):
-    data = json.load(open(path))
-    return (
-        pd.DataFrame(data["class_executions"])
-        .apply(f, axis=1)
-        .dropna()
-        .apply(pd.Series)
-    )
+#############
+# UTILITIES #
+#############
 
 
-def process_row(row):
-    class_hash = row.class_hash
-    selector = row.selector
-    time = row.time["nanos"] + row.time["secs"] * 10e9
-
-    return {
-        "class_hash": class_hash,
-        "selector": selector,
-        "time": time,
-    }
+def format_hash(class_hash):
+    return f"{class_hash[:6]}..."
 
 
-dataNative = load_dataset(args.native_data, process_row)
-dataNative["executor"] = "native"
-dataVM = load_dataset(args.vm_data, process_row)
-dataVM["executor"] = "vm"
-data = pd.concat([dataNative, dataVM])
-
-# GROUP BY SELECTOR
-
-# calculate mean by class hash
-data_by_selector = (
-    data.groupby(["executor", "class_hash", "selector"])
-    .agg(
-        total_time=("time", "sum"),
-        mean_time=("time", "mean"),
-        samples=("time", "size"),
-    )
-    .unstack("executor")
-)
-data_by_selector.columns = data_by_selector.columns.map("_".join)
-
-if (data_by_selector["samples_native"] != data_by_selector["samples_vm"]).any():
-    raise Exception("Native and VM should have the same number of samples")
-
-# sort by decreasing time
-data_by_selector.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
-
-if args.output:
-    file_name = f"{args.output}-execution-time.csv"
-    data_by_selector.to_csv(file_name)
-
-# GROUP BY CLASS
-
-data_by_class = (
-    data.groupby(["executor", "class_hash"])
-    .agg(
-        total_time=("time", "sum"),
-        mean_time=("time", "mean"),
-        samples=("time", "size"),
-    )
-    .unstack("executor")
-)
-data_by_class.columns = data_by_class.columns.map("_".join)
-data_by_class["speedup"] = (
-    data_by_class["total_time_vm"] / data_by_class["total_time_native"]
-)
-data_by_class.sort_values(["total_time_vm"], ascending=[False], inplace=True)  # type: ignore
-data_by_class = data_by_class.nlargest(50, "total_time_vm")  # type: ignore
-
-# ======================
-#        PLOTTING
-# ======================
-
-figure, axes = plt.subplots(1, 2)
-
-ax = axes[0]
-
-sns.barplot(
-    ax=ax,
-    y="class_hash",
-    x="total_time_vm",
-    data=data_by_class,  # type: ignore
-    formatter=format_hash,
-    label="VM Execution Time",
-    color="r",
-    alpha=0.75,
-)  # type: ignore
-sns.barplot(
-    ax=ax,
-    y="class_hash",
-    x="total_time_native",
-    data=data_by_class,  # type: ignore
-    formatter=format_hash,
-    label="Native Execution Time",
-    color="b",
-    alpha=0.75,
-)  # type: ignore
-
-ax.set_xlabel("Total Time (ns)")
-ax.set_ylabel("Class Hash")
-ax.set_title("Total time by Contract Class")
-ax.set_xscale("log", base=2)
-
-ax = axes[1]
-
-sns.barplot(
-    ax=ax,
-    y="class_hash",
-    x="speedup",
-    data=data_by_class,  # type: ignore
-    formatter=format_hash,
-    label="Execution Speedup",
-    color="b",
-    alpha=0.75,
-)  # type: ignore
-
-ax.set_xlabel("Speedup")
-ax.set_ylabel("Class Hash")
-ax.set_title("Speedup by Contract Class")
-
-if args.output:
-    figure_name = f"{args.output}-execution-time.svg"
-    plt.savefig(figure_name)
-
-if args.speedup:
-    fig, ax = plt.subplots()
-    sns.violinplot(
-        ax=ax,
-        x="speedup",
-        data=data_by_class,  # type: ignore
-        cut=0,
-    )
-    ax.set_xlabel("Speedup")
-    ax.set_title("Speedup Distribution")
+def save(name):
     if args.output:
-        figure_name = f"{args.output}-execution-speedup.svg"
+        figure_name = f"{args.output}-{name}.svg"
         plt.savefig(figure_name)
 
-if not args.output:
-    plt.show()
+
+##############
+# PROCESSING #
+##############
+
+
+def load_data(path):
+    raw_json = json.load(open(path))
+
+    df_txs = pd.DataFrame(raw_json["transaction_executions"])
+    df_calls = pd.DataFrame(raw_json["class_executions"])
+
+    return df_txs, df_calls
+
+
+df_txs_native, df_calls_native = load_data(args.native_data)
+df_txs_vm, df_calls_vm = load_data(args.vm_data)
+
+df_txs = pd.merge(
+    df_txs_native,
+    df_txs_vm,
+    left_index=True,
+    right_index=True,
+    suffixes=("_native", "_vm"),
+)
+df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
+
+# print(df_txs.info())
+# -------------------------
+# Column              Dtype
+# -------------------------
+# hash_native         object
+# time_ns_native      int64
+# first_class_native  int64
+# hash_vm             object
+# time_ns_vm          int64
+# first_class_vm      int64
+
+# use resource to determine executor
+df_calls_native.replace("SierraGas", "native", inplace=True)
+df_calls_native.replace("CairoSteps", "vm", inplace=True)
+df_calls_native.rename(columns={"resource": "executor"}, inplace=True)
+df_calls_vm.rename(columns={"resource": "executor"}, inplace=True)
+df_calls_vm["executor"] = "vm"
+
+df_calls = pd.concat([df_calls_native, df_calls_vm])
+
+# replace where gas_consumed == 0 with steps * 100
+df_calls.loc[df_calls["gas_consumed"] == 0, "gas_consumed"] = (
+    df_calls.loc[df_calls["gas_consumed"] == 0, "steps"] * 100
+)
+df_calls = df_calls.drop("steps", axis=1)
+
+# print(df_calls.info())
+# -------------------
+# Column        Dtype
+# -------------------
+# class_hash    object
+# selector      object
+# time_ns       int64
+# gas_consumed  int64
+# executor      object
+
+############
+# PLOTTING #
+############
+
+
+def plot_execution_time_by_class_hash(df_calls: DataFrame):
+    df: DataFrame = (
+        df_calls.groupby(["executor", "class_hash"])
+        .aggregate(mean_time=("time_ns", "mean"))
+        .unstack("executor")
+    )  # type: ignore
+
+    # flatten multi index
+    df.columns = df.columns.map("_".join)
+
+    # drop rows for which we don't have any Native samples
+    df = df.dropna(axis=0, subset=[("mean_time_native"), ("mean_time_vm")])
+
+    # sort so that the legend doesn't cover the bars
+    df.sort_values(["mean_time_vm"], ascending=[False], inplace=True)
+
+    df["speedup"] = df["mean_time_vm"] / df["mean_time_native"]
+
+    # print(df.describe())
+    # ------------------------------------------------
+    #        mean_time_native  mean_time_vm    speedup
+    # mean       3.798728e+05  3.747944e+06  13.183916
+    # std        6.406297e+05  1.429918e+07  16.153037
+    # min        5.104050e+03  5.758320e+04   1.260679
+    # max        2.209098e+06  8.232545e+07  66.898440
+
+    _, (ax1, ax2) = plt.subplots(1, 2)
+    sns.barplot(
+        ax=ax1,
+        y="class_hash",
+        x="mean_time_vm",
+        data=df,
+        formatter=format_hash,
+        label="VM Execution Time",
+        color="r",
+        alpha=0.75,
+    )
+    sns.barplot(
+        ax=ax1,
+        y="class_hash",
+        x="mean_time_native",
+        data=df,
+        formatter=format_hash,
+        label="Native Execution Time",
+        color="b",
+        alpha=0.75,
+    )
+    ax1.set_xscale("log", base=2)
+    ax1.set_title("Mean time by Contract Class")
+
+    sns.barplot(
+        ax=ax2,
+        y="class_hash",
+        x="speedup",
+        data=df,
+        formatter=format_hash,
+        label="Speedup",
+        color="b",
+        alpha=0.75,
+    )
+    ax2.set_title("Speedup by Contract Class")
+
+
+def plot_speedup_by_tx(df_txs: DataFrame):
+    _, ax = plt.subplots()
+    sns.violinplot(ax=ax, data=df_txs, x="speedup")
+    ax.set_title("Speedup by Transaction")
+
+
+def plot_execution_time_by_gas_usage(df_calls: DataFrame):
+    _, ax = plt.subplots()
+
+    df_native = df_calls.loc[df_calls["executor"] == "native"]
+    df_vm = df_calls.loc[df_calls["executor"] == "vm"]
+
+    # remove outliers
+    df_native = df_native[np.abs(scipy.stats.zscore(df_native["time_ns"])) < 3]
+    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["time_ns"])) < 3]
+    df_native = df_native[np.abs(scipy.stats.zscore(df_native["gas_consumed"])) < 3]
+    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["gas_consumed"])) < 3]
+
+    sns.regplot(data=df_native, x="gas_consumed", y="time_ns")
+    sns.regplot(data=df_vm, x="gas_consumed", y="time_ns")
+    ax.set_title("Execution Time by Gas Usage")
+
+
+def plot_execution_time_by_gas_unit(df_calls):
+    _, (ax1, ax2) = plt.subplots(1, 2)
+
+    df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+
+    df_native = df_calls.loc[df_calls["executor"] == "native"]
+    df_vm = df_calls.loc[df_calls["executor"] == "vm"]
+
+    df_native = df_native[np.abs(scipy.stats.zscore(df_native["speed"])) < 1]
+    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["speed"])) < 1]
+
+    sns.violinplot(
+        ax=ax1,
+        data=df_native,
+        x="speed",
+    )
+    ax1.set_title("Native Speed (gas/ns)")
+    ax1.set_xlabel("Speed (gas/ns)")
+    sns.violinplot(
+        ax=ax2,
+        data=df_vm,
+        x="speed",
+    )
+    ax2.set_title("VM Speed (gas/ns)")
+    ax2.set_xlabel("Speed (gas/ns)")
+
+    native_mean_speed = df_native["speed"].mean()
+    vm_mean_speed = df_vm["speed"].mean()
+    ax1.text(
+        0.01,
+        0.99,
+        f"Mean: {native_mean_speed:.2f}",
+        transform=ax1.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+    ax2.text(
+        0.01,
+        0.99,
+        f"Mean: {vm_mean_speed:.2f}",
+        transform=ax2.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    max_gas_limit = 10e6 * 100
+    max_native_time = max_gas_limit / native_mean_speed / 1e9
+    max_gas_limit = 10e6 * 100
+    max_vm_time = max_gas_limit / vm_mean_speed / 1e9
+
+    print(f"Max gas limit: {max_gas_limit:.0f} gas")
+    print(f"Native mean speed: {native_mean_speed:.2f} gas/ns")
+    print(f"Native Max time: {max_native_time:.2f} s")
+    print(f"VM mean speed: {vm_mean_speed:.2f} gas/ns")
+    print(f"VM Max time: {max_vm_time:.2f} s")
+
+
+plot_execution_time_by_class_hash(df_calls)
+plot_speedup_by_tx(df_txs)
+plot_execution_time_by_gas_usage(df_calls)
+plot_execution_time_by_gas_unit(df_calls)
+
+plt.show()
