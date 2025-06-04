@@ -91,7 +91,7 @@ def save(name):
         plt.savefig(figure_name)
 
 
-def plot_compilation_time_regression():
+def plot_compilation_time_regression(df: DataFrame):
     _, ax = plt.subplots()
     sns.regplot(x="length_native", y="time_native", label="Native", data=df, ax=ax)
     sns.regplot(x="length_vm", y="time_vm", label="Casm", data=df, ax=ax)
@@ -102,7 +102,7 @@ def plot_compilation_time_regression():
     save("compilation-time-regression")
 
 
-def plot_compilation_size_regression():
+def plot_compilation_size_regression(df: DataFrame):
     _, ax = plt.subplots()
     sns.regplot(x="length_native", y="size_native", label="Native", data=df, ax=ax)
     sns.regplot(x="length_vm", y="size_vm", label="Casm", data=df, ax=ax)
@@ -114,7 +114,7 @@ def plot_compilation_size_regression():
     save("compilation-size-regression")
 
 
-def plot_compilation_size_correlation():
+def plot_compilation_size_correlation(df: DataFrame):
     _, ax = plt.subplots()
     sns.regplot(
         x="size_native",
@@ -128,9 +128,9 @@ def plot_compilation_size_correlation():
     save("compilation-size-correlation")
 
 
-plot_compilation_time_regression()
-plot_compilation_size_regression()
-plot_compilation_size_correlation()
+plot_compilation_time_regression(df)
+plot_compilation_size_regression(df)
+plot_compilation_size_correlation(df)
 
 if args.display:
     plt.show()
