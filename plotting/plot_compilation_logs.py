@@ -20,6 +20,17 @@ arg_parser.add_argument(
 args = arg_parser.parse_args()
 
 
+#############
+# UTILITIES #
+#############
+
+
+def save(name):
+    if args.output:
+        figure_name = f"{args.output}-{name}.svg"
+        plt.savefig(figure_name)
+
+
 ##############
 # PROCESSING #
 ##############
@@ -83,12 +94,6 @@ df.columns = ["_".join(a) for a in df.columns.to_flat_index()]
 
 
 sns.set_color_codes("bright")
-
-
-def save(name):
-    if args.output:
-        figure_name = f"{args.output}-{name}.svg"
-        plt.savefig(figure_name)
 
 
 def plot_compilation_time_regression(df: DataFrame):
