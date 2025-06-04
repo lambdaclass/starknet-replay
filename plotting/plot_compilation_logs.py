@@ -1,25 +1,38 @@
+import pathlib
+
+import argparse
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils import find_span, load_jsonl
+import pandas as pd
 from pandas import DataFrame
 
-argument_parser = ArgumentParser("Stress Test Plotter")
-argument_parser.add_argument("logs_path")
-argument_parser.add_argument("-o", "--output")
-arguments = argument_parser.parse_args()
-
-sns.set_color_codes("bright")
-
-
-def save(name):
-    if arguments.output:
-        figure_name = f"{arguments.output}-{name}.svg"
-        plt.savefig(figure_name)
+arg_parser = ArgumentParser("Stress Test Plotter")
+arg_parser.add_argument("logs_path")
+arg_parser.add_argument(
+    "--output",
+    type=pathlib.Path,
+)
+arg_parser.add_argument(
+    "--display", action=argparse.BooleanOptionalAction, default=True
+)
+args = arg_parser.parse_args()
 
 
-def canonicalize(event):
+##############
+# PROCESSING #
+##############
+
+
+def find_span(event, name):
+    for span in event["spans"]:
+        if name in span["name"]:
+            return span
+    return None
+
+
+def event_to_row(event):
     # keep contract compilation finished logs
     if "contract compilation finished" not in event["fields"]["message"]:
         return None
@@ -44,35 +57,61 @@ def canonicalize(event):
     }
 
 
-dataset = load_jsonl(arguments.logs_path, canonicalize)
-dataset_native: DataFrame = dataset[dataset["executor"] == "native"]  # type: ignore
-dataset_vm: DataFrame = dataset[dataset["executor"] == "vm"]  # type: ignore
-dataset_pivoted = dataset.pivot_table(index="class hash", columns="executor")
-dataset_pivoted.columns = ["_".join(a) for a in dataset_pivoted.columns.to_flat_index()]
+def load_logs(path) -> DataFrame:
+    log_df: DataFrame = pd.DataFrame()
+
+    with pd.read_json(path, lines=True, typ="series", chunksize=100000) as chunks:
+        for chunk in chunks:
+            chunk_df: DataFrame = chunk.apply(event_to_row).dropna().apply(pd.Series)  # type: ignore
+            if len(chunk) > 0:
+                log_df = pd.concat([log_df, chunk_df])
+
+    return log_df
 
 
-def plot_compilation_time():
+# Load full dataframe. One row per log event.
+df = load_logs(args.logs_path)
+
+# Pivot table to have the executor as column
+df = df.pivot_table(index="class hash", columns="executor")
+df.columns = ["_".join(a) for a in df.columns.to_flat_index()]
+
+
+############
+# PLOTTING #
+############
+
+
+sns.set_color_codes("bright")
+
+
+def save(name):
+    if args.output:
+        figure_name = f"{args.output}-{name}.svg"
+        plt.savefig(figure_name)
+
+
+def plot_compilation_time_regression():
     _, ax = plt.subplots()
-    sns.regplot(x="length", y="time", label="Native", data=dataset_native, ax=ax)
-    sns.regplot(x="length", y="time", label="Casm", data=dataset_vm, ax=ax)
+    sns.regplot(x="length_native", y="time_native", label="Native", data=df, ax=ax)
+    sns.regplot(x="length_vm", y="time_vm", label="Casm", data=df, ax=ax)
     ax.set_xlabel("Sierra size (KiB)")
     ax.set_ylabel("Compilation Time (ms)")
     ax.set_title("Native Compilation Time Trend")
     ax.legend()
+    save("compilation-time-regression")
 
-    save("compilation-time-trend")
 
-
-def plot_compilation_size():
+def plot_compilation_size_regression():
     _, ax = plt.subplots()
-    sns.regplot(x="length", y="size", label="Native", data=dataset_native, ax=ax)
-    sns.regplot(x="length", y="size", label="Casm", data=dataset_vm, ax=ax)
+    sns.regplot(x="length_native", y="size_native", label="Native", data=df, ax=ax)
+    sns.regplot(x="length_vm", y="size_vm", label="Casm", data=df, ax=ax)
     ax.set_xlabel("Sierra size (KiB)")
     ax.set_ylabel("Compiled size (KiB)")
     ax.set_title("Compilation Size Trend")
     ax.ticklabel_format(style="plain")
     ax.legend()
-    save("compilation-size-trend")
+    save("compilation-size-regression")
 
 
 def plot_compilation_size_correlation():
@@ -80,7 +119,7 @@ def plot_compilation_size_correlation():
     sns.regplot(
         x="size_native",
         y="size_vm",
-        data=dataset_pivoted,
+        data=df,
         ax=ax,
     )
     ax.set_xlabel("Native Compilation Size (KiB)")
@@ -89,9 +128,9 @@ def plot_compilation_size_correlation():
     save("compilation-size-correlation")
 
 
-plot_compilation_time()
-plot_compilation_size()
+plot_compilation_time_regression()
+plot_compilation_size_regression()
 plot_compilation_size_correlation()
 
-if not arguments.output:
+if args.display:
     plt.show()
