@@ -129,6 +129,7 @@ pub struct ClassExecutionInfo {
     selector: EntryPointSelector,
     time_ns: u128,
     gas_consumed: u64,
+    steps: u64,
     resource: TrackedResource,
 }
 
@@ -203,6 +204,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         time_ns: time.as_nanos(),
         gas_consumed,
         resource: call.tracked_resource,
+        steps: call.resources.n_steps as u64,
     };
 
     classes.push(top_class);
