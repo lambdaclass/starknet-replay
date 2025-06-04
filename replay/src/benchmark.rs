@@ -2,7 +2,10 @@ use std::time::{Duration, Instant};
 
 use blockifier::{
     context::BlockContext,
-    execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
+    execution::{
+        call_info::CallInfo,
+        contract_class::{RunnableCompiledClass, TrackedResource},
+    },
     state::{
         cached_state::CachedState, errors::StateError,
         state_api::StateReader as BlockifierStateReader,
@@ -126,6 +129,7 @@ pub struct ClassExecutionInfo {
     selector: EntryPointSelector,
     time_ns: u128,
     gas_consumed: u64,
+    resource: TrackedResource,
 }
 
 #[derive(Serialize)]
@@ -198,6 +202,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         selector: call.call.entry_point_selector,
         time_ns: time.as_nanos(),
         gas_consumed,
+        resource: call.tracked_resource,
     };
 
     classes.push(top_class);
