@@ -165,6 +165,19 @@ def plot_speedup_by_tx(df_txs: DataFrame):
     sns.violinplot(ax=ax, data=df_txs, x="speedup")
     ax.set_title("Speedup by Transaction")
 
+    total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
+    mean_speedup = df_txs["speedup"].mean()
+
+    ax.text(
+        0.01,
+        0.99,
+        f"Total speedup: {total_speedup:.2f}\nMean speedup: {mean_speedup:.2f}",
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
 
 def plot_execution_time_by_gas_usage(df_calls: DataFrame):
     _, ax = plt.subplots()
