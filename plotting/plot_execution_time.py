@@ -62,10 +62,15 @@ df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 # -------------------------
 # hash_native         object
 # time_ns_native      int64
+# gas_consumed_native int64
+# steps_native        int64
 # first_class_native  int64
 # hash_vm             object
 # time_ns_vm          int64
+# gas_consumed_vm     int64
+# steps_vm            int64
 # first_class_vm      int64
+# speedup             float64
 
 # use resource to determine executor
 df_calls_native.replace("SierraGas", "native", inplace=True)
