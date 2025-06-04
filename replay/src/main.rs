@@ -3,9 +3,9 @@ use blockifier::execution::entry_point::{
     EntryPointExecutionContext, EntryPointRevertInfo, ExecutableCallEntryPoint,
     SierraGasRevertTracker,
 };
+use blockifier::execution::execution_utils::execute_entry_point_call;
 #[cfg(feature = "with-libfunc-profiling")]
 use blockifier::execution::native::executor::LIBFUNC_PROFILES_MAP;
-use blockifier::execution::execution_utils::execute_entry_point_call;
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
@@ -601,15 +601,15 @@ fn show_execution_data(
     {
         let mut profiles = LIBFUNC_PROFILES_MAP.lock().unwrap();
         let root = PathBuf::from(format!("libfunc_profiles/block{block_number}"));
-        
+
         std::fs::create_dir_all(&root).unwrap();
 
         let mut path = root.join(tx_hash_str);
-        path.set_extension("json"); 
-        
-        let profile_file = File::create(path).unwrap(); 
+        path.set_extension("json");
 
-        serde_json::to_writer_pretty(profile_file,&*profiles).unwrap();
+        let profile_file = File::create(path).unwrap();
+
+        serde_json::to_writer_pretty(profile_file, &*profiles).unwrap();
 
         profiles.clear();
     }
