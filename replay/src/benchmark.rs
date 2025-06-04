@@ -137,6 +137,8 @@ pub struct ClassExecutionInfo {
 pub struct TransactionExecutionBenchmark {
     hash: TransactionHash,
     time_ns: u128,
+    gas_consumed: u64,
+    steps: u64,
     first_class: usize,
 }
 
@@ -147,21 +149,34 @@ pub fn aggregate_executions(
     let mut transaction_executions = vec![];
 
     for (hash, execution, time) in executions {
-        transaction_executions.push(TransactionExecutionBenchmark {
-            hash,
-            time_ns: time.as_nanos(),
-            first_class: class_executions.len(),
-        });
+        let first_class_index = class_executions.len();
+
+        let mut gas_consumed = 0;
+        let mut steps = 0;
 
         if let Some(call) = execution.validate_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
             class_executions.append(&mut get_class_executions(call));
         }
         if let Some(call) = execution.execute_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
             class_executions.append(&mut get_class_executions(call));
         }
         if let Some(call) = execution.fee_transfer_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
             class_executions.append(&mut get_class_executions(call));
         }
+
+        transaction_executions.push(TransactionExecutionBenchmark {
+            hash,
+            time_ns: time.as_nanos(),
+            first_class: first_class_index,
+            gas_consumed,
+            steps,
+        });
     }
 
     BenchmarkingData {
