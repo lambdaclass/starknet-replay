@@ -97,7 +97,7 @@ df_calls = df_calls.drop("steps", axis=1)
 ############
 
 
-def plot_execution_time_by_class_hash(df_calls: DataFrame):
+def plot_calls_by_class_hash(df_calls: DataFrame):
     df: DataFrame = (
         df_calls.groupby(["executor", "class_hash"])
         .aggregate(mean_time=("time_ns", "mean"))
@@ -160,7 +160,7 @@ def plot_execution_time_by_class_hash(df_calls: DataFrame):
     ax2.set_title("Speedup by Contract Class")
 
 
-def plot_speedup_by_tx(df_txs: DataFrame):
+def plot_tx_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
     sns.violinplot(ax=ax, data=df_txs, x="speedup")
     ax.set_title("Speedup by Transaction")
@@ -179,7 +179,7 @@ def plot_speedup_by_tx(df_txs: DataFrame):
     )
 
 
-def plot_execution_time_by_gas_usage(df_calls: DataFrame):
+def plot_calls_by_gas_usage(df_calls: DataFrame):
     _, ax = plt.subplots()
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
@@ -196,7 +196,7 @@ def plot_execution_time_by_gas_usage(df_calls: DataFrame):
     ax.set_title("Execution Time by Gas Usage")
 
 
-def plot_execution_time_by_gas_unit(df_calls):
+def plot_calls_by_gas_unit(df_calls):
     _, (ax1, ax2) = plt.subplots(1, 2)
 
     df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
@@ -255,9 +255,9 @@ def plot_execution_time_by_gas_unit(df_calls):
     print(f"VM Max time: {max_vm_time:.2f} s")
 
 
-plot_execution_time_by_class_hash(df_calls)
-plot_speedup_by_tx(df_txs)
-plot_execution_time_by_gas_usage(df_calls)
-plot_execution_time_by_gas_unit(df_calls)
+plot_calls_by_class_hash(df_calls)
+plot_tx_speedup(df_txs)
+plot_calls_by_gas_usage(df_calls)
+plot_calls_by_gas_unit(df_calls)
 
 plt.show()
