@@ -14,9 +14,9 @@ arg_parser.add_argument("--c1", help="sample contract, defaults to first contrac
 arg_parser.add_argument("--c2", help="sample contract, defaults to second contract")
 args = arg_parser.parse_args()
 
-#####################
-# UTILITY FUNCTIONS #
-#####################
+#############
+# UTILITIES #
+#############
 
 
 def get_sample_contracts(df: pd.DataFrame):
@@ -24,7 +24,6 @@ def get_sample_contracts(df: pd.DataFrame):
         c1 = df.iloc[0]
     else:
         c1 = df.loc[args.c1]
-
     if args.c2 is None:
         c2 = df.iloc[1]
     else:
@@ -33,12 +32,28 @@ def get_sample_contracts(df: pd.DataFrame):
     return c1, c2
 
 
-#####################
-# PLOT FUNCTIONS #
-#####################
+##############
+# PROCESSING #
+##############
 
 
-def correlations_matrix(df: pd.DataFrame):
+stats = []
+for stat_file in args.input:
+    hash = pathlib.Path(stat_file).name.split(".", maxsplit=1)[0]
+    stat = pd.read_json(stat_file, typ="series")
+    stat["hash"] = hash
+    stats.append(stat)
+df = pd.DataFrame(stats).set_index("hash")
+
+
+############
+# PLOTTING #
+############
+
+sns.set_theme()
+
+
+def plot_correlations_matrix(df: pd.DataFrame):
     fig, ax = plt.subplots()
     fig.subplots_adjust(left=0.2, right=1, bottom=0.35)
     fig.suptitle("Correlations Matrix")
@@ -47,7 +62,7 @@ def correlations_matrix(df: pd.DataFrame):
     sns.heatmap(df_corr, ax=ax)
 
 
-def compilation_stages(df: pd.DataFrame):
+def plot_compilation_stages(df: pd.DataFrame):
     fig, ax = plt.subplots()
     fig.suptitle("Compilation Stages")
     fig.subplots_adjust(left=0.2)
@@ -69,14 +84,14 @@ def compilation_stages(df: pd.DataFrame):
     sns.barplot(df, ax=ax, orient="h")
 
 
-def time_distribution(df: pd.DataFrame):
+def plot_time_distribution(df: pd.DataFrame):
     fig, ax = plt.subplots()
     fig.suptitle("Compilation Time Histogram")
 
     sns.boxplot(df, x="compilation_total_time_ms", ax=ax, log_scale=True)
 
 
-def size_to_time_correlations(df: pd.DataFrame):
+def plot_size_to_time_correlations(df: pd.DataFrame):
     fig, (ax1, ax2) = plt.subplots(1, 2)
     fig.suptitle("Size to Time Correlation")
     fig.subplots_adjust(hspace=0.3)
@@ -132,36 +147,27 @@ def plot_pie(c1, c2, attribute):
     sns.set_theme()
 
 
-def sierra_libfunc_pie(df: pd.DataFrame):
+def plot_sierra_libfunc_pie(df: pd.DataFrame):
     c1, c2 = get_sample_contracts(df)
     plot_pie(c1, c2, "sierra_libfunc_frequency")
 
 
-def llvm_instruction_pie(df: pd.DataFrame):
+def plot_llvm_instruction_pie(df: pd.DataFrame):
     c1, c2 = get_sample_contracts(df)
     plot_pie(c1, c2, "llvmir_opcode_frequency")
 
 
-def mlir_by_libfunc_pie(df: pd.DataFrame):
+def plot_mlir_by_libfunc_pie(df: pd.DataFrame):
     c1, c2 = get_sample_contracts(df)
     plot_pie(c1, c2, "mlir_operations_by_libfunc")
 
 
-stats = []
-for stat_file in args.input:
-    hash = pathlib.Path(stat_file).name.split(".", maxsplit=1)[0]
-    stat = pd.read_json(stat_file, typ="series")
-    stat["hash"] = hash
-    stats.append(stat)
-df = pd.DataFrame(stats).set_index("hash")
-
-
-mlir_by_libfunc_pie(df)
-llvm_instruction_pie(df)
-sierra_libfunc_pie(df)
-size_to_time_correlations(df)
-correlations_matrix(df)
-compilation_stages(df)
-time_distribution(df)
+plot_mlir_by_libfunc_pie(df)
+plot_llvm_instruction_pie(df)
+plot_sierra_libfunc_pie(df)
+plot_size_to_time_correlations(df)
+plot_correlations_matrix(df)
+plot_compilation_stages(df)
+plot_time_distribution(df)
 
 plt.show()
