@@ -4,6 +4,7 @@ import argparse
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -366,6 +367,8 @@ def plot_block_speedup(df_txs: DataFrame):
     )
     save("block-speedup")
 
+
+mpl.rcParams["figure.figsize"] = [16, 9]
 
 plot_calls_by_class_hash(df_calls)
 plot_tx_speedup(df_txs)
