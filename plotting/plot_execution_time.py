@@ -1,4 +1,6 @@
 import json
+import pathlib
+import argparse
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
@@ -9,11 +11,17 @@ import scipy
 
 from pandas import DataFrame
 
-parser = ArgumentParser("Stress Test Plotter")
-parser.add_argument("native_data")
-parser.add_argument("vm_data")
-parser.add_argument("-o", "--output")
-args = parser.parse_args()
+arg_parser = ArgumentParser("Stress Test Plotter")
+arg_parser.add_argument("native_data")
+arg_parser.add_argument("vm_data")
+arg_parser.add_argument(
+    "--output",
+    type=pathlib.Path,
+)
+arg_parser.add_argument(
+    "--display", action=argparse.BooleanOptionalAction, default=True
+)
+args = arg_parser.parse_args()
 
 #############
 # UTILITIES #
@@ -175,6 +183,8 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
     )
     ax2.set_title("Speedup by Contract Class")
 
+    save("calls_by_class_hash")
+
 
 def plot_tx_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
@@ -194,6 +204,8 @@ def plot_tx_speedup(df_txs: DataFrame):
         horizontalalignment="left",
     )
 
+    save("tx-speedup")
+
 
 def plot_calls_by_gas_usage(df_calls: DataFrame):
     _, ax = plt.subplots()
@@ -210,6 +222,8 @@ def plot_calls_by_gas_usage(df_calls: DataFrame):
     sns.regplot(data=df_native, x="gas_consumed", y="time_ns")
     sns.regplot(data=df_vm, x="gas_consumed", y="time_ns")
     ax.set_title("Execution Time by Gas Usage")
+
+    save("calls-by-gas-usage")
 
 
 def plot_calls_by_gas_unit(df_calls):
@@ -263,6 +277,7 @@ def plot_calls_by_gas_unit(df_calls):
     )
 
     fig.suptitle("Speed by Call")
+    save("speed-by-call")
 
 
 def plot_txs_by_gas_unit(df_txs):
@@ -311,6 +326,7 @@ def plot_txs_by_gas_unit(df_txs):
     )
 
     fig.suptitle("Speed by Transaction")
+    save("speed-by-tx")
 
 
 plot_calls_by_class_hash(df_calls)
@@ -319,4 +335,5 @@ plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
 plot_txs_by_gas_unit(df_txs)
 
-plt.show()
+if args.display:
+    plt.show()
