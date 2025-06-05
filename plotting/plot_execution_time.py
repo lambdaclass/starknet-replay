@@ -46,8 +46,8 @@ def save(name):
 def load_data(path):
     raw_json = json.load(open(path))
 
-    df_txs = pd.DataFrame(raw_json["transaction_executions"])
-    df_calls = pd.DataFrame(raw_json["class_executions"])
+    df_txs = pd.DataFrame(raw_json["transactions"])
+    df_calls = pd.DataFrame(raw_json["calls"])
 
     return df_txs, df_calls
 
@@ -58,9 +58,10 @@ df_txs_vm, df_calls_vm = load_data(args.vm_data)
 # Assert Native and VM tx execution coincide.
 assert (df_txs_native.index == df_txs_vm.index).all()
 assert (df_txs_native["hash"] == df_txs_vm["hash"]).all()
-assert (df_txs_native["first_class"] == df_txs_vm["first_class"]).all()
+assert (df_txs_native["first_call"] == df_txs_vm["first_call"]).all()
 assert (df_txs_native["gas_consumed"] == df_txs_vm["gas_consumed"]).all()
 assert (df_txs_native["steps"] == df_txs_vm["steps"]).all()
+assert (df_txs_native["block_number"] == df_txs_vm["block_number"]).all()
 
 # Assert Native and VM call execution coincide.
 assert (df_calls_native.index == df_calls_vm.index).all()
@@ -72,7 +73,9 @@ assert (df_calls_native["steps"] == df_calls_vm["steps"]).all()
 # merge transactions into single dataframe
 df_txs = pd.merge(
     df_txs_native,
-    df_txs_vm.drop(["hash", "first_class", "gas_consumed", "steps"], axis=1),
+    df_txs_vm.drop(
+        ["hash", "first_call", "gas_consumed", "steps", "block_number"], axis=1
+    ),
     left_index=True,
     right_index=True,
     suffixes=("_native", "_vm"),
@@ -89,7 +92,7 @@ df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 # -------------------------
 # hash                object
 # gas_consumed        int64
-# first_class         int64
+# first_call         int64
 # time_ns_native      int64
 # time_ns_vm          int64
 # speedup             float64

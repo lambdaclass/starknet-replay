@@ -35,6 +35,8 @@ pub type BlockCachedData = (
     Vec<Transaction>,
 );
 
+type TransactionExecutionOutput = (TransactionHash, TransactionExecutionInfo, Duration);
+
 /// Fetches context data to execute the given block range
 ///
 /// It does not actually execute the block range, so not all data required
@@ -89,11 +91,13 @@ pub fn fetch_block_range_data(
 /// Can also be used to fill up the cache
 pub fn execute_block_range(
     block_range_data: &mut Vec<BlockCachedData>,
-) -> Vec<(TransactionHash, TransactionExecutionInfo, Duration)> {
-    let mut executions = Vec::new();
+) -> Vec<(BlockNumber, Vec<TransactionExecutionOutput>)> {
+    let mut blocks = Vec::new();
 
     for (state, block_context, transactions) in block_range_data {
         // For each block
+
+        let mut executions = Vec::new();
 
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
@@ -108,15 +112,17 @@ pub fn execute_block_range(
 
             executions.push((Transaction::tx_hash(transaction), execution, execution_time));
         }
+
+        blocks.push((block_context.block_info().block_number, executions));
     }
 
-    executions
+    blocks
 }
 
 #[derive(Serialize)]
 pub struct BenchmarkingData {
-    pub transaction_executions: Vec<TransactionExecutionData>,
-    pub class_executions: Vec<ClassExecutionData>,
+    pub transactions: Vec<TransactionExecutionData>,
+    pub calls: Vec<ClassExecutionData>,
 }
 
 #[derive(Serialize)]
@@ -135,53 +141,57 @@ pub struct TransactionExecutionData {
     time_ns: u128,
     gas_consumed: u64,
     steps: u64,
-    first_class: usize,
+    first_call: usize,
+    block_number: u64,
 }
 
 pub fn aggregate_executions(
-    executions: Vec<(TransactionHash, TransactionExecutionInfo, Duration)>,
+    executions: Vec<(BlockNumber, Vec<TransactionExecutionOutput>)>,
 ) -> BenchmarkingData {
-    let mut class_executions = vec![];
-    let mut transaction_executions = vec![];
+    let mut calls = vec![];
+    let mut transactions = vec![];
 
-    for (hash, execution, time) in executions {
-        let first_class_index = class_executions.len();
+    for (block_number, executions) in executions {
+        for (hash, execution, time) in executions {
+            let first_class_index = calls.len();
 
-        let mut gas_consumed = 0;
-        let mut steps = 0;
+            let mut gas_consumed = 0;
+            let mut steps = 0;
 
-        if let Some(call) = execution.validate_call_info {
-            gas_consumed += call.execution.gas_consumed;
-            steps += call.resources.n_steps as u64;
-            class_executions.append(&mut get_class_executions(call));
+            if let Some(call) = execution.validate_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
+            }
+            if let Some(call) = execution.execute_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
+            }
+            if let Some(call) = execution.fee_transfer_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
+            }
+
+            transactions.push(TransactionExecutionData {
+                hash,
+                time_ns: time.as_nanos(),
+                first_call: first_class_index,
+                gas_consumed,
+                steps,
+                block_number: block_number.0,
+            });
         }
-        if let Some(call) = execution.execute_call_info {
-            gas_consumed += call.execution.gas_consumed;
-            steps += call.resources.n_steps as u64;
-            class_executions.append(&mut get_class_executions(call));
-        }
-        if let Some(call) = execution.fee_transfer_call_info {
-            gas_consumed += call.execution.gas_consumed;
-            steps += call.resources.n_steps as u64;
-            class_executions.append(&mut get_class_executions(call));
-        }
-
-        transaction_executions.push(TransactionExecutionData {
-            hash,
-            time_ns: time.as_nanos(),
-            first_class: first_class_index,
-            gas_consumed,
-            steps,
-        });
     }
 
     BenchmarkingData {
-        transaction_executions,
-        class_executions,
+        transactions,
+        calls,
     }
 }
 
-fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionData> {
+fn get_calls(call: CallInfo) -> Vec<ClassExecutionData> {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
@@ -196,7 +206,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionData> {
             inner_time += call.time;
             inner_gas_consumed += call.execution.gas_consumed;
             inner_steps += call.resources.n_steps as u64;
-            get_class_executions(call)
+            get_calls(call)
         })
         .collect::<Vec<_>>();
 

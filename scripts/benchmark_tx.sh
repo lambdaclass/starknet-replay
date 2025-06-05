@@ -45,13 +45,13 @@ vm_data_output="$DATA_DIR/vm-$data_output"
 echo "Executing with Native"
 $NATIVE_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$native_data_output" > "$native_log_output"
 
-native_time=$(jq '.transaction_executions | map(.time_ns) | add' "$native_data_output")
+native_time=$(jq '.transactions | map(.time_ns) | add' "$native_data_output")
 echo "Average Native time: $native_time ns"
 
 echo "Executing with VM"
 $VM_TARGET bench-tx "$TX" "$NET" "$BLOCK" "$LAPS" -o "$vm_data_output" > "$vm_log_output"
 
-vm_time=$(jq '.transaction_executions | map(.time_ns) | add' "$vm_data_output")
+vm_time=$(jq '.transactions | map(.time_ns) | add' "$vm_data_output")
 echo "Average VM time: $vm_time ns"
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
