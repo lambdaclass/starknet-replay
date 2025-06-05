@@ -115,12 +115,12 @@ pub fn execute_block_range(
 
 #[derive(Serialize)]
 pub struct BenchmarkingData {
-    pub transaction_executions: Vec<TransactionExecutionBenchmark>,
-    pub class_executions: Vec<ClassExecutionInfo>,
+    pub transaction_executions: Vec<TransactionExecutionData>,
+    pub class_executions: Vec<ClassExecutionData>,
 }
 
 #[derive(Serialize)]
-pub struct ClassExecutionInfo {
+pub struct ClassExecutionData {
     class_hash: ClassHash,
     selector: EntryPointSelector,
     time_ns: u128,
@@ -130,7 +130,7 @@ pub struct ClassExecutionInfo {
 }
 
 #[derive(Serialize)]
-pub struct TransactionExecutionBenchmark {
+pub struct TransactionExecutionData {
     hash: TransactionHash,
     time_ns: u128,
     gas_consumed: u64,
@@ -166,7 +166,7 @@ pub fn aggregate_executions(
             class_executions.append(&mut get_class_executions(call));
         }
 
-        transaction_executions.push(TransactionExecutionBenchmark {
+        transaction_executions.push(TransactionExecutionData {
             hash,
             time_ns: time.as_nanos(),
             first_class: first_class_index,
@@ -181,7 +181,7 @@ pub fn aggregate_executions(
     }
 }
 
-fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
+fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionData> {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
@@ -215,7 +215,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         .checked_sub(inner_steps)
         .expect("gas cannot be negative");
 
-    let top_class = ClassExecutionInfo {
+    let top_class = ClassExecutionData {
         class_hash,
         selector: call.call.entry_point_selector,
         time_ns: time.as_nanos(),
