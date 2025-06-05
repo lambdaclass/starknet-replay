@@ -186,12 +186,7 @@ If you just want to benchmarks a few different sample transactions, run:
 
 This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
-- `{native,vm}-data-*.json` - stdout from running the benchmark.
-
-Additionally, the benchmarking scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
-- `plot-*.svg` - bar plot for the execution time by contract class
-- `plot-*-speedup.svg` - violin plot for the speedup by contract class
-- `plot-*.csv` - raw csv preprocessed data
+- `{native,vm}-logs-*.json` - stdout from running the benchmark.
 
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
@@ -206,7 +201,7 @@ In the `plotting` directory, you can find python scripts to plot relevant inform
 
 To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
 
-- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
+- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the benchmark data of Native and VM.
 - `python ./plotting/plot_compilation_logs.py native-logs`: Plots the compilation logs for Native and VM.
 - `python ./plotting/plot_compilation_stats.py *.json`: Plots the compilation stats for Native.
 - `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.
