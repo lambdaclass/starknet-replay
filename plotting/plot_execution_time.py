@@ -47,6 +47,9 @@ def load_data(path):
 df_txs_native, df_calls_native = load_data(args.native_data)
 df_txs_vm, df_calls_vm = load_data(args.vm_data)
 
+
+# merge steps into gas_consumed
+
 df_txs = pd.merge(
     df_txs_native,
     df_txs_vm,
@@ -54,12 +57,10 @@ df_txs = pd.merge(
     right_index=True,
     suffixes=("_native", "_vm"),
 )
-df_txs.loc[df_txs["gas_consumed_native"] == 0, "gas_consumed_native"] = (
-    df_txs.loc[df_txs["gas_consumed_native"] == 0, "steps_native"] * 100
-)
-df_txs.loc[df_txs["gas_consumed_vm"] == 0, "gas_consumed_vm"] = (
-    df_txs.loc[df_txs["gas_consumed_vm"] == 0, "steps_vm"] * 100
-)
+df_txs["gas_consumed_native"] += df_txs["steps_native"] * 100
+df_txs = df_txs.drop("steps_native", axis=1)
+df_txs["gas_consumed_vm"] += df_txs["steps_vm"] * 100
+df_txs = df_txs.drop("steps_vm", axis=1)
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
 # print(df_txs.info())
@@ -69,12 +70,10 @@ df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 # hash_native         object
 # time_ns_native      int64
 # gas_consumed_native int64
-# steps_native        int64
 # first_class_native  int64
 # hash_vm             object
 # time_ns_vm          int64
 # gas_consumed_vm     int64
-# steps_vm            int64
 # first_class_vm      int64
 # speedup             float64
 
@@ -87,10 +86,8 @@ df_calls_vm["executor"] = "vm"
 
 df_calls = pd.concat([df_calls_native, df_calls_vm])
 
-# replace where gas_consumed == 0 with steps * 100
-df_calls.loc[df_calls["gas_consumed"] == 0, "gas_consumed"] = (
-    df_calls.loc[df_calls["gas_consumed"] == 0, "steps"] * 100
-)
+# merge steps into gas_consumed
+df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
 
 # print(df_calls.info())
@@ -337,9 +334,9 @@ def plot_txs_by_gas_unit(df_txs):
     print()
 
 
-plot_calls_by_class_hash(df_calls)
-plot_tx_speedup(df_txs)
-plot_calls_by_gas_usage(df_calls)
+# plot_calls_by_class_hash(df_calls)
+# plot_tx_speedup(df_txs)
+# plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
 plot_txs_by_gas_unit(df_txs)
 
