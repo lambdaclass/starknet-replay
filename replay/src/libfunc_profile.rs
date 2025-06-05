@@ -6,6 +6,7 @@ use starknet_types_core::felt::Felt;
 
 #[derive(Serialize)]
 struct LibfuncProfile {
+    block_number: u64,
     tx: Felt,
     data: Vec<ProfilerResults>,
 }
@@ -23,7 +24,11 @@ pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
 
     let profiles_data = profiles
         .iter()
-        .map(|(k, v)| LibfuncProfile { tx: *k, data: v.clone() })
+        .map(|(k, v)| LibfuncProfile {
+            block_number,
+            tx: *k,
+            data: v.clone(),
+        })
         .collect::<Vec<_>>();
 
     serde_json::to_writer_pretty(profile_file, &profiles_data).unwrap();
