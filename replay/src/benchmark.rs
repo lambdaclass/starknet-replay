@@ -106,11 +106,7 @@ pub fn execute_block_range(
             let Ok(execution) = execution else { continue };
             let execution_time = pre_execution_instant.elapsed();
 
-            executions.push((
-                Transaction::tx_hash(&transaction),
-                execution,
-                execution_time,
-            ));
+            executions.push((Transaction::tx_hash(transaction), execution, execution_time));
         }
     }
 
