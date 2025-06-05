@@ -332,11 +332,47 @@ def plot_txs_by_gas_unit(df_txs):
     save("speed-by-tx")
 
 
+def plot_block_speedup(df_txs: DataFrame):
+    _, ax = plt.subplots()
+
+    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
+        time_ns_native=("time_ns_native", "sum"),
+        time_ns_vm=("time_ns_vm", "sum"),
+        tx_speedup=("speedup", "mean"),
+    )  # type: ignore
+
+    df_blocks["block_speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
+
+    total_speedup = df_blocks["time_ns_vm"].sum() / df_blocks["time_ns_native"].sum()
+
+    melted = df_blocks[["tx_speedup", "block_speedup"]].melt(
+        var_name="metric", value_name="value"
+    )
+    sns.violinplot(
+        ax=ax,
+        data=melted,
+        x="value",
+        hue="metric",
+    )
+    ax.set_title("Speedup by Block")
+    ax.text(
+        0.01,
+        0.99,
+        f"Total: {total_speedup:.2f}",
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+    save("block-speedup")
+
+
 plot_calls_by_class_hash(df_calls)
 plot_tx_speedup(df_txs)
 plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
 plot_txs_by_gas_unit(df_txs)
+plot_block_speedup(df_txs)
 
 if args.display:
     plt.show()
