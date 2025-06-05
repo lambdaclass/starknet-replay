@@ -4,8 +4,6 @@ use blockifier::execution::entry_point::{
     SierraGasRevertTracker,
 };
 use blockifier::execution::execution_utils::execute_entry_point_call;
-#[cfg(feature = "with-libfunc-profiling")]
-use blockifier::execution::native::executor::LIBFUNC_PROFILES_MAP;
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
@@ -54,6 +52,9 @@ mod benchmark;
 mod block_composition;
 #[cfg(feature = "state_dump")]
 mod state_dump;
+
+#[cfg(feature = "with-libfunc-profiling")]
+mod libfunc_profile;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -598,21 +599,7 @@ fn show_execution_data(
     state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
     #[cfg(feature = "with-libfunc-profiling")]
-    {
-        let mut profiles = LIBFUNC_PROFILES_MAP.lock().unwrap();
-        let root = PathBuf::from(format!("libfunc_profiles/block{block_number}"));
-
-        std::fs::create_dir_all(&root).unwrap();
-
-        let mut path = root.join(tx_hash_str);
-        path.set_extension("json");
-
-        let profile_file = File::create(path).unwrap();
-
-        serde_json::to_writer_pretty(profile_file, &*profiles).unwrap();
-
-        profiles.clear();
-    }
+    libfunc_profile::create_libfunc_profile(block_number, &tx_hash_str);
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
