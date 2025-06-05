@@ -220,19 +220,18 @@ def plot_calls_by_gas_unit(df_calls):
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    df_native = df_native[np.abs(scipy.stats.zscore(df_native["speed"])) < 1]
-    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["speed"])) < 1]
-
+    df_native_clean = df_native[np.abs(scipy.stats.zscore(df_native["speed"])) < 2]
+    df_vm_clean = df_vm[np.abs(scipy.stats.zscore(df_vm["speed"])) < 2]
     sns.violinplot(
         ax=ax1,
-        data=df_native,
+        data=df_native_clean,
         x="speed",
     )
     ax1.set_title("Native Speed (gas/ns)")
     ax1.set_xlabel("Speed (gas/ns)")
     sns.violinplot(
         ax=ax2,
-        data=df_vm,
+        data=df_vm_clean,
         x="speed",
     )
     ax2.set_title("VM Speed (gas/ns)")
@@ -264,19 +263,6 @@ def plot_calls_by_gas_unit(df_calls):
     )
 
     fig.suptitle("Speed by Call")
-
-    max_gas_limit = 10e6 * 100
-    max_native_time = max_gas_limit / native_total_speed / 1e9
-    max_gas_limit = 10e6 * 100
-    max_vm_time = max_gas_limit / vm_total_speed / 1e9
-
-    print("# Speed by Call")
-    print(f"Max gas limit: {max_gas_limit:.0f} gas")
-    print(f"Native total speed: {native_total_speed:.2f} gas/ns")
-    print(f"Native Max time: {max_native_time:.2f} s")
-    print(f"VM total speed: {vm_total_speed:.2f} gas/ns")
-    print(f"VM Max time: {max_vm_time:.2f} s")
-    print()
 
 
 def plot_txs_by_gas_unit(df_txs):
@@ -325,19 +311,6 @@ def plot_txs_by_gas_unit(df_txs):
     )
 
     fig.suptitle("Speed by Transaction")
-
-    max_gas_limit = 10e6 * 100
-    max_native_time = max_gas_limit / native_total_speed / 1e9
-    max_gas_limit = 10e6 * 100
-    max_vm_time = max_gas_limit / vm_total_speed / 1e9
-
-    print("# Speed by Transaction")
-    print(f"Max gas limit: {max_gas_limit:.0f} gas")
-    print(f"Native total speed: {native_total_speed:.2f} gas/ns")
-    print(f"Native Max time: {max_native_time:.2f} s")
-    print(f"VM total speed: {vm_total_speed:.2f} gas/ns")
-    print(f"VM Max time: {max_vm_time:.2f} s")
-    print()
 
 
 plot_calls_by_class_hash(df_calls)
