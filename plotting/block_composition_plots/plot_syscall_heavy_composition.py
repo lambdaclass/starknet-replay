@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from utils import load_data
+from pprint import pprint
 
 SYSCALL_ENTRYPOINTS = []
 
@@ -10,6 +11,7 @@ arguments = argument_parser.parse_args()
 
 def count_syscalls(tx):
     syscall_count = 0
+    gas = sum(tx["gas"].values())
 
     if tx["validate_call_info"] is not None:
         syscall_count += sum(
@@ -24,7 +26,7 @@ def count_syscalls(tx):
             [entrypoint["syscall_count"] for entrypoint in tx["fee_transfer_call_info"]]
         )
 
-    return {"tx_hash": tx["tx_hash"], "syscall_count": syscall_count}
+    return {"tx_hash": tx["tx_hash"], "syscall_count": syscall_count, "total_gas": gas}
 
 
 def process_fn(block):
