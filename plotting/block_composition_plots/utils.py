@@ -8,7 +8,7 @@ def flatmap(f, iterable):
     return itertools.chain.from_iterable(map(f, iterable))
 
 
-def load_data(path, process_fn):
+def load_block_composition_data(path, process_fn):
     def apply_flattening(block):
         # An entrypoint is a dict of groups of entrypoints (each with objectives)
         # since each group is a tree of calls (an entrypoint can be called during the execution
