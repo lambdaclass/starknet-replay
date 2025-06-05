@@ -47,34 +47,43 @@ def load_data(path):
 df_txs_native, df_calls_native = load_data(args.native_data)
 df_txs_vm, df_calls_vm = load_data(args.vm_data)
 
+# Assert Native and VM tx execution coincide.
+assert (df_txs_native.index == df_txs_vm.index).all()
+assert (df_txs_native["hash"] == df_txs_vm["hash"]).all()
+assert (df_txs_native["first_class"] == df_txs_vm["first_class"]).all()
+assert (df_txs_native["gas_consumed"] == df_txs_vm["gas_consumed"]).all()
+assert (df_txs_native["steps"] == df_txs_vm["steps"]).all()
 
-# merge steps into gas_consumed
+# Assert Native and VM call execution coincide.
+assert (df_calls_native.index == df_calls_vm.index).all()
+assert (df_calls_native["class_hash"] == df_calls_vm["class_hash"]).all()
+assert (df_calls_native["selector"] == df_calls_vm["selector"]).all()
+assert (df_calls_native["gas_consumed"] == df_calls_vm["gas_consumed"]).all()
+assert (df_calls_native["steps"] == df_calls_vm["steps"]).all()
 
+# merge transactions into single dataframe
 df_txs = pd.merge(
     df_txs_native,
-    df_txs_vm,
+    df_txs_vm.drop(["hash", "first_class", "gas_consumed", "steps"], axis=1),
     left_index=True,
     right_index=True,
     suffixes=("_native", "_vm"),
 )
-df_txs["gas_consumed_native"] += df_txs["steps_native"] * 100
-df_txs = df_txs.drop("steps_native", axis=1)
-df_txs["gas_consumed_vm"] += df_txs["steps_vm"] * 100
-df_txs = df_txs.drop("steps_vm", axis=1)
+# merge steps into gas_consumed
+df_txs["gas_consumed"] += df_txs["steps"] * 100
+df_txs = df_txs.drop("steps", axis=1)
+# calculate speedup
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
 # print(df_txs.info())
 # -------------------------
 # Column              Dtype
 # -------------------------
-# hash_native         object
+# hash                object
+# gas_consumed        int64
+# first_class         int64
 # time_ns_native      int64
-# gas_consumed_native int64
-# first_class_native  int64
-# hash_vm             object
 # time_ns_vm          int64
-# gas_consumed_vm     int64
-# first_class_vm      int64
 # speedup             float64
 
 # use resource to determine executor
@@ -83,9 +92,8 @@ df_calls_native.replace("CairoSteps", "vm", inplace=True)
 df_calls_native.rename(columns={"resource": "executor"}, inplace=True)
 df_calls_vm.rename(columns={"resource": "executor"}, inplace=True)
 df_calls_vm["executor"] = "vm"
-
+# merge calls into single dataframe
 df_calls = pd.concat([df_calls_native, df_calls_vm])
-
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
@@ -274,8 +282,8 @@ def plot_calls_by_gas_unit(df_calls):
 def plot_txs_by_gas_unit(df_txs):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
-    df_txs["speed_native"] = df_txs["gas_consumed_native"] / df_txs["time_ns_native"]
-    df_txs["speed_vm"] = df_txs["gas_consumed_vm"] / df_txs["time_ns_vm"]
+    df_txs["speed_native"] = df_txs["gas_consumed"] / df_txs["time_ns_native"]
+    df_txs["speed_vm"] = df_txs["gas_consumed"] / df_txs["time_ns_vm"]
 
     sns.violinplot(
         ax=ax1,
@@ -294,10 +302,8 @@ def plot_txs_by_gas_unit(df_txs):
 
     native_mean_speed = df_txs["speed_native"].mean()
     vm_mean_speed = df_txs["speed_vm"].mean()
-    native_total_speed = (
-        df_txs["gas_consumed_native"].sum() / df_txs["time_ns_native"].sum()
-    )
-    vm_total_speed = df_txs["gas_consumed_vm"].sum() / df_txs["time_ns_vm"].sum()
+    native_total_speed = df_txs["gas_consumed"].sum() / df_txs["time_ns_native"].sum()
+    vm_total_speed = df_txs["gas_consumed"].sum() / df_txs["time_ns_vm"].sum()
 
     ax1.text(
         0.01,
@@ -334,9 +340,9 @@ def plot_txs_by_gas_unit(df_txs):
     print()
 
 
-# plot_calls_by_class_hash(df_calls)
-# plot_tx_speedup(df_txs)
-# plot_calls_by_gas_usage(df_calls)
+plot_calls_by_class_hash(df_calls)
+plot_tx_speedup(df_txs)
+plot_calls_by_gas_usage(df_calls)
 plot_calls_by_gas_unit(df_calls)
 plot_txs_by_gas_unit(df_txs)
 
