@@ -190,6 +190,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
     let class_hash = call.call.class_hash.unwrap();
 
     let mut inner_time = Duration::ZERO;
+    let mut inner_steps = 0;
     let mut inner_gas_consumed = 0;
 
     let mut classes = call
@@ -198,6 +199,7 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         .flat_map(|call| {
             inner_time += call.time;
             inner_gas_consumed += call.execution.gas_consumed;
+            inner_steps += call.resources.n_steps as u64;
             get_class_executions(call)
         })
         .collect::<Vec<_>>();
@@ -213,13 +215,17 @@ fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
         .checked_sub(inner_gas_consumed)
         .expect("gas cannot be negative");
 
+    let steps = (call.resources.n_steps as u64)
+        .checked_sub(inner_steps)
+        .expect("gas cannot be negative");
+
     let top_class = ClassExecutionInfo {
         class_hash,
         selector: call.call.entry_point_selector,
         time_ns: time.as_nanos(),
         gas_consumed,
         resource: call.tracked_resource,
-        steps: call.resources.n_steps as u64,
+        steps,
     };
 
     classes.push(top_class);
