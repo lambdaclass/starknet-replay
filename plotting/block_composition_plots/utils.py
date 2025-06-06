@@ -8,7 +8,7 @@ def flatmap(f, iterable):
     return itertools.chain.from_iterable(map(f, iterable))
 
 
-def load_block_composition_data(path, process_fn):
+def load_block_composition_data(path, process_fn=None):
     def apply_flattening(block):
         # An entrypoint is a dict of groups of entrypoints (each with objectives)
         # since each group is a tree of calls (an entrypoint can be called during the execution
@@ -26,14 +26,23 @@ def load_block_composition_data(path, process_fn):
 
         df = pd.concat([df, block_df])
 
-    df = (
-        df.apply(apply_flattening, axis=1)
-        .apply(process_fn, axis=1)
-        .dropna()
-        .apply(pd.Series)
-    )
+    df = df.apply(apply_flattening, axis=1)
 
-    return df
+    df_exploded = df.explode("entrypoints")
+
+    df_expanded = pd.concat(
+        [
+            df_exploded.drop(columns="entrypoints").reset_index(drop=True),
+            pd.json_normalize(df_exploded["entrypoints"]).reset_index(drop=True),
+        ],
+        axis=1,
+    )
+    df_expanded = (
+        df_expanded.apply(process_fn, axis=1) if process_fn is not None else df
+    )
+    df_expanded = df_expanded.dropna().apply(pd.Series)
+
+    return df_expanded
 
 
 def flatten_call_trees(entrypoints):
