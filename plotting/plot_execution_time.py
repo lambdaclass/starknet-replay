@@ -32,9 +32,9 @@ def format_hash(class_hash):
     return f"{class_hash[:6]}..."
 
 
-def save(name):
+def save(name, ext="svg"):
     if args.output:
-        figure_name = f"{args.output}-{name}.svg"
+        figure_name = f"{args.output}-{name}.{ext}"
         plt.savefig(figure_name)
 
 
@@ -104,9 +104,9 @@ df_calls_native.rename(columns={"resource": "executor"}, inplace=True)
 df_calls_vm.rename(columns={"resource": "executor"}, inplace=True)
 df_calls_vm["executor"] = "vm"
 # merge calls into single dataframe
-df_calls = pd.concat([df_calls_native, df_calls_vm])
+df_calls: DataFrame = pd.concat([df_calls_native, df_calls_vm])
 # drop calls with no time
-df_calls = df_calls[df_calls["time_ns"] != 0]
+df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
@@ -154,6 +154,7 @@ def plot_speedup(df_txs: DataFrame):
     )
 
     sns.violinplot(ax=ax, data=df_speedups, y="speedup", x="type")
+    ax.set_ylim(0, 50)
     ax.set_xlabel("")
     ax.set_ylabel("Speedup Ratio")
     ax.set_title("Speedup Distribution")
@@ -270,7 +271,7 @@ def plot_time_by_gas(df_calls: DataFrame):
     sns.regplot(x=vm_gas_consumed, y=vm_time_ns, scatter_kws={"alpha": 0.05})
 
     # Format the axis to show the normal values, not the log ones.
-    def unlog10(x, pos):
+    def unlog10(x, _):
         return f"{10**x:.0e}"
 
     ax.set_xlabel("Gas Consumed")
@@ -280,7 +281,7 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     ax.set_title("Execution Time by Gas Usage")
 
-    save("time-by-gas")
+    save("time-by-gas", "png")
 
 
 def plot_speed(df_calls):
