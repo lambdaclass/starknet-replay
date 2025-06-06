@@ -11,6 +11,8 @@ import numpy as np
 
 from pandas import DataFrame
 
+sns.set_theme()
+
 arg_parser = ArgumentParser("Stress Test Plotter")
 arg_parser.add_argument("native_data")
 arg_parser.add_argument("vm_data")
@@ -216,7 +218,6 @@ def plot_time_by_class(df_calls: DataFrame):
         formatter=format_hash,
         label="VM Execution Time",
         color="r",
-        alpha=0.75,
     )
     sns.barplot(
         ax=ax1,
@@ -226,7 +227,6 @@ def plot_time_by_class(df_calls: DataFrame):
         formatter=format_hash,
         label="Native Execution Time",
         color="b",
-        alpha=0.75,
     )
     ax1.set_xscale("log", base=2)
     ax1.set_xlabel("Mean Time (ns)")
@@ -241,7 +241,6 @@ def plot_time_by_class(df_calls: DataFrame):
         formatter=format_hash,
         label="Speedup",
         color="b",
-        alpha=0.75,
     )
     ax2.set_title("Speedup by Contract Class")
     ax2.set_ylabel("")
@@ -267,8 +266,26 @@ def plot_time_by_gas(df_calls: DataFrame):
     vm_gas_consumed = np.log10(vm_gas_consumed)
     vm_time_ns = np.log10(vm_time_ns)
 
-    sns.regplot(x=native_gas_consumed, y=native_time_ns, scatter_kws={"alpha": 0.05})
-    sns.regplot(x=vm_gas_consumed, y=vm_time_ns, scatter_kws={"alpha": 0.05})
+    sns.kdeplot(ax=ax, x=native_gas_consumed, y=native_time_ns, color="b")
+    sns.regplot(
+        ax=ax,
+        x=native_gas_consumed,
+        y=native_time_ns,
+        scatter=False,
+        color="b",
+        label="Native",
+    )
+    sns.kdeplot(ax=ax, x=vm_gas_consumed, y=vm_time_ns, color="r")
+    sns.regplot(
+        ax=ax,
+        x=vm_gas_consumed,
+        y=vm_time_ns,
+        scatter=False,
+        color="r",
+        label="VM",
+    )
+
+    ax.legend()
 
     # Format the axis to show the normal values, not the log ones.
     def unlog10(x, _):
@@ -281,7 +298,7 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     ax.set_title("Execution Time by Gas Usage")
 
-    save("time-by-gas", "png")
+    save("time-by-gas")
 
 
 def plot_speed(df_calls):
