@@ -132,7 +132,7 @@ df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 def plot_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
 
-    sns.boxplot(ax=ax, data=df_txs, x="speedup")
+    sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False)
     ax.set_xlabel("Tx Speedup Ratio")
     ax.set_title("Speedup Distribution")
 
@@ -301,23 +301,13 @@ def plot_speed(df_calls):
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    sns.boxplot(
-        ax=ax1,
-        data=df_native,
-        x="speed",
-    )
+    sns.boxplot(ax=ax1, data=df_native, x="speed", showfliers=False)
     ax1.set_title("Native Speed (gas/ns)")
     ax1.set_xlabel("Speed (gas/ns)")
-    ax1.set_xlim(0, 50)
 
-    sns.boxplot(
-        ax=ax2,
-        data=df_vm,
-        x="speed",
-    )
+    sns.boxplot(ax=ax2, data=df_vm, x="speed", showfliers=False)
     ax2.set_title("VM Speed (gas/ns)")
     ax2.set_xlabel("Speed (gas/ns)")
-    ax2.set_xlim(0, 5)
 
     native_total_speed = df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
     vm_total_speed = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
