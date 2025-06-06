@@ -128,7 +128,10 @@ df_calls = df_calls.drop("steps", axis=1)
 def plot_calls_by_class_hash(df_calls: DataFrame):
     df: DataFrame = (
         df_calls.groupby(["executor", "class_hash"])
-        .aggregate(mean_time=("time_ns", "mean"))
+        .aggregate(
+            mean_time=("time_ns", "mean"),
+            total_time=("time_ns", "mean"),
+        )
         .unstack("executor")
     )  # type: ignore
 
@@ -139,6 +142,7 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
     df = df.dropna(axis=0, subset=[("mean_time_native"), ("mean_time_vm")])
 
     # sort so that the legend doesn't cover the bars
+    df = df.nlargest(columns="total_time_vm", n=40)
     df.sort_values(["mean_time_vm"], ascending=[False], inplace=True)
 
     df["speedup"] = df["mean_time_vm"] / df["mean_time_native"]
@@ -365,11 +369,11 @@ def plot_txs_by_gas_unit(df_txs):
 
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
-plot_speedup(df_txs)
+# plot_speedup(df_txs)
 plot_calls_by_class_hash(df_calls)
-plot_calls_by_gas_usage(df_calls)
-plot_calls_by_gas_unit(df_calls)
-plot_txs_by_gas_unit(df_txs)
+# plot_calls_by_gas_usage(df_calls)
+# plot_calls_by_gas_unit(df_calls)
+# plot_txs_by_gas_unit(df_txs)
 
 if args.display:
     plt.show()
