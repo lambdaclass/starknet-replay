@@ -124,6 +124,7 @@ df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 # time_ns       int64
 # gas_consumed  int64
 # executor      object
+# speed         float64
 
 ############
 # PLOTTING #
