@@ -29,23 +29,16 @@ def load_jsonl(path, f):
 
 
 def load_json_dir_data(path, f):
-    def load_into_df(path):
-        df = pd.DataFrame()
+    df = pd.DataFrame()
 
-        for filename in os.listdir(path):
-            path = path + "/" + filename
+    # iter blocks
+    for block_dir in os.listdir(path):
+        for tx_file_name in os.listdir(f"{path}/{block_dir}"):
+            tx_file = f"{path}/{block_dir}/{tx_file_name}"
 
-            data = (
-                load_into_df(path)
-                if os.path.isdir(path)
-                else pd.DataFrame(json.load(open(path)))
-            )
+            data = pd.DataFrame(json.load(open(tx_file)))
 
             df = pd.concat([df, data])
-
-        return df
-
-    df = load_into_df(path)
 
     df = df.apply(f, axis=1).dropna().apply(pd.Series)
 
