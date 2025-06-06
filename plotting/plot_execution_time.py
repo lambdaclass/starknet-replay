@@ -132,40 +132,11 @@ df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 def plot_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
 
-    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
-        time_ns_native=("time_ns_native", "sum"),
-        time_ns_vm=("time_ns_vm", "sum"),
-        mean_speedup=("speedup", "mean"),
-    )  # type: ignore
-    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
-
-    block_mean_tx_speedup = df_blocks["mean_speedup"]
-    block_speedup = df_blocks["speedup"]
-    tx_speedup = df_txs["speedup"]
-    df_speedups = (
-        pd.concat(
-            [block_mean_tx_speedup, block_speedup, tx_speedup],
-            keys=[
-                "Block Mean Tx Speedup",
-                "Block Speedup",
-                "Tx Speedup",
-            ],
-        )
-        .reset_index(level=0)
-        .rename(columns={"level_0": "type", 0: "speedup"})
-    )
-
-    sns.violinplot(ax=ax, data=df_speedups, y="speedup", x="type")
-    ax.set_ylim(0, 20)
-    ax.set_xlabel("")
-    ax.set_ylabel("Speedup Ratio")
+    sns.boxplot(ax=ax, data=df_txs, x="speedup")
+    ax.set_xlabel("Tx Speedup Ratio")
     ax.set_title("Speedup Distribution")
 
     total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
-    mean_tx_speedup = df_txs["speedup"].mean()
-    mean_block_speedup = df_blocks["speedup"].mean()
-    mean_block_mean_speedup = df_blocks["mean_speedup"].mean()
-
     ax.text(
         0.01,
         0.99,
@@ -175,6 +146,17 @@ def plot_speedup(df_txs: DataFrame):
         verticalalignment="top",
         horizontalalignment="left",
     )
+
+    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
+        time_ns_native=("time_ns_native", "sum"),
+        time_ns_vm=("time_ns_vm", "sum"),
+        mean_speedup=("speedup", "mean"),
+    )  # type: ignore
+    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
+
+    mean_tx_speedup = df_txs["speedup"].mean()
+    mean_block_speedup = df_blocks["speedup"].mean()
+    mean_block_mean_speedup = df_blocks["mean_speedup"].mean()
 
     print("")
     print("# Speedup")
@@ -319,7 +301,7 @@ def plot_speed(df_calls):
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    sns.violinplot(
+    sns.boxplot(
         ax=ax1,
         data=df_native,
         x="speed",
@@ -328,7 +310,7 @@ def plot_speed(df_calls):
     ax1.set_xlabel("Speed (gas/ns)")
     ax1.set_xlim(0, 50)
 
-    sns.violinplot(
+    sns.boxplot(
         ax=ax2,
         data=df_vm,
         x="speed",
@@ -337,16 +319,13 @@ def plot_speed(df_calls):
     ax2.set_xlabel("Speed (gas/ns)")
     ax2.set_xlim(0, 5)
 
-    native_mean_speed = df_native["speed"].mean()
-    vm_mean_speed = df_vm["speed"].mean()
-
     native_total_speed = df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
     vm_total_speed = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
 
     ax1.text(
         0.01,
         0.99,
-        f"Mean Speed: {native_mean_speed:.2f}\nTotal Speed: {native_total_speed:.2f}\n",
+        f"Total Speed: {native_total_speed:.2f}\n",
         transform=ax1.transAxes,
         fontsize=12,
         verticalalignment="top",
@@ -355,7 +334,7 @@ def plot_speed(df_calls):
     ax2.text(
         0.01,
         0.99,
-        f"Mean Speed: {vm_mean_speed:.2f}\nTotal Speed: {vm_total_speed:.2f}\n",
+        f"Total Speed: {vm_total_speed:.2f}\n",
         transform=ax2.transAxes,
         fontsize=12,
         verticalalignment="top",
@@ -369,9 +348,9 @@ def plot_speed(df_calls):
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 plot_speed(df_calls)
-plot_time_by_gas(df_calls)
-plot_time_by_class(df_calls)
-plot_speedup(df_txs)
+# plot_time_by_gas(df_calls)
+# plot_time_by_class(df_calls)
+# plot_speedup(df_txs)
 
 if args.display:
     plt.show()
