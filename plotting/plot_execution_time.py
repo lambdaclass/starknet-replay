@@ -109,6 +109,7 @@ df_calls = pd.concat([df_calls_native, df_calls_vm])
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
+df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 
 # print(df_calls.info())
 # -------------------
@@ -125,7 +126,64 @@ df_calls = df_calls.drop("steps", axis=1)
 ############
 
 
-def plot_calls_by_class_hash(df_calls: DataFrame):
+def plot_speedup(df_txs: DataFrame):
+    _, ax = plt.subplots()
+
+    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
+        time_ns_native=("time_ns_native", "sum"),
+        time_ns_vm=("time_ns_vm", "sum"),
+        mean_speedup=("speedup", "mean"),
+    )  # type: ignore
+    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
+
+    block_mean_tx_speedup = df_blocks["mean_speedup"]
+    block_speedup = df_blocks["speedup"]
+    tx_speedup = df_txs["speedup"]
+    df_speedups = (
+        pd.concat(
+            [block_mean_tx_speedup, block_speedup, tx_speedup],
+            keys=[
+                "Block Mean Tx Speedup",
+                "Block Speedup",
+                "Tx Speedup",
+            ],
+        )
+        .reset_index(level=0)
+        .rename(columns={"level_0": "type", 0: "speedup"})
+    )
+
+    sns.violinplot(ax=ax, data=df_speedups, y="speedup", x="type")
+    ax.set_xlabel("")
+    ax.set_ylabel("Speedup Ratio")
+    ax.set_title("Speedup Distribution")
+
+    total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
+    mean_tx_speedup = df_txs["speedup"].mean()
+    mean_block_speedup = df_blocks["speedup"].mean()
+    mean_block_mean_speedup = df_blocks["mean_speedup"].mean()
+
+    ax.text(
+        0.01,
+        0.99,
+        f"Total Speedup: {total_speedup:.2f}",
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    print("")
+    print("# Speedup")
+    print(f"Total Speedup: {total_speedup:.2f}")
+    print(f"Mean Tx Speedup: {mean_tx_speedup:.2f}")
+    print(f"Mean Block Speedup: {mean_block_speedup:.2f}")
+    print(f"Mean Block Mean Speedup: {mean_block_mean_speedup:.2f}")
+    print("")
+
+    save("speedup")
+
+
+def plot_time_by_class(df_calls: DataFrame):
     df: DataFrame = (
         df_calls.groupby(["executor", "class_hash"])
         .aggregate(
@@ -169,6 +227,8 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
         alpha=0.75,
     )
     ax1.set_xscale("log", base=2)
+    ax1.set_xlabel("Mean Time (ns)")
+    ax1.set_ylabel("Class Hash")
     ax1.set_title("Mean time by Contract Class")
 
     sns.barplot(
@@ -183,101 +243,68 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
     )
     ax2.set_title("Speedup by Contract Class")
     ax2.set_ylabel("")
+    ax2.set_xlabel("Speedup Ratio")
 
-    save("calls_by_class_hash")
-
-
-def plot_speedup(df_txs: DataFrame):
-    _, ax = plt.subplots()
-
-    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
-        time_ns_native=("time_ns_native", "sum"),
-        time_ns_vm=("time_ns_vm", "sum"),
-        mean_speedup=("speedup", "mean"),
-    )  # type: ignore
-    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
-
-    df_speedups = (
-        pd.concat(
-            [df_txs["speedup"], df_blocks["speedup"], df_blocks["mean_speedup"]],
-            keys=["tx_speedup", "block_speedup", "block_mean_speedup"],
-        )
-        .reset_index(level=0)
-        .rename(columns={"level_0": "type", 0: "speedup"})
-    )
-
-    sns.violinplot(ax=ax, data=df_speedups, x="speedup", y="type")
-    ax.set_title("Speedup Distribution")
-
-    total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
-    mean_tx_speedup = df_txs["speedup"].mean()
-    mean_block_speedup = df_blocks["speedup"].mean()
-    mean_block_mean_speedup = df_blocks["mean_speedup"].mean()
-
-    ax.text(
-        0.01,
-        0.99,
-        f"Total Speedup: {total_speedup:.2f}",
-        transform=ax.transAxes,
-        fontsize=12,
-        verticalalignment="top",
-        horizontalalignment="left",
-    )
-
-    print("")
-    print("# Speedup")
-    print(f"Total Speedup: {total_speedup:.2f}")
-    print(f"Mean Tx Speedup: {mean_tx_speedup:.2f}")
-    print(f"Mean Block Speedup: {mean_block_speedup:.2f}")
-    print(f"Mean Block Mean Speedup: {mean_block_mean_speedup:.2f}")
-    print("")
-
-    save("speedup")
+    save("time-by-class")
 
 
-def plot_calls_by_gas_usage(df_calls: DataFrame):
+def plot_time_by_gas(df_calls: DataFrame):
     _, ax = plt.subplots()
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    # remove outliers
-    df_native = df_native[np.abs(scipy.stats.zscore(df_native["time_ns"])) < 3]
-    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["time_ns"])) < 3]
-    df_native = df_native[np.abs(scipy.stats.zscore(df_native["gas_consumed"])) < 3]
-    df_vm = df_vm[np.abs(scipy.stats.zscore(df_vm["gas_consumed"])) < 3]
+    native_gas_consumed = df_native["gas_consumed"]
+    native_time_ns = df_native["time_ns"]
+    vm_gas_consumed = df_vm["gas_consumed"]
+    vm_time_ns = df_vm["time_ns"]
 
-    sns.regplot(data=df_native, x="gas_consumed", y="time_ns")
-    sns.regplot(data=df_vm, x="gas_consumed", y="time_ns")
+    # The range is to wide, so we apply log to see the full range.
+    native_gas_consumed = np.log10(native_gas_consumed)
+    native_time_ns = np.log10(native_time_ns)
+    vm_gas_consumed = np.log10(vm_gas_consumed)
+    vm_time_ns = np.log10(vm_time_ns)
+
+    sns.regplot(x=native_gas_consumed, y=native_time_ns, scatter_kws={"alpha": 0.05})
+    sns.regplot(x=vm_gas_consumed, y=vm_time_ns, scatter_kws={"alpha": 0.05})
+
+    # Format the axis to show the normal values, not the log ones.
+    def unlog10(x, pos):
+        return f"{10**x:.0e}"
+
+    ax.set_xlabel("Gas Consumed")
+    ax.set_ylabel("Execution Time (ns)")
+    ax.get_xaxis().set_major_formatter(unlog10)
+    ax.get_yaxis().set_major_formatter(unlog10)
+
     ax.set_title("Execution Time by Gas Usage")
 
-    save("calls-by-gas-usage")
+    save("time-by-gas")
 
 
-def plot_calls_by_gas_unit(df_calls):
+def plot_speed(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
-
-    df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    df_native_clean = df_native[np.abs(scipy.stats.zscore(df_native["speed"])) < 1]
-    df_vm_clean = df_vm[np.abs(scipy.stats.zscore(df_vm["speed"])) < 1]
     sns.violinplot(
         ax=ax1,
-        data=df_native_clean,
+        data=df_native,
         x="speed",
     )
     ax1.set_title("Native Speed (gas/ns)")
     ax1.set_xlabel("Speed (gas/ns)")
+    ax1.set_xlim(0, 50)
+
     sns.violinplot(
         ax=ax2,
-        data=df_vm_clean,
+        data=df_vm,
         x="speed",
     )
     ax2.set_title("VM Speed (gas/ns)")
     ax2.set_xlabel("Speed (gas/ns)")
+    ax2.set_xlim(0, 5)
 
     native_mean_speed = df_native["speed"].mean()
     vm_mean_speed = df_vm["speed"].mean()
@@ -288,7 +315,7 @@ def plot_calls_by_gas_unit(df_calls):
     ax1.text(
         0.01,
         0.99,
-        f"Mean: {native_mean_speed:.2f}\nTotal: {native_total_speed:.2f}",
+        f"Mean Speed: {native_mean_speed:.2f}\nTotal Speed: {native_total_speed:.2f}\n",
         transform=ax1.transAxes,
         fontsize=12,
         verticalalignment="top",
@@ -297,75 +324,23 @@ def plot_calls_by_gas_unit(df_calls):
     ax2.text(
         0.01,
         0.99,
-        f"Mean: {vm_mean_speed:.2f}\nTotal: {vm_total_speed:.2f}",
+        f"Mean Speed: {vm_mean_speed:.2f}\nTotal Speed: {vm_total_speed:.2f}\n",
         transform=ax2.transAxes,
         fontsize=12,
         verticalalignment="top",
         horizontalalignment="left",
     )
 
-    fig.suptitle("Speed by Call")
-    save("speed-by-call")
-
-
-def plot_txs_by_gas_unit(df_txs):
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-
-    df_txs["speed_native"] = df_txs["gas_consumed"] / df_txs["time_ns_native"]
-    df_txs["speed_vm"] = df_txs["gas_consumed"] / df_txs["time_ns_vm"]
-
-    df_txs_clean = df_txs[np.abs(scipy.stats.zscore(df_txs["speed_native"])) < 1]
-    df_txs_clean = df_txs[np.abs(scipy.stats.zscore(df_txs["speed_vm"])) < 1]
-    sns.violinplot(
-        ax=ax1,
-        data=df_txs_clean,
-        x="speed_native",
-    )
-    ax1.set_title("Native Speed (gas/ns)")
-    ax1.set_xlabel("Speed (gas/ns)")
-    sns.violinplot(
-        ax=ax2,
-        data=df_txs_clean,
-        x="speed_vm",
-    )
-    ax2.set_title("VM Speed (gas/ns)")
-    ax2.set_xlabel("Speed (gas/ns)")
-
-    native_mean_speed = df_txs["speed_native"].mean()
-    vm_mean_speed = df_txs["speed_vm"].mean()
-    native_total_speed = df_txs["gas_consumed"].sum() / df_txs["time_ns_native"].sum()
-    vm_total_speed = df_txs["gas_consumed"].sum() / df_txs["time_ns_vm"].sum()
-
-    ax1.text(
-        0.01,
-        0.99,
-        f"Mean: {native_mean_speed:.2f}\nTotal: {native_total_speed:.2f}",
-        transform=ax1.transAxes,
-        fontsize=12,
-        verticalalignment="top",
-        horizontalalignment="left",
-    )
-    ax2.text(
-        0.01,
-        0.99,
-        f"Mean: {vm_mean_speed:.2f}\nTotal: {vm_total_speed:.2f}",
-        transform=ax2.transAxes,
-        fontsize=12,
-        verticalalignment="top",
-        horizontalalignment="left",
-    )
-
-    fig.suptitle("Speed by Transaction")
-    save("speed-by-tx")
+    fig.suptitle("Speed by Contract Call")
+    save("speed")
 
 
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
-# plot_speedup(df_txs)
-plot_calls_by_class_hash(df_calls)
-# plot_calls_by_gas_usage(df_calls)
-# plot_calls_by_gas_unit(df_calls)
-# plot_txs_by_gas_unit(df_txs)
+plot_speed(df_calls)
+plot_time_by_gas(df_calls)
+plot_time_by_class(df_calls)
+plot_speedup(df_txs)
 
 if args.display:
     plt.show()
