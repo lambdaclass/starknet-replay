@@ -95,7 +95,8 @@ df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 # -------------------------
 # hash                object
 # gas_consumed        int64
-# first_call         int64
+# first_call          int64
+# block_number        int64
 # time_ns_native      int64
 # time_ns_vm          int64
 # speedup             float64
