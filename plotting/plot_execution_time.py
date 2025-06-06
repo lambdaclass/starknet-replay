@@ -154,7 +154,7 @@ def plot_speedup(df_txs: DataFrame):
     )
 
     sns.violinplot(ax=ax, data=df_speedups, y="speedup", x="type")
-    ax.set_ylim(0, 50)
+    ax.set_ylim(0, 20)
     ax.set_xlabel("")
     ax.set_ylabel("Speedup Ratio")
     ax.set_title("Speedup Distribution")
