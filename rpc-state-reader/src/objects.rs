@@ -67,6 +67,7 @@ pub struct BlockHeader {
     pub l1_gas_price: ResourcePrice,
     pub l1_data_gas_price: ResourcePrice,
     pub l1_da_mode: L1DataAvailabilityMode,
+    pub l2_gas_price: ResourcePrice,
     pub starknet_version: String,
 }
 
