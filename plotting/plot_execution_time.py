@@ -227,6 +227,7 @@ def plot_time_by_class(df_calls: DataFrame):
     )
     ax2.set_title("Speedup by Contract Class")
     ax2.set_ylabel("")
+    ax2.set_xscale("log", base=2)
     ax2.set_xlabel("Speedup Ratio")
 
     save("time-by-class")
