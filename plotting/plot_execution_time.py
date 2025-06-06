@@ -8,7 +8,6 @@ import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
 import numpy as np
-import scipy
 
 from pandas import DataFrame
 
@@ -106,6 +105,8 @@ df_calls_vm.rename(columns={"resource": "executor"}, inplace=True)
 df_calls_vm["executor"] = "vm"
 # merge calls into single dataframe
 df_calls = pd.concat([df_calls_native, df_calls_vm])
+# drop calls with no time
+df_calls = df_calls[df_calls["time_ns"] != 0]
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
