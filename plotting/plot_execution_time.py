@@ -266,7 +266,13 @@ def plot_time_by_gas(df_calls: DataFrame):
     vm_gas_consumed = np.log10(vm_gas_consumed)
     vm_time_ns = np.log10(vm_time_ns)
 
-    sns.kdeplot(ax=ax, x=native_gas_consumed, y=native_time_ns, color="b")
+    sns.histplot(
+        ax=ax,
+        x=native_gas_consumed,
+        y=native_time_ns,
+        color="b",
+        binwidth=1 / 8,
+    )
     sns.regplot(
         ax=ax,
         x=native_gas_consumed,
@@ -275,7 +281,13 @@ def plot_time_by_gas(df_calls: DataFrame):
         color="b",
         label="Native",
     )
-    sns.kdeplot(ax=ax, x=vm_gas_consumed, y=vm_time_ns, color="r")
+    sns.histplot(
+        ax=ax,
+        x=vm_gas_consumed,
+        y=vm_time_ns,
+        color="r",
+        binwidth=1 / 8,
+    )
     sns.regplot(
         ax=ax,
         x=vm_gas_consumed,
