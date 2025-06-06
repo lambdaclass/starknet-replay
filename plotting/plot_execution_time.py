@@ -186,6 +186,7 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
         alpha=0.75,
     )
     ax2.set_title("Speedup by Contract Class")
+    ax2.set_ylabel("")
 
     save("calls_by_class_hash")
 
@@ -362,7 +363,7 @@ def plot_txs_by_gas_unit(df_txs):
     save("speed-by-tx")
 
 
-mpl.rcParams["figure.figsize"] = [16, 9]
+mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 plot_speedup(df_txs)
 plot_calls_by_class_hash(df_calls)
