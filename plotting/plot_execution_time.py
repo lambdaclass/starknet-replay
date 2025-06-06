@@ -348,9 +348,9 @@ def plot_speed(df_calls):
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 plot_speed(df_calls)
-# plot_time_by_gas(df_calls)
-# plot_time_by_class(df_calls)
-# plot_speedup(df_txs)
+plot_time_by_gas(df_calls)
+plot_time_by_class(df_calls)
+plot_speedup(df_txs)
 
 if args.display:
     plt.show()
