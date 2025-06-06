@@ -147,14 +147,6 @@ def plot_calls_by_class_hash(df_calls: DataFrame):
 
     df["speedup"] = df["mean_time_vm"] / df["mean_time_native"]
 
-    # print(df.describe())
-    # ------------------------------------------------
-    #        mean_time_native  mean_time_vm    speedup
-    # mean       3.798728e+05  3.747944e+06  13.183916
-    # std        6.406297e+05  1.429918e+07  16.153037
-    # min        5.104050e+03  5.758320e+04   1.260679
-    # max        2.209098e+06  8.232545e+07  66.898440
-
     _, (ax1, ax2) = plt.subplots(1, 2)
     sns.barplot(
         ax=ax1,
