@@ -14,7 +14,7 @@ from pandas import DataFrame
 sns.set_palette("deep")
 sns.set_color_codes("deep")
 
-arg_parser = ArgumentParser("Stress Test Plotter")
+arg_parser = ArgumentParser()
 arg_parser.add_argument("native_data")
 arg_parser.add_argument("vm_data")
 arg_parser.add_argument(

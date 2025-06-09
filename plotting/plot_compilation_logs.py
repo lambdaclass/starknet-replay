@@ -8,7 +8,7 @@ import seaborn as sns
 import pandas as pd
 from pandas import DataFrame
 
-arg_parser = ArgumentParser("Stress Test Plotter")
+arg_parser = ArgumentParser()
 arg_parser.add_argument("logs_path")
 arg_parser.add_argument(
     "--output",
