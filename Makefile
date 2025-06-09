@@ -29,7 +29,7 @@ deps:
 ifeq ($(UNAME), Darwin)
 deps: deps-macos
 endif
-deps:
+deps: corelib
 
 deps-macos: 
 	-brew install llvm@19 --quiet
@@ -41,11 +41,16 @@ deps-bench:
 	cp target/release/replay target/release/replay-bench-vm
 
 CAIRO_2_VERSION := v2.12.0-dev.1
-CAIRO_2_TAR := cairo-${CAIRO_2_VERSION}-macos.tar
+CAIRO_2_TAR := cairo-${CAIRO_2_VERSION}.tar
 
 # ej: make cairo-v2.0.0-macos.tar
-cairo-%-macos.tar:
+
+cairo-%.tar:
+ifeq ($(UNAME), Darwin)
 	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/$*/release-aarch64-apple-darwin.tar"
+else
+	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/v$*/release-x86_64-unknown-linux-musl.tar"
+endif
 
 
 cairo2: ${CAIRO_2_TAR}
