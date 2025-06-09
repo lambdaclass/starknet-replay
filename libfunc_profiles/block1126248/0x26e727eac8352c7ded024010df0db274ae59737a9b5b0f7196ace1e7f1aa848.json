@@ -1,0 +1,9137 @@
+[
+  {
+    "block_number": 1126248,
+    "tx": "0x26e727eac8352c7ded024010df0db274ae59737a9b5b0f7196ace1e7f1aa848",
+    "selector": "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+    "data": [
+      {
+        "libfunc_idx": 0,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 1,
+        "samples": 48,
+        "total_time": 135,
+        "average_time": 2.8125,
+        "std_deviation": 2.3190104166666665,
+        "quartiles": [
+          1,
+          1,
+          3,
+          4,
+          7
+        ]
+      },
+      {
+        "libfunc_idx": 2,
+        "samples": 296,
+        "total_time": 296,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 3,
+        "samples": 18,
+        "total_time": 5,
+        "average_time": 0.2777777777777778,
+        "std_deviation": 0.20061728395061726,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 4,
+        "samples": 158,
+        "total_time": 158,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 5,
+        "samples": 22,
+        "total_time": 22,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 6,
+        "samples": 1,
+        "total_time": 7,
+        "average_time": 7.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "libfunc_idx": 8,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 10,
+        "samples": 104,
+        "total_time": 104,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 11,
+        "samples": 17,
+        "total_time": 34,
+        "average_time": 2.0,
+        "std_deviation": 0.47058823529411764,
+        "quartiles": [
+          1,
+          2,
+          2,
+          2,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 15,
+        "samples": 75,
+        "total_time": 75,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 16,
+        "samples": 20,
+        "total_time": 20,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 17,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 18,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 19,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 20,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 22,
+        "samples": 3,
+        "total_time": 7,
+        "average_time": 2.3333333333333335,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          2,
+          2,
+          2,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 23,
+        "samples": 3,
+        "total_time": 32,
+        "average_time": 10.666666666666666,
+        "std_deviation": 168.22222222222226,
+        "quartiles": [
+          1,
+          1,
+          2,
+          29,
+          29
+        ]
+      },
+      {
+        "libfunc_idx": 24,
+        "samples": 21,
+        "total_time": 13,
+        "average_time": 0.6190476190476191,
+        "std_deviation": 0.4263038548752834,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 25,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 26,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 28,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 29,
+        "samples": 19,
+        "total_time": 19,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 30,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 31,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 32,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 33,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 34,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 35,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 36,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 37,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 38,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 39,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 40,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 41,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 42,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 43,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 44,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 45,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 46,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 47,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 48,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 49,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 50,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 51,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 52,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 53,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 54,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 55,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 56,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 57,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 58,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 59,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 60,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 68,
+        "samples": 67,
+        "total_time": 67,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 69,
+        "samples": 18,
+        "total_time": 18,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 70,
+        "samples": 51,
+        "total_time": 31,
+        "average_time": 0.6078431372549019,
+        "std_deviation": 0.35601691657054985,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 71,
+        "samples": 54,
+        "total_time": 54,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 72,
+        "samples": 20,
+        "total_time": 20,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 73,
+        "samples": 43,
+        "total_time": 43,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 74,
+        "samples": 3,
+        "total_time": 4,
+        "average_time": 1.3333333333333333,
+        "std_deviation": 0.2222222222222222,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 75,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 76,
+        "samples": 43,
+        "total_time": 43,
+        "average_time": 1.0,
+        "std_deviation": 0.6046511627906976,
+        "quartiles": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 77,
+        "samples": 16,
+        "total_time": 6,
+        "average_time": 0.375,
+        "std_deviation": 0.234375,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 78,
+        "samples": 33,
+        "total_time": 14,
+        "average_time": 0.42424242424242425,
+        "std_deviation": 0.2442607897153352,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 79,
+        "samples": 16,
+        "total_time": 8,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 80,
+        "samples": 63,
+        "total_time": 43,
+        "average_time": 0.6825396825396826,
+        "std_deviation": 0.3436633912824393,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 81,
+        "samples": 14,
+        "total_time": 13,
+        "average_time": 0.9285714285714286,
+        "std_deviation": 0.4948979591836736,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 83,
+        "samples": 15,
+        "total_time": 10,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222227,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 84,
+        "samples": 30,
+        "total_time": 30,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 85,
+        "samples": 15,
+        "total_time": 12,
+        "average_time": 0.8,
+        "std_deviation": 0.4266666666666667,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 86,
+        "samples": 103,
+        "total_time": 88,
+        "average_time": 0.8543689320388349,
+        "std_deviation": 0.3768498444716746,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 87,
+        "samples": 53,
+        "total_time": 53,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 89,
+        "samples": 11,
+        "total_time": 6,
+        "average_time": 0.5454545454545454,
+        "std_deviation": 0.24793388429752064,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 91,
+        "samples": 2,
+        "total_time": 12322,
+        "average_time": 6161.0,
+        "std_deviation": 3041536.0,
+        "quartiles": [
+          4417,
+          4417,
+          7905,
+          7905,
+          7905
+        ]
+      },
+      {
+        "libfunc_idx": 92,
+        "samples": 2,
+        "total_time": 4,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 93,
+        "samples": 2,
+        "total_time": 27,
+        "average_time": 13.5,
+        "std_deviation": 20.25,
+        "quartiles": [
+          9,
+          9,
+          18,
+          18,
+          18
+        ]
+      },
+      {
+        "libfunc_idx": 94,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 95,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 96,
+        "samples": 2,
+        "total_time": 1628,
+        "average_time": 814.0,
+        "std_deviation": 595984.0,
+        "quartiles": [
+          42,
+          42,
+          1586,
+          1586,
+          1586
+        ]
+      },
+      {
+        "libfunc_idx": 97,
+        "samples": 14,
+        "total_time": 20,
+        "average_time": 1.4285714285714286,
+        "std_deviation": 0.24489795918367346,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 123,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 124,
+        "samples": 13,
+        "total_time": 13,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 126,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 127,
+        "samples": 4,
+        "total_time": 2,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 128,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 129,
+        "samples": 3,
+        "total_time": 4,
+        "average_time": 1.3333333333333333,
+        "std_deviation": 0.2222222222222222,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 130,
+        "samples": 59,
+        "total_time": 44,
+        "average_time": 0.7457627118644068,
+        "std_deviation": 0.29129560471128935,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 131,
+        "samples": 30,
+        "total_time": 22,
+        "average_time": 0.7333333333333333,
+        "std_deviation": 0.46222222222222237,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 134,
+        "samples": 14,
+        "total_time": 14,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 135,
+        "samples": 15,
+        "total_time": 15,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 136,
+        "samples": 27,
+        "total_time": 22,
+        "average_time": 0.8148148148148148,
+        "std_deviation": 0.2990397805212621,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 137,
+        "samples": 13,
+        "total_time": 13,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 138,
+        "samples": 16,
+        "total_time": 270458481,
+        "average_time": 16903655.0625,
+        "std_deviation": 6431156999858.183,
+        "quartiles": [
+          15223538,
+          15358649,
+          15511233,
+          20697022,
+          22586057
+        ]
+      },
+      {
+        "libfunc_idx": 151,
+        "samples": 14,
+        "total_time": 30,
+        "average_time": 2.142857142857143,
+        "std_deviation": 0.6938775510204079,
+        "quartiles": [
+          1,
+          2,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 152,
+        "samples": 15,
+        "total_time": 18,
+        "average_time": 1.2,
+        "std_deviation": 0.4266666666666668,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 153,
+        "samples": 15,
+        "total_time": 6,
+        "average_time": 0.4,
+        "std_deviation": 0.23999999999999996,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 154,
+        "samples": 15,
+        "total_time": 6,
+        "average_time": 0.4,
+        "std_deviation": 0.23999999999999996,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 156,
+        "samples": 12,
+        "total_time": 12,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 167,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 168,
+        "samples": 7,
+        "total_time": 3,
+        "average_time": 0.42857142857142855,
+        "std_deviation": 0.24489795918367344,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 170,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 172,
+        "samples": 26,
+        "total_time": 14,
+        "average_time": 0.5384615384615384,
+        "std_deviation": 0.24852071005917167,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 181,
+        "samples": 7,
+        "total_time": 7,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 185,
+        "samples": 7,
+        "total_time": 5,
+        "average_time": 0.7142857142857143,
+        "std_deviation": 0.489795918367347,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 186,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 195,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 196,
+        "samples": 3,
+        "total_time": 2,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 197,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 198,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 212,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 213,
+        "samples": 7,
+        "total_time": 5,
+        "average_time": 0.7142857142857143,
+        "std_deviation": 0.489795918367347,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 214,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 215,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 217,
+        "samples": 9,
+        "total_time": 11,
+        "average_time": 1.2222222222222223,
+        "std_deviation": 0.3950617283950617,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 219,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 222,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 223,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 226,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 231,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 235,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 236,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 244,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 245,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 247,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 248,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 249,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 250,
+        "samples": 12,
+        "total_time": 5,
+        "average_time": 0.4166666666666667,
+        "std_deviation": 0.2430555555555555,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 252,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 253,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 254,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 257,
+        "samples": 18,
+        "total_time": 18,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 259,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 260,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 261,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 262,
+        "samples": 5,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 264,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 265,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 266,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 269,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 270,
+        "samples": 1,
+        "total_time": 24,
+        "average_time": 24.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "libfunc_idx": 271,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 273,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 274,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 284,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 286,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 287,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 289,
+        "samples": 1,
+        "total_time": 14,
+        "average_time": 14.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          14,
+          14,
+          14,
+          14,
+          14
+        ]
+      },
+      {
+        "libfunc_idx": 290,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 291,
+        "samples": 1,
+        "total_time": 1003,
+        "average_time": 1003.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1003,
+          1003,
+          1003,
+          1003,
+          1003
+        ]
+      },
+      {
+        "libfunc_idx": 293,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 294,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 297,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 298,
+        "samples": 22,
+        "total_time": 528017,
+        "average_time": 24000.772727272728,
+        "std_deviation": 42530091.448347114,
+        "quartiles": [
+          12241,
+          20996,
+          23154,
+          24619,
+          44088
+        ]
+      },
+      {
+        "libfunc_idx": 299,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 300,
+        "samples": 8,
+        "total_time": 8,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 301,
+        "samples": 12,
+        "total_time": 12,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 302,
+        "samples": 9,
+        "total_time": 12,
+        "average_time": 1.3333333333333333,
+        "std_deviation": 0.2222222222222222,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 303,
+        "samples": 7,
+        "total_time": 10,
+        "average_time": 1.4285714285714286,
+        "std_deviation": 0.24489795918367346,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 326,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 327,
+        "samples": 14,
+        "total_time": 5,
+        "average_time": 0.35714285714285715,
+        "std_deviation": 0.22959183673469383,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 352,
+        "samples": 6,
+        "total_time": 4,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 353,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 362,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 363,
+        "samples": 50,
+        "total_time": 50,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 364,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 369,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 379,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 380,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 381,
+        "samples": 4,
+        "total_time": 2,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 389,
+        "samples": 15,
+        "total_time": 15,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 390,
+        "samples": 14,
+        "total_time": 19,
+        "average_time": 1.3571428571428572,
+        "std_deviation": 0.22959183673469385,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 391,
+        "samples": 15,
+        "total_time": 17,
+        "average_time": 1.1333333333333333,
+        "std_deviation": 0.5155555555555557,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 396,
+        "samples": 17,
+        "total_time": 17,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 400,
+        "samples": 41,
+        "total_time": 26,
+        "average_time": 0.6341463414634146,
+        "std_deviation": 0.28078524687685913,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 417,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 421,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 422,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 424,
+        "samples": 5,
+        "total_time": 7,
+        "average_time": 1.4,
+        "std_deviation": 0.24,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 428,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 438,
+        "samples": 7,
+        "total_time": 10,
+        "average_time": 1.4285714285714286,
+        "std_deviation": 0.24489795918367346,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 440,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 441,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 451,
+        "samples": 8,
+        "total_time": 72760510,
+        "average_time": 9095063.75,
+        "std_deviation": 86330566189261.94,
+        "quartiles": [
+          583,
+          2018,
+          15262814,
+          20819537,
+          20940714
+        ]
+      },
+      {
+        "libfunc_idx": 452,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 453,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 454,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 457,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 462,
+        "samples": 3,
+        "total_time": 4,
+        "average_time": 1.3333333333333333,
+        "std_deviation": 0.888888888888889,
+        "quartiles": [
+          0,
+          0,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 470,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 471,
+        "samples": 2,
+        "total_time": 4,
+        "average_time": 2.0,
+        "std_deviation": 1.0,
+        "quartiles": [
+          1,
+          1,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 472,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 473,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 474,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 478,
+        "samples": 1,
+        "total_time": 2041,
+        "average_time": 2041.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2041,
+          2041,
+          2041,
+          2041,
+          2041
+        ]
+      },
+      {
+        "libfunc_idx": 479,
+        "samples": 1,
+        "total_time": 15,
+        "average_time": 15.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          15,
+          15,
+          15,
+          15,
+          15
+        ]
+      },
+      {
+        "libfunc_idx": 480,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 482,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 483,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 484,
+        "samples": 1,
+        "total_time": 4267,
+        "average_time": 4267.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4267,
+          4267,
+          4267,
+          4267,
+          4267
+        ]
+      },
+      {
+        "libfunc_idx": 503,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 515,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 517,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 518,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 519,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 527,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 528,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 529,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 530,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 532,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 533,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 534,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 535,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 536,
+        "samples": 9,
+        "total_time": 7,
+        "average_time": 0.7777777777777778,
+        "std_deviation": 0.3950617283950618,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 538,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 539,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 540,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 541,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 543,
+        "samples": 4,
+        "total_time": 2,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 544,
+        "samples": 4,
+        "total_time": 6,
+        "average_time": 1.5,
+        "std_deviation": 2.25,
+        "quartiles": [
+          0,
+          1,
+          1,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 546,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 547,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 548,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 549,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 550,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 551,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 552,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 553,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 554,
+        "samples": 3,
+        "total_time": 11,
+        "average_time": 3.6666666666666665,
+        "std_deviation": 14.222222222222223,
+        "quartiles": [
+          1,
+          1,
+          1,
+          9,
+          9
+        ]
+      },
+      {
+        "libfunc_idx": 555,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 556,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 563,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 564,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 565,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 567,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 568,
+        "samples": 3,
+        "total_time": 217,
+        "average_time": 72.33333333333333,
+        "std_deviation": 9754.88888888889,
+        "quartiles": [
+          1,
+          1,
+          4,
+          212,
+          212
+        ]
+      },
+      {
+        "libfunc_idx": 569,
+        "samples": 23,
+        "total_time": 33,
+        "average_time": 1.434782608695652,
+        "std_deviation": 0.24574669187145554,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 572,
+        "samples": 15,
+        "total_time": 17,
+        "average_time": 1.1333333333333333,
+        "std_deviation": 0.3822222222222223,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 573,
+        "samples": 6,
+        "total_time": 3,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 574,
+        "samples": 5,
+        "total_time": 3,
+        "average_time": 0.6,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 576,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 577,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 578,
+        "samples": 1,
+        "total_time": 125,
+        "average_time": 125.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          125,
+          125,
+          125,
+          125,
+          125
+        ]
+      },
+      {
+        "libfunc_idx": 579,
+        "samples": 4,
+        "total_time": 16,
+        "average_time": 4.0,
+        "std_deviation": 21.5,
+        "quartiles": [
+          1,
+          1,
+          2,
+          12,
+          12
+        ]
+      },
+      {
+        "libfunc_idx": 580,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 581,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 583,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 584,
+        "samples": 1,
+        "total_time": 17,
+        "average_time": 17.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          17,
+          17,
+          17,
+          17,
+          17
+        ]
+      },
+      {
+        "libfunc_idx": 585,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 586,
+        "samples": 15,
+        "total_time": 45,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 587,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 588,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 590,
+        "samples": 14,
+        "total_time": 14,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 591,
+        "samples": 4,
+        "total_time": 5,
+        "average_time": 1.25,
+        "std_deviation": 0.1875,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 592,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 593,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 595,
+        "samples": 1,
+        "total_time": 6,
+        "average_time": 6.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      {
+        "libfunc_idx": 596,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 597,
+        "samples": 1,
+        "total_time": 7,
+        "average_time": 7.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "libfunc_idx": 599,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 600,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 601,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 602,
+        "samples": 1,
+        "total_time": 329,
+        "average_time": 329.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          329,
+          329,
+          329,
+          329,
+          329
+        ]
+      },
+      {
+        "libfunc_idx": 603,
+        "samples": 8,
+        "total_time": 9,
+        "average_time": 1.125,
+        "std_deviation": 0.359375,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 604,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 605,
+        "samples": 15,
+        "total_time": 15,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 606,
+        "samples": 19,
+        "total_time": 19,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 607,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 608,
+        "samples": 1,
+        "total_time": 17,
+        "average_time": 17.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          17,
+          17,
+          17,
+          17,
+          17
+        ]
+      },
+      {
+        "libfunc_idx": 631,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 639,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 640,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 641,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 642,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 657,
+        "samples": 23,
+        "total_time": 23,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 754,
+        "samples": 4,
+        "total_time": 2,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 770,
+        "samples": 4,
+        "total_time": 6,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 775,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 776,
+        "samples": 2,
+        "total_time": 231,
+        "average_time": 115.5,
+        "std_deviation": 12882.25,
+        "quartiles": [
+          2,
+          2,
+          229,
+          229,
+          229
+        ]
+      },
+      {
+        "libfunc_idx": 777,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 781,
+        "samples": 1,
+        "total_time": 5,
+        "average_time": 5.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 798,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 799,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 821,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 822,
+        "samples": 1,
+        "total_time": 14,
+        "average_time": 14.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          14,
+          14,
+          14,
+          14,
+          14
+        ]
+      },
+      {
+        "libfunc_idx": 823,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 824,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 825,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 826,
+        "samples": 4,
+        "total_time": 1,
+        "average_time": 0.25,
+        "std_deviation": 0.1875,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 828,
+        "samples": 3,
+        "total_time": 54,
+        "average_time": 18.0,
+        "std_deviation": 544.6666666666666,
+        "quartiles": [
+          1,
+          1,
+          2,
+          51,
+          51
+        ]
+      },
+      {
+        "libfunc_idx": 829,
+        "samples": 17,
+        "total_time": 17,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 830,
+        "samples": 22,
+        "total_time": 28,
+        "average_time": 1.2727272727272727,
+        "std_deviation": 0.1983471074380165,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 832,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 833,
+        "samples": 10,
+        "total_time": 20,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 834,
+        "samples": 5,
+        "total_time": 2,
+        "average_time": 0.4,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 835,
+        "samples": 5,
+        "total_time": 3,
+        "average_time": 0.6,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 836,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 837,
+        "samples": 4,
+        "total_time": 143,
+        "average_time": 35.75,
+        "std_deviation": 1264.6875,
+        "quartiles": [
+          1,
+          19,
+          28,
+          95,
+          95
+        ]
+      },
+      {
+        "libfunc_idx": 838,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 839,
+        "samples": 5,
+        "total_time": 3,
+        "average_time": 0.6,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 840,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 841,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 842,
+        "samples": 5,
+        "total_time": 2,
+        "average_time": 0.4,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 843,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 844,
+        "samples": 4,
+        "total_time": 22,
+        "average_time": 5.5,
+        "std_deviation": 0.75,
+        "quartiles": [
+          5,
+          5,
+          5,
+          7,
+          7
+        ]
+      },
+      {
+        "libfunc_idx": 845,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 846,
+        "samples": 12,
+        "total_time": 9,
+        "average_time": 0.75,
+        "std_deviation": 0.5208333333333334,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 847,
+        "samples": 12,
+        "total_time": 12,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 848,
+        "samples": 17,
+        "total_time": 17,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 853,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 857,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 858,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 859,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 861,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 862,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 863,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 864,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 867,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 868,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 869,
+        "samples": 18,
+        "total_time": 18,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 870,
+        "samples": 17,
+        "total_time": 17,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 899,
+        "samples": 10,
+        "total_time": 16,
+        "average_time": 1.6,
+        "std_deviation": 0.44000000000000006,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 900,
+        "samples": 11,
+        "total_time": 15,
+        "average_time": 1.3636363636363635,
+        "std_deviation": 0.23140495867768596,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 910,
+        "samples": 22,
+        "total_time": 31,
+        "average_time": 1.4090909090909092,
+        "std_deviation": 0.24173553719008253,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 911,
+        "samples": 12,
+        "total_time": 36,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 912,
+        "samples": 20,
+        "total_time": 29,
+        "average_time": 1.45,
+        "std_deviation": 0.24750000000000005,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 913,
+        "samples": 17,
+        "total_time": 17,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 914,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 915,
+        "samples": 21,
+        "total_time": 27,
+        "average_time": 1.2857142857142858,
+        "std_deviation": 0.20408163265306126,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 917,
+        "samples": 8,
+        "total_time": 8,
+        "average_time": 1.0,
+        "std_deviation": 0.5,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 918,
+        "samples": 8,
+        "total_time": 1572391,
+        "average_time": 196548.875,
+        "std_deviation": 6281792286.609375,
+        "quartiles": [
+          69446,
+          164315,
+          209605,
+          282014,
+          315010
+        ]
+      },
+      {
+        "libfunc_idx": 919,
+        "samples": 11,
+        "total_time": 11,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 920,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 921,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 922,
+        "samples": 4,
+        "total_time": 5380,
+        "average_time": 1345.0,
+        "std_deviation": 152778.0,
+        "quartiles": [
+          789,
+          1195,
+          1575,
+          1821,
+          1821
+        ]
+      },
+      {
+        "libfunc_idx": 923,
+        "samples": 4,
+        "total_time": 527104,
+        "average_time": 131776.0,
+        "std_deviation": 1813157765.0,
+        "quartiles": [
+          77713,
+          102717,
+          169415,
+          177259,
+          177259
+        ]
+      },
+      {
+        "libfunc_idx": 924,
+        "samples": 12,
+        "total_time": 5,
+        "average_time": 0.4166666666666667,
+        "std_deviation": 0.2430555555555555,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 925,
+        "samples": 12,
+        "total_time": 963426,
+        "average_time": 80285.5,
+        "std_deviation": 369489418.0833333,
+        "quartiles": [
+          54130,
+          69918,
+          82408,
+          98947,
+          109888
+        ]
+      },
+      {
+        "libfunc_idx": 926,
+        "samples": 20,
+        "total_time": 13,
+        "average_time": 0.65,
+        "std_deviation": 0.22749999999999995,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 927,
+        "samples": 16,
+        "total_time": 55658,
+        "average_time": 3478.625,
+        "std_deviation": 575321.734375,
+        "quartiles": [
+          2426,
+          3083,
+          3636,
+          4215,
+          4875
+        ]
+      },
+      {
+        "libfunc_idx": 928,
+        "samples": 12,
+        "total_time": 7,
+        "average_time": 0.5833333333333334,
+        "std_deviation": 0.2430555555555556,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 929,
+        "samples": 4,
+        "total_time": 1,
+        "average_time": 0.25,
+        "std_deviation": 0.1875,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 930,
+        "samples": 8,
+        "total_time": 27095,
+        "average_time": 3386.875,
+        "std_deviation": 472160.109375,
+        "quartiles": [
+          2435,
+          3042,
+          3707,
+          4154,
+          4161
+        ]
+      },
+      {
+        "libfunc_idx": 933,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 934,
+        "samples": 4,
+        "total_time": 1,
+        "average_time": 0.25,
+        "std_deviation": 0.1875,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 935,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 936,
+        "samples": 4,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "block_number": 1126248,
+    "tx": "0x26e727eac8352c7ded024010df0db274ae59737a9b5b0f7196ace1e7f1aa848",
+    "selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+    "data": [
+      {
+        "libfunc_idx": 0,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 1,
+        "samples": 3,
+        "total_time": 2,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 2,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 3,
+        "samples": 7,
+        "total_time": 15,
+        "average_time": 2.142857142857143,
+        "std_deviation": 0.9795918367346939,
+        "quartiles": [
+          1,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 4,
+        "samples": 54,
+        "total_time": 35,
+        "average_time": 0.6481481481481481,
+        "std_deviation": 0.22805212620027462,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 5,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 6,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 7,
+        "samples": 32,
+        "total_time": 21,
+        "average_time": 0.65625,
+        "std_deviation": 0.2255859375,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 8,
+        "samples": 5,
+        "total_time": 7,
+        "average_time": 1.4,
+        "std_deviation": 0.64,
+        "quartiles": [
+          0,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 9,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 10,
+        "samples": 7,
+        "total_time": 5,
+        "average_time": 0.7142857142857143,
+        "std_deviation": 0.20408163265306128,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 11,
+        "samples": 3,
+        "total_time": 2,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 12,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 13,
+        "samples": 6,
+        "total_time": 4,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 14,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 15,
+        "samples": 3,
+        "total_time": 7,
+        "average_time": 2.3333333333333335,
+        "std_deviation": 3.555555555555556,
+        "quartiles": [
+          1,
+          1,
+          1,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 16,
+        "samples": 15,
+        "total_time": 9,
+        "average_time": 0.6,
+        "std_deviation": 0.24000000000000007,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 17,
+        "samples": 4,
+        "total_time": 8,
+        "average_time": 2.0,
+        "std_deviation": 0.5,
+        "quartiles": [
+          1,
+          2,
+          2,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 18,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 19,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 20,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 21,
+        "samples": 17,
+        "total_time": 11,
+        "average_time": 0.6470588235294118,
+        "std_deviation": 0.22837370242214544,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 22,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 23,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 24,
+        "samples": 7,
+        "total_time": 5,
+        "average_time": 0.7142857142857143,
+        "std_deviation": 0.20408163265306128,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 26,
+        "samples": 1,
+        "total_time": 6,
+        "average_time": 6.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      {
+        "libfunc_idx": 27,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 28,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 31,
+        "samples": 8,
+        "total_time": 5,
+        "average_time": 0.625,
+        "std_deviation": 0.234375,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 32,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 33,
+        "samples": 6,
+        "total_time": 2,
+        "average_time": 0.3333333333333333,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 35,
+        "samples": 1,
+        "total_time": 5,
+        "average_time": 5.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 36,
+        "samples": 2,
+        "total_time": 13,
+        "average_time": 6.5,
+        "std_deviation": 30.25,
+        "quartiles": [
+          1,
+          1,
+          12,
+          12,
+          12
+        ]
+      },
+      {
+        "libfunc_idx": 38,
+        "samples": 1,
+        "total_time": 59,
+        "average_time": 59.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          59,
+          59,
+          59,
+          59,
+          59
+        ]
+      },
+      {
+        "libfunc_idx": 39,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 41,
+        "samples": 2,
+        "total_time": 10,
+        "average_time": 5.0,
+        "std_deviation": 4.0,
+        "quartiles": [
+          3,
+          3,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "libfunc_idx": 44,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 45,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 46,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 47,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 48,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 49,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 50,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 51,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 52,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 53,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 54,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 55,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 57,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 58,
+        "samples": 1,
+        "total_time": 12,
+        "average_time": 12.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          12,
+          12,
+          12,
+          12,
+          12
+        ]
+      },
+      {
+        "libfunc_idx": 59,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 60,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 61,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 62,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 63,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 64,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 65,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 66,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 67,
+        "samples": 3,
+        "total_time": 1,
+        "average_time": 0.3333333333333333,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 69,
+        "samples": 2,
+        "total_time": 13,
+        "average_time": 6.5,
+        "std_deviation": 30.25,
+        "quartiles": [
+          1,
+          1,
+          12,
+          12,
+          12
+        ]
+      },
+      {
+        "libfunc_idx": 70,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 71,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 72,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 73,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 74,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 77,
+        "samples": 5,
+        "total_time": 12,
+        "average_time": 2.4,
+        "std_deviation": 3.84,
+        "quartiles": [
+          1,
+          1,
+          1,
+          3,
+          6
+        ]
+      },
+      {
+        "libfunc_idx": 83,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 84,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 86,
+        "samples": 2,
+        "total_time": 9,
+        "average_time": 4.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          4,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 92,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 97,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 98,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 117,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 118,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 119,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 122,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 128,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 132,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 133,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 134,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 135,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 137,
+        "samples": 1,
+        "total_time": 6,
+        "average_time": 6.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          6,
+          6,
+          6,
+          6,
+          6
+        ]
+      },
+      {
+        "libfunc_idx": 138,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 139,
+        "samples": 3,
+        "total_time": 6,
+        "average_time": 2.0,
+        "std_deviation": 2.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 140,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 142,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 143,
+        "samples": 2,
+        "total_time": 2220,
+        "average_time": 1110.0,
+        "std_deviation": 158404.0,
+        "quartiles": [
+          712,
+          712,
+          1508,
+          1508,
+          1508
+        ]
+      },
+      {
+        "libfunc_idx": 144,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 145,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 146,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 147,
+        "samples": 2,
+        "total_time": 5,
+        "average_time": 2.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          2,
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 148,
+        "samples": 1,
+        "total_time": 9,
+        "average_time": 9.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          9,
+          9,
+          9,
+          9,
+          9
+        ]
+      },
+      {
+        "libfunc_idx": 149,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 150,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 151,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 152,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 153,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 154,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 155,
+        "samples": 1,
+        "total_time": 2,
+        "average_time": 2.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 156,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 157,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 158,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 159,
+        "samples": 5,
+        "total_time": 2,
+        "average_time": 0.4,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 160,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 161,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 162,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 163,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 164,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 165,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 169,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 172,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 174,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 175,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 177,
+        "samples": 1,
+        "total_time": 10,
+        "average_time": 10.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          10,
+          10,
+          10,
+          10,
+          10
+        ]
+      },
+      {
+        "libfunc_idx": 178,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 179,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 180,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 182,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 183,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 184,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 2.25,
+        "quartiles": [
+          0,
+          0,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 185,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 186,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 187,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 188,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 189,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 190,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 191,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 192,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 193,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 194,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 2.25,
+        "quartiles": [
+          0,
+          0,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 196,
+        "samples": 1,
+        "total_time": 16,
+        "average_time": 16.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          16,
+          16,
+          16,
+          16,
+          16
+        ]
+      },
+      {
+        "libfunc_idx": 198,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 199,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 200,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 245,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 246,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 248,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 249,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 250,
+        "samples": 1,
+        "total_time": 4,
+        "average_time": 4.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 251,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 252,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 253,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 254,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 255,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 256,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 258,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 259,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 260,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 261,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 262,
+        "samples": 1,
+        "total_time": 708848377,
+        "average_time": 708848377.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          708848377,
+          708848377,
+          708848377,
+          708848377,
+          708848377
+        ]
+      },
+      {
+        "libfunc_idx": 263,
+        "samples": 1,
+        "total_time": 70,
+        "average_time": 70.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          70,
+          70,
+          70,
+          70,
+          70
+        ]
+      },
+      {
+        "libfunc_idx": 265,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 266,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 267,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 305,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 306,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 307,
+        "samples": 2,
+        "total_time": 6,
+        "average_time": 3.0,
+        "std_deviation": 4.0,
+        "quartiles": [
+          1,
+          1,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 308,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 309,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 310,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 311,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 312,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  {
+    "block_number": 1126248,
+    "tx": "0x26e727eac8352c7ded024010df0db274ae59737a9b5b0f7196ace1e7f1aa848",
+    "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+    "data": [
+      {
+        "libfunc_idx": 2,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 3,
+        "samples": 3,
+        "total_time": 9,
+        "average_time": 3.0,
+        "std_deviation": 4.666666666666667,
+        "quartiles": [
+          1,
+          1,
+          2,
+          6,
+          6
+        ]
+      },
+      {
+        "libfunc_idx": 4,
+        "samples": 44,
+        "total_time": 29,
+        "average_time": 0.6590909090909091,
+        "std_deviation": 0.3610537190082641,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 5,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 6,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 7,
+        "samples": 19,
+        "total_time": 14,
+        "average_time": 0.7368421052631579,
+        "std_deviation": 0.19390581717451524,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 8,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.5,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 9,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 10,
+        "samples": 5,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 11,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 12,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 13,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 15,
+        "samples": 2,
+        "total_time": 4,
+        "average_time": 2.0,
+        "std_deviation": 1.0,
+        "quartiles": [
+          1,
+          1,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 16,
+        "samples": 3,
+        "total_time": 1,
+        "average_time": 0.3333333333333333,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 17,
+        "samples": 6,
+        "total_time": 11,
+        "average_time": 1.8333333333333333,
+        "std_deviation": 1.4722222222222223,
+        "quartiles": [
+          1,
+          1,
+          1,
+          3,
+          4
+        ]
+      },
+      {
+        "libfunc_idx": 18,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 19,
+        "samples": 7,
+        "total_time": 3,
+        "average_time": 0.42857142857142855,
+        "std_deviation": 0.24489795918367344,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 20,
+        "samples": 6,
+        "total_time": 4,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 21,
+        "samples": 9,
+        "total_time": 5,
+        "average_time": 0.5555555555555556,
+        "std_deviation": 0.2469135802469136,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 22,
+        "samples": 5,
+        "total_time": 2,
+        "average_time": 0.4,
+        "std_deviation": 0.24000000000000005,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 23,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 24,
+        "samples": 15,
+        "total_time": 15,
+        "average_time": 1.0,
+        "std_deviation": 0.5333333333333333,
+        "quartiles": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 26,
+        "samples": 1,
+        "total_time": 5,
+        "average_time": 5.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 27,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 28,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 31,
+        "samples": 3,
+        "total_time": 3,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 32,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 33,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 35,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 36,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 38,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 39,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 41,
+        "samples": 1,
+        "total_time": 41,
+        "average_time": 41.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          41,
+          41,
+          41,
+          41,
+          41
+        ]
+      },
+      {
+        "libfunc_idx": 44,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 45,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 46,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 47,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 48,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 49,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 50,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 51,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 52,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 53,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 54,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 55,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 71,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 72,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 73,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 74,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 77,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.5,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 78,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 80,
+        "samples": 1,
+        "total_time": 5,
+        "average_time": 5.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "libfunc_idx": 81,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 83,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 84,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 86,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 92,
+        "samples": 8,
+        "total_time": 9,
+        "average_time": 1.125,
+        "std_deviation": 0.609375,
+        "quartiles": [
+          0,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 95,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 96,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 97,
+        "samples": 3,
+        "total_time": 2,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 98,
+        "samples": 5,
+        "total_time": 5,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 99,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 100,
+        "samples": 1,
+        "total_time": 15246989,
+        "average_time": 15246989.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          15246989,
+          15246989,
+          15246989,
+          15246989,
+          15246989
+        ]
+      },
+      {
+        "libfunc_idx": 102,
+        "samples": 1,
+        "total_time": 10,
+        "average_time": 10.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          10,
+          10,
+          10,
+          10,
+          10
+        ]
+      },
+      {
+        "libfunc_idx": 103,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 104,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 106,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 117,
+        "samples": 6,
+        "total_time": 6,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 118,
+        "samples": 4,
+        "total_time": 5,
+        "average_time": 1.25,
+        "std_deviation": 0.1875,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 119,
+        "samples": 6,
+        "total_time": 4,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 120,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 122,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 128,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 132,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 133,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 134,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 135,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 137,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 138,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 139,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 140,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 142,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 143,
+        "samples": 1,
+        "total_time": 1015,
+        "average_time": 1015.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1015,
+          1015,
+          1015,
+          1015,
+          1015
+        ]
+      },
+      {
+        "libfunc_idx": 144,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 145,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 146,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 147,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 149,
+        "samples": 3,
+        "total_time": 4,
+        "average_time": 1.3333333333333333,
+        "std_deviation": 0.2222222222222222,
+        "quartiles": [
+          1,
+          1,
+          1,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 151,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 152,
+        "samples": 1,
+        "total_time": 3,
+        "average_time": 3.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "libfunc_idx": 153,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 154,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 155,
+        "samples": 1,
+        "total_time": 46,
+        "average_time": 46.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          46,
+          46,
+          46,
+          46,
+          46
+        ]
+      },
+      {
+        "libfunc_idx": 156,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 192,
+        "samples": 2,
+        "total_time": 15,
+        "average_time": 7.5,
+        "std_deviation": 42.25,
+        "quartiles": [
+          1,
+          1,
+          14,
+          14,
+          14
+        ]
+      },
+      {
+        "libfunc_idx": 194,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 203,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 206,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 207,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 208,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 215,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 216,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 217,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 218,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 219,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 220,
+        "samples": 2,
+        "total_time": 17,
+        "average_time": 8.5,
+        "std_deviation": 2.25,
+        "quartiles": [
+          7,
+          7,
+          10,
+          10,
+          10
+        ]
+      },
+      {
+        "libfunc_idx": 221,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 222,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 245,
+        "samples": 4,
+        "total_time": 2,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 246,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 248,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 249,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 250,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 251,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 252,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 253,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 254,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 255,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 268,
+        "samples": 2,
+        "total_time": 3,
+        "average_time": 1.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          1,
+          1,
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "libfunc_idx": 269,
+        "samples": 2,
+        "total_time": 263412,
+        "average_time": 131706.0,
+        "std_deviation": 4439823424.0,
+        "quartiles": [
+          65074,
+          65074,
+          198338,
+          198338,
+          198338
+        ]
+      },
+      {
+        "libfunc_idx": 270,
+        "samples": 3,
+        "total_time": 1,
+        "average_time": 0.3333333333333333,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 271,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 272,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 273,
+        "samples": 1,
+        "total_time": 980,
+        "average_time": 980.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          980,
+          980,
+          980,
+          980,
+          980
+        ]
+      },
+      {
+        "libfunc_idx": 274,
+        "samples": 1,
+        "total_time": 100861,
+        "average_time": 100861.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          100861,
+          100861,
+          100861,
+          100861,
+          100861
+        ]
+      },
+      {
+        "libfunc_idx": 275,
+        "samples": 3,
+        "total_time": 2,
+        "average_time": 0.6666666666666666,
+        "std_deviation": 0.22222222222222224,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 276,
+        "samples": 3,
+        "total_time": 333652,
+        "average_time": 111217.33333333333,
+        "std_deviation": 364616411.5555556,
+        "quartiles": [
+          84306,
+          84306,
+          122734,
+          126612,
+          126612
+        ]
+      },
+      {
+        "libfunc_idx": 277,
+        "samples": 4,
+        "total_time": 4,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 278,
+        "samples": 3,
+        "total_time": 14953,
+        "average_time": 4984.333333333333,
+        "std_deviation": 71005.55555555556,
+        "quartiles": [
+          4786,
+          4786,
+          4806,
+          5361,
+          5361
+        ]
+      },
+      {
+        "libfunc_idx": 279,
+        "samples": 2,
+        "total_time": 2,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 280,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 281,
+        "samples": 1,
+        "total_time": 4830,
+        "average_time": 4830.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          4830,
+          4830,
+          4830,
+          4830,
+          4830
+        ]
+      },
+      {
+        "libfunc_idx": 282,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 283,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 305,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 306,
+        "samples": 2,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 307,
+        "samples": 2,
+        "total_time": 1,
+        "average_time": 0.5,
+        "std_deviation": 0.25,
+        "quartiles": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 308,
+        "samples": 1,
+        "total_time": 1,
+        "average_time": 1.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "libfunc_idx": 309,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 310,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 311,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "libfunc_idx": 312,
+        "samples": 1,
+        "total_time": 0,
+        "average_time": 0.0,
+        "std_deviation": 0.0,
+        "quartiles": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+]
