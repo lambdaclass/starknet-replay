@@ -200,6 +200,40 @@ will be saved in a json file inside the floder `block_composition` as a vector o
 To generate the need information run this command:
 `cargo run --release -F block-composition block-compose <block_start> <block_end> <chain>`
 
+## Libfunc Profiling
+You can gather information about each libfunc execution in a transaction. To do so, run this command:
+`cargo run --release -F with-libfunc-profiling block-range <block_start> <block_end> <chain>`
+
+This will create a `block<number>/<tx_hash>.json` for every transaction executed, containing a list of libfunc profiles for every entrypoint executed. An example of a profile would be:
+
+```json
+[
+   {
+      "block_number": 1126248,
+      "tx": "0x26e727eac8352c7ded024010df0db274ae59737a9b5b0f7196ace1e7f1aa848",
+      "selector": "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+      "data": [
+         {
+            "libfunc_idx": 0,
+            "samples": 1,
+            "total_time": 0,
+            "average_time": 0.0,
+            "std_deviation": 0.0,
+            "quartiles": [
+               0,
+               0,
+               0,
+               0,
+               0
+            ]
+         },
+      ...
+      ],
+   }
+   ...
+]
+```
+
 ## Plotting
 
 In the `plotting` directory, you can find python scripts to plot relevant information.
