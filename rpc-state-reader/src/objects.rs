@@ -66,6 +66,7 @@ pub struct BlockHeader {
     pub timestamp: BlockTimestamp,
     pub l1_gas_price: ResourcePrice,
     pub l1_data_gas_price: ResourcePrice,
+    #[serde(default)]
     pub l2_gas_price: ResourcePrice,
     pub l1_da_mode: L1DataAvailabilityMode,
     pub starknet_version: String,
