@@ -16,6 +16,7 @@ from plotting.utils import load_json_dir_data
 argument_parser = ArgumentParser("Block Syscall Heavy Composition")
 argument_parser.add_argument("block_execution_info")
 argument_parser.add_argument("libfunc_profiling_info")
+argument_parser.add_argument("output_path")
 arguments = argument_parser.parse_args()
 
 
@@ -74,6 +75,11 @@ def seggregate_txs(syscalls_x_libfunc_calls):
     }
 
 
+def save_to_path(name):
+    path = f"{arguments.output_path}-{name}.svg"
+    plt.savefig(path)
+
+
 # Process Block Composition data
 
 df_block_composition = load_block_composition_data(
@@ -97,21 +103,47 @@ df_profiles_by_block = df_libfunc_profiles.groupby(["block_number", "tx_hash"]).
 # Seggregate Transactions
 
 df_seggregation = (
-    (
-        df_profiles_by_block.merge(df_block_composition, on=["block_number", "tx_hash"])
-        .apply(seggregate_txs, axis=1)
-        .apply(pd.Series)
-    )
-    .groupby(["block_number", "tx_hash"])
-    .agg(syscall_ptg=("syscall_ptg", "sum"))
+    df_profiles_by_block.merge(df_block_composition, on=["block_number", "tx_hash"])
+    .apply(seggregate_txs, axis=1)
+    .apply(pd.Series)
 )
 
+df_seggregation_by_block = df_seggregation.groupby(["block_number", "tx_hash"]).agg(
+    syscall_ptg=("syscall_ptg", "sum")
+)
 # Plotting
+figure, axs = plt.subplots()
+block_range = f"{df_block_composition['block_number'].min()}-{df_block_composition['block_number'].max()}"
+
+# Boxplot syscall percentages quantiles per block
 
 figure, ax = plt.subplots()
-sns.boxplot(data=df_seggregation, x="block_number", y="syscall_ptg")
+sns.boxplot(data=df_seggregation_by_block, x="block_number", y="syscall_ptg")
 ax.set_xlabel("Block")
 ax.set_ylabel("Syscalls (%)")
 ax.set_title("Syscall Heavy Txs Composition")
 
-plt.show()
+if arguments.output_path:
+    save_to_path(f"syscalls_quantiles-blocks-{block_range}")
+
+# Plot an histogram with syscall percentages
+
+cut_bins = list(range(0, 110, 5))
+
+labels = [f"{i}%" for i in cut_bins[:-1]]
+
+df_seggregation_by_block["ptg_group"] = pd.cut(
+    df_seggregation_by_block["syscall_ptg"], bins=cut_bins, labels=labels, right=False
+)
+df_seggregation_by_ptg_group = df_seggregation_by_block.groupby(
+    ["block_number", "ptg_group"]
+).agg("count")
+
+figure, ax = plt.subplots()
+sns.histplot(data=df_seggregation_by_block, x="ptg_group", kde=True)
+ax.set_xlabel("Percentages")
+ax.set_ylabel("Syscalls count")
+ax.set_title("Syscall percentages in a Block Range")
+
+if arguments.output_path:
+    save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")
