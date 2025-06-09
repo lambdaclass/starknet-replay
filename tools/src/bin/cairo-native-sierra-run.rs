@@ -22,7 +22,7 @@ fn main() {
 
     let native_context = NativeContext::new();
     let native_module = native_context
-        .compile(&sierra_program, false, Some(Default::default()))
+        .compile(&sierra_program, false, Some(Default::default()), None)
         .expect("failed to compile sierra");
 
     let executor =
