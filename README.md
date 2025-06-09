@@ -204,7 +204,7 @@ To generate the need information run this command:
 You can gather information about each libfunc execution in a transaction. To do so, run this command:
 `cargo run --release -F with-libfunc-profiling block-range <block_start> <block_end> <chain>`
 
-This will create a `block<number>/<tx_hash>.json` for every transaction executed, containing a list of libfunc profiles for every entrypoint executed. An example of a profile would be:
+This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every transaction executed, containing a list of libfunc profiles for every entrypoint executed. An example of a profile would be:
 
 ```json
 [
