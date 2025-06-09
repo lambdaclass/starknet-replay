@@ -12,17 +12,14 @@ use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use blockifier::transaction::objects::{RevertError, TransactionExecutionInfo};
-use blockifier::transaction::transactions::ExecutableTransaction;
 use clap::{Parser, Subcommand};
 
 use rpc_state_reader::cache::RpcCachedStateReader;
 use rpc_state_reader::execution::{
-    fetch_block_context, fetch_blockifier_transaction, fetch_transaction,
-    fetch_transaction_with_state,
+    fetch_block_context, fetch_blockifier_transaction, fetch_transaction_with_state,
 };
 use rpc_state_reader::objects::RpcTransactionReceipt;
 use rpc_state_reader::reader::{RpcStateReader, StateReader};
-use serde::Serialize;
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
@@ -41,10 +38,7 @@ use {
     std::time::Instant,
 };
 #[cfg(feature = "block-composition")]
-use {
-    block_composition::save_entry_point_execution, chrono::DateTime,
-    rpc_state_reader::execution::fetch_block_context,
-};
+use {block_composition::save_entry_point_execution, chrono::DateTime};
 
 use std::collections::HashSet;
 use std::fs::File;
@@ -66,8 +60,14 @@ mod state_dump;
 struct ReplayCLI {
     #[command(subcommand)]
     subcommand: ReplayExecute,
-    #[arg(short, long)]
+    #[clap(flatten)]
     concurrency: Option<ConcurrencyCofig>,
+}
+
+#[derive(Debug, Parser)]
+struct ConcurrencyCofig {
+    n_workers: usize,
+    chunk_size: usize,
 }
 
 #[derive(Subcommand, Debug)]
@@ -145,11 +145,6 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     },
 }
 
-struct ConcurrencyCofig {
-    n_workers: usize,
-    chunk_size: usize,
-}
-
 fn main() {
     dotenvy::dotenv().ok();
     set_global_subscriber();
@@ -179,12 +174,12 @@ fn main() {
             block_number,
             charge_fee,
         } => {
-            let mut state = build_cached_state(&chain, block_number - 1);
+            let state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
-            let tx_hash = TransactionHash(felt!(&tx_hash));
+            let tx_hash = TransactionHash(felt!(&tx_hash[..]));
 
             show_execution_data(
-                &mut state,
+                state,
                 &reader,
                 execution_config,
                 &[tx_hash],
@@ -200,7 +195,7 @@ fn main() {
         } => {
             let _block_span = info_span!("block", number = block_number).entered();
 
-            let mut state = build_cached_state(&chain, block_number - 1);
+            let state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
 
             let transaction_hashes = reader
@@ -209,7 +204,7 @@ fn main() {
                 .transactions;
 
             show_execution_data(
-                &mut state,
+                state,
                 &reader,
                 execution_config,
                 &transaction_hashes,
@@ -231,7 +226,7 @@ fn main() {
                     .map(|hash| TransactionHash(felt!(hash.as_str()))),
             );
 
-            let mut state = build_cached_state(&chain, block_number - 1);
+            let state = build_cached_state(&chain, block_number - 1);
             let reader = build_reader(&chain, block_number);
 
             let transaction_hashes = reader
@@ -243,7 +238,7 @@ fn main() {
                 .collect::<Vec<_>>();
 
             show_execution_data(
-                &mut state,
+                state,
                 &reader,
                 execution_config,
                 &transaction_hashes,
@@ -263,7 +258,7 @@ fn main() {
             for block_number in block_start..=block_end {
                 let _block_span = info_span!("block", number = block_number).entered();
 
-                let mut state = build_cached_state(&chain, block_number - 1);
+                let state = build_cached_state(&chain, block_number - 1);
                 let reader = build_reader(&chain, block_number);
 
                 let transaction_hashes = reader
@@ -272,9 +267,9 @@ fn main() {
                     .transactions;
 
                 show_execution_data(
-                    &mut state,
+                    state,
                     &reader,
-                    execution_config,
+                    execution_config.clone(),
                     &transaction_hashes,
                     &chain,
                     block_number,
@@ -603,6 +598,10 @@ fn show_execution_data(
     block_number: u64,
     charge_fee: bool,
 ) {
+    let _transaction_execution_span =
+        info_span!("transaction", chain = chain_str, block = block_number).entered();
+    info!("starting execution");
+
     let flags = ExecutionFlags {
         only_query: false,
         charge_fee,
@@ -612,18 +611,26 @@ fn show_execution_data(
     let block_context = fetch_block_context(reader).unwrap();
     let txs = tx_hashes
         .into_iter()
-        .map(|tx_hash| fetch_blockifier_transaction(reader, flags, *tx_hash).unwrap())
+        .map(|tx_hash| fetch_blockifier_transaction(reader, flags.clone(), *tx_hash).unwrap())
         .collect::<Vec<_>>();
 
-    let executor = TransactionExecutor::new(state, block_context, execution_config);
+    let mut executor = TransactionExecutor::new(state, block_context, execution_config);
 
     let execution_results = executor.execute_txs(&txs);
 
-    #[cfg(feature = "state_dump")]
-    state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
+    // Sequencer mantains the order of execution, so we can just index the transaction
+    for (i, execution_info_result) in execution_results.iter().enumerate() {
+        let tx_hash = tx_hashes[i];
 
-    for result in execution_results {
-        let (execution_info, _) = match result {
+        #[cfg(feature = "state_dump")]
+        state_dump::create_state_dump(
+            &mut state,
+            block_number,
+            &tx_hash.to_string(),
+            &execution_info_result,
+        );
+
+        let (execution_info, _) = match execution_info_result {
             Ok(x) => x,
             Err(err) => {
                 error!("execution failed: {}", err);
@@ -631,9 +638,9 @@ fn show_execution_data(
             }
         };
 
-        match reader.get_transaction_receipt(&execution_info.execute_call_info) {
+        match reader.get_transaction_receipt(&tx_hash) {
             Ok(rpc_receipt) => {
-                compare_execution(execution_info, rpc_receipt);
+                compare_execution(execution_info.clone(), rpc_receipt);
             }
             Err(_) => {
                 error!("failed to get transaction receipt, could not compare to rpc");
