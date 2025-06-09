@@ -128,6 +128,13 @@ pub mod deser {
                 resource_bounds["L1_GAS"] = l1_gas.clone();
                 resource_bounds.as_object_mut().unwrap().remove("l1_gas");
             }
+            if let Some(l1_data_gas) = resource_bounds.get_mut("l1_data_gas") {
+                resource_bounds["L1_DATA_GAS"] = l1_data_gas.clone();
+                resource_bounds
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("l1_data_gas");
+            }
             if let Some(l2_gas) = resource_bounds.get_mut("l2_gas") {
                 resource_bounds["L2_GAS"] = l2_gas.clone();
                 resource_bounds.as_object_mut().unwrap().remove("l2_gas");
