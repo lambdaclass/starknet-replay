@@ -43,8 +43,7 @@ deps-bench:
 CAIRO_2_VERSION := v2.12.0-dev.1
 CAIRO_2_TAR := cairo-${CAIRO_2_VERSION}.tar
 
-# ej: make cairo-v2.0.0-macos.tar
-
+# ej: make cairo-v2.0.0.tar
 cairo-%.tar:
 ifeq ($(UNAME), Darwin)
 	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/$*/release-aarch64-apple-darwin.tar"
