@@ -49,7 +49,7 @@ cairo-%.tar:
 ifeq ($(UNAME), Darwin)
 	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/$*/release-aarch64-apple-darwin.tar"
 else
-	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/v$*/release-x86_64-unknown-linux-musl.tar.gz"
+	curl -L -o "$@" "https://github.com/starkware-libs/cairo/releases/download/$*/release-x86_64-unknown-linux-musl.tar.gz"
 endif
 
 
