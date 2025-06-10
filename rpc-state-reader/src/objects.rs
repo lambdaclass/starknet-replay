@@ -66,6 +66,7 @@ pub struct BlockHeader {
     pub timestamp: BlockTimestamp,
     pub l1_gas_price: ResourcePrice,
     pub l1_data_gas_price: ResourcePrice,
+    // This is done because some endpoints do not return this field and deserialization would panic
     #[serde(default)]
     pub l2_gas_price: ResourcePrice,
     pub l1_da_mode: L1DataAvailabilityMode,
