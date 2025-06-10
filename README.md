@@ -103,9 +103,9 @@ To compare Native execution with the VM, you can use the `state_dump` feature. I
 - If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/block{block_number}/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
-- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ.
+- `cmp_state_dumps.py`. Prints which transactions match with the VM and which differ.
    ```bash
-   > ./scripts/cmp_state_dumps.sh
+   > python3 ./scripts/cmp_state_dumps.py
    diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
    match: 0x6902da2a7ef7f7ab2e984c0cdfa94c535dedd7cc081c91f04b9f87a9805411b.json
    diff:  0x75ae71b0aaba9454965d2077d53f056ffd426481bad709831e8d76d50f32dbe.json
