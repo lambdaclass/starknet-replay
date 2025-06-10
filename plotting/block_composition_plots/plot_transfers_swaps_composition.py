@@ -75,15 +75,15 @@ def count_tx(transactions):
     return len(txs_without_none)
 
 
-def process_fn(block):
+def process_fn(tx):
     return {
-        "block": block["block_number"],
-        "timestamp": pd.Timestamp(block["block_timestamp"]),
-        "txs": count_tx(block["entrypoints"]),
-        "transfers": count_transfers(block["entrypoints"]),
-        "swaps": count_swaps(block["entrypoints"]),
-        "transfers_ptg": count_transfers_ptg(block["entrypoints"]),
-        "swaps_ptg": count_swaps_ptg(block["entrypoints"]),
+        "block": tx["block_number"],
+        "timestamp": pd.Timestamp(tx["block_timestamp"]),
+        "txs": count_tx(tx["entrypoints"]),
+        "transfers": count_transfers(tx),
+        "swaps": count_swaps(tx),
+        "transfers_ptg": count_transfers_ptg(tx),
+        "swaps_ptg": count_swaps_ptg(tx),
     }
 
 

@@ -2,10 +2,20 @@ import pandas as pd
 import json
 import os
 import itertools
+import more_itertools
+import matplotlib.pyplot as plt
 
 
 def flatmap(f, iterable):
     return itertools.chain.from_iterable(map(f, iterable))
+
+
+def chunks(by, df, chunk_size):
+    unique_blocks = sorted(df[by].unique())
+
+    chunks = more_itertools.chunked(unique_blocks, chunk_size)
+
+    return [df[df[by].isin(chunk)] for chunk in chunks]
 
 
 def load_block_composition_data(path, process_fn=None):
@@ -43,6 +53,18 @@ def load_block_composition_data(path, process_fn=None):
     df_expanded = df_expanded.dropna().apply(pd.Series)
 
     return df_expanded
+
+
+def save_to_path(name):
+    output_dir = f"{os.getcwd()}/block_composition_plots"
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    file_path = f"{output_dir}/{name}.svg"
+
+    plt.grid(True)
+    plt.savefig(file_path)
 
 
 def flatten_call_trees(entrypoints):
