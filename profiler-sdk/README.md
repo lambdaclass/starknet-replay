@@ -19,7 +19,7 @@ Once the Firefox profiler has loaded the profile, you can download it to a `json
 Once you have a profile, you can process it using the profiler-sdk. The `shared-libraries` example groups the calls by the shared library they belong to:
 
 ```bash
-cargo run --example shared-libraries ~/drafts/dump-syms.jso
+cargo run --example shared-libraries ~/drafts/dump-syms.json
 ```
 
 It will output the call tree:
