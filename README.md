@@ -106,16 +106,12 @@ To compare the outputs, you can use the following scripts. Some of them required
 - `cmp_state_dumps.py`. Prints which transactions match with the VM and which differ.
    ```bash
    > python3 ./scripts/cmp_state_dumps.py
-   diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
-   match: 0x6902da2a7ef7f7ab2e984c0cdfa94c535dedd7cc081c91f04b9f87a9805411b.json
-   diff:  0x75ae71b0aaba9454965d2077d53f056ffd426481bad709831e8d76d50f32dbe.json
-   match: 0x7895207d7d46df77f5b0de6b647cd393b9fc7bb18c52b6333c6ea852cf767e.json
-   match: 0x2335142d7b7938eeb4512fbf59be7ec2f2284e6533c14baf51460c8de427dc7.json
-   match: 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
-
+   Starting comparison with 16 workers
+   DIFF 1478358 0xde8db1dc28c7ab48192d9aad1d5c8b08e732738f12b9945f591caa48e4dfa0
    Finished comparison
-   - Matching: 4
-   - Diffing:  16
+
+   MATCH 9
+   DIFF 1
    ```
 - `delta_state_dumps.sh`. It opens delta to review the differences between VM and Native with each transaction.
    ```bash
