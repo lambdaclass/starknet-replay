@@ -793,7 +793,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "anyhow",
  "ark-ec 0.4.2",
@@ -841,7 +841,7 @@ dependencies = [
 [[package]]
 name = "blockifier_reexecution"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -4391,7 +4391,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667"
 dependencies = [
  "cfg-if",
- "windows-targets 0.53.0",
+ "windows-targets 0.53.1",
 ]
 
 [[package]]
@@ -4758,7 +4758,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "assert_matches",
  "blockifier",
@@ -5249,7 +5249,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "base64 0.13.1",
  "cairo-lang-starknet-classes",
@@ -5268,7 +5268,7 @@ dependencies = [
 [[package]]
 name = "papyrus_config"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "clap",
  "itertools 0.12.1",
@@ -5284,7 +5284,7 @@ dependencies = [
 [[package]]
 name = "papyrus_execution"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "anyhow",
  "blockifier",
@@ -5307,7 +5307,7 @@ dependencies = [
 [[package]]
 name = "papyrus_network_types"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "libp2p",
  "serde",
@@ -5316,7 +5316,7 @@ dependencies = [
 [[package]]
 name = "papyrus_proc_macros"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "quote",
  "syn 2.0.102",
@@ -5326,7 +5326,7 @@ dependencies = [
 [[package]]
 name = "papyrus_rpc"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5360,7 +5360,7 @@ dependencies = [
 [[package]]
 name = "papyrus_storage"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "byteorder",
  "cairo-lang-casm",
@@ -5659,9 +5659,9 @@ checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
 
 [[package]]
 name = "plist"
-version = "1.7.1"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eac26e981c03a6e53e0aee43c113e3202f5581d5360dae7bd2c70e800dd0451d"
+checksum = "3d77244ce2d584cd84f6a15f86195b8c9b2a0dfbfd817c09e0464244091a58ed"
 dependencies = [
  "base64 0.22.1",
  "indexmap 2.9.0",
@@ -5904,9 +5904,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.32.0"
+version = "0.37.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d3a6e5838b60e0e8fa7a43f22ade549a37d61f8bdbe636d0d7816191de969c2"
+checksum = "331e97a1af0bf59823e6eadffe373d7b27f485be8748f71471c662c1f269b7fb"
 dependencies = [
  "memchr",
 ]
@@ -7367,7 +7367,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "bitvec",
  "cairo-lang-runner",
@@ -7395,7 +7395,7 @@ dependencies = [
 [[package]]
 name = "starknet_client"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "cairo-lang-starknet-classes",
@@ -7422,7 +7422,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "axum",
@@ -7452,7 +7452,7 @@ dependencies = [
 [[package]]
 name = "starknet_gateway_types"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "axum",
@@ -7471,7 +7471,7 @@ dependencies = [
 [[package]]
 name = "starknet_infra_utils"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "tokio",
  "tracing",
@@ -7480,7 +7480,7 @@ dependencies = [
 [[package]]
 name = "starknet_mempool_types"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "papyrus_network_types",
@@ -7494,7 +7494,7 @@ dependencies = [
 [[package]]
 name = "starknet_sequencer_infra"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "hyper 0.14.32",
@@ -7514,7 +7514,7 @@ dependencies = [
 [[package]]
 name = "starknet_sierra_multicompile"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
@@ -7535,7 +7535,7 @@ dependencies = [
 [[package]]
 name = "starknet_state_sync_types"
 version = "0.14.0-rc.3"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=2be9752bfcf1947d4fec1cd78a1a859b19d05fb2#2be9752bfcf1947d4fec1cd78a1a859b19d05fb2"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=14be65ca995ac702bad26ac20f2a522d9515f70a#14be65ca995ac702bad26ac20f2a522d9515f70a"
 dependencies = [
  "async-trait",
  "futures",
@@ -8771,9 +8771,9 @@ dependencies = [
 
 [[package]]
 name = "windows-link"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76840935b766e1b0a05c0066835fb9ec80071d4c09a16f6bd5f7e655e3c14c38"
+checksum = "d3bfe459f85da17560875b8bf1423d6f113b7a87a5d942e7da0ac71be7c61f8b"
 
 [[package]]
 name = "windows-result"
@@ -8853,9 +8853,9 @@ dependencies = [
 
 [[package]]
 name = "windows-targets"
-version = "0.53.0"
+version = "0.53.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1e4c7e8ceaaf9cb7d7507c974735728ab453b67ef8f18febdd7c11fe59dca8b"
+checksum = "30357ec391cde730f8fbfcdc29adc47518b06504528df977ab5af02ef23fdee9"
 dependencies = [
  "windows_aarch64_gnullvm 0.53.0",
  "windows_aarch64_msvc 0.53.0",

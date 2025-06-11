@@ -9,6 +9,7 @@ use starknet_types_core::felt::Felt;
 #[derive(Serialize)]
 struct LibfuncProfile {
     block_number: u64,
+    class_hash: String,
     tx: String,
     selector: Felt,
     data: Vec<LibfuncProfileSummary>,
@@ -27,8 +28,9 @@ pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
 
     let profiles_data = profiles
         .iter()
-        .map(|(selector, profile)| LibfuncProfile {
+        .map(|((class_hash, selector), profile)| LibfuncProfile {
             block_number,
+            class_hash: class_hash.to_string(),
             tx: tx_hash_str.to_string(),
             selector: *selector,
             data: profile.clone(),
