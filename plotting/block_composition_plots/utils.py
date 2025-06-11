@@ -18,6 +18,14 @@ def chunks(by, df, chunk_size):
     return [df[df[by].isin(chunk)] for chunk in chunks]
 
 
+def chunks(by, df, chunk_size):
+    unique_blocks = sorted(df[by].unique())
+
+    chunks = more_itertools.chunked(unique_blocks, chunk_size)
+
+    return [df[df[by].isin(chunk)] for chunk in chunks]
+
+
 def load_block_composition_data(path, process_fn=None):
     def apply_flattening(block):
         # An entrypoint is a dict of groups of entrypoints (each with objectives)
