@@ -1,6 +1,8 @@
 use std::{fs::File, path::PathBuf};
 
-use blockifier::execution::native::executor::{ProfilerResults, LIBFUNC_PROFILES_MAP};
+use blockifier::execution::native::{
+    executor::LIBFUNC_PROFILES_MAP, utils::libfunc_profiler::LibfuncProfileSummary,
+};
 use serde::Serialize;
 use starknet_types_core::felt::Felt;
 
@@ -9,7 +11,7 @@ struct LibfuncProfile {
     block_number: u64,
     tx: String,
     selector: Felt,
-    data: Vec<ProfilerResults>,
+    data: Vec<LibfuncProfileSummary>,
 }
 
 pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
