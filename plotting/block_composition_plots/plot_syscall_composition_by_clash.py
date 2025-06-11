@@ -100,8 +100,6 @@ def get_syscall_percentages(syscalls_x_libfunc_calls):
 
     return {
         "class_hash": class_hash,
-        "libfunc_count": libfunc_count,
-        "syscalls_count": syscall_count,
         "syscall_ptg": syscall_ptg,
     }
 
@@ -148,3 +146,23 @@ df_classhes_syscall_ptg = (
 )
 
 print(df_classhes_syscall_ptg)
+
+
+# ========
+# PLOTTING
+# ========
+
+block_range = f"{df_block_composition['block_number'].min()}-{df_block_composition['block_number'].max()}"
+
+figure, ax = plt.subplots(figsize=(15, 15))
+
+sns.histplot(
+    data=df_classhes_syscall_ptg,
+    x="class_hash",
+    stat="count",
+)
+
+ax.set_xlabel("Class Hash")
+ax.set_ylabel("Syscalls Percentage")
+ax.set_title("Syscall Percentages by Class Hash")
+save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")
