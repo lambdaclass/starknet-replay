@@ -127,6 +127,7 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                     sierra_version,
                     &path,
                     OptLevel::Aggressive,
+                    None,
                 )
                 .unwrap()
                 {
