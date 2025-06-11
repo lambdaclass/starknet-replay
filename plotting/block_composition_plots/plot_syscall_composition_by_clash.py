@@ -145,8 +145,6 @@ df_classhes_syscall_ptg = (
     .apply(pd.Series)
 )
 
-print(df_classhes_syscall_ptg)
-
 
 # ========
 # PLOTTING
