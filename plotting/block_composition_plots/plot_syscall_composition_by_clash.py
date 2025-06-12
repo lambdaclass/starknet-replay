@@ -129,7 +129,11 @@ df_block_composition = pd.concat(
 df_block_composition_by_classh = df_block_composition.groupby(
     ["class_hash"], as_index=False
 ).agg(syscall_count=("syscall_count", "sum"))
-# df_block_composition_by_classh = df_classhes[df_block_composition_by_classh["class_hash"].isin(CLASS_HASHES)]
+
+df_block_composition_by_classh = df_block_composition_by_classh[
+    df_block_composition_by_classh["class_hash"].isin(CLASS_HASHES)
+]
+
 
 # Process libfunc profiles
 
