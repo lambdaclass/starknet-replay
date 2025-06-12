@@ -1,5 +1,3 @@
-#![cfg(feature = "block-composition")]
-
 use std::{
     error::Error,
     fs::{self, File},
