@@ -2,7 +2,6 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -89,6 +88,7 @@ df_composition_by_block = (
     )
     .groupby(["block_number", "tx_hash"], as_index=False)
     .agg(syscalls=("syscall_count", "sum"), total_gas=("total_gas", "sum"))
+)
 df_composition_by_block = (
     load_block_composition_data(
         arguments.block_execution_info, process_block_composition_fn
@@ -105,6 +105,7 @@ df_profiles_by_block = (
     .agg(
         libfunc_calls=("libfunc_calls_count", "sum"),
     )
+)
 df_profiles_by_block = (
     load_json_dir_data(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
     .groupby(["block_number", "tx_hash"], as_index=False)
@@ -116,7 +117,6 @@ df_profiles_by_block = (
 # Seggregate Transactions (syscall/libfunc) heavy
 
 df_seggregation = (
-    df_profiles_by_block.merge(df_composition_by_block, on=["block_number", "tx_hash"])
     df_profiles_by_block.merge(df_composition_by_block, on=["block_number", "tx_hash"])
     .apply(seggregate_txs, axis=1)
     .apply(pd.Series)
@@ -153,8 +153,6 @@ cut_bins = np.arange(0, 30, 0.5)
 
 labels = [f"{i}" for i in cut_bins[:-1]]
 
-df_seggregation["ptg_group"] = pd.cut(
-    df_seggregation["syscall_ptg"], bins=cut_bins, labels=labels
 df_seggregation["ptg_group"] = pd.cut(
     df_seggregation["syscall_ptg"], bins=cut_bins, labels=labels
 )

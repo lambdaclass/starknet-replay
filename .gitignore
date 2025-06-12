@@ -11,4 +11,5 @@ libfunc_profiles/
 rpc_cache
 bench_data
 block_composition/
+block_composition_plots/
 call_state_dumps
