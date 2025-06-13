@@ -408,8 +408,8 @@ def plot_executors(df_txs: DataFrame):
     print("Speedup:", total_time_vm_ns / total_time_native_ns)
     print(
         "Usage:",
-        total_time_native_gas_ns / total_time_native_gas_ns
-        + total_time_native_sierra_ns,
+        total_time_native_gas_ns
+        / (total_time_native_gas_ns + total_time_native_sierra_ns),
     )
 
 
