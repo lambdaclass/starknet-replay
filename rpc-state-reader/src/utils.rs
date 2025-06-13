@@ -121,14 +121,19 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 let pre_compilation_instant = Instant::now();
 
-                let mut statistics = Statistics::default();
+                let mut statistics = if cfg!(feature = "with-comp-stats") {
+                    Some(Statistics::default())
+                } else {
+                    None
+                };
+
                 match AotContractExecutor::new_into(
                     &contract.extract_sierra_program().unwrap(),
                     &contract.entry_points_by_type,
                     sierra_version,
                     &path,
                     OptLevel::Aggressive,
-                    Some(&mut statistics),
+                    statistics.as_mut(),
                 )
                 .unwrap()
                 {
@@ -141,11 +146,13 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                             "native contract compilation finished"
                         );
 
-                        let stats_path = path.with_extension("stats.json");
-                        let stats_file =
-                            File::create(stats_path).expect("failed to open stats file");
-                        serde_json::to_writer_pretty(stats_file, &statistics)
-                            .expect("failed to write statistics");
+                        if let Some(statistics) = statistics {
+                            let stats_path = path.with_extension("stats.json");
+                            let stats_file =
+                                File::create(stats_path).expect("failed to open stats file");
+                            serde_json::to_writer_pretty(stats_file, &statistics)
+                                .expect("failed to write statistics");
+                        }
 
                         break e;
                     }
