@@ -65,7 +65,7 @@ where
                 // Just reuse that parent frame stack.
                 old_stack_to_new_stack.insert(stack, new_prefix_idx.expect("we just checked"));
             } else {
-                // If the prefix has not been colapsed, we push an entry for the collapsed stack
+                // If the prefix has not been collapsed, we push an entry for the collapsed stack
                 new_stack_table.length += 1;
                 new_stack_table.frame.push(group_frame);
                 new_stack_table.prefix.push(new_prefix_idx);
