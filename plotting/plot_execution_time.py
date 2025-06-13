@@ -401,7 +401,24 @@ mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 
 def plot_executors(df_txs: DataFrame):
-    sns.scatterplot(data=df_txs, x="time_ns_native_ratio", y="speedup")
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+
+    df_txs_mixed: DataFrame = df_txs[df_txs["time_ns_native_ratio"] != 1]  # type: ignore
+    sns.scatterplot(ax=ax1, data=df_txs_mixed, x="time_ns_native_ratio", y="speedup")
+    ax1.set_ylabel("Speedup")
+    ax1.set_xlabel("Native/VM Ratio")
+    ax1.set_title("Non Pure Native Executions")
+
+    df_txs_only_gas: DataFrame = df_txs[df_txs["time_ns_native_ratio"] == 1]  # type: ignore
+    sns.boxplot(ax=ax2, data=df_txs_only_gas, y="speedup", showfliers=True)
+    ax2.set_ylabel("Speedup")
+    ax2.set_title("Pure Native Executions")
+
+    for _, tx in df_txs_only_gas.nsmallest(columns="speedup", n=50).iterrows():
+        hash = tx["hash"]
+        speedup = tx["speedup"]
+        print(f"- {hash:<65}: {speedup:.2f}")
+
     save("executors")
 
 
