@@ -60,7 +60,7 @@ where
                 frame_idx
             });
 
-            // Check if the parent frame has been colapsed.
+            // Check if the parent frame has been collapsed.
             if new_prefix_idx.is_some_and(|new_prefix| collapsed_stacks.contains(&new_prefix)) {
                 // Just reuse that parent frame stack.
                 old_stack_to_new_stack.insert(stack, new_prefix_idx.expect("we just checked"));
