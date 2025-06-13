@@ -1,6 +1,6 @@
 # Utility Tools
 
-This crate contains utility binaries for manipulating and executiong Cairo programs.
+This crate contains utility binaries for manipulating and executing Cairo programs.
 
 ## Contracts
 
