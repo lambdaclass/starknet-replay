@@ -1,6 +1,7 @@
 import json
 import pathlib
 import argparse
+import math
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
@@ -126,6 +127,49 @@ df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 # gas_consumed  int64
 # executor      object
 # speed         float64
+
+
+def separate_gas_and_sierra_time(tx, native_calls):
+    first_call = int(tx["first_call"])
+    next_first_call = tx["next_first_call"]
+
+    if math.isnan(next_first_call):
+        calls = native_calls.iloc[first_call:]
+    else:
+        next_first_call = int(next_first_call)
+        calls = native_calls.iloc[first_call:next_first_call]
+
+    gas_calls: DataFrame = calls[calls["executor"] == "native"]  # type: ignore
+    sierra_calls: DataFrame = calls[calls["executor"] == "vm"]  # type: ignore
+
+    time_gas = gas_calls["time_ns"].sum()
+    time_sierra = sierra_calls["time_ns"].sum()
+
+    tx["time_ns_native_gas"] = time_gas
+    tx["time_ns_native_sierra"] = time_sierra
+
+    return tx
+
+
+df_txs["next_first_call"] = df_txs["first_call"].shift(-1)
+df_txs = df_txs.apply(
+    lambda tx: separate_gas_and_sierra_time(tx, df_calls_native), axis=1
+)  # type: ignore
+df_txs = df_txs.drop("next_first_call", axis=1)
+
+# print(df_txs.info())
+# ----------------------------
+# Column                 Dtype
+# ----------------------------
+# hash                   object
+# gas_consumed           int64
+# first_call             int64
+# block_number           int64
+# time_ns_native         int64
+# time_ns_vm             int64
+# speedup                float64
+# time_ns_native_gas     int64
+# time_ns_native_sierra  int64
 
 ############
 # PLOTTING #
@@ -354,10 +398,26 @@ def plot_speed(df_calls):
 
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
-plot_speed(df_calls)
-plot_time_by_gas(df_calls)
-plot_time_by_class(df_calls)
-plot_speedup(df_txs)
+
+def plot_executors(df_txs: DataFrame):
+    total_time_vm_ns = df_txs["time_ns_vm"].sum()
+    total_time_native_ns = df_txs["time_ns_native"].sum()
+    total_time_native_gas_ns = df_txs["time_ns_native_gas"].sum()
+    total_time_native_sierra_ns = df_txs["time_ns_native_sierra"].sum()
+
+    print("Speedup:", total_time_vm_ns / total_time_native_ns)
+    print(
+        "Usage:",
+        total_time_native_gas_ns / total_time_native_gas_ns
+        + total_time_native_sierra_ns,
+    )
+
+
+# plot_speed(df_calls)
+# plot_time_by_gas(df_calls)
+# plot_time_by_class(df_calls)
+# plot_speedup(df_txs)
+plot_executors(df_txs)
 
 if args.display:
     plt.show()
