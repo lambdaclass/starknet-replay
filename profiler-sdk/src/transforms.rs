@@ -229,7 +229,7 @@ pub fn collapse_recursion(
                 }
             }
             Some(subtree_prefix) => {
-                // our prefix is part of the subtree of the function to colapse
+                // our prefix is part of the subtree of the function to collapse
                 stack_to_new_prefix.insert(stack, subtree_prefix);
                 if func == func_to_collapse {
                     // if we find a recursive call, reparent the current node to
