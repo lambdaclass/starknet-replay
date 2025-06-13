@@ -74,7 +74,7 @@ where
                 collapsed_stacks.insert(new_stack);
             }
         } else {
-            // If the current frame should not be colapsed, we the copy the entry over.
+            // If the current frame should not be collapsed, we the copy the entry over.
             new_stack_table.length += 1;
             new_stack_table.frame.push(frame_idx);
             new_stack_table.prefix.push(new_prefix_idx);
