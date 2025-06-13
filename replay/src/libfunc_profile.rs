@@ -30,7 +30,7 @@ pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
         .iter()
         .map(|((class_hash, selector), profile)| LibfuncProfile {
             block_number,
-            class_hash: class_hash.to_string(),
+            class_hash: class_hash.to_hex_string(),
             tx: tx_hash_str.to_string(),
             selector: *selector,
             data: profile.clone(),
