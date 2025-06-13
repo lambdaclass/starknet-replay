@@ -28,7 +28,6 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 use {
     crate::benchmark::{
         aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
-        BenchmarkingData,
     },
     std::time::Instant,
 };
@@ -298,14 +297,9 @@ fn main() {
                 info!("saving execution info");
 
                 let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let class_executions = aggregate_executions(executions);
+                let benchmarking_data = aggregate_executions(executions);
 
                 let average_time = execution_time.div_f32(number_of_runs as f32);
-
-                let benchmarking_data = BenchmarkingData {
-                    average_time,
-                    class_executions,
-                };
 
                 let file = std::fs::File::create(output).unwrap();
                 serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
@@ -373,14 +367,9 @@ fn main() {
                 info!("saving execution info");
 
                 let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let class_executions = aggregate_executions(executions);
+                let benchmarking_data = aggregate_executions(executions);
 
                 let average_time = execution_time.div_f32(number_of_runs as f32);
-
-                let benchmarking_data = BenchmarkingData {
-                    average_time,
-                    class_executions,
-                };
 
                 let file = std::fs::File::create(output).unwrap();
                 serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();

@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from utils import flatmap
+import itertools
 import json
 
 TRANSFER_ENTRYPOINT_HASH = (
@@ -27,6 +27,9 @@ argument_parser = ArgumentParser('Block composition')
 argument_parser.add_argument('block_execution_info')
 arguments = argument_parser.parse_args()
 
+
+def flatmap(f, iterable):
+    return itertools.chain.from_iterable(map(f, iterable))
 
 def count_transfers(transactions):
     count = 0
