@@ -222,7 +222,7 @@ pub fn collapse_recursion(
         match subtree_prefix {
             None => {
                 if func == func_to_collapse {
-                    // if our prefix is not part of the function to colapse, and
+                    // if our prefix is not part of the function to collapse, and
                     // the current function should be collapsed, then this node
                     // is the root of the tree.
                     stack_to_new_prefix.insert(stack, prefix);
