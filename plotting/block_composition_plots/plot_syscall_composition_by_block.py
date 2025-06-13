@@ -89,23 +89,9 @@ df_composition_by_block = (
     .groupby(["block_number", "tx_hash"], as_index=False)
     .agg(syscalls=("syscall_count", "sum"), total_gas=("total_gas", "sum"))
 )
-df_composition_by_block = (
-    load_block_composition_data(
-        arguments.block_execution_info, process_block_composition_fn
-    )
-    .groupby(["block_number", "tx_hash"], as_index=False)
-    .agg(syscalls=("syscall_count", "sum"), total_gas=("total_gas", "sum"))
-)
 
 # Process Libfunc Profiles data
 
-df_profiles_by_block = (
-    load_json_dir_data(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
-    .groupby(["block_number", "tx_hash"], as_index=False)
-    .agg(
-        libfunc_calls=("libfunc_calls_count", "sum"),
-    )
-)
 df_profiles_by_block = (
     load_json_dir_data(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
     .groupby(["block_number", "tx_hash"], as_index=False)
@@ -147,8 +133,6 @@ for blocks_chunk in chunks("block_number", df_seggregation, 10):
 # Plot an histogram with syscall percentages
 block_range = f"{df_composition_by_block['block_number'].min()}-{df_composition_by_block['block_number'].max()}"
 
-block_range = f"{df_composition_by_block['block_number'].min()}-{df_composition_by_block['block_number'].max()}"
-
 cut_bins = np.arange(0, 30, 0.5)
 
 labels = [f"{i}" for i in cut_bins[:-1]]
@@ -165,17 +149,7 @@ sns.histplot(
     stat="count",
 )
 
-figure, ax = plt.subplots(figsize=(15, 15))
-
-sns.histplot(
-    data=df_seggregation,
-    x="ptg_group",
-    stat="count",
-)
-
 ax.set_xlabel("Percentages")
-ax.set_ylabel("Syscalls count")
-ax.set_title(f"Syscall percentages in Block Range {block_range}")
-save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")
+ax.set_ylabel("Tx Count")
 ax.set_title(f"Syscall percentages in Block Range {block_range}")
 save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")

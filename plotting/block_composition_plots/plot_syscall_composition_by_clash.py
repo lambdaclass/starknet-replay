@@ -165,6 +165,6 @@ sns.histplot(
 )
 
 ax.set_xlabel("Class Hash")
-ax.set_ylabel("Syscalls Percentage")
+ax.set_ylabel("Tx Count")
 ax.set_title("Syscall Percentages by Class Hash")
 save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")
