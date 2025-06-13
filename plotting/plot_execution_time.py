@@ -75,7 +75,7 @@ assert (df_calls_native["gas_consumed"] == df_calls_vm["gas_consumed"]).all()
 assert (df_calls_native["steps"] == df_calls_vm["steps"]).all()
 
 # merge transactions into single dataframe
-df_txs = pd.merge(
+df_txs: DataFrame = pd.merge(
     df_txs_native,
     df_txs_vm.drop(
         ["hash", "first_call", "gas_consumed", "steps", "block_number"], axis=1
@@ -147,6 +147,7 @@ def separate_gas_and_sierra_time(tx, native_calls):
 
     tx["time_ns_native_gas"] = time_gas
     tx["time_ns_native_sierra"] = time_sierra
+    tx["time_ns_native_ratio"] = time_gas / (time_gas + time_sierra)
 
     return tx
 
@@ -400,17 +401,8 @@ mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 
 def plot_executors(df_txs: DataFrame):
-    total_time_vm_ns = df_txs["time_ns_vm"].sum()
-    total_time_native_ns = df_txs["time_ns_native"].sum()
-    total_time_native_gas_ns = df_txs["time_ns_native_gas"].sum()
-    total_time_native_sierra_ns = df_txs["time_ns_native_sierra"].sum()
-
-    print("Speedup:", total_time_vm_ns / total_time_native_ns)
-    print(
-        "Usage:",
-        total_time_native_gas_ns
-        / (total_time_native_gas_ns + total_time_native_sierra_ns),
-    )
+    sns.scatterplot(data=df_txs, x="time_ns_native_ratio", y="speedup")
+    save("executors")
 
 
 # plot_speed(df_calls)
