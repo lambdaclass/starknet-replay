@@ -43,3 +43,10 @@ def load_json_dir_data(path, f):
     df = df.apply(f, axis=1).dropna().apply(pd.Series)
 
     return df
+
+def load_json_file_data(path, f):
+    data = json.load(open(path))
+    df = pd.DataFrame(data["transactions"])
+    df = df.apply(f, axis=1).dropna().apply(pd.Series)
+
+    return df

@@ -127,7 +127,7 @@ for blocks_chunk in chunks("block_number", df_seggregation, 10):
     ax.set_xlabel("Block")
     ax.set_ylabel("Syscalls (%)")
     ax.set_title("Syscall Heavy Txs Composition")
-    save_to_path(f"syscalls_quantiles-blocks-{block_range}")
+    save_to_path(f"syscalls_quantiles_blocks_{block_range}")
 
 
 # Plot an histogram with syscall percentages
@@ -152,4 +152,4 @@ sns.histplot(
 ax.set_xlabel("Percentages")
 ax.set_ylabel("Tx Count")
 ax.set_title(f"Syscall percentages in Block Range {block_range}")
-save_to_path(f"syscalls_ptg_hist-blocks-{block_range}")
+save_to_path(f"syscalls_ptg_hist_blocks-{block_range}")
