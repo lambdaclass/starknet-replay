@@ -16,7 +16,7 @@ fs2 = "0.4.3"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "52cf76f469e4b4efe92203d31ff374b7d2c539ee" }
 anyhow = "1.0"
 
-# Cairo Dependnecies
+# Cairo Dependencies
 cairo-lang-starknet-classes = "2.12.0-dev.1"
 cairo-lang-starknet = "2.12.0-dev.1"
 cairo-lang-compiler = "2.12.0-dev.1"
