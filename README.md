@@ -1,4 +1,5 @@
 # starknet-replay
+
 Provides a way of reading a real Starknet State, so you can re-execute an existing transaction in any of the Starknet networks in an easy way
 
 ## Getting Started
@@ -13,14 +14,17 @@ Provides a way of reading a real Starknet State, so you can re-execute an existi
 ### Setup
 
 Run the following make target to install dependencies:
+
 ```bash
 make deps
 ```
+
 It will automatically install LLVM 19 with MLIR on macos, if you are using linux you must do it manually. On debian, you can use `apt.llvm.org`, or build it from source.
 
 This project is integrated with Cairo Native, see [Cairo Native Setup](#cairo-native-setup) to set it up correctly
 
 Some environment variable are needed, you can automatically set them by sourcing `env.sh`. If the script doesn't adjust to your specific environment you can `cp` it into `.env` or `.envrc` and modify it.
+
 ```bash
 # Cairo Native
 export LLVM_SYS_191_PREFIX=/path/to/llvm-19
@@ -38,6 +42,7 @@ export LIBRARY_PATH=/opt/homebrew/lib
 ```
 
 Once you have installed dependencies and set the needed environment variables, you can build the project and run the tests:
+
 ```bash
 make build
 make test
@@ -50,18 +55,21 @@ Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/l
 - On mac with brew, running `make deps` should have installed LLVM 19 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
 
 - The `LLVM_SYS_191_PREFIX`, `MLIR_SYS_190_PREFIX` and `TABLEGEN_190_PREFIX` environment variable needs to point to said installation. In macOS, run:
+
   ```
   export LLVM_SYS_190_PREFIX=/opt/homebrew/opt/llvm@19
   export MLIR_SYS_191_PREFIX=/opt/homebrew/opt/llvm@19
   export TABLEGEN_190_PREFIX=/opt/homebrew/opt/llvm@19
   ```
+
   and you're set.
 
 Afterwards, compiling with the feature flag `cairo-native` will enable native execution. You can check out some example test code that uses it under `tests/cairo_native.rs`.
 
-#### Using ahead of time compilation with Native.
+#### Using ahead of time compilation with Native
 
 ## replay
+
 You can use the replay crate to execute transactions or blocks via the CLI. For example:
 
 ```bash
@@ -92,6 +100,7 @@ These commands are like `tx` and `block-range` commands, but with the number of 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
 
 As an example, to show only error messages from the replay crate, run:
+
 ```bash
 RUST_LOG=replay=error cargo run block mainnet 648461
 ```
@@ -99,11 +108,14 @@ RUST_LOG=replay=error cargo run block mainnet 648461
 ### Comparing with VM
 
 To compare Native execution with the VM, you can use the `state_dump` feature. It will save to disk the execution info and state diff of every contract executed.
+
 - If executing Native, the dumps will be saved at: `state_dumps/native/block{block_number}/{tx_hash}.json`
 - If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/block{block_number}/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
+
 - `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ.
+
    ```bash
    > ./scripts/cmp_state_dumps.sh
    diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
@@ -117,7 +129,9 @@ To compare the outputs, you can use the following scripts. Some of them required
    - Matching: 4
    - Diffing:  16
    ```
+
 - `delta_state_dumps.sh`. It opens delta to review the differences between VM and Native with each transaction.
+
    ```bash
    > ./scripts/delta_state_dumps.sh
    ```
@@ -149,6 +163,7 @@ cargo run -- call call.json \
 ```
 
 The `state_dump` feature can be used to save the execution result to either
+
 - `call_state_dumps/native/{tx_hash}.json`
 - `call_state_dumps/vm/{tx_hash}.json`
 
@@ -164,36 +179,43 @@ cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1
 However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
 
 First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
+
 ```bash
 rm -rf compiled_programs
 make deps-bench
 ```
 
 Then, you can benchmark a single transaction by running:
+
 ```bash
 ./scripts/benchmark_tx.sh <tx> <net> <block> <laps>
 ```
 
 If you want to benchmark a full block, you could run:
+
 ```bash
 ./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
 ```
 
 If you just want to benchmarks a few different sample transactions, run:
+
 ```bash
 ./scripts/benchmark_txs.sh
 ```
 
 This generates the following files in the `bench_data` directory:
+
 - `{native,vm}-data-*.json` - execution time of each contract call.
 - `{native,vm}-data-*.json` - stdout from running the benchmark.
 
 Additionally, the benchmarking scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
+
 - `plot-*.svg` - bar plot for the execution time by contract class
 - `plot-*-speedup.svg` - violin plot for the speedup by contract class
 - `plot-*.csv` - raw csv preprocessed data
 
 ## Block Composition
+
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
 will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
 
