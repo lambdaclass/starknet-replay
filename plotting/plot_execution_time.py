@@ -1,7 +1,6 @@
 import json
 import pathlib
 import argparse
-import math
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
@@ -50,8 +49,130 @@ def save(name, ext="svg"):
 def load_data(path):
     raw_json = json.load(open(path))
 
-    df_txs = pd.DataFrame(raw_json["transactions"])
-    df_calls = pd.DataFrame(raw_json["calls"])
+    df_txs: DataFrame = pd.DataFrame(raw_json["transactions"])[
+        [
+            "hash",
+            "block_number",
+            "time_ns",
+            "gas_consumed",
+            "steps",
+            "first_call",
+        ]
+    ].rename({"hash": "tx_hash"}, axis=1)  # type: ignore
+
+    df_calls: DataFrame = pd.DataFrame(raw_json["calls"])[
+        [
+            "class_hash",
+            "selector",
+            "resource",
+            "time_ns",
+            "gas_consumed",
+            "steps",
+        ]
+    ]  # type: ignore
+
+    df_txs["gas_consumed"] += df_txs["steps"] * 100
+    df_txs = df_txs.drop("steps", axis=1)
+    df_calls["gas_consumed"] += df_calls["steps"] * 100
+    df_calls = df_calls.drop("steps", axis=1)
+
+    df_calls = pd.merge_asof(
+        left=df_calls,
+        right=df_txs[["tx_hash", "first_call"]],
+        left_index=True,
+        right_on="first_call",
+        direction="backward",
+    )
+    df_txs = df_txs.drop(["first_call"], axis=1)
+    df_calls = df_calls.drop(["first_call"], axis=1)
+
+    df_txs = df_txs.groupby("tx_hash").aggregate(
+        **{
+            "block_number": ("block_number", "first"),
+            "gas_consumed": ("gas_consumed", "first"),
+            "block_number_nunique": ("block_number", "nunique"),
+            "gas_consumed_nunique": ("gas_consumed", "nunique"),
+            "time_ns": ("time_ns", "mean"),
+        }
+    )  # type: ignore
+    assert (df_txs["block_number_nunique"] == 1).all()
+    assert (df_txs["gas_consumed_nunique"] == 1).all()
+    df_txs = df_txs.drop(["block_number_nunique", "gas_consumed_nunique"], axis=1)
+
+    call_tx_ids = (df_calls["tx_hash"] != df_calls["tx_hash"].shift()).cumsum()
+    df_calls["call_index"] = df_calls.groupby(call_tx_ids).cumcount()
+    df_calls = df_calls.groupby(["tx_hash", "call_index"]).aggregate(
+        **{
+            "class_hash": ("class_hash", "first"),
+            "selector": ("selector", "first"),
+            "resource": ("resource", "first"),
+            "gas_consumed": ("gas_consumed", "first"),
+            "class_hash_nunique": ("class_hash", "nunique"),
+            "selector_nunique": ("selector", "nunique"),
+            "resource_nunique": ("resource", "nunique"),
+            "gas_consumed_nunique": ("gas_consumed", "nunique"),
+            "time_ns": ("time_ns", "mean"),
+        }
+    )  # type: ignore
+    assert (df_calls["class_hash_nunique"] == 1).all()
+    assert (df_calls["selector_nunique"] == 1).all()
+    assert (df_calls["resource_nunique"] == 1).all()
+    assert (df_calls["gas_consumed_nunique"] == 1).all()
+    df_calls = df_calls.drop(
+        [
+            "class_hash_nunique",
+            "selector_nunique",
+            "resource_nunique",
+            "gas_consumed_nunique",
+        ],
+        axis=1,
+    )
+
+    df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+
+    time_by_gas = (
+        df_calls[df_calls["resource"] == "SierraGas"]
+        .groupby("tx_hash")["time_ns"]
+        .sum()
+    )
+    time_by_steps = (
+        df_calls[df_calls["resource"] == "CairoSteps"]
+        .groupby("tx_hash")["time_ns"]
+        .sum()
+    )
+    df_txs["time_ns_gas"] = time_by_gas.reindex(df_txs.index).fillna(0)
+    df_txs["time_ns_steps"] = time_by_steps.reindex(df_txs.index).fillna(0)
+    df_txs["resource_ratio"] = df_txs["time_ns_gas"] / (
+        df_txs["time_ns_steps"] + df_txs["time_ns_gas"]
+    )
+
+    df_txs = df_txs.reset_index()
+    df_calls = df_calls.reset_index()
+
+    # print(df_txs.info())
+    # ---------------------
+    # Column          Dtype
+    # ---------------------
+    # tx_hash         object
+    # block_number    int64
+    # gas_consumed    int64
+    # time_ns         float64
+    # time_ns_gas     float64
+    # time_ns_steps   float64
+    # resource_ratio  float64
+
+    # print(df_calls.info())
+    # -------------------
+    # Column        Dtype
+    # -------------------
+    # tx_hash       object
+    # call_index    int64
+    # class_hash    object
+    # selector      object
+    # resource      object
+    # gas_consumed  int64
+    # time_ns       float64
+    # speed         float64
 
     return df_txs, df_calls
 
@@ -60,47 +181,50 @@ df_txs_native, df_calls_native = load_data(args.native_data)
 df_txs_vm, df_calls_vm = load_data(args.vm_data)
 
 # Assert Native and VM tx execution coincide.
-assert (df_txs_native.index == df_txs_vm.index).all()
-assert (df_txs_native["hash"] == df_txs_vm["hash"]).all()
-assert (df_txs_native["first_call"] == df_txs_vm["first_call"]).all()
-assert (df_txs_native["gas_consumed"] == df_txs_vm["gas_consumed"]).all()
-assert (df_txs_native["steps"] == df_txs_vm["steps"]).all()
+assert (df_txs_native["tx_hash"] == df_txs_vm["tx_hash"]).all()
 assert (df_txs_native["block_number"] == df_txs_vm["block_number"]).all()
+assert (df_txs_native["gas_consumed"] == df_txs_vm["gas_consumed"]).all()
 
 # Assert Native and VM call execution coincide.
-assert (df_calls_native.index == df_calls_vm.index).all()
+assert (df_calls_native["tx_hash"] == df_calls_vm["tx_hash"]).all()
+assert (df_calls_native["call_index"] == df_calls_vm["call_index"]).all()
 assert (df_calls_native["class_hash"] == df_calls_vm["class_hash"]).all()
 assert (df_calls_native["selector"] == df_calls_vm["selector"]).all()
+assert (df_calls_native["resource"] == df_calls_vm["resource"]).all()
 assert (df_calls_native["gas_consumed"] == df_calls_vm["gas_consumed"]).all()
-assert (df_calls_native["steps"] == df_calls_vm["steps"]).all()
 
 # merge transactions into single dataframe
 df_txs: DataFrame = pd.merge(
     df_txs_native,
-    df_txs_vm.drop(
-        ["hash", "first_call", "gas_consumed", "steps", "block_number"], axis=1
-    ),
-    left_index=True,
-    right_index=True,
+    df_txs_vm[
+        [
+            "tx_hash",
+            "time_ns",
+            "time_ns_gas",
+            "time_ns_steps",
+        ]
+    ],
+    on="tx_hash",
     suffixes=("_native", "_vm"),
 )
-# merge steps into gas_consumed
-df_txs["gas_consumed"] += df_txs["steps"] * 100
-df_txs = df_txs.drop("steps", axis=1)
-# calculate speedup
+
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
 # print(df_txs.info())
-# -------------------------
-# Column              Dtype
-# -------------------------
-# hash                object
-# gas_consumed        int64
-# first_call          int64
-# block_number        int64
-# time_ns_native      int64
-# time_ns_vm          int64
-# speedup             float64
+# ---------------------------
+# Column                Dtype
+# ---------------------------
+# tx_hash               object
+# block_number          int64
+# gas_consumed          int64
+# resource_ratio        float64
+# time_ns_native        float64
+# time_ns_gas_native    float64
+# time_ns_steps_native  float64
+# time_ns_vm            float64
+# time_ns_gas_vm        float64
+# time_ns_steps_vm      float64
+# speedup               float64
 
 # use resource to determine executor
 df_calls_native.replace("SierraGas", "native", inplace=True)
@@ -112,65 +236,20 @@ df_calls_vm["executor"] = "vm"
 df_calls: DataFrame = pd.concat([df_calls_native, df_calls_vm])
 # drop calls with no time
 df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
-# merge steps into gas_consumed
-df_calls["gas_consumed"] += df_calls["steps"] * 100
-df_calls = df_calls.drop("steps", axis=1)
-df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 
 # print(df_calls.info())
 # -------------------
 # Column        Dtype
 # -------------------
+# tx_hash       object
+# call_index    int64
 # class_hash    object
 # selector      object
-# time_ns       int64
-# gas_consumed  int64
 # executor      object
+# gas_consumed  int64
+# time_ns       float64
 # speed         float64
 
-
-def separate_gas_and_sierra_time(tx, native_calls):
-    first_call = int(tx["first_call"])
-    next_first_call = tx["next_first_call"]
-
-    if math.isnan(next_first_call):
-        calls = native_calls.iloc[first_call:]
-    else:
-        next_first_call = int(next_first_call)
-        calls = native_calls.iloc[first_call:next_first_call]
-
-    gas_calls: DataFrame = calls[calls["executor"] == "native"]  # type: ignore
-    sierra_calls: DataFrame = calls[calls["executor"] == "vm"]  # type: ignore
-
-    time_gas = gas_calls["time_ns"].sum()
-    time_sierra = sierra_calls["time_ns"].sum()
-
-    tx["time_ns_native_gas"] = time_gas
-    tx["time_ns_native_sierra"] = time_sierra
-    tx["time_ns_native_ratio"] = time_gas / (time_gas + time_sierra)
-
-    return tx
-
-
-df_txs["next_first_call"] = df_txs["first_call"].shift(-1)
-df_txs = df_txs.apply(
-    lambda tx: separate_gas_and_sierra_time(tx, df_calls_native), axis=1
-)  # type: ignore
-df_txs = df_txs.drop("next_first_call", axis=1)
-
-# print(df_txs.info())
-# ----------------------------
-# Column                 Dtype
-# ----------------------------
-# hash                   object
-# gas_consumed           int64
-# first_call             int64
-# block_number           int64
-# time_ns_native         int64
-# time_ns_vm             int64
-# speedup                float64
-# time_ns_native_gas     int64
-# time_ns_native_sierra  int64
 
 ############
 # PLOTTING #
@@ -403,13 +482,13 @@ mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 def plot_executors(df_txs: DataFrame):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
-    df_txs_mixed: DataFrame = df_txs[df_txs["time_ns_native_ratio"] != 1]  # type: ignore
-    sns.scatterplot(ax=ax1, data=df_txs_mixed, x="time_ns_native_ratio", y="speedup")
+    df_txs_mixed: DataFrame = df_txs[df_txs["resource_ratio"] != 1]  # type: ignore
+    sns.scatterplot(ax=ax1, data=df_txs_mixed, x="resource_ratio", y="speedup")
     ax1.set_ylabel("Speedup")
     ax1.set_xlabel("Native/VM Ratio")
     ax1.set_title("Non Pure Native Executions")
 
-    df_txs_only_gas: DataFrame = df_txs[df_txs["time_ns_native_ratio"] == 1]  # type: ignore
+    df_txs_only_gas: DataFrame = df_txs[df_txs["resource_ratio"] == 1]  # type: ignore
     sns.boxplot(ax=ax2, data=df_txs_only_gas, y="speedup", showfliers=True)
     ax2.set_ylabel("Speedup")
     ax2.set_title("Pure Native Executions")
@@ -421,10 +500,10 @@ def plot_executors(df_txs: DataFrame):
     save("executors")
 
 
-# plot_speed(df_calls)
-# plot_time_by_gas(df_calls)
-# plot_time_by_class(df_calls)
-# plot_speedup(df_txs)
+plot_speed(df_calls)
+plot_time_by_gas(df_calls)
+plot_time_by_class(df_calls)
+plot_speedup(df_txs)
 plot_executors(df_txs)
 
 if args.display:
