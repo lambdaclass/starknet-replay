@@ -16,8 +16,8 @@ pub fn collapse_frames<P>(profile: &mut Profile, thread_idx: usize, name: String
 where
     P: FnMut(Frame) -> bool,
 {
-    let name_idx = profile.threads[thread_idx].string_array.len();
-    profile.threads[thread_idx].string_array.push(name);
+    let name_idx = profile.shared.string_array.len();
+    profile.shared.string_array.push(name);
 
     let mut group_frame = None;
 
@@ -151,7 +151,7 @@ pub fn collapse_resource(
     resource_to_collapse: IndexIntoResourceTable,
 ) {
     let name_idx = profile.threads[thread_idx].resource_table.name[resource_to_collapse];
-    let name = profile.threads[thread_idx].string_array[name_idx].clone();
+    let name = profile.shared.string_array[name_idx].clone();
 
     collapse_frames(profile, thread_idx, name, |frame| {
         frame.func().resource_idx() == resource_to_collapse

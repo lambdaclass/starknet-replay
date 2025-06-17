@@ -27,8 +27,8 @@ fn main() {
 
         // Collapse all resources except contract shared libraries.
         for resource_idx in 0..profile.threads[0].resource_table.length {
-            let name = &profile.threads[0].string_array
-                [profile.threads[0].resource_table.name[resource_idx]];
+            let name =
+                &profile.shared.string_array[profile.threads[0].resource_table.name[resource_idx]];
             if name.starts_with("0x") {
                 mlir_resources.push(resource_idx);
             } else {
@@ -45,7 +45,7 @@ fn main() {
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "replay")
+                .position(|&name_idx| &profile.shared.string_array[name_idx] == "replay")
                 .expect("failed to find func");
             collapse_recursion(&mut profile, 0, func);
         }
@@ -55,7 +55,7 @@ fn main() {
             .func_table
             .name
             .iter()
-            .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "replay");
+            .position(|&name_idx| &profile.shared.string_array[name_idx] == "replay");
         if let Some(replay_function) = replay_function {
             focus_on_function(&mut profile, 0, replay_function);
         }
@@ -72,8 +72,8 @@ fn main() {
         // Collapse all resources except contract shared libraries and replay.
         let mut mlir_resources = vec![];
         for resource_idx in 0..profile.threads[0].resource_table.length {
-            let name = &profile.threads[0].string_array
-                [profile.threads[0].resource_table.name[resource_idx]];
+            let name =
+                &profile.shared.string_array[profile.threads[0].resource_table.name[resource_idx]];
 
             if name == "replay" {
                 continue;
@@ -124,7 +124,7 @@ fn main() {
                 .func_table
                 .name
                 .iter()
-                .positions(|&name_idx| &profile.threads[0].string_array[name_idx] == "utils")
+                .positions(|&name_idx| &profile.shared.string_array[name_idx] == "utils")
                 .collect_vec();
             for func in funcs {
                 merge_function(&mut profile, 0, func);
@@ -141,7 +141,7 @@ fn main() {
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| &profile.threads[0].string_array[name_idx] == "blockifier")
+                .position(|&name_idx| &profile.shared.string_array[name_idx] == "blockifier")
                 .expect("failed to find func");
             focus_on_function(&mut profile, 0, func);
             collapse_recursion(&mut profile, 0, func);
@@ -160,7 +160,7 @@ fn main() {
                 .name
                 .iter()
                 .position(|&name_idx| {
-                    let name = &profile.threads[0].string_array[name_idx];
+                    let name = &profile.shared.string_array[name_idx];
                     name == "math"
                 })
                 .expect("failed to find function");
@@ -178,7 +178,7 @@ fn main() {
                 .name
                 .iter()
                 .position(|&name_idx| {
-                    let name = &profile.threads[0].string_array[name_idx];
+                    let name = &profile.shared.string_array[name_idx];
                     name == "rpc_state_reader"
                 })
                 .expect("failed to find function");
@@ -193,7 +193,7 @@ fn main() {
                 .name
                 .iter()
                 .position(|&name_idx| {
-                    let name = &profile.threads[0].string_array[name_idx];
+                    let name = &profile.shared.string_array[name_idx];
                     name == "cairo_native::executor::contract::AotContractExecutor::run"
                 })
                 .expect("failed to find function");
@@ -209,7 +209,7 @@ fn main() {
                 .name
                 .iter()
                 .positions(|&name_idx| {
-                    let name = &profile.threads[0].string_array[name_idx];
+                    let name = &profile.shared.string_array[name_idx];
                     name.starts_with("cairo_native::runtime")
                         || name.starts_with("cairo_native::starknet")
                 })

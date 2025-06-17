@@ -23,7 +23,7 @@
 //! let frame_idx = thread.stack_table.frame[stack_idx];
 //! let func_idx = thread.frame_table.func[frame_idx];
 //! let name_idx = thread.func_table.name[func_idx];
-//! let name: String = thread.string_array[name_idx];
+//! let name: String = profile.shared.string_array[name_idx];
 //! ```
 
 use serde::Deserialize;
@@ -56,6 +56,7 @@ pub struct Profile {
     pub pages: Vec<()>,
     pub profiler_overhead: Vec<()>,
     pub counters: Vec<()>,
+    pub shared: RawSharedData,
 }
 
 /// Meta information associated for the entire profile.
@@ -125,13 +126,19 @@ pub struct RawThread {
     pub func_table: FuncTable,
     pub resource_table: ResourceTable,
     pub native_symbols: NativeSymbolTable,
-    /// Strings for profiles are collected into a single table, and are referred
-    /// to by their index by other tables.
-    pub string_array: Vec<String>,
     pub markers: Value,
     pub paused_ranges: Vec<()>,
     #[serde(default)]
     pub show_markers_in_timeline: bool,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+pub struct RawSharedData {
+    /// Strings for profiles are collected into a single table, and are referred
+    /// to by their index by other tables.
+    pub string_array: Vec<String>,
 }
 
 /// The Gecko Profiler records samples of what function was currently being

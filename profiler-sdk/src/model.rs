@@ -47,7 +47,7 @@ pub struct Frame<'p> {
 
 #[derive(Copy, Clone)]
 pub struct Func<'p> {
-    _profile: &'p Profile,
+    profile: &'p Profile,
     thread: &'p RawThread,
     idx: IndexIntoFuncTable,
 }
@@ -167,7 +167,7 @@ impl<'p> Frame<'p> {
 impl<'p> Func<'p> {
     pub fn new(profile: &'p Profile, thread: &'p RawThread, idx: IndexIntoFuncTable) -> Self {
         Self {
-            _profile: profile,
+            profile,
             thread,
             idx,
         }
@@ -175,7 +175,7 @@ impl<'p> Func<'p> {
 
     pub fn name(&self) -> &'p str {
         let name_idx = self.thread.func_table.name[self.idx];
-        &self.thread.string_array[name_idx]
+        &self.profile.shared.string_array[name_idx]
     }
 
     pub fn resource_idx(&self) -> IndexIntoResourceTable {
