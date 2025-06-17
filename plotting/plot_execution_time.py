@@ -494,7 +494,7 @@ def plot_executors(df_txs: DataFrame):
     ax2.set_title("Pure Native Executions")
 
     if args.output:
-        speedups: DataFrame = df_txs_only_gas[["tx_hash", "speedup"]]  # type: ignore
+        speedups: DataFrame = df_txs_only_gas[["tx_hash", "block_number", "speedup"]]  # type: ignore
         speedups.sort_values("speedup").to_csv(
             f"{args.output}-executors.csv", index=False
         )
