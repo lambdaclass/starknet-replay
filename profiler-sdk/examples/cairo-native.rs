@@ -108,6 +108,8 @@ fn main() {
                     || name.contains("serde::")
                     || name.contains("sha3::")
                     || name.contains("std::")
+                    || name.contains("log::")
+                    || name.contains("tracing_subscriber::")
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
                     || name == "_rdl_alloc"
