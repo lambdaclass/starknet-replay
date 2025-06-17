@@ -190,18 +190,20 @@ fn main() {
 
         // Collapse cairo_native::executor::contract::AotContractExecutor::run
         {
-            let func = profile.threads[0]
+            let funcs = profile.threads[0]
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| {
+                .positions(|&name_idx| {
                     let name = &profile.shared.string_array[name_idx];
                     name == "cairo_native::executor::contract::AotContractExecutor::run"
                 })
-                .expect("failed to find function");
+                .collect_vec();
 
-            collapse_subtree(&mut profile, 0, func);
-            merge_function(&mut profile, 0, func);
+            for func in funcs {
+                collapse_subtree(&mut profile, 0, func);
+                merge_function(&mut profile, 0, func);
+            }
         }
 
         // Collapse runtime and syscalls
