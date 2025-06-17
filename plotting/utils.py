@@ -1,10 +1,7 @@
 import pandas as pd
-import itertools
 from pandas import DataFrame
-
-
-def flatmap(f, iterable):
-    return itertools.chain.from_iterable(map(f, iterable))
+import json
+import os
 
 
 def format_hash(class_hash):
@@ -29,3 +26,27 @@ def load_jsonl(path, f):
                 dataset = pd.concat([dataset, chunk_df])
 
     return dataset
+
+
+def load_json_dir_data(path, f):
+    df = pd.DataFrame()
+
+    # iter blocks
+    for block_dir in os.listdir(path):
+        for tx_file_name in os.listdir(f"{path}/{block_dir}"):
+            tx_file = f"{path}/{block_dir}/{tx_file_name}"
+
+            data = pd.DataFrame(json.load(open(tx_file)))
+
+            df = pd.concat([df, data])
+
+    df = df.apply(f, axis=1).dropna().apply(pd.Series)
+
+    return df
+
+def load_json_file_data(path, f):
+    data = json.load(open(path))
+    df = pd.DataFrame(data["transactions"])
+    df = df.apply(f, axis=1).dropna().apply(pd.Series)
+
+    return df

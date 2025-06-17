@@ -1,13 +1,15 @@
 debug/
 target/
 **.pyc
-
+**.tar.*
 .env
 .envrc
 
 compiled_programs/
 state_dumps/
+libfunc_profiles/
 rpc_cache
 bench_data
 block_composition/
+block_composition_plots/
 call_state_dumps
