@@ -44,8 +44,8 @@ def compare(vm_dump_path: str):
     except:  # noqa: E722
         return ("MISS", block, tx)
 
-    native_dump = re.sub(r".*revert_error.*", "", native_dump, count=1)
-    vm_dump = re.sub(r".*revert_error.*", "", vm_dump, count=1)
+    native_dump = re.sub(r".*reverted.*", "", native_dump, count=1)
+    vm_dump = re.sub(r".*reverted.*", "", vm_dump, count=1)
 
     if native_dump == vm_dump:
         return ("MATCH", block, tx, vm_dump_path, native_dump_path)
