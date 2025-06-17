@@ -154,7 +154,10 @@ pub fn collapse_resource(
     let name = profile.shared.string_array[name_idx].clone();
 
     collapse_frames(profile, thread_idx, name, |frame| {
-        frame.func().resource_idx() == resource_to_collapse
+        frame
+            .func()
+            .resource_idx()
+            .is_some_and(|resource_idx| resource_idx == resource_to_collapse)
     });
 }
 

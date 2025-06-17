@@ -179,8 +179,8 @@ impl<'p> Func<'p> {
         &self.profile.shared.string_array[name_idx]
     }
 
-    pub fn resource_idx(&self) -> IndexIntoResourceTable {
-        self.thread.func_table.resource[self.idx]
+    pub fn resource_idx(&self) -> Option<IndexIntoResourceTable> {
+        self.thread.func_table.resource[self.idx].clone().into()
     }
 }
 

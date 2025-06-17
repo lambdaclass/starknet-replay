@@ -45,6 +45,22 @@ pub type IndexIntoNativeSymbolTable = usize;
 
 pub type ResourceTypeEnum = Uint;
 
+#[derive(Clone, Copy, Deserialize)]
+#[serde(untagged)]
+pub enum OptionUnsigned<T> {
+    Unsigned(T),
+    Negative(i32),
+}
+
+impl<T> Into<Option<T>> for OptionUnsigned<T> {
+    fn into(self) -> Option<T> {
+        match self {
+            OptionUnsigned::Unsigned(v) => Some(v),
+            OptionUnsigned::Negative(_) => None,
+        }
+    }
+}
+
 /// All of the data for a processed profile.
 #[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -212,7 +228,7 @@ pub struct FrameTable {
     ///
     /// The library which this address is relative to is given by the frame's
     /// nativeSymbol: frame -> nativeSymbol -> lib.
-    pub address: Vec<Address>,
+    pub address: Vec<OptionUnsigned<Address>>,
     /// The inline depth for this frame. If there is an inline stack at an
     /// address, we create multiple frames with the same address, one for each
     /// depth. The outermost frame always has depth 0.
@@ -285,7 +301,7 @@ pub struct FuncTable {
     /// For JS functions, the resource is of type addon, webhost, otherhost, or
     /// url. For native functions, the resource is of type library. For labels
     /// and for other unidentified functions, we set the resource to -1.
-    pub resource: Vec<IndexIntoResourceTable>,
+    pub resource: Vec<OptionUnsigned<IndexIntoResourceTable>>,
     /// These are non-null for JS functions only. The line and column describe
     /// the location of the *start* of the JS function. As for the information
     /// about which which lines / columns inside the function were actually hit

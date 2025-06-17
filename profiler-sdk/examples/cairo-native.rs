@@ -37,7 +37,10 @@ fn main() {
         }
         // Collapse all contract shared libraries into a single function.
         collapse_frames(&mut profile, 0, "MLIR".to_string(), |frame| {
-            mlir_resources.contains(&frame.func().resource_idx())
+            frame
+                .func()
+                .resource_idx()
+                .is_some_and(|resource_idx| mlir_resources.contains(&resource_idx))
         });
         // Collapse recursion of the replay resource.
         {
@@ -85,7 +88,10 @@ fn main() {
         }
         // Collapse all contract shared libraries into a single function.
         collapse_frames(&mut profile, 0, "sierra".to_string(), |frame| {
-            mlir_resources.contains(&frame.func().resource_idx())
+            frame
+                .func()
+                .resource_idx()
+                .is_some_and(|resource_idx| mlir_resources.contains(&resource_idx))
         });
 
         // Merge unimportant functions
