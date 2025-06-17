@@ -489,7 +489,7 @@ def plot_executors(df_txs: DataFrame):
     ax1.set_title("Non Pure Native Executions")
 
     df_txs_only_gas: DataFrame = df_txs[df_txs["resource_ratio"] == 1]  # type: ignore
-    sns.boxplot(ax=ax2, data=df_txs_only_gas, y="speedup", showfliers=True)
+    sns.boxplot(ax=ax2, data=df_txs_only_gas, y="speedup", showfliers=False)
     ax2.set_ylabel("Speedup")
     ax2.set_title("Pure Native Executions")
 
