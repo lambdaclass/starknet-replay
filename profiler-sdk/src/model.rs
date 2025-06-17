@@ -126,6 +126,7 @@ impl<'p> Stack<'p> {
         self.frame_stack()
             .into_iter()
             .map(|frame| frame.native_symbol())
+            .flatten()
             .collect_vec()
     }
 
@@ -155,12 +156,12 @@ impl<'p> Frame<'p> {
             self.thread.frame_table.func[self.idx],
         )
     }
-    pub fn native_symbol(&self) -> NativeSymbol<'p> {
-        NativeSymbol::new(
+    pub fn native_symbol(&self) -> Option<NativeSymbol<'p>> {
+        Some(NativeSymbol::new(
             self.profile,
             self.thread,
-            self.thread.frame_table.native_symbol[self.idx],
-        )
+            self.thread.frame_table.native_symbol[self.idx]?,
+        ))
     }
 }
 

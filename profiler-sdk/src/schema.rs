@@ -250,7 +250,7 @@ pub struct FrameTable {
     /// corresponding to symbol that covers the frame address of this frame.
     /// Only non-null for native frames (e.g. C / C++ / Rust code). Null before
     /// symbolication.
-    pub native_symbol: Vec<IndexIntoNativeSymbolTable>,
+    pub native_symbol: Vec<Option<IndexIntoNativeSymbolTable>>,
     pub line: Vec<Option<Uint>>,
     pub column: Vec<Option<Uint>>,
     pub category: Value,
