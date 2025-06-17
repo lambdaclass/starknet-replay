@@ -1,18 +1,10 @@
-import sys
-import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 from argparse import ArgumentParser
-from utils import load_block_composition_data, save_to_path
-
-parent_dir = os.path.dirname(os.path.pardir)
-
-sys.path.append(parent_dir)
-
-from plotting.utils import load_json_dir_data
+from utils import load_block_data, load_json_dir, save_to_path
 
 argument_parser = ArgumentParser("Syscall Heavy Composition")
 argument_parser.add_argument("block_execution_info")
@@ -111,9 +103,7 @@ def get_syscall_percentages(syscalls_x_libfunc_calls):
 
 # Process block composition class hashes
 
-df_block_composition = load_block_composition_data(
-    arguments.block_execution_info, process_classhes
-)
+df_block_composition = load_block_data(arguments.block_execution_info, process_classhes)
 
 df_block_composition = df_block_composition.explode("selector_by_classh")
 
@@ -141,7 +131,7 @@ df_block_composition_by_clash = df_block_composition_by_clash[
 # Process libfunc profiles
 
 df_profiles_by_clash = (
-    load_json_dir_data(arguments.libfunc_profiling_info, process_selector_profiles)
+    load_json_dir(arguments.libfunc_profiling_info, process_selector_profiles)
     .groupby(["class_hash"], as_index=False)
     .agg(libfunc_calls_count=("libfunc_calls_count", "sum"))
 )

@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from utils import load_block_composition_data, save_to_path
+from utils import load_block_data, save_to_path
 
 TRANSFER_ENTRYPOINT_HASH = (
     "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"
@@ -66,7 +66,7 @@ def process_block_counting(block):
     }
 
 
-df = load_block_composition_data(arguments.block_execution_info, process_fn)
+df = load_block_data(arguments.block_execution_info, process_fn)
 
 df_by_block = (
     df.groupby(["block", "timestamp"], as_index=False)

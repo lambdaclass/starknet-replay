@@ -1,17 +1,10 @@
-import sys
-import os
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 from argparse import ArgumentParser
-from utils import load_block_composition_data, save_to_path
-
-parent_dir = os.path.dirname(os.path.pardir)
-
-sys.path.append(parent_dir)
-
-from plotting.utils import load_json_dir_data, load_json_file_data
+from utils import load_json_dir, load_block_data, save_to_path
 
 argument_parser = ArgumentParser("Syscall Percentage with Speed Correlation")
 argument_parser.add_argument("native_bench_data")
@@ -21,9 +14,12 @@ argument_parser.add_argument("libfunc_profiling_info")
 arguments = argument_parser.parse_args()
 
 
-# ==========
-# PROCESSING
-# ==========
+def load_bench_data(path, f):
+    data = json.load(open(path))
+    df = pd.DataFrame(data["transactions"])
+    df = df.apply(f, axis=1).dropna().apply(pd.Series)
+
+    return df
 
 
 def process_bench_data(tx):
@@ -37,7 +33,7 @@ def process_speedup(native_vm_bench):
     tx_hash = native_vm_bench["tx_hash"]
     native_time_ns = native_vm_bench["native_time_ns"]
     vm_time_ns = native_vm_bench["vm_time_ns"]
-    
+
     speedup = vm_time_ns / native_time_ns
 
     return {"tx_hash": tx_hash, "speedup": speedup}
@@ -77,7 +73,6 @@ def process_libfunc_profiles_fn(profile):
 
 
 def process_syscall_ptg(syscalls_x_libfunc_calls):
-    block_number = syscalls_x_libfunc_calls["block_number"]
     tx_hash = syscalls_x_libfunc_calls["tx_hash"]
     libfunc_count = syscalls_x_libfunc_calls["libfunc_calls"]
     syscall_count = syscalls_x_libfunc_calls["syscalls"]
@@ -90,16 +85,16 @@ def process_syscall_ptg(syscalls_x_libfunc_calls):
     }
 
 
+# ==========
+# PROCESSING
+# ==========
+
 # Process bench data
 
-df_native_bench = load_json_file_data(arguments.native_bench_data, process_bench_data)
-df_native_bench = df_native_bench.rename(
-    columns={"time_ns": "native_time_ns"}
-)
-df_vm_bench = load_json_file_data(arguments.vm_bench_data, process_bench_data)
-df_vm_bench = df_vm_bench.rename(
-    columns={"time_ns": "vm_time_ns"}
-)
+df_native_bench = load_bench_data(arguments.native_bench_data, process_bench_data)
+df_native_bench = df_native_bench.rename(columns={"time_ns": "native_time_ns"})
+df_vm_bench = load_bench_data(arguments.vm_bench_data, process_bench_data)
+df_vm_bench = df_vm_bench.rename(columns={"time_ns": "vm_time_ns"})
 
 df_speedup = (
     df_native_bench.merge(df_vm_bench, on=["tx_hash"])
@@ -110,15 +105,13 @@ df_speedup = (
 # Process Syscall Percentage
 
 df_composition_by_block = (
-    load_block_composition_data(
-        arguments.block_execution_info, process_block_composition_fn
-    )
+    load_block_data(arguments.block_execution_info, process_block_composition_fn)
     .groupby(["block_number", "tx_hash"], as_index=False)
     .agg(syscalls=("syscall_count", "sum"))
 )
 
 df_profiles_by_block = (
-    load_json_dir_data(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
+    load_json_dir(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
     .groupby(["block_number", "tx_hash"], as_index=False)
     .agg(
         libfunc_calls=("libfunc_calls_count", "sum"),
