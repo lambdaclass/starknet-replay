@@ -415,7 +415,9 @@ def plot_executors(df_txs: DataFrame):
     ax2.set_title("Pure Native Executions")
 
     if args.output:
-        df_txs_only_gas.sort_values("speedup").to_csv(f"{args.output}-executors.csv")
+        df_txs_only_gas.sort_values("speedup").to_csv(
+            f"{args.output}-executors.csv", index=False
+        )
     save("executors")
 
 
