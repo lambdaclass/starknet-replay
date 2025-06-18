@@ -116,10 +116,13 @@ fn main() {
                     || name.contains("std::")
                     || name.contains("log::")
                     || name.contains("tracing_subscriber::")
+                    || name.contains("generic_array::")
+                    || name.contains("cairo_native::types")
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
                     || name == "_rdl_alloc"
                     || name == "_rdl_dealloc"
+                    || name == "_rdl_realloc"
                     || name == "libdyld.dylib"
                     || name == "libsystem_c.dylib"
                     || name == "libsystem_kernel.dylib"
