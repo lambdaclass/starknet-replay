@@ -211,7 +211,6 @@ fn main() {
 
             for func in funcs {
                 collapse_subtree(&mut profile, 0, func);
-                merge_function(&mut profile, 0, func);
             }
         }
 
