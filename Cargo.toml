@@ -1,5 +1,5 @@
 [workspace]
-members = ["rpc-state-reader", "replay"]
+members = ["rpc-state-reader", "replay", "tools"]
 
 
 # Explicitly set the resolver to the default for edition >= 2021
@@ -15,6 +15,13 @@ serde = "1.0.217"
 fs2 = "0.4.3"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "52cf76f469e4b4efe92203d31ff374b7d2c539ee" }
 anyhow = "1.0"
+
+# Cairo Dependencies
+cairo-lang-starknet-classes = "2.12.0-dev.1"
+cairo-lang-starknet = "2.12.0-dev.1"
+cairo-lang-compiler = "2.12.0-dev.1"
+cairo-lang-sierra = "2.12.0-dev.1"
+
 # Sequencer Dependencies
 starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "7aaf0e38c2c80276b8121bca5df8e8389bcdc2f6" } # replay
 blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "7aaf0e38c2c80276b8121bca5df8e8389bcdc2f6", features = [
