@@ -52,9 +52,9 @@ pub enum OptionUnsigned<T> {
     Negative(i32),
 }
 
-impl<T> Into<Option<T>> for OptionUnsigned<T> {
-    fn into(self) -> Option<T> {
-        match self {
+impl<T> From<OptionUnsigned<T>> for Option<T> {
+    fn from(val: OptionUnsigned<T>) -> Self {
+        match val {
             OptionUnsigned::Unsigned(v) => Some(v),
             OptionUnsigned::Negative(_) => None,
         }

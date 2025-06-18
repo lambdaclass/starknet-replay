@@ -179,7 +179,7 @@ impl<'p> Func<'p> {
     }
 
     pub fn resource_idx(&self) -> Option<IndexIntoResourceTable> {
-        self.thread.func_table.resource[self.idx].clone().into()
+        self.thread.func_table.resource[self.idx].into()
     }
 }
 
