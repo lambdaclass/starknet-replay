@@ -23,6 +23,8 @@ blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 starknet-types-core = { workspace = true, optional = true }
+cairo-native = { workspace = true }
+cairo-lang-sierra = "2.12.0-dev.1"
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }
 # logs
