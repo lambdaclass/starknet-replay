@@ -1,0 +1,14 @@
+[package]
+name = "tools"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+clap = { version = "4.5.18", features = ["derive"] }
+cairo-lang-starknet-classes.workspace = true
+cairo-lang-starknet.workspace = true
+cairo-lang-compiler.workspace = true
+cairo-lang-sierra.workspace = true
+cairo-native.workspace = true
+serde_json.workspace = true
