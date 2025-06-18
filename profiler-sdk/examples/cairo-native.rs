@@ -113,6 +113,8 @@ fn main() {
                     || name.contains("serde_json::")
                     || name.contains("serde::")
                     || name.contains("sha3::")
+                    || name.contains("sha2::")
+                    || name.contains("smallvec::")
                     || name.contains("std::")
                     || name.contains("log::")
                     || name.contains("tracing_subscriber::")
