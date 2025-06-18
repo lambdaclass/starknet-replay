@@ -209,13 +209,14 @@ This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every tra
 ```json
 [
    {
-      "block_number": 1126248,
-      "tx": "0x26e727eac8352c7ded024010df0db274ae59737a9b5b0f7196ace1e7f1aa848",
-      "selector": "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+      "block_number": 532876,
+      "class_hash": "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
+      "tx": "0x20779201a766ddbb25af39c5b47140d853db6563ef2e76db3e5a5ae8f84519c",
+      "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
       "data": [
          {
-            "libfunc_idx": 0,
-            "samples": 1,
+            "libfunc_name": "drop",
+            "samples": 2,
             "total_time": 0,
             "average_time": 0.0,
             "std_deviation": 0.0,

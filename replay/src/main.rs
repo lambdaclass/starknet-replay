@@ -53,7 +53,7 @@ mod block_composition;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
-//#[cfg(feature = "with-libfunc-profiling")]
+#[cfg(feature = "with-libfunc-profiling")]
 mod libfunc_profile;
 
 #[derive(Debug, Parser)]

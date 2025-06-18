@@ -44,9 +44,6 @@ pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
     let profiles_data = profiles
         .iter_mut()
         .map(|(entrypoint, (profile, program))| {
-            // sort deltas so that we can compute quartiles
-            profile.iter_mut().for_each(|(_, data)| data.deltas.sort());
-
             (entrypoint, process_profile(profile, program).unwrap())
         })
         .map(|((class_hash, selector), profile)| LibfuncProfile {
@@ -64,13 +61,13 @@ pub fn create_libfunc_profile(block_number: u64, tx_hash_str: &str) {
 }
 
 pub fn process_profile(
-    profile: &[(ConcreteLibfuncId, LibfuncProfileData)],
+    profile: &mut [(ConcreteLibfuncId, LibfuncProfileData)],
     program: &Program,
 ) -> Result<Vec<LibfuncProfileSummary>, Box<ProgramRegistryError>> {
     let registry: ProgramRegistry<CoreType, CoreLibfunc> = ProgramRegistry::new(program)?;
 
     let processed_profile = profile
-        .iter()
+        .iter_mut()
         .map(
             |(
                 libfunc_idx,
@@ -96,8 +93,10 @@ pub fn process_profile(
                     });
                 }
 
+                deltas.sort();
+
                 // Drop outliers.
-                let deltas = {
+                {
                     let q1 = deltas[deltas.len() / 4];
                     let q3 = deltas[3 * deltas.len() / 4];
                     let iqr = q3 - q1;
@@ -105,19 +104,16 @@ pub fn process_profile(
                     let q1_thr = q1.saturating_sub(iqr + iqr / 2);
                     let q3_thr = q3 + (iqr + iqr / 2);
 
-                    deltas
-                        .iter()
-                        .filter(|x| **x >= q1_thr && **x <= q3_thr)
-                        .collect::<Vec<_>>()
-                };
+                    deltas.retain(|x| *x >= q1_thr && *x <= q3_thr);
+                }
 
                 // Compute the quartiles.
                 let quartiles = [
-                    *deltas.first().copied().unwrap(),
-                    *deltas[deltas.len() / 4],
-                    *deltas[deltas.len() / 2],
-                    *deltas[3 * deltas.len() / 4],
-                    *deltas.last().copied().unwrap(),
+                    deltas.first().copied().unwrap(),
+                    deltas[deltas.len() / 4],
+                    deltas[deltas.len() / 2],
+                    deltas[3 * deltas.len() / 4],
+                    deltas.last().copied().unwrap(),
                 ];
 
                 // Compuite the average.
@@ -128,7 +124,7 @@ pub fn process_profile(
                     let sum = deltas
                         .iter()
                         .copied()
-                        .map(|x| *x as f64)
+                        .map(|x| x as f64)
                         .map(|x| (x - average))
                         .map(|x| x * x)
                         .sum::<f64>();
@@ -139,7 +135,7 @@ pub fn process_profile(
                     libfunc_name,
                     samples: deltas.len() as u64 + *extra_counts,
                     total_time: Some(
-                        deltas.into_iter().sum::<u64>()
+                        deltas.iter().copied().sum::<u64>()
                             + (*extra_counts as f64 * average).round() as u64,
                     ),
                     average_time: Some(average),
