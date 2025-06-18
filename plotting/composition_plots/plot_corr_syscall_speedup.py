@@ -2,16 +2,68 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from pprint import pprint
 from argparse import ArgumentParser
-from utils import load_json_dir, load_block_data, save_to_path
+from utils import load_json_dir, save_to_path
 
-argument_parser = ArgumentParser("Syscall Percentage with Speed Correlation")
+argument_parser = ArgumentParser("Runtime Percentage with Speed Correlation")
 argument_parser.add_argument("native_bench_data")
 argument_parser.add_argument("vm_bench_data")
-argument_parser.add_argument("block_execution_info")
 argument_parser.add_argument("libfunc_profiling_info")
 arguments = argument_parser.parse_args()
+
+RUNTIME_LIBFUNCS = [
+    "debug_print",
+    "pedersen_hash",
+    "hades_permutation",
+    "ec_state_finalize",
+    "ec_state_init",
+    "ec_state_add_mul",
+    "ec_state_add",
+    "ec_try_new",
+    "ec_point_from_x",
+    "felt252dict_new",
+    "felt252dict_get",
+    "get_builtin_costs",
+    "class_hash_const",
+    "class_hash_try_from_felt252",
+    "class_hash_to_felt252",
+    "contract_address_const",
+    "contract_address_try_from_felt252",
+    "contract_address_to_felt252",
+    "storage_read",
+    "storage_write",
+    "storage_base_address_const",
+    "storage_base_address_from_felt252",
+    "storage_address_from_base",
+    "storage_address_from_base_and_offset",
+    "storage_address_to_felt252",
+    "storage_address_try_from_felt252",
+    "emit_event",
+    "get_block_hash",
+    "get_exec_info_v1",
+    "get_exec_info_v2",
+    "deploy",
+    "keccak",
+    "replace_class",
+    "send_message_to_l1",
+    "cheatcode",
+    "secp256k1_new",
+    "secp256k1_add",
+    "secp256k1_mul",
+    "secp256k1_get_point_from_x",
+    "secp256k1_get_xy",
+    "secp256r1_new",
+    "secp256r1_add",
+    "secp256r1_mul",
+    "secp256r1_get_point_from_x",
+    "secp256r1_get_xy",
+    "sha256_process_block",
+    "sha256_state_handle_init",
+    "sha256_state_handle_digest",
+    "get_class_hash_at_syscall",
+    "meta_tx_v0",
+]
 
 
 def load_bench_data(path, f):
@@ -39,49 +91,40 @@ def process_speedup(native_vm_bench):
     return {"tx_hash": tx_hash, "speedup": speedup}
 
 
-def process_block_composition_fn(tx):
-    syscall_count = 0
-
-    if tx["execute_call_info"] is not None:
-        syscall_count += sum(
-            [entrypoint["syscall_count"] for entrypoint in tx["execute_call_info"]]
-        )
-    if tx["validate_call_info"] is not None:
-        syscall_count += sum(
-            [entrypoint["syscall_count"] for entrypoint in tx["validate_call_info"]]
-        )
-    if tx["fee_transfer_call_info"] is not None:
-        syscall_count += sum(
-            [entrypoint["syscall_count"] for entrypoint in tx["fee_transfer_call_info"]]
-        )
-
-    return {
-        "block_number": tx["block_number"],
-        "tx_hash": tx["tx_hash"],
-        "syscall_count": syscall_count,
-    }
-
-
 def process_libfunc_profiles_fn(profile):
-    libfunc_calls_count = sum([libfunc["samples"] for libfunc in profile["data"]])
+    libfuncs_removed = ["contract_call", "library_call"]
+    libfunc_total_time = sum(
+        [
+            libfunc["total_time"]
+            for libfunc in profile["data"]
+            if libfunc["libfunc_name"] not in libfuncs_removed
+        ]
+    )
+    runtime_total_time = sum(
+        [
+            libfunc["total_time"]
+            for libfunc in profile["data"]
+            if libfunc["libfunc_name"] in RUNTIME_LIBFUNCS
+        ]
+    )
 
     return {
         "block_number": profile["block_number"],
         "tx_hash": profile["tx"],
-        "libfunc_calls_count": libfunc_calls_count,
+        "libfunc_total_time": libfunc_total_time,
+        "runtime_total_time": runtime_total_time,
     }
 
 
-def process_syscall_ptg(syscalls_x_libfunc_calls):
-    tx_hash = syscalls_x_libfunc_calls["tx_hash"]
-    libfunc_count = syscalls_x_libfunc_calls["libfunc_calls"]
-    syscall_count = syscalls_x_libfunc_calls["syscalls"]
-
-    syscall_ptg = syscall_count * 100 / libfunc_count
+def process_runtime_ptg(tx):
+    block_number = tx["block_number"]
+    tx_hash = tx["tx_hash"]
+    runtime_ptg = tx["runtime_total_time"] * 100 / tx["libfunc_total_time"]
 
     return {
+        "block_number": block_number,
         "tx_hash": tx_hash,
-        "syscall_ptg": syscall_ptg,
+        "runtime_ptg": runtime_ptg,
     }
 
 
@@ -104,39 +147,36 @@ df_speedup = (
 
 # Process Syscall Percentage
 
-df_composition_by_block = (
-    load_block_data(arguments.block_execution_info, process_block_composition_fn)
-    .groupby(["block_number", "tx_hash"], as_index=False)
-    .agg(syscalls=("syscall_count", "sum"))
+df_profiles = load_json_dir(
+    arguments.libfunc_profiling_info, process_libfunc_profiles_fn
 )
-
 df_profiles_by_block = (
-    load_json_dir(arguments.libfunc_profiling_info, process_libfunc_profiles_fn)
-    .groupby(["block_number", "tx_hash"], as_index=False)
+    df_profiles.groupby(["block_number", "tx_hash"], as_index=False)
     .agg(
-        libfunc_calls=("libfunc_calls_count", "sum"),
+        libfunc_total_time=("libfunc_total_time", "sum"),
+        runtime_total_time=("runtime_total_time", "sum"),
     )
-)
-
-df_syscall_ptg = (
-    df_profiles_by_block.merge(df_composition_by_block, on=["block_number", "tx_hash"])
-    .apply(process_syscall_ptg, axis=1)
+    .apply(process_runtime_ptg, axis=1)
     .apply(pd.Series)
 )
+print(df_profiles_by_block)
 
-df_speedup_syscall = df_syscall_ptg.merge(df_speedup, on=["tx_hash"]).apply(pd.Series)
+df_speedup_runtime = df_profiles_by_block.merge(df_speedup, on=["tx_hash"]).apply(
+    pd.Series
+)
+
 
 # ========
 # Plotting
 # ========
 
-block_range = f"{df_composition_by_block['block_number'].min()}-{df_composition_by_block['block_number'].max()}"
+block_range = f"{df_profiles['block_number'].min()}-{df_profiles['block_number'].max()}"
 
 figure, ax = plt.subplots(figsize=(15, 15))
 
-sns.regplot(data=df_speedup_syscall, x="speedup", y="syscall_ptg")
+sns.regplot(data=df_speedup_runtime, x="speedup", y="runtime_ptg")
 
 ax.set_xlabel("Seepdup")
-ax.set_ylabel("Syscalls (%)")
-ax.set_title("Syscall Heavy Txs Composition")
-save_to_path(f"syscalls_ptg_speedup_corr-{block_range}")
+ax.set_ylabel("Runtime (%)")
+ax.set_title("Runtime Heavy Txs Composition")
+save_to_path(f"runtime_ptg_speedup_corr-{block_range}")
