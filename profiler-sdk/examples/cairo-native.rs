@@ -121,8 +121,13 @@ fn main() {
                     || name.contains("generic_array::")
                     || name.contains("cairo_native::types")
                     || name.contains("cairo_lang_utils::")
+                    || name.contains("ark_ec::")
+                    || name.contains("ark_ff::")
+                    || name.contains("ark_secp256r1::")
+                    || name.contains("ark_serialize::")
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
+                    || name == "__rust_realloc"
                     || name == "_rdl_alloc"
                     || name == "_rdl_dealloc"
                     || name == "_rdl_realloc"
