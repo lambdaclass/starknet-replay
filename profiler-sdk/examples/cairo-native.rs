@@ -118,6 +118,7 @@ fn main() {
                     || name.contains("tracing_subscriber::")
                     || name.contains("generic_array::")
                     || name.contains("cairo_native::types")
+                    || name.contains("cairo_lang_utils::")
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
                     || name == "_rdl_alloc"
