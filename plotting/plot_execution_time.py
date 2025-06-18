@@ -129,6 +129,7 @@ def load_data(path):
     )
 
     df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+    df_txs["speed"] = df_txs["gas_consumed"] / df_txs["time_ns"]
 
     time_by_gas = (
         df_calls[df_calls["resource"] == "SierraGas"]
@@ -160,6 +161,7 @@ def load_data(path):
     # time_ns_gas     float64
     # time_ns_steps   float64
     # resource_ratio  float64
+    # speed           float64
 
     # print(df_calls.info())
     # -------------------
@@ -202,6 +204,7 @@ df_txs: DataFrame = pd.merge(
             "time_ns",
             "time_ns_gas",
             "time_ns_steps",
+            "speed",
         ]
     ],
     on="tx_hash",
@@ -494,7 +497,9 @@ def plot_executors(df_txs: DataFrame):
     ax2.set_title("Pure Native Executions")
 
     if args.output:
-        speedups: DataFrame = df_txs_only_gas[["tx_hash", "block_number", "speedup"]]  # type: ignore
+        speedups: DataFrame = df_txs_only_gas[
+            ["tx_hash", "block_number", "speedup", "speed_native"]
+        ]  # type: ignore
         speedups.sort_values("speedup").to_csv(
             f"{args.output}-executors.csv", index=False
         )
