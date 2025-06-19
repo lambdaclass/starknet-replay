@@ -599,7 +599,7 @@ fn show_execution_data(
     state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
 
     #[cfg(feature = "with-libfunc-profiling")]
-    libfunc_profile::create_libfunc_profile(block_number, &tx_hash_str);
+    libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
