@@ -10,6 +10,7 @@ pub struct Tree<'p> {
 #[derive(Debug)]
 pub struct Node<'p> {
     pub name: &'p str,
+    pub func: usize,
     pub count: u64,
     pub subtotal: u64,
     pub subtree: Tree<'p>,
@@ -32,7 +33,7 @@ impl<'p> Tree<'p> {
                 let subtree_index = tree
                     .children
                     .iter()
-                    .position(|subtree| subtree.name == symbol);
+                    .position(|subtree| subtree.func == frame.func().idx);
                 let subtree_index = match subtree_index {
                     Some(subtree_index) => subtree_index,
                     None => {
@@ -41,6 +42,7 @@ impl<'p> Tree<'p> {
                             count: 0,
                             subtree: Default::default(),
                             subtotal: 0,
+                            func: frame.func().idx,
                         });
                         tree.children.len() - 1
                     }
