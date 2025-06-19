@@ -49,7 +49,7 @@ pub struct Frame<'p> {
 pub struct Func<'p> {
     profile: &'p Profile,
     thread: &'p RawThread,
-    idx: IndexIntoFuncTable,
+    pub idx: IndexIntoFuncTable,
 }
 
 #[derive(Copy, Clone)]
