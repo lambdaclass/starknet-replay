@@ -24,71 +24,93 @@ where
     // We will build a new stack table, with the transformation applied.
     let mut new_stack_table: RawStackTable = RawStackTable::default();
     // Maps old stack table indices to new stack table indices, for updating the other tables.
-    let mut old_stack_to_new_stack = HashMap::<IndexIntoStackTable, IndexIntoStackTable>::new();
+    let mut old_stack_to_new_stack =
+        HashMap::<Option<IndexIntoStackTable>, Option<IndexIntoStackTable>>::new();
+    // Maps the prefix to a collapsed stack, for merging siblings.
+    let mut prefix_stack_to_collapsed_stack =
+        HashMap::<Option<IndexIntoStackTable>, Option<IndexIntoStackTable>>::new();
     // Lists stacks that we have already collapsed.
-    let mut collapsed_stacks: HashSet<IndexIntoStackTable> = HashSet::new();
+    let mut collapsed_stacks: HashSet<Option<IndexIntoStackTable>> = HashSet::new();
+
+    // A root stack will be mapped on itself
+    old_stack_to_new_stack.insert(None, None);
 
     let stack_table_length = profile.threads[thread_idx].stack_table.length;
+
     for stack in 0..stack_table_length {
         let frame_idx = profile.threads[thread_idx].stack_table.frame[stack];
         let prefix_idx = profile.threads[thread_idx].stack_table.prefix[stack];
         let func_idx = profile.threads[thread_idx].frame_table.func[frame_idx];
         let resource_idx = profile.threads[thread_idx].func_table.resource[func_idx];
 
-        let new_prefix_idx = prefix_idx.map(|prefix_idx| {
-            *old_stack_to_new_stack
-                .get(&prefix_idx)
-                .expect("all previous stack should have been mapped already")
-        });
+        // As we are iterating in order, we already have the new prefix mapped.
+        let new_prefix_idx = *old_stack_to_new_stack
+            .get(&prefix_idx)
+            .expect("all previous stack should have been mapped already");
 
-        // Check if the frame should be collapsed.
+        // Check if the stack should be collapsed.
         if predicate(Frame::new(profile, &profile.threads[thread_idx], frame_idx)) {
-            let thread = &mut profile.threads[thread_idx];
+            // This stack should be collapsed.
 
-            // If its the first time, we build a func and frame for the collapsed frames.
-            let group_frame = *group_frame.get_or_insert_with(|| {
-                thread.func_table.length += 1;
-                thread.func_table.name.push(name_idx);
-                thread.func_table.resource.push(resource_idx);
-                thread.func_table.file_name.push(None);
-                thread.func_table.line_number.push(None);
-                thread.func_table.column_number.push(None);
-                thread.func_table.is_js.push(false);
-                thread.func_table.relevant_for_js.push(false);
-                let group_func = thread.func_table.length - 1;
-                thread.frame_table.func[frame_idx] = group_func;
-                frame_idx
-            });
+            // Check if the parent stack has been collapsed.
+            if !collapsed_stacks.contains(&new_prefix_idx) {
+                // If the prefix has not been collapsed, this entry should not collapse onto its parent.
+                // However, it might collapse into a sibling stack.
 
-            // Check if the parent frame has been collapsed.
-            if new_prefix_idx.is_some_and(|new_prefix| collapsed_stacks.contains(&new_prefix)) {
-                // Just reuse that parent frame stack.
-                old_stack_to_new_stack.insert(stack, new_prefix_idx.expect("we just checked"));
+                if let Some(&existing_collapsed_stack) =
+                    prefix_stack_to_collapsed_stack.get(&prefix_idx)
+                {
+                    // If a stack already exists, use that one.
+                    old_stack_to_new_stack.insert(Some(stack), existing_collapsed_stack);
+                } else {
+                    let new_stack = new_stack_table.length;
+                    new_stack_table.length += 1;
+                    collapsed_stacks.insert(Some(new_stack));
+                    old_stack_to_new_stack.insert(Some(stack), Some(new_stack));
+                    prefix_stack_to_collapsed_stack.insert(prefix_idx, Some(new_stack));
+
+                    // If its the first time, we build a func and frame for the collapsed frames.
+                    let group_frame = *group_frame.get_or_insert_with(|| {
+                        let thread = &mut profile.threads[thread_idx];
+                        thread.func_table.length += 1;
+                        thread.func_table.name.push(name_idx);
+                        thread.func_table.resource.push(resource_idx);
+                        thread.func_table.file_name.push(None);
+                        thread.func_table.line_number.push(None);
+                        thread.func_table.column_number.push(None);
+                        thread.func_table.is_js.push(false);
+                        thread.func_table.relevant_for_js.push(false);
+                        let group_func = thread.func_table.length - 1;
+                        thread.frame_table.func[frame_idx] = group_func;
+                        frame_idx
+                    });
+
+                    // Otherwise, create a new stack entry.
+                    new_stack_table.frame.push(group_frame);
+                    new_stack_table.prefix.push(new_prefix_idx);
+                }
             } else {
-                // If the prefix has not been collapsed, we push an entry for the collapsed stack
-                new_stack_table.length += 1;
-                new_stack_table.frame.push(group_frame);
-                new_stack_table.prefix.push(new_prefix_idx);
-                let new_stack = new_stack_table.length - 1;
-                old_stack_to_new_stack.insert(stack, new_stack);
-                collapsed_stacks.insert(new_stack);
+                // Just reuse that parent frame stack.
+                old_stack_to_new_stack.insert(Some(stack), new_prefix_idx);
             }
         } else {
             // If the current frame should not be collapsed, we the copy the entry over.
+            let new_stack = new_stack_table.length;
             new_stack_table.length += 1;
+            old_stack_to_new_stack.insert(Some(stack), Some(new_stack));
+
             new_stack_table.frame.push(frame_idx);
             new_stack_table.prefix.push(new_prefix_idx);
-            let new_stack = new_stack_table.length - 1;
-            old_stack_to_new_stack.insert(stack, new_stack);
         }
     }
 
     let thread = &mut profile.threads[thread_idx];
     thread.stack_table = new_stack_table;
     for stack in &mut thread.samples.stack {
-        *stack = *old_stack_to_new_stack
-            .get(stack)
-            .expect("all stack entries should be mapped");
+        *stack = old_stack_to_new_stack
+            .get(&Some(*stack))
+            .expect("all stack entries should be mapped")
+            .expect("a stack cannot be mapped onto the root");
     }
 }
 
@@ -199,6 +221,44 @@ pub fn collapse_subtree(
             .get(stack)
             .expect("all stack entries should be mapped");
     }
+}
+
+pub fn drop_function(profile: &mut Profile, thread_idx: usize, func_to_drop: IndexIntoFuncTable) {
+    let mut is_in_dropped_function = HashSet::<IndexIntoStackTable>::new();
+
+    let thread = &mut profile.threads[thread_idx];
+    for stack in 0..thread.stack_table.length {
+        let frame = thread.stack_table.frame[stack];
+        let func = thread.frame_table.func[frame];
+        let prefix = thread.stack_table.prefix[stack];
+
+        if func == func_to_drop
+            || prefix.is_some_and(|prefix| is_in_dropped_function.contains(&prefix))
+        {
+            is_in_dropped_function.insert(stack);
+        }
+    }
+
+    let thread = &mut profile.threads[thread_idx];
+
+    // We will build a new sample table, with the transformation applied and
+    // without the samples outside of the focused function.
+    let mut new_sample_table: RawSamplesTable = RawSamplesTable::default();
+
+    for sample in 0..thread.samples.length {
+        let stack = thread.samples.stack[sample];
+        if !is_in_dropped_function.contains(&stack) {
+            new_sample_table.length += 1;
+            new_sample_table.stack.push(stack);
+            new_sample_table.time.push(thread.samples.time[sample]);
+            new_sample_table.weight.push(thread.samples.weight[sample]);
+            new_sample_table
+                .thread_cpu_delta
+                .push(thread.samples.thread_cpu_delta[sample]);
+        }
+    }
+
+    thread.samples = new_sample_table;
 }
 
 pub fn collapse_recursion(
