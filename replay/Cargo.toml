@@ -15,6 +15,7 @@ state_dump = ["dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
 with-trace-dump = ["blockifier/with-trace-dump"]
 with-libfunc-profiling = ["rpc-state-reader/with-libfunc-profiling", "dep:starknet-types-core"]
+with-comp-stats = ["rpc-state-reader/with-comp-stats"]
 profiling = []
 
 [dependencies]
