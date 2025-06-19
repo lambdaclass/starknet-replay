@@ -195,35 +195,37 @@ To generate the need information run this command:
 You can gather information about each libfunc execution in a transaction. To do so, run this command:
 `cargo run --release -F with-libfunc-profiling block-range <block_start> <block_end> <chain>`
 
-This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every transaction executed, containing a list of libfunc profiles for every entrypoint executed. An example of a profile would be:
+This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every transaction executed, containing the list of entrypoints execution. Every entrypoint of that list contains a `profile_summary`, which contains information about the execution of every libfunc executed for that entrypoint. An example of a profile would be:
 
 ```json
-[
-   {
-      "block_number": 532876,
-      "class_hash": "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
-      "tx": "0x20779201a766ddbb25af39c5b47140d853db6563ef2e76db3e5a5ae8f84519c",
-      "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
-      "data": [
-         {
-            "libfunc_name": "drop",
-            "samples": 2,
-            "total_time": 0,
-            "average_time": 0.0,
-            "std_deviation": 0.0,
-            "quartiles": [
-               0,
-               0,
-               0,
-               0,
-               0
-            ]
-         },
+{
+   "block_number": 641561,
+   "tx": "0x2e0abd9a260095622f71ff8869aaee0267af1199be78ad5ad91a3c83df0ad08",
+   "entrypoints": [
+      {
+         "class_hash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+         "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+         "profile_summary": [
+            {
+               "libfunc_name": "struct_construct",
+               "samples": 1,
+               "total_time": 1,
+               "average_time": 1.0,
+               "std_deviation": 0.0,
+               "quartiles": [
+                  1,
+                  1,
+                  1,
+                  1,
+                  1
+               ]
+            },
+            ...
+         ]
+      },
       ...
-      ],
-   }
-   ...
-]
+   ]
+}
 ```
 
 ## Plotting
