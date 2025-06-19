@@ -2,9 +2,9 @@ use std::fs::File;
 
 use itertools::Itertools;
 use profiler_sdk::{
-    schema::Profile,
+    schema::{IndexIntoResourceTable, Profile},
     transforms::{
-        collapse_frames, collapse_recursion, collapse_resource, collapse_subtree,
+        collapse_frames, collapse_recursion, collapse_resource, collapse_subtree, drop_function,
         focus_on_function, merge_function,
     },
     tree::Tree,
@@ -23,47 +23,46 @@ fn main() {
 
         let mut profile = profile.clone();
 
-        let mut mlir_resources = vec![];
-
-        // Collapse all resources except contract shared libraries.
-        for resource_idx in 0..profile.threads[0].resource_table.length {
-            let name =
-                &profile.shared.string_array[profile.threads[0].resource_table.name[resource_idx]];
-            if name.starts_with("0x") {
-                mlir_resources.push(resource_idx);
-            } else {
-                collapse_resource(&mut profile, 0, resource_idx);
-            }
-        }
-        // Collapse all contract shared libraries into a single function.
-        collapse_frames(&mut profile, 0, "MLIR".to_string(), |frame| {
-            frame
-                .func()
-                .resource_idx()
-                .is_some_and(|resource_idx| mlir_resources.contains(&resource_idx))
-        });
-        // Collapse recursion of the replay resource.
-        {
-            let func = profile.threads[0]
+        // Find main resource
+        let main_resource = {
+            let main_function = profile.threads[0]
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| &profile.shared.string_array[name_idx] == "replay")
-                .expect("failed to find func");
-            collapse_recursion(&mut profile, 0, func);
+                .position(|&name_idx| profile.shared.string_array[name_idx] == "main")
+                .expect("main function should exist");
+            let main_resource: Option<IndexIntoResourceTable> =
+                profile.threads[0].func_table.resource[main_function].into();
+            main_resource.expect("main resource should exist")
+        };
+        let main_resource_name = {
+            let main_resource_name_idx = profile.threads[0].resource_table.name[main_resource];
+            profile.shared.string_array[main_resource_name_idx].clone()
+        };
+
+        // Collapse all resources
+        for resource_idx in 0..profile.threads[0].resource_table.length {
+            collapse_resource(&mut profile, 0, resource_idx);
         }
 
-        // Focus on the replay resource.
-        let replay_function = profile.threads[0]
-            .func_table
-            .name
-            .iter()
-            .position(|&name_idx| &profile.shared.string_array[name_idx] == "replay");
-        if let Some(replay_function) = replay_function {
-            focus_on_function(&mut profile, 0, replay_function);
+        // Collapse recursion of the main resource.
+        {
+            let funcs = profile.threads[0]
+                .func_table
+                .name
+                .iter()
+                .positions(|&name_idx| {
+                    let name = &profile.shared.string_array[name_idx];
+                    name == &main_resource_name
+                })
+                .collect_vec();
+
+            for func in funcs {
+                collapse_recursion(&mut profile, 0, func);
+            }
         }
 
-        println!("{}", Tree::from_profile(&profile, 0));
+        // println!("{}", Tree::from_profile(&profile, 0));
     }
 
     {
@@ -72,71 +71,72 @@ fn main() {
 
         let mut profile = profile.clone();
 
-        // Collapse all resources except contract shared libraries and replay.
-        let mut mlir_resources = vec![];
-        for resource_idx in 0..profile.threads[0].resource_table.length {
-            let name =
-                &profile.shared.string_array[profile.threads[0].resource_table.name[resource_idx]];
+        // Find main resource.
+        let main_resource = {
+            let main_function = profile.threads[0]
+                .func_table
+                .name
+                .iter()
+                .position(|&name_idx| profile.shared.string_array[name_idx] == "main")
+                .expect("main function should exist");
+            let main_resource: Option<IndexIntoResourceTable> =
+                profile.threads[0].func_table.resource[main_function].into();
+            main_resource.expect("main resource should exist")
+        };
 
-            if name == "replay" {
-                continue;
-            } else if name.starts_with("0x") {
-                mlir_resources.push(resource_idx);
-            } else {
+        // Collapse all resources except main resource.
+        for resource_idx in 0..profile.threads[0].resource_table.length {
+            if resource_idx != main_resource {
                 collapse_resource(&mut profile, 0, resource_idx);
             }
         }
-        // Collapse all contract shared libraries into a single function.
-        collapse_frames(&mut profile, 0, "sierra".to_string(), |frame| {
-            frame
-                .func()
-                .resource_idx()
-                .is_some_and(|resource_idx| mlir_resources.contains(&resource_idx))
-        });
 
         // Merge unimportant functions
         {
             collapse_frames(&mut profile, 0, "utils".to_string(), |frame| {
                 let name = frame.func().name();
                 name.contains("<unknown")
+                    || name.starts_with("core::")
+                    || name.starts_with("<core::")
                     || name.contains("alloc::")
-                    || name.contains("block_buffer::")
-                    || name.contains("cairo_vm::")
-                    || name.contains("core::")
-                    || name.contains("digest::")
-                    || name.contains("hashbrown::")
-                    || name.contains("hex::")
-                    || name.contains("keccak::")
-                    || name.contains("num_bigint::")
-                    || name.contains("num_integer::")
-                    || name.contains("num_rational::")
-                    || name.contains("serde_json::")
-                    || name.contains("serde::")
-                    || name.contains("sha3::")
-                    || name.contains("sha2::")
-                    || name.contains("smallvec::")
-                    || name.contains("std::")
-                    || name.contains("log::")
-                    || name.contains("tracing_subscriber::")
-                    || name.contains("generic_array::")
-                    || name.contains("cairo_native::types")
-                    || name.contains("cairo_lang_utils::")
                     || name.contains("ark_ec::")
                     || name.contains("ark_ff::")
                     || name.contains("ark_secp256r1::")
                     || name.contains("ark_serialize::")
+                    || name.contains("block_buffer::")
+                    || name.contains("digest::")
+                    || name.contains("generic_array::")
+                    || name.contains("hashbrown::")
+                    || name.contains("hex::")
+                    || name.contains("keccak::")
+                    || name.contains("lambdaworks")
+                    || name.contains("log::")
+                    || name.contains("num_bigint::")
+                    || name.contains("num_integer::")
+                    || name.contains("num_rational::")
+                    || name.contains("rand::")
+                    || name.contains("serde_json::")
+                    || name.contains("serde::")
+                    || name.contains("sha2::")
+                    || name.contains("sha3::")
+                    || name.contains("smallvec::")
+                    || name.contains("starknet_api::")
+                    || name.contains("starknet_types_core::")
+                    || name.contains("std::")
+                    || name.contains("tracing_subscriber::")
+                    || name == "__rdl_alloc"
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
                     || name == "__rust_realloc"
                     || name == "_rdl_alloc"
                     || name == "_rdl_dealloc"
                     || name == "_rdl_realloc"
+                    || name == "libcompiler_rt.dylib"
                     || name == "libdyld.dylib"
                     || name == "libsystem_c.dylib"
                     || name == "libsystem_kernel.dylib"
                     || name == "libsystem_malloc.dylib"
                     || name == "libsystem_platform.dylib"
-                    || name == "libcompiler_rt.dylib"
                     || name == "invoke_trampoline"
             });
             let funcs = profile.threads[0]
@@ -150,29 +150,27 @@ fn main() {
             }
         }
 
-        // Collapse and focus blockifier
+        // Focus on execute
         {
-            collapse_frames(&mut profile, 0, "blockifier".to_string(), |frame| {
-                let name = frame.func().name();
-                name.contains("blockifier") || name.contains("starknet_api")
-            });
             let func = profile.threads[0]
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| &profile.shared.string_array[name_idx] == "blockifier")
+                .position(|&name_idx| {
+                    &profile.shared.string_array[name_idx]
+                        == "blockifier::transaction::transactions::ExecutableTransaction::execute"
+                })
                 .expect("failed to find func");
             focus_on_function(&mut profile, 0, func);
-            collapse_recursion(&mut profile, 0, func);
         }
 
-        // Collapse math libraries
+        // Drop replay
         {
-            collapse_frames(&mut profile, 0, "math".to_string(), |frame| {
+            collapse_frames(&mut profile, 0, "replay::".to_string(), |frame| {
                 let name = frame.func().name();
-                name.contains("starknet_types_core")
-                    || name.starts_with("rand")
-                    || name.contains("lambdaworks")
+                name.starts_with("rpc_state_reader")
+                    || name.starts_with("<rpc_state_reader")
+                    || name.starts_with("<replay::")
             });
             let func = profile.threads[0]
                 .func_table
@@ -180,32 +178,40 @@ fn main() {
                 .iter()
                 .position(|&name_idx| {
                     let name = &profile.shared.string_array[name_idx];
-                    name == "math"
+                    name == "replay::"
                 })
                 .expect("failed to find function");
-            collapse_subtree(&mut profile, 0, func);
-            merge_function(&mut profile, 0, func);
+
+            drop_function(&mut profile, 0, func);
         }
 
-        // Collapse rpc_state_reader crate
+        // Collapse all contract shared libraries into a single frame.
         {
-            collapse_frames(&mut profile, 0, "rpc_state_reader".to_string(), |frame| {
-                frame.func().name().contains("rpc_state_reader")
+            collapse_frames(&mut profile, 0, "sierra".to_string(), |frame| {
+                let Some(resource_idx) = frame.func().resource_idx() else {
+                    return false;
+                };
+                let resource_name_idx = frame.thread.resource_table.name[resource_idx];
+                frame.profile.shared.string_array[resource_name_idx].starts_with("0x")
+            });
+        }
+
+        // Collapse cairo_vm
+        {
+            collapse_frames(&mut profile, 0, "cairo_vm::".to_string(), |frame| {
+                let name = frame.func().name();
+                name.starts_with("cairo_vm::") || name.starts_with("<cairo_vm::")
             });
             let func = profile.threads[0]
                 .func_table
                 .name
                 .iter()
-                .position(|&name_idx| {
-                    let name = &profile.shared.string_array[name_idx];
-                    name == "rpc_state_reader"
-                })
-                .expect("failed to find function");
+                .position(|&name_idx| profile.shared.string_array[name_idx] == "cairo_vm::")
+                .expect("failed to find cairo_vm function");
             collapse_subtree(&mut profile, 0, func);
-            merge_function(&mut profile, 0, func);
         }
 
-        // Collapse cairo_native::executor::contract::AotContractExecutor::run
+        // Collapse cairo_native_run
         {
             let funcs = profile.threads[0]
                 .func_table
@@ -222,21 +228,22 @@ fn main() {
             }
         }
 
-        // Collapse runtime and syscalls
+        // Collapse and focus blockifier
         {
-            let funcs = profile.threads[0]
+            collapse_frames(&mut profile, 0, "blockifier::".to_string(), |frame| {
+                let name = frame.func().name();
+                name.starts_with("blockifier::")
+                    || name.starts_with("<blockifier::")
+                    || name.starts_with("<&mut blockifier::")
+            });
+            let func = profile.threads[0]
                 .func_table
                 .name
                 .iter()
-                .positions(|&name_idx| {
-                    let name = &profile.shared.string_array[name_idx];
-                    name.starts_with("cairo_native::runtime")
-                        || name.starts_with("cairo_native::starknet")
-                })
-                .collect_vec();
-            for func in funcs {
-                collapse_subtree(&mut profile, 0, func);
-            }
+                .position(|&name_idx| &profile.shared.string_array[name_idx] == "blockifier::")
+                .expect("failed to find func");
+            focus_on_function(&mut profile, 0, func);
+            collapse_recursion(&mut profile, 0, func);
         }
 
         println!("{}", Tree::from_profile(&profile, 0));
