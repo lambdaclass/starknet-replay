@@ -40,7 +40,7 @@ pub struct Stack<'p> {
 
 #[derive(Copy, Clone)]
 pub struct Frame<'p> {
-    profile: &'p Profile,
+    pub profile: &'p Profile,
     pub thread: &'p RawThread,
     idx: IndexIntoFrameTable,
 }
