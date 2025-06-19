@@ -78,16 +78,30 @@ fn dump_state_diff(
         let _ = fs::create_dir_all(parent);
     }
 
+    let range_check_count = if let Some(execute) = execution_info.execute_call_info.clone() {
+        let mut count = 0;
+        for (name, counter) in execute.resources.builtin_instance_counter {
+            if name.to_str() == "output" {
+                count = counter;
+                break;
+            }
+        }
+        count
+    } else {
+        0
+    };
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
     let execution_info = SerializableExecutionInfo::new(execution_info.clone());
     #[derive(Serialize)]
     struct Info {
         execution_info: SerializableExecutionInfo,
         state_maps: SerializableStateMaps,
+        range_check_count: usize,
     }
     let info = Info {
         execution_info,
         state_maps,
+        range_check_count,
     };
 
     let file = File::create(path)?;
