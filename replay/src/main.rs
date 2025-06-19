@@ -52,6 +52,9 @@ mod block_composition;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
+#[cfg(feature = "with-libfunc-profiling")]
+mod libfunc_profile;
+
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
 struct ReplayCLI {
@@ -583,6 +586,9 @@ fn show_execution_data(
 
     #[cfg(feature = "state_dump")]
     state_dump::create_state_dump(state, block_number, &tx_hash_str, &execution_info_result);
+
+    #[cfg(feature = "with-libfunc-profiling")]
+    libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
