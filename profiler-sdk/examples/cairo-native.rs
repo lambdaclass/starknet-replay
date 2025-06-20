@@ -18,54 +18,6 @@ fn main() {
     let profile: Profile = serde_json::from_reader(file).expect("failed to deserialize profile");
 
     {
-        println!("│ GROUP BY SHARED LIBRARY");
-        println!("│ -----------------------");
-
-        let mut profile = profile.clone();
-
-        // Find main resource
-        let main_resource = {
-            let main_function = profile.threads[0]
-                .func_table
-                .name
-                .iter()
-                .position(|&name_idx| profile.shared.string_array[name_idx] == "main")
-                .expect("main function should exist");
-            let main_resource: Option<IndexIntoResourceTable> =
-                profile.threads[0].func_table.resource[main_function].into();
-            main_resource.expect("main resource should exist")
-        };
-        let main_resource_name = {
-            let main_resource_name_idx = profile.threads[0].resource_table.name[main_resource];
-            profile.shared.string_array[main_resource_name_idx].clone()
-        };
-
-        // Collapse all resources
-        for resource_idx in 0..profile.threads[0].resource_table.length {
-            collapse_resource(&mut profile, 0, resource_idx);
-        }
-
-        // Collapse recursion of the main resource.
-        {
-            let funcs = profile.threads[0]
-                .func_table
-                .name
-                .iter()
-                .positions(|&name_idx| {
-                    let name = &profile.shared.string_array[name_idx];
-                    name == &main_resource_name
-                })
-                .collect_vec();
-
-            for func in funcs {
-                collapse_recursion(&mut profile, 0, func);
-            }
-        }
-
-        // println!("{}", Tree::from_profile(&profile, 0));
-    }
-
-    {
         println!("│ GROUP BY SYMBOL");
         println!("│ ---------------");
 
@@ -96,8 +48,9 @@ fn main() {
             collapse_frames(&mut profile, 0, "utils".to_string(), |frame| {
                 let name = frame.func().name();
                 name.contains("<unknown")
-                    || name.starts_with("core::")
+                    || name.contains("as core::")
                     || name.starts_with("<core::")
+                    || name.starts_with("core::")
                     || name.contains("alloc::")
                     || name.contains("ark_ec::")
                     || name.contains("ark_ff::")
@@ -124,7 +77,11 @@ fn main() {
                     || name.contains("starknet_types_core::")
                     || name.contains("std::")
                     || name.contains("tracing_subscriber::")
+                    || name.contains("tracing_core::")
+                    || name.contains("sem_ver::")
                     || name == "__rdl_alloc"
+                    || name == "__rdl_realloc"
+                    || name == "__rdl_dealloc"
                     || name == "__rust_alloc"
                     || name == "__rust_dealloc"
                     || name == "__rust_realloc"
@@ -200,7 +157,10 @@ fn main() {
         {
             collapse_frames(&mut profile, 0, "cairo_vm::".to_string(), |frame| {
                 let name = frame.func().name();
-                name.starts_with("cairo_vm::") || name.starts_with("<cairo_vm::")
+                name.starts_with("cairo_vm::")
+                    || name.starts_with("<cairo_vm::")
+                    || name.starts_with("<&cairo_vm::")
+                    || name.starts_with("<cairo_lang_casm::")
             });
             let func = profile.threads[0]
                 .func_table
