@@ -14,6 +14,11 @@ structured_logging = []
 state_dump = ["dep:serde_with", "dep:starknet-types-core"]
 with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
 with-trace-dump = ["blockifier/with-trace-dump"]
+with-libfunc-profiling = [
+  "rpc-state-reader/with-libfunc-profiling",
+  "dep:starknet-types-core",
+  "dep:cairo-lang-sierra",
+]
 with-comp-stats = ["rpc-state-reader/with-comp-stats"]
 profiling = []
 
@@ -23,6 +28,8 @@ blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 starknet-types-core = { workspace = true, optional = true }
+cairo-native = { workspace = true }
+cairo-lang-sierra = { workspace = true, optional = true }
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }
 # logs
