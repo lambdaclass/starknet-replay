@@ -1,4 +1,4 @@
-//! The module defines entities for traversing the data structure, without
+//! This module defines entities for traversing the data structure, without
 //! dealing with it directly. They only encode the data layout, and do not store
 //! attributes
 //!
@@ -21,7 +21,6 @@ use itertools::Itertools;
 use crate::schema::{
     IndexIntoFrameTable, IndexIntoFuncTable, IndexIntoLibs, IndexIntoNativeSymbolTable,
     IndexIntoResourceTable, IndexIntoSampleTable, IndexIntoStackTable, Lib, Profile, RawThread,
-    Uint,
 };
 
 #[derive(Copy, Clone)]
@@ -76,7 +75,7 @@ impl<'p> Sample<'p> {
         )
     }
 
-    pub fn weight(&self) -> Uint {
+    pub fn weight(&self) -> u64 {
         self.thread.samples.weight[self.idx]
     }
 }

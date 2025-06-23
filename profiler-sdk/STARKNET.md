@@ -13,12 +13,12 @@ cargo build --release --features benchmark,profiling
 Then, benchmark a transaction:
 
 ```bash
-samply record --  target/release/replay bench-tx ...
+samply record --  target/release/replay bench-tx <hash> <chain> <block-number> <number-of-runs>
 ```
 
 You can obtain a sample profile at: https://share.firefox.dev/3H8dGXU.
 
-To make the transaction more accurate, we suggest executing the transaction many times (with the `number_of_runs` arguments). The sample profile contains the execution of a single transaction 100k times.
+To make the transaction more accurate, we suggest executing the transaction many times (with the `number-of-runs` argument). The sample profile contains the execution of a single transaction 100k times.
 
 ## Processing a Profile
 
@@ -104,8 +104,8 @@ The execution flow of a transaction can be visualized as:
   - If it was called right after sierra code, it represents runtime or syscall handler execution.
   - If it was called right after blockifier/replay, it represents contract compilation or executor loading.
 
-Given a sample, we can determine the crate it belong to by looking at the symbol name. For example, given the symbol name: `foo::bar::baz`, we know that we are executing function `baz` in crate `foo`.
+Given a sample, we can determine the crate it belongs to by looking at the symbol name. For example, given the symbol name: `foo::bar::baz`, we know that we are executing function `baz` in crate `foo`.
 
 For the case of sierra contracts, we can't rely on symbol names, but instead rely on the library the current address corresponds to. In the case of our replay, these libraries contain the prefix "0x".
 
-With these knowledge, we can analyze each sample and determine where it belongs to, building a report like the ones exampled above.
+With this knowledge, we can analyze each sample and determine where it belongs to, building a report like the ones exampled above.

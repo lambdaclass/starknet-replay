@@ -29,10 +29,14 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-pub type Uint = u64;
 pub type Milliseconds = f64;
 pub type Address = u64;
 pub type Bytes = u64;
+
+/// Pids are Strings, often Stringified Numbers. Strings allow creating unique
+/// values when multiple processes with the same pid exist in the same profile,
+/// such as during profile merging or diffing.
+pub type Pid = String;
 
 pub type IndexIntoSampleTable = usize;
 pub type IndexIntoStackTable = usize;
@@ -43,7 +47,7 @@ pub type IndexIntoResourceTable = usize;
 pub type IndexIntoLibs = usize;
 pub type IndexIntoNativeSymbolTable = usize;
 
-pub type ResourceTypeEnum = Uint;
+pub type ResourceTypeEnum = u64;
 
 #[derive(Clone, Copy, Deserialize)]
 #[serde(untagged)]
@@ -86,7 +90,7 @@ pub struct ProfileMeta {
     /// The OS and CPU. e.g. "Intel Mac OS X"
     pub oscpu: Option<String>,
     /// This is the processed profile format version.
-    pub preprocessed_profile_version: Uint,
+    pub preprocessed_profile_version: u64,
     /// The name of the product, most likely "Firefox".
     pub product: String,
     /// Units of samples table values.
@@ -102,7 +106,7 @@ pub struct ProfileMeta {
     pub symbolicated: bool,
     /// This is the Gecko profile format version (the unprocessed version
     /// received directly from the browser.)
-    pub version: Uint,
+    pub version: u64,
     pub categories: Vec<Value>,
     pub extensions: Value,
     pub process_type: Value,
@@ -171,7 +175,7 @@ pub struct RawSamplesTable {
     pub time: Vec<Milliseconds>,
     /// An optional weight array. If not present, then the weight is assumed to
     /// be 1. See the WeightType type for more information.
-    pub weight: Vec<Uint>,
+    pub weight: Vec<u64>,
     /// CPU usage value of the current thread. Its values are null only if the
     /// back-end fails to get the CPU usage from operating system. It's landed
     /// in Firefox 86, and it is optional because older profile versions may not
@@ -179,7 +183,7 @@ pub struct RawSamplesTable {
     /// this change because it's a completely new data source. The first value
     /// is ignored - it's not meaningful because there is no previous sample.
     #[serde(rename = "threadCPUDelta")]
-    pub thread_cpu_delta: Vec<Uint>,
+    pub thread_cpu_delta: Vec<u64>,
     pub weight_type: String,
 }
 
@@ -259,7 +263,7 @@ pub struct FrameTable {
     ///
     /// The frames of an inline stack at an address all have the same address
     /// and the same nativeSymbol, but each has a different func and line.
-    pub inline_depth: Vec<Uint>,
+    pub inline_depth: Vec<u64>,
     /// The frame's function.
     pub func: Vec<IndexIntoFuncTable>,
     /// The symbol index (referring into this thread's nativeSymbols table)
@@ -267,8 +271,8 @@ pub struct FrameTable {
     /// Only non-null for native frames (e.g. C / C++ / Rust code). Null before
     /// symbolication.
     pub native_symbol: Vec<Option<IndexIntoNativeSymbolTable>>,
-    pub line: Vec<Option<Uint>>,
-    pub column: Vec<Option<Uint>>,
+    pub line: Vec<Option<u64>>,
+    pub column: Vec<Option<u64>>,
     pub category: Value,
     pub subcategory: Value,
     #[serde(rename = "innerWindowID")]
@@ -304,12 +308,12 @@ pub struct FuncTable {
     pub resource: Vec<OptionUnsigned<IndexIntoResourceTable>>,
     /// These are non-null for JS functions only. The line and column describe
     /// the location of the *start* of the JS function. As for the information
-    /// about which which lines / columns inside the function were actually hit
+    /// about which lines / columns inside the function were actually hit
     /// during execution, that information is stored in the frameTable, not in
     /// the funcTable.
     pub file_name: Vec<Option<IndexIntoStringTable>>,
-    pub line_number: Vec<Option<Uint>>,
-    pub column_number: Vec<Option<Uint>>,
+    pub line_number: Vec<Option<u64>>,
+    pub column_number: Vec<Option<u64>>,
     #[serde(rename = "isJS")]
     pub is_js: Vec<bool>,
     #[serde(rename = "relevantForJS")]
@@ -338,7 +342,7 @@ pub struct NativeSymbolTable {
     /// The symbol name, demangled.
     pub name: Vec<IndexIntoStringTable>,
     /// The size of the function's machine code (if known), in bytes.
-    pub function_size: Vec<Option<Uint>>,
+    pub function_size: Vec<Option<u64>>,
 }
 
 /// The ResourceTable holds additional information about functions. It tends to
@@ -417,12 +421,7 @@ pub enum ThreadCPUDeltaUnit {
 #[serde(deny_unknown_fields)]
 pub enum Tid {
     #[serde(untagged)]
-    Number(Uint),
+    Number(u64),
     #[serde(untagged)]
     String(String),
 }
-
-/// Pids are Strings, often Stringified Numbers. Strings allow creating unique
-/// values when multiple processes with the same pid exist in the same profile,
-/// such as during profile merging or diffing.
-pub type Pid = String;
