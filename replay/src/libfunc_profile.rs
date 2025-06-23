@@ -26,6 +26,7 @@ struct ProcessedEntrypointProfile {
     selector: Felt,
     profile_summary: Vec<LibfuncProfileSummary>,
 }
+
 #[derive(Clone, Debug, Serialize)]
 pub struct LibfuncProfileSummary {
     pub libfunc_name: String,
@@ -141,7 +142,7 @@ fn process_entrypoint_profile(
         deltas.last().copied().unwrap(),
     ];
 
-    // Compuite the average.
+    // Compute the average.
     let average = deltas.iter().copied().sum::<u64>() as f64 / deltas.len() as f64;
 
     // Compute the standard deviation.
