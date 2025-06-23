@@ -506,11 +506,34 @@ def plot_executors(df_txs: DataFrame):
     save("executors")
 
 
+def plot_blocks(df_txs: DataFrame):
+    fig, ax = plt.subplots()
+
+    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
+        **{
+            "time_ns_native": ("time_ns_native", "sum"),
+            "time_ns_vm": ("time_ns_vm", "sum"),
+            "gas_consumed": ("gas_consumed", "sum"),
+        }
+    )  # type: ignore
+    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
+
+    sns.boxplot(ax=ax, data=df_blocks, x="speedup", showfliers=False, width=0.5)
+    ax.set_xlabel("Blocks Speedup Ratio")
+    ax.set_title("Speedup Distribution")
+
+    if args.output:
+        df_blocks.to_csv(f"{args.output}-blocks.csv")
+
+    save("blocks")
+
+
 plot_speed(df_calls)
 plot_time_by_gas(df_calls)
 plot_time_by_class(df_calls)
 plot_speedup(df_txs)
 plot_executors(df_txs)
+plot_blocks(df_txs)
 
 if args.display:
     plt.show()
