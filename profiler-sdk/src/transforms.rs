@@ -210,7 +210,7 @@ pub fn collapse_subtree(
             old_stack_to_new_stack.insert(stack, stack);
 
             if func == func_to_collapse {
-                // if the current function should me collapsed, mark all subtree for collapsing.
+                // if the current function should be collapsed, mark subtree for collapsing.
                 is_in_collapsed_subtree.insert(stack);
             }
         }
