@@ -412,7 +412,8 @@ pub enum ThreadCPUDeltaUnit {
     Ns,
     #[serde(rename = "µs")]
     Us,
-    Variable,
+    #[serde(rename = "variable CPU cycles")]
+    VariableCPUCycles,
 }
 
 /// The Tid is most often a Number. However in some cases such as merged
