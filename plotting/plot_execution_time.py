@@ -42,17 +42,20 @@ def format_hash(class_hash):
     return f"{class_hash[:6]}..."
 
 
-OUTPUT_FIGURES = {}
+OUTPUT_FIGURES = []
 
 
 def save_figure(title, description=""):
     if args.output_dir:
         stem = inflection.underscore(title)
         name = f"{stem}.svg"
-        OUTPUT_FIGURES[title] = {
-            name: name,
-            description: description,
-        }
+        OUTPUT_FIGURES.append(
+            {
+                title: title,
+                name: name,
+                description: description,
+            }
+        )
         plt.savefig(f"{args.output_dir}/{name}")
 
 
@@ -665,7 +668,7 @@ if args.output_dir:
 
     doc.line("h2", "Figures")
 
-    for title, (name, description) in OUTPUT_FIGURES.items():
+    for title, name, description in OUTPUT_FIGURES:
         doc.line("h3", title)
         text(description)
         doc.stag("img", src=name)
