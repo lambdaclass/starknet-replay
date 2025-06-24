@@ -312,7 +312,7 @@ df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
 ############
 
 
-def plot_speedup(df_txs: DataFrame):
+def plot_tx_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
 
     sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False, width=0.5)
@@ -480,7 +480,7 @@ def plot_time_by_gas(df_calls: DataFrame):
     )
 
 
-def plot_throughput(df_calls):
+def plot_call_throughput(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
@@ -545,7 +545,7 @@ def plot_throughput(df_calls):
     )
 
 
-def plot_executors(df_txs: DataFrame):
+def plot_pure_transactions(df_txs: DataFrame):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_txs_mixed: DataFrame = df_txs[df_txs["resource_ratio"] != 1]  # type: ignore
@@ -559,6 +559,23 @@ def plot_executors(df_txs: DataFrame):
     ax2.set_ylabel("Speedup")
     ax2.set_title("Pure Native Executions")
 
+    time_ns_native = df_txs["time_ns_native"].sum()
+    time_ns_gas_native = df_txs["time_ns_gas_native"].sum()
+    pure_native_ratio = time_ns_gas_native / time_ns_native
+    ax1.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Pure Native Ratio: {pure_native_ratio * 100:.1f}%",
+            ]
+        ),
+        transform=ax1.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
     headers = ["tx_hash", "block_number", "speedup", "speed_native"]
     speedups: DataFrame = df_txs_only_gas[headers]  # type: ignore
 
@@ -570,7 +587,7 @@ def plot_executors(df_txs: DataFrame):
     )
 
 
-def plot_blocks(df_txs: DataFrame):
+def plot_block_speedup(df_txs: DataFrame):
     fig, ax = plt.subplots()
 
     df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
@@ -594,12 +611,12 @@ def plot_blocks(df_txs: DataFrame):
     )
 
 
-plot_speedup(df_txs)
-plot_blocks(df_txs)
-plot_throughput(df_calls)
+plot_tx_speedup(df_txs)
+plot_block_speedup(df_txs)
+plot_call_throughput(df_calls)
 plot_time_by_class(df_calls)
 plot_time_by_gas(df_calls)
-plot_executors(df_txs)
+plot_pure_transactions(df_txs)
 
 if args.display:
     plt.show()
