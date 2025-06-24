@@ -13,25 +13,32 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 
+from typing import NamedTuple
 from pandas import DataFrame
 
 sns.set_palette("deep")
 sns.set_color_codes("deep")
+mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
+
+
+class Args(NamedTuple):
+    native_data: pathlib.Path
+    vm_data: pathlib.Path
+    output_dir: pathlib.Path
+    display: bool
+
 
 arg_parser = ArgumentParser()
-arg_parser.add_argument("native_data")
-arg_parser.add_argument("vm_data")
-arg_parser.add_argument(
-    "--output-dir",
-    type=pathlib.Path,
-)
+arg_parser.add_argument("native_data", type=pathlib.Path)
+arg_parser.add_argument("vm_data", type=pathlib.Path)
+arg_parser.add_argument("--output-dir", type=pathlib.Path)
 arg_parser.add_argument(
     "--display", action=argparse.BooleanOptionalAction, default=True
 )
-args = arg_parser.parse_args()
 
-pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
+
+args: Args = arg_parser.parse_args()  # type: ignore
+
 
 #############
 # UTILITIES #
@@ -42,12 +49,16 @@ def format_hash(class_hash):
     return f"{class_hash[:6]}..."
 
 
+# A list of all the figures generated. Used to generate a final report.
 OUTPUT_FIGURES = []
 
 
+# Saves the current figure to the output directory, deriving the file name from
+# the given title. Adds the figure data to `OUTPUT_FIGURES`, which can then be
+# used to generate a report with all the figures.
 def save_figure(title, description=""):
     if args.output_dir:
-        stem = inflection.underscore(title)
+        stem = inflection.parameterize(title)
         name = f"{stem}.svg"
         OUTPUT_FIGURES.append(
             {
@@ -56,16 +67,22 @@ def save_figure(title, description=""):
                 description: description,
             }
         )
-        plt.savefig(f"{args.output_dir}/{name}")
+        plt.savefig(args.output_dir.joinpath(name))
 
 
-def save_csv(name, data, *to_csv_args, **to_csv_kwargs):
+# Saves the current dataframe to the output directory, deriving the file name
+# from the given title.
+def save_csv(data, title, *to_csv_args, **to_csv_kwargs):
     if args.output_dir:
-        data_name = f"{args.output_dir}/{name}.csv"
-        data.to_csv(data_name, *to_csv_args, **to_csv_kwargs)
+        stem = inflection.parameterize(title)
+        name = f"{stem}.csv"
+        data.to_csv(args.output_dir.joinpath(name), *to_csv_args, **to_csv_kwargs)
 
 
-def parse_version(info, name):
+# Given an info series, and the name of the field containing a Rust version,
+# it parses the version string and shortens it. From example, converts from the
+# full git url, to just the commit hash.
+def parse_version(info: pd.Series, name: str):
     version_string: str = info[name]  # type: ignore
     match = re.search("rev=([a-z0-9]+)", version_string)
     if match:
@@ -77,6 +94,10 @@ def parse_version(info, name):
 ##############
 
 
+# Loads the JSON raw data, and returns three elements:
+# - Transaction dataframe.
+# - Contract call dataframe.
+# - Benchmark info series.
 def load_data(path):
     raw_json = json.load(open(path))
 
@@ -159,8 +180,8 @@ def load_data(path):
         axis=1,
     )
 
-    df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
-    df_txs["speed"] = df_txs["gas_consumed"] / df_txs["time_ns"]
+    df_calls["throughput"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+    df_txs["throughput"] = df_txs["gas_consumed"] / df_txs["time_ns"]
 
     time_by_gas = (
         df_calls[df_calls["resource"] == "SierraGas"]
@@ -192,7 +213,7 @@ def load_data(path):
     # time_ns_gas     float64
     # time_ns_steps   float64
     # resource_ratio  float64
-    # speed           float64
+    # throughput      float64
 
     # print(df_calls.info())
     # -------------------
@@ -205,13 +226,11 @@ def load_data(path):
     # resource      object
     # gas_consumed  int64
     # time_ns       float64
-    # speed         float64
+    # throughput    float64
 
     info = pd.Series(raw_json["info"])
-
     parse_version(info, "cairo_native_version")
     parse_version(info, "sequencer_version")
-
     info.rename(
         {
             "date": "Date",
@@ -260,7 +279,7 @@ df_txs: DataFrame = pd.merge(
             "time_ns",
             "time_ns_gas",
             "time_ns_steps",
-            "speed",
+            "throughput",
         ]
     ],
     on="tx_hash",
@@ -307,7 +326,7 @@ df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
 # executor      object
 # gas_consumed  int64
 # time_ns       float64
-# speed         float64
+# throughput    float64
 
 
 ############
@@ -489,33 +508,35 @@ def plot_call_throughput(df_calls):
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    sns.boxplot(ax=ax1, data=df_native, x="speed", showfliers=False, width=0.5)
-    ax1.set_title("Native Speed (gas/ns)")
-    ax1.set_xlabel("Speed (gas/ns)")
+    sns.boxplot(ax=ax1, data=df_native, x="throughput", showfliers=False, width=0.5)
+    ax1.set_title("Native Throughput (gas/ns)")
+    ax1.set_xlabel("Throughput (gas/ns)")
 
-    sns.boxplot(ax=ax2, data=df_vm, x="speed", showfliers=False, width=0.5)
-    ax2.set_title("VM Speed (gas/ns)")
-    ax2.set_xlabel("Speed (gas/ns)")
+    sns.boxplot(ax=ax2, data=df_vm, x="throughput", showfliers=False, width=0.5)
+    ax2.set_title("VM Throughput (gas/ns)")
+    ax2.set_xlabel("Throughput (gas/ns)")
 
-    native_total_speed = df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
-    native_mean_speed = df_native["speed"].mean()
-    native_median_speed = df_native["speed"].quantile(0.5)
-    native_stddev_speed = df_native["speed"].std()
+    native_total_throughput = (
+        df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
+    )
+    native_mean_throughput = df_native["throughput"].mean()
+    native_median_throughput = df_native["throughput"].quantile(0.5)
+    native_stddev_throughput = df_native["throughput"].std()
 
-    vm_total_speed = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
-    vm_mean_speed = df_vm["speed"].mean()
-    vm_median_speed = df_vm["speed"].quantile(0.5)
-    vm_stddev_speed = df_vm["speed"].std()
+    vm_total_throughput = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
+    vm_mean_throughput = df_vm["throughput"].mean()
+    vm_median_throughput = df_vm["throughput"].quantile(0.5)
+    vm_stddev_throughput = df_vm["throughput"].std()
 
     ax1.text(
         0.01,
         0.99,
         "\n".join(
             [
-                f"Total Execution Speed: {native_total_speed:.2f}",
-                f"Mean: {native_mean_speed:.2f}",
-                f"Median: {native_median_speed:.2f}",
-                f"Std Dev: {native_stddev_speed:.2f}",
+                f"Total Execution Throughput: {native_total_throughput:.2f}",
+                f"Mean: {native_mean_throughput:.2f}",
+                f"Median: {native_median_throughput:.2f}",
+                f"Std Dev: {native_stddev_throughput:.2f}",
             ]
         ),
         transform=ax1.transAxes,
@@ -528,10 +549,10 @@ def plot_call_throughput(df_calls):
         0.99,
         "\n".join(
             [
-                f"Total Execution Speed: {vm_total_speed:.2f}",
-                f"Mean: {vm_mean_speed:.2f}",
-                f"Median: {vm_median_speed:.2f}",
-                f"Std Dev: {vm_stddev_speed:.2f}",
+                f"Total Execution Throughput: {vm_total_throughput:.2f}",
+                f"Mean: {vm_mean_throughput:.2f}",
+                f"Median: {vm_median_throughput:.2f}",
+                f"Std Dev: {vm_stddev_throughput:.2f}",
             ]
         ),
         transform=ax2.transAxes,
@@ -579,10 +600,9 @@ def plot_pure_transactions(df_txs: DataFrame):
         horizontalalignment="left",
     )
 
-    headers = ["tx_hash", "block_number", "speedup", "speed_native"]
-    speedups: DataFrame = df_txs_only_gas[headers]  # type: ignore
-
-    save_csv("executors", speedups.sort_values("speedup"), index=False)
+    headers = ["tx_hash", "block_number", "speedup", "throughput_native"]
+    pure_transactions: DataFrame = df_txs_only_gas[headers].sort_values("speedup")  # type: ignore
+    save_csv(pure_transactions, "Pure Transactions", index=False)
 
     save_figure(
         "Pure Transactions",
@@ -606,20 +626,21 @@ def plot_block_speedup(df_txs: DataFrame):
     ax.set_xlabel("Blocks Speedup Ratio")
     ax.set_title("Speedup Distribution")
 
-    save_csv("blocks", df_blocks)
-
+    save_csv(df_blocks, "Blocks")
     save_figure(
         "Block Speedup Distribution",
         "Calculates the distribution of speedup by blocks.",
     )
 
 
-plot_tx_speedup(df_txs)
-plot_block_speedup(df_txs)
-plot_call_throughput(df_calls)
-plot_time_by_class(df_calls)
-plot_time_by_gas(df_calls)
+args.output_dir.mkdir(parents=True, exist_ok=True)
+
 plot_pure_transactions(df_txs)
+plot_time_by_gas(df_calls)
+plot_time_by_class(df_calls)
+plot_call_throughput(df_calls)
+plot_block_speedup(df_txs)
+plot_tx_speedup(df_txs)
 
 if args.display:
     plt.show()
@@ -627,50 +648,55 @@ if args.display:
 if args.output_dir:
     doc, tag, text = Doc().tagtext()
 
-    doc.line(
-        "style",
-        """
-           body {
-                margin: 40px auto;
-                max-width: 21cm;
-                line-height: 1.6;
-                font-family: sans-serif;
-                padding: 0 10px;
-            }
+    def generate_info(doc, info):
+        with tag("ul"):
+            for k, v in info.items():
+                with tag("li"):
+                    doc.line("b", str(k))
+                    text(": ", v)
 
-            img {
-                max-width: 100%;
-                height: auto;
-            }
-        """,
-    )
+    def generate_body(doc):
+        doc, tag, text = doc.tagtext()
 
-    doc.line("h1", "Execution Benchmark Report")
+        doc.line("h1", "Execution Benchmark Report")
 
-    doc.line("h2", "Cairo Native Execution Info")
+        doc.line("h2", "Cairo Native Execution Info")
+        generate_info(doc, native_info)
 
-    with tag("ul"):
-        for k, v in native_info.items():
-            with tag("li"):
-                doc.line("b", str(k))
-                text(": ", v)
-    with tag("h2"):
-        text("Cairo VM Execution Info")
+        doc.line("h2", "Cairo VM Execution Info")
+        generate_info(doc, vm_info)
 
-    with tag("ul"):
-        for k, v in vm_info.items():
-            with tag("li"):
-                doc.line("b", str(k))
-                text(": ", v)
+        # Force line break after info
+        with tag("div", style="page-break-after: always"):
+            pass
 
-    with tag("div", style="page-break-after: always"):
-        pass
+        doc.line("h2", "Figures")
+        OUTPUT_FIGURES.reverse()
+        for title, name, description in OUTPUT_FIGURES:
+            doc.line("h3", title)
+            text(description)
+            doc.stag("img", src=name)
 
-    doc.line("h2", "Figures")
+    with tag("html"):
+        with tag("head"):
+            # Add minimal styling
+            with tag("style"):
+                doc.asis("""
+                   body {
+                        margin: 40px auto;
+                        max-width: 21cm;
+                        line-height: 1.6;
+                        font-family: sans-serif;
+                        padding: 0 10px;
+                    }
 
-    for title, name, description in OUTPUT_FIGURES:
-        doc.line("h3", title)
-        text(description)
-        doc.stag("img", src=name)
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                    }
+                """)
 
-    pathlib.Path(args.output_dir).joinpath("report.html").write_text(doc.getvalue())
+        with tag("body"):
+            generate_body(doc)
+
+    args.output_dir.joinpath("report.html").write_text(doc.getvalue())
