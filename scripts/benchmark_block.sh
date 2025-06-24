@@ -113,7 +113,7 @@ $NATIVE_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$native_data
 inject_info "$native_data_output" "native"
 
 native_time=$(jq '.transactions | map(.time_ns) | add' "$native_data_output")
-echo "Average Native time: $native_time ns"
+echo "Total Native time: $native_time ns"
 
 echo "Executing with VM"
 $VM_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$vm_data_output" > "$vm_log_output"
@@ -121,7 +121,7 @@ $VM_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$vm_data_output"
 inject_info "$vm_data_output" "vm"
 
 vm_time=$(jq '.transactions | map(.time_ns) | add' "$vm_data_output")
-echo "Average VM time: $vm_time ns"
+echo "Total VM time: $vm_time ns"
 
 speedup=$(bc -l <<< "$vm_time/$native_time")
 echo "Native Speedup: $speedup"
