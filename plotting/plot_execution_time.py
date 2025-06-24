@@ -246,7 +246,7 @@ def load_data(path):
             "os": "OS",
             "arch": "Arch",
             "cpu": "CPU",
-            "memory": "Memory",
+            "memory": "Memory (bytes)",
         },
         inplace=True,
     )
