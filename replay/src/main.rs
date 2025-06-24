@@ -633,21 +633,6 @@ fn compare_execution(
         rpc_receipt.messages_sent.len(),
     );
 
-    // Builtins
-    let range_check_info = if let Some(call_info) = execution.execute_call_info {
-        let builtins_info = call_info.resources.builtin_instance_counter;
-        let mut res = 0;
-        for (builtin, counter) in builtins_info {
-            if builtin.to_str() == "range_check" {
-                res = counter;
-                break;
-            }
-        }
-        res
-    } else {
-        0
-    };
-
     // currently adding 1 because the sequencer is counting only the
     // events produced by the inner calls of a callinfo
     let events_match =
@@ -695,7 +680,6 @@ fn compare_execution(
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
-            range_check = range_check_info,
             "rpc and execution status diverged"
         );
 
@@ -709,7 +693,6 @@ fn compare_execution(
             rpc_n_events_and_msgs = rpc_events_and_msgs,
             da_gas = da_gas_str,
             state_changes_for_fee_str,
-            range_check = range_check_info,
             "execution finished successfully"
         );
 

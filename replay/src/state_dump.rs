@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     fs::{self, File},
     path::Path,
 };
@@ -78,30 +78,16 @@ fn dump_state_diff(
         let _ = fs::create_dir_all(parent);
     }
 
-    let range_check_count = if let Some(execute) = execution_info.execute_call_info.clone() {
-        let mut count = 0;
-        for (name, counter) in execute.resources.builtin_instance_counter {
-            if name.to_str() == "output" {
-                count = counter;
-                break;
-            }
-        }
-        count
-    } else {
-        0
-    };
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
     let execution_info = SerializableExecutionInfo::new(execution_info.clone());
     #[derive(Serialize)]
     struct Info {
         execution_info: SerializableExecutionInfo,
         state_maps: SerializableStateMaps,
-        range_check_count: usize,
     }
     let info = Info {
         execution_info,
         state_maps,
-        range_check_count,
     };
 
     let file = File::create(path)?;
@@ -343,10 +329,16 @@ pub struct SerializableTransactionResources {
 }
 
 #[derive(Serialize)]
+pub struct SerilizableExecutionResources {
+    pub builtin_instance_counter: HashMap<String, usize>,
+}
+
+#[derive(Serialize)]
 pub struct SerializableComputationResources {
     pub n_reverted_steps: usize,
     pub sierra_gas: GasAmount,
     pub reverted_sierra_gas: GasAmount,
+    pub vm_resources: SerilizableExecutionResources,
 }
 
 impl From<TransactionReceipt> for SerializableTransactionReceipt {
@@ -360,13 +352,23 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
                     starknet_resources,
                     computation:
                         ComputationResources {
-                            vm_resources: _vm_resources,
+                            vm_resources,
                             n_reverted_steps,
                             sierra_gas,
                             reverted_sierra_gas,
                         },
                 },
         } = value;
+
+        let mut new_builtin_counter = HashMap::new();
+        for (builtin, count) in vm_resources.builtin_instance_counter {
+            new_builtin_counter.insert(builtin.to_str().to_string(), count);
+        }
+
+        let vm_resources = SerilizableExecutionResources {
+            builtin_instance_counter: new_builtin_counter,
+        };
+
         Self {
             fee,
             gas,
@@ -374,6 +376,7 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
             resources: SerializableTransactionResources {
                 starknet_resources,
                 computation: SerializableComputationResources {
+                    vm_resources,
                     n_reverted_steps,
                     sierra_gas,
                     reverted_sierra_gas,
