@@ -1,6 +1,10 @@
+from yattag import Doc
+
 import json
 import pathlib
 import argparse
+import re
+import inflection
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
@@ -18,13 +22,16 @@ arg_parser = ArgumentParser()
 arg_parser.add_argument("native_data")
 arg_parser.add_argument("vm_data")
 arg_parser.add_argument(
-    "--output",
+    "--output-dir",
     type=pathlib.Path,
 )
 arg_parser.add_argument(
     "--display", action=argparse.BooleanOptionalAction, default=True
 )
 args = arg_parser.parse_args()
+
+pathlib.Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
 #############
 # UTILITIES #
@@ -35,10 +42,31 @@ def format_hash(class_hash):
     return f"{class_hash[:6]}..."
 
 
-def save(name, ext="svg"):
-    if args.output:
-        figure_name = f"{args.output}-{name}.{ext}"
-        plt.savefig(figure_name)
+OUTPUT_FIGURES = {}
+
+
+def save_figure(title, description=""):
+    if args.output_dir:
+        stem = inflection.underscore(title)
+        name = f"{stem}.svg"
+        OUTPUT_FIGURES[title] = {
+            name: name,
+            description: description,
+        }
+        plt.savefig(f"{args.output_dir}/{name}")
+
+
+def save_csv(name, data, *to_csv_args, **to_csv_kwargs):
+    if args.output_dir:
+        data_name = f"{args.output_dir}/{name}.csv"
+        data.to_csv(data_name, *to_csv_args, **to_csv_kwargs)
+
+
+def parse_version(info, name):
+    version_string: str = info[name]  # type: ignore
+    match = re.search("rev=([a-z0-9]+)", version_string)
+    if match:
+        info[name] = match.group(1)
 
 
 ##############
@@ -176,11 +204,36 @@ def load_data(path):
     # time_ns       float64
     # speed         float64
 
-    return df_txs, df_calls
+    info = pd.Series(raw_json["info"])
+
+    parse_version(info, "cairo_native_version")
+    parse_version(info, "sequencer_version")
+
+    info.rename(
+        {
+            "date": "Date",
+            "block_start": "Block Start",
+            "block_end": "Block End",
+            "net": "Net",
+            "laps": "Laps",
+            "mode": "Mode",
+            "native_profile": "Native Profile",
+            "rust_profile": "Rust Profile",
+            "cairo_native_version": "Cairo Native Version",
+            "sequencer_version": "Sequencer Version",
+            "os": "OS",
+            "arch": "Arch",
+            "cpu": "CPU",
+            "memory": "Memory",
+        },
+        inplace=True,
+    )
+
+    return df_txs, df_calls, info
 
 
-df_txs_native, df_calls_native = load_data(args.native_data)
-df_txs_vm, df_calls_vm = load_data(args.vm_data)
+df_txs_native, df_calls_native, native_info = load_data(args.native_data)
+df_txs_vm, df_calls_vm, vm_info = load_data(args.vm_data)
 
 # Assert Native and VM tx execution coincide.
 assert (df_txs_native["tx_hash"] == df_txs_vm["tx_hash"]).all()
@@ -264,7 +317,7 @@ def plot_speedup(df_txs: DataFrame):
 
     sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Tx Speedup Ratio")
-    ax.set_title("Speedup Distribution")
+    ax.set_title("Tx Speedup Distribution")
 
     total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
     mean_speedup = df_txs["speedup"].mean()
@@ -288,7 +341,10 @@ def plot_speedup(df_txs: DataFrame):
         horizontalalignment="left",
     )
 
-    save("speedup")
+    save_figure(
+        "Tx Speedup Distribution",
+        "Calculates the distribution of speedup by transactions.",
+    )
 
 
 def plot_time_by_class(df_calls: DataFrame):
@@ -351,7 +407,10 @@ def plot_time_by_class(df_calls: DataFrame):
     ax2.set_xscale("log", base=2)
     ax2.set_xlabel("Speedup Ratio")
 
-    save("time-by-class")
+    save_figure(
+        "Execution Time by Contract Class",
+        "Compares execution time of most common contract classes.",
+    )
 
 
 def plot_time_by_gas(df_calls: DataFrame):
@@ -415,10 +474,13 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     ax.set_title("Execution Time by Gas Usage")
 
-    save("time-by-gas")
+    save_figure(
+        "Execution Time by Gas Usage",
+        "Correlates call execution time with gas usage. The scale is in log-log.",
+    )
 
 
-def plot_speed(df_calls):
+def plot_throughput(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
@@ -475,11 +537,12 @@ def plot_speed(df_calls):
         horizontalalignment="left",
     )
 
-    fig.suptitle("Speed by Contract Call")
-    save("speed")
+    fig.suptitle("Call Throughput Distribution")
 
-
-mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
+    save_figure(
+        "Call Throughput Distribution",
+        "Calculates the distribution of Native and VM throughput by contract calls.",
+    )
 
 
 def plot_executors(df_txs: DataFrame):
@@ -496,14 +559,15 @@ def plot_executors(df_txs: DataFrame):
     ax2.set_ylabel("Speedup")
     ax2.set_title("Pure Native Executions")
 
-    if args.output:
-        speedups: DataFrame = df_txs_only_gas[
-            ["tx_hash", "block_number", "speedup", "speed_native"]
-        ]  # type: ignore
-        speedups.sort_values("speedup").to_csv(
-            f"{args.output}-executors.csv", index=False
-        )
-    save("executors")
+    headers = ["tx_hash", "block_number", "speedup", "speed_native"]
+    speedups: DataFrame = df_txs_only_gas[headers]  # type: ignore
+
+    save_csv("executors", speedups.sort_values("speedup"), index=False)
+
+    save_figure(
+        "Pure Transactions",
+        "Separates between pure (only Cairo Native) and non pure transactions, when running in Native mode.",
+    )
 
 
 def plot_blocks(df_txs: DataFrame):
@@ -522,18 +586,71 @@ def plot_blocks(df_txs: DataFrame):
     ax.set_xlabel("Blocks Speedup Ratio")
     ax.set_title("Speedup Distribution")
 
-    if args.output:
-        df_blocks.to_csv(f"{args.output}-blocks.csv")
+    save_csv("blocks", df_blocks)
 
-    save("blocks")
+    save_figure(
+        "Block Speedup Distribution",
+        "Calculates the distribution of speedup by blocks.",
+    )
 
 
-plot_speed(df_calls)
-plot_time_by_gas(df_calls)
-plot_time_by_class(df_calls)
 plot_speedup(df_txs)
-plot_executors(df_txs)
 plot_blocks(df_txs)
+plot_throughput(df_calls)
+plot_time_by_class(df_calls)
+plot_time_by_gas(df_calls)
+plot_executors(df_txs)
 
 if args.display:
     plt.show()
+
+if args.output_dir:
+    doc, tag, text = Doc().tagtext()
+
+    doc.line(
+        "style",
+        """
+           body {
+                margin: 40px auto;
+                max-width: 21cm;
+                line-height: 1.6;
+                font-family: sans-serif;
+                padding: 0 10px;
+            }
+
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+        """,
+    )
+
+    doc.line("h1", "Execution Benchmark Report")
+
+    doc.line("h2", "Cairo Native Execution Info")
+
+    with tag("ul"):
+        for k, v in native_info.items():
+            with tag("li"):
+                doc.line("b", str(k))
+                text(": ", v)
+    with tag("h2"):
+        text("Cairo VM Execution Info")
+
+    with tag("ul"):
+        for k, v in vm_info.items():
+            with tag("li"):
+                doc.line("b", str(k))
+                text(": ", v)
+
+    with tag("div", style="page-break-after: always"):
+        pass
+
+    doc.line("h2", "Figures")
+
+    for title, (name, description) in OUTPUT_FIGURES.items():
+        doc.line("h3", title)
+        text(description)
+        doc.stag("img", src=name)
+
+    pathlib.Path(args.output_dir).joinpath("report.html").write_text(doc.getvalue())
