@@ -66,6 +66,8 @@ inject_info() {
           cpu=$(sysctl -n machdep.cpu.brand_string)
       ;;
       Linux)
+          memory=$(free -b | awk '/Mem:/ {print $2}')
+          cpu=$(lscpu | grep "Model name" | sed 's/Model name:\s*//')
       ;;
     esac
 
