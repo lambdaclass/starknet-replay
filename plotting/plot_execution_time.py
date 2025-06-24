@@ -642,9 +642,6 @@ plot_call_throughput(df_calls)
 plot_block_speedup(df_txs)
 plot_tx_speedup(df_txs)
 
-if args.display:
-    plt.show()
-
 if args.output_dir:
     doc, tag, text = Doc().tagtext()
 
@@ -700,3 +697,6 @@ if args.output_dir:
             generate_body(doc)
 
     args.output_dir.joinpath("report.html").write_text(doc.getvalue())
+
+if args.display:
+    plt.show()
