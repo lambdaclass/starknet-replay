@@ -237,6 +237,8 @@ def load_data(path):
             "date": "Date",
             "block_start": "Block Start",
             "block_end": "Block End",
+            "block": "Block",
+            "tx": "Tx",
             "net": "Net",
             "laps": "Laps",
             "mode": "Mode",
