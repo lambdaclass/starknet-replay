@@ -188,6 +188,14 @@ This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
 - `{native,vm}-logs-*.json` - stdout from running the benchmark.
 
+At the end of the run, you can generate a report by executing:
+
+``` bash
+python plotting/plot_execution_time.py native-data vm-data --output-dir out
+```
+
+The report will be generated on `out/report.html`
+
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
 will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
