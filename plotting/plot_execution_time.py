@@ -573,8 +573,23 @@ def plot_call_throughput(df_calls):
 def plot_pure_transactions(df_txs: DataFrame):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
-    df_txs_mixed: DataFrame = df_txs[df_txs["resource_ratio"] != 1]  # type: ignore
-    sns.scatterplot(ax=ax1, data=df_txs_mixed, x="resource_ratio", y="speedup")
+    df_txs_mixed: DataFrame = df_txs[
+        (df_txs["resource_ratio"] != 1) & (df_txs["resource_ratio"] != 0)
+    ]  # type: ignore
+    sns.histplot(
+        ax=ax1,
+        data=df_txs_mixed,
+        x="resource_ratio",
+        y="speedup",
+        bins=30,
+    )
+    sns.regplot(
+        ax=ax1,
+        data=df_txs_mixed,
+        x="resource_ratio",
+        y="speedup",
+        scatter=False,
+    )
     ax1.set_ylabel("Speedup")
     ax1.set_xlabel("Native/VM Ratio")
     ax1.set_title("Non Pure Native Executions")
@@ -596,6 +611,29 @@ def plot_pure_transactions(df_txs: DataFrame):
             ]
         ),
         transform=ax1.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    total_speedup = (
+        df_txs_only_gas["time_ns_vm"].sum() / df_txs_only_gas["time_ns_native"].sum()
+    )
+    mean_speedup = df_txs_only_gas["speedup"].mean()
+    median_speedup = df_txs_only_gas["speedup"].quantile(0.5)
+    stddev_speedup = df_txs_only_gas["speedup"].std()
+    ax2.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Total Execution Speedup: {total_speedup:.2f}",
+                f"Mean: {mean_speedup:.2f}",
+                f"Median: {median_speedup:.2f}",
+                f"Std Dev: {stddev_speedup:.2f}",
+            ]
+        ),
+        transform=ax2.transAxes,
         fontsize=12,
         verticalalignment="top",
         horizontalalignment="left",
@@ -626,6 +664,27 @@ def plot_block_speedup(df_txs: DataFrame):
     sns.boxplot(ax=ax, data=df_blocks, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Blocks Speedup Ratio")
     ax.set_title("Speedup Distribution")
+
+    total_speedup = df_blocks["time_ns_vm"].sum() / df_blocks["time_ns_native"].sum()
+    mean_speedup = df_blocks["speedup"].mean()
+    median_speedup = df_blocks["speedup"].quantile(0.5)
+    stddev_speedup = df_blocks["speedup"].std()
+    ax.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Total Execution Speedup: {total_speedup:.2f}",
+                f"Mean: {mean_speedup:.2f}",
+                f"Median: {median_speedup:.2f}",
+                f"Std Dev: {stddev_speedup:.2f}",
+            ]
+        ),
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
 
     save_csv(df_blocks, "Blocks")
     save_figure(
