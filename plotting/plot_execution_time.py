@@ -231,6 +231,7 @@ def load_data(path):
     info = pd.Series(raw_json["info"])
     parse_version(info, "cairo_native_version")
     parse_version(info, "sequencer_version")
+    info["memory"] = round(int(info["memory"]) / 2**30, 2)
     info.rename(
         {
             "date": "Date",
@@ -246,7 +247,7 @@ def load_data(path):
             "os": "OS",
             "arch": "Arch",
             "cpu": "CPU",
-            "memory": "Memory (bytes)",
+            "memory": "Memory (GiB)",
         },
         inplace=True,
     )
