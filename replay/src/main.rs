@@ -1,4 +1,3 @@
-use benchmark::BenchmarkingData;
 use blockifier::execution::contract_class::TrackedResource;
 use blockifier::execution::entry_point::{
     EntryPointExecutionContext, EntryPointRevertInfo, ExecutableCallEntryPoint,
@@ -26,7 +25,9 @@ use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
-use crate::benchmark::{execute_block_range, fetch_block_range_data, fetch_transaction_data};
+use crate::benchmark::{
+    execute_block_range, fetch_block_range_data, fetch_transaction_data, BenchmarkingData,
+};
 #[cfg(feature = "block-composition")]
 use {
     block_composition::save_entry_point_execution, chrono::DateTime,
