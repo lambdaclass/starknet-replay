@@ -512,12 +512,12 @@ def plot_call_throughput(df_calls):
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
     sns.boxplot(ax=ax1, data=df_native, x="throughput", showfliers=False, width=0.5)
-    ax1.set_title("Native Throughput (gas/ns)")
-    ax1.set_xlabel("Throughput (gas/ns)")
+    ax1.set_title("Native Throughput (gigagas/s)")
+    ax1.set_xlabel("Throughput (gigagas/s)")
 
     sns.boxplot(ax=ax2, data=df_vm, x="throughput", showfliers=False, width=0.5)
-    ax2.set_title("VM Throughput (gas/ns)")
-    ax2.set_xlabel("Throughput (gas/ns)")
+    ax2.set_title("VM Throughput (gigagas/s)")
+    ax2.set_xlabel("Throughput (gigagas/s)")
 
     native_total_throughput = (
         df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
@@ -665,7 +665,7 @@ def plot_block_speedup(df_txs: DataFrame):
 
     sns.boxplot(ax=ax, data=df_blocks, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Blocks Speedup Ratio")
-    ax.set_title("Speedup Distribution")
+    ax.set_title("Block Speedup Distribution")
 
     total_speedup = df_blocks["time_ns_vm"].sum() / df_blocks["time_ns_native"].sum()
     mean_speedup = df_blocks["speedup"].mean()
