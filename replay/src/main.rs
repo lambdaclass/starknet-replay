@@ -25,11 +25,8 @@ use tracing::{debug, error, info, info_span};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
-use {
-    crate::benchmark::{
-        aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
-    },
-    std::time::Instant,
+use crate::benchmark::{
+    execute_block_range, fetch_block_range_data, fetch_transaction_data, BenchmarkingData,
 };
 #[cfg(feature = "block-composition")]
 use {
@@ -266,7 +263,7 @@ fn main() {
 
                 // We must execute the block range once first to ensure that all data required by blockifier is cached
                 info!("filling up execution cache");
-                execute_block_range(&mut block_range_data);
+                execute_block_range(&mut block_range_data, None);
 
                 // Benchmark run should make no api requests as all data is cached
                 // To ensure this, we disable the inner StateReader
@@ -285,33 +282,20 @@ fn main() {
             {
                 let _benchmark_span = info_span!("benchmarking block range").entered();
 
-                let mut executions = Vec::new();
-
                 info!("executing block range");
-                let before_execution = Instant::now();
+
+                let mut benchmarking_data = BenchmarkingData::default();
+
                 for _ in 0..number_of_runs {
-                    executions.push(execute_block_range(&mut block_range_data));
+                    execute_block_range(&mut block_range_data, Some(&mut benchmarking_data));
                 }
-                let execution_time = before_execution.elapsed();
 
                 info!("saving execution info");
-
-                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let benchmarking_data = aggregate_executions(executions);
-
-                let average_time = execution_time.div_f32(number_of_runs as f32);
 
                 let file = std::fs::File::create(output).unwrap();
                 serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
 
-                info!(
-                    block_start = block_start.0,
-                    block_end = block_end.0,
-                    number_of_runs,
-                    total_run_time = execution_time.as_secs_f64(),
-                    average_run_time = average_time.as_secs_f64(),
-                    "benchmark finished",
-                );
+                info!("benchmark finished");
             }
         }
         #[cfg(feature = "benchmark")]
@@ -336,7 +320,7 @@ fn main() {
 
                 // We must execute the block range once first to ensure that all data required by blockifier is chached
                 info!("filling up execution cache");
-                execute_block_range(&mut block_range_data);
+                execute_block_range(&mut block_range_data, None);
 
                 // Benchmark run should make no api requests as all data is cached
                 // To ensure this, we disable the inner StateReader
@@ -355,33 +339,20 @@ fn main() {
             {
                 let _benchmark_span = info_span!("benchmarking block range").entered();
 
-                let mut executions = Vec::new();
-
                 info!("executing block range");
-                let before_execution = Instant::now();
+
+                let mut benchmarking_data = BenchmarkingData::default();
+
                 for _ in 0..number_of_runs {
-                    executions.push(execute_block_range(&mut block_range_data));
+                    execute_block_range(&mut block_range_data, Some(&mut benchmarking_data));
                 }
-                let execution_time = before_execution.elapsed();
 
                 info!("saving execution info");
-
-                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let benchmarking_data = aggregate_executions(executions);
-
-                let average_time = execution_time.div_f32(number_of_runs as f32);
 
                 let file = std::fs::File::create(output).unwrap();
                 serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
 
-                info!(
-                    tx = tx,
-                    block = block.0,
-                    number_of_runs,
-                    total_run_time = execution_time.as_secs_f64(),
-                    average_run_time = average_time.as_secs_f64(),
-                    "benchmark finished",
-                );
+                info!("benchmark finished",);
             }
         }
         #[cfg(feature = "block-composition")]

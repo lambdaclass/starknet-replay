@@ -28,6 +28,7 @@ use starknet_api::{
     hash::StarkHash,
     transaction::TransactionHash,
 };
+use tracing::info;
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcCachedStateReader>>,
@@ -91,13 +92,15 @@ pub fn fetch_block_range_data(
 /// Can also be used to fill up the cache
 pub fn execute_block_range(
     block_range_data: &mut Vec<BlockCachedData>,
-) -> Vec<(BlockNumber, Vec<TransactionExecutionOutput>)> {
-    let mut blocks = Vec::new();
-
+    benchmarking_data: Option<&mut BenchmarkingData>,
+) {
     for (state, block_context, transactions) in block_range_data {
         // For each block
 
-        let mut executions = Vec::new();
+        let mut txs = Vec::new();
+
+        let block = block_context.block_info().block_number.0;
+        info!(block = block, "starting block execution");
 
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
@@ -110,16 +113,20 @@ pub fn execute_block_range(
             let Ok(execution) = execution else { continue };
             let execution_time = pre_execution_instant.elapsed();
 
-            executions.push((Transaction::tx_hash(transaction), execution, execution_time));
+            txs.push((Transaction::tx_hash(transaction), execution, execution_time));
         }
 
-        blocks.push((block_context.block_info().block_number, executions));
+        if let Some(&mut ref mut benchmarking_data) = benchmarking_data {
+            aggregate_block(
+                benchmarking_data,
+                block_context.block_info().block_number,
+                txs,
+            );
+        }
     }
-
-    blocks
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct BenchmarkingData {
     pub transactions: Vec<TransactionExecutionData>,
     pub calls: Vec<ClassExecutionData>,
@@ -145,49 +152,41 @@ pub struct TransactionExecutionData {
     block_number: u64,
 }
 
-pub fn aggregate_executions(
-    executions: Vec<(BlockNumber, Vec<TransactionExecutionOutput>)>,
-) -> BenchmarkingData {
-    let mut calls = vec![];
-    let mut transactions = vec![];
+pub fn aggregate_block(
+    data: &mut BenchmarkingData,
+    block: BlockNumber,
+    txs: Vec<TransactionExecutionOutput>,
+) {
+    for (hash, execution, time) in txs {
+        let first_class_index = data.calls.len();
 
-    for (block_number, executions) in executions {
-        for (hash, execution, time) in executions {
-            let first_class_index = calls.len();
+        let mut gas_consumed = 0;
+        let mut steps = 0;
 
-            let mut gas_consumed = 0;
-            let mut steps = 0;
-
-            if let Some(call) = execution.validate_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
-            }
-            if let Some(call) = execution.execute_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
-            }
-            if let Some(call) = execution.fee_transfer_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
-            }
-
-            transactions.push(TransactionExecutionData {
-                hash,
-                time_ns: time.as_nanos(),
-                first_call: first_class_index,
-                gas_consumed,
-                steps,
-                block_number: block_number.0,
-            });
+        if let Some(call) = execution.validate_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
+            data.calls.append(&mut get_calls(call));
         }
-    }
+        if let Some(call) = execution.execute_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
+            data.calls.append(&mut get_calls(call));
+        }
+        if let Some(call) = execution.fee_transfer_call_info {
+            gas_consumed += call.execution.gas_consumed;
+            steps += call.resources.n_steps as u64;
+            data.calls.append(&mut get_calls(call));
+        }
 
-    BenchmarkingData {
-        transactions,
-        calls,
+        data.transactions.push(TransactionExecutionData {
+            hash,
+            time_ns: time.as_nanos(),
+            first_call: first_class_index,
+            gas_consumed,
+            steps,
+            block_number: block.0,
+        });
     }
 }
 

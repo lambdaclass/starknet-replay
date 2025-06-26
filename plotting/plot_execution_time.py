@@ -695,7 +695,8 @@ def plot_block_speedup(df_txs: DataFrame):
     )
 
 
-args.output_dir.mkdir(parents=True, exist_ok=True)
+if args.output_dir:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
 plot_pure_transactions(df_txs)
 plot_time_by_gas(df_calls)
