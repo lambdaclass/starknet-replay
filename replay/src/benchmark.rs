@@ -28,6 +28,7 @@ use starknet_api::{
     hash::StarkHash,
     transaction::TransactionHash,
 };
+use tracing::info;
 
 pub type BlockCachedData = (
     CachedState<OptionalStateReader<RpcCachedStateReader>>,
@@ -97,6 +98,9 @@ pub fn execute_block_range(
         // For each block
 
         let mut txs = Vec::new();
+
+        let block = block_context.block_info().block_number.0;
+        info!(block = block, "starting block execution");
 
         // The transactional state is used to execute a transaction while discarding state changes applied to it.
         let mut transactional_state = CachedState::create_transactional(state);
