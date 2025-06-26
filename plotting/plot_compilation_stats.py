@@ -1,5 +1,4 @@
 from yattag import Doc
-import itertools
 import re
 import json
 import pathlib
@@ -200,8 +199,8 @@ def plot_time(df: pd.DataFrame):
         "\n".join(
             [
                 f"Count: {count}",
-                f"Mean: {mean_time:.2f}s",
-                f"Median: {median_time:.2f}s",
+                f"Mean: {mean_time:.2f} s",
+                f"Median: {median_time:.2f} s",
                 f"Std Dev: {stddev_time:.2f}",
             ]
         ),
@@ -224,7 +223,7 @@ def plot_size(df: pd.DataFrame):
 
     sns.boxplot(df, x=size, ax=ax, showfliers=False, width=0.5)
     ax.set_title("Compiled Contract Size Distribution")
-    ax.set_xlabel("Compilation Size (KiB)")
+    ax.set_xlabel("Compiled Contract Size (KiB)")
 
     count = size.count()
     mean_time = size.mean()
@@ -237,8 +236,8 @@ def plot_size(df: pd.DataFrame):
         "\n".join(
             [
                 f"Count: {count}",
-                f"Mean: {mean_time:.2f}KiB",
-                f"Median: {median_time:.2f}KiB",
+                f"Mean: {mean_time:.2f} KiB",
+                f"Median: {median_time:.2f} KiB",
                 f"Std Dev: {stddev_time:.2f}",
             ]
         ),
@@ -258,10 +257,13 @@ def plot_size_to_time(df: pd.DataFrame):
     fig, ax = plt.subplots()
     fig.subplots_adjust(hspace=0.3)
 
-    sns.regplot(df, ax=ax, x="sierra_statement_count", y="compilation_total_time_ms")
+    sierra_statement_count: pd.Series = df["sierra_statement_count"]  # type: ignore
+    compilation_total_time: pd.Series = df["compilation_total_time_ms"] / 1e3  # type: ignore
+
+    sns.regplot(df, ax=ax, x=sierra_statement_count, y=compilation_total_time)
     ax.set_title("Sierra Size vs. Compilation Time")
     ax.set_xlabel("Sierra Statement Count")
-    ax.set_ylabel("Compilation Time (ms)")
+    ax.set_ylabel("Compilation Time (s)")
 
     save_figure(
         "Sierra Size vs. Compilation Time",
@@ -273,14 +275,17 @@ def plot_size_to_size(df: pd.DataFrame):
     fig, ax = plt.subplots()
     fig.subplots_adjust(hspace=0.3)
 
-    sns.regplot(df, ax=ax, x="sierra_statement_count", y="object_size_bytes")
-    ax.set_title("Sierra Size vs. Object Size")
+    sierra_statement_count: pd.Series = df["sierra_statement_count"]  # type: ignore
+    object_size: pd.Series = df["object_size_bytes"] / 2**10  # type: ignore
+
+    sns.regplot(df, ax=ax, x=sierra_statement_count, y=object_size)
+    ax.set_title("Sierra Size vs. Compiled Contract Size")
     ax.set_xlabel("Sierra Statement Count")
-    ax.set_ylabel("Compiled Object Size (Bytes)")
+    ax.set_ylabel("Compiled Contract Size (KiB)")
 
     save_figure(
-        "Sierra Size vs. Object Size",
-        "Correlates the Sierra size with the compiled object size.",
+        "Sierra Size vs. Compiled Contract Size",
+        "Correlates the Sierra size with the compiled contract size.",
     )
 
 
