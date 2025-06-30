@@ -9,8 +9,9 @@ use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
     core::{ChainId, ClassHash},
+    transaction::TransactionHash,
 };
-use starknet_core::types::{BlockWithTxHashes, ContractClass};
+use starknet_core::types::{BlockWithTxHashes, ContractClass, Transaction};
 use starknet_gateway::rpc_objects::{
     RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
     RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
@@ -125,6 +126,15 @@ impl RemoteReader {
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
+
+    pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, RemoteReaderError> {
+        let params = json!([hash]);
+
+        let response = self.send_rpc_request("starknet_getTransactionByHash", params)?;
+        dbg!(&response);
+        let result = serde_json::from_value(response)?;
+        Ok(result)
+    }
 }
 
 pub fn url_from_env(chain: ChainId) -> String {
@@ -141,8 +151,10 @@ pub fn url_from_env(chain: ChainId) -> String {
 
 #[cfg(test)]
 mod tests {
-    use starknet_api::{block::BlockNumber, class_hash, core::ChainId};
-    use starknet_core::types::{BlockStatus, ContractClass};
+    use starknet_api::{
+        block::BlockNumber, class_hash, core::ChainId, felt, transaction::TransactionHash, tx_hash,
+    };
+    use starknet_core::types::{BlockStatus, ContractClass, InvokeTransaction, Transaction};
 
     use super::{url_from_env, RemoteReader};
 
@@ -173,5 +185,23 @@ mod tests {
 
         assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(block.transactions.len(), 22);
+    }
+
+    #[test]
+    pub fn get_tx() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url, BlockNumber(1500000));
+
+        let tx = reader
+            .get_tx(&TransactionHash(felt!(
+                "0x04762bb00f9c71c748744d1d797ccd15396c22383a9fb40726e779a3322bbb64"
+            )))
+            .unwrap();
+
+        let Transaction::Invoke(InvokeTransaction::V1(tx)) = tx else {
+            panic!("expected invoke 0x1 transaction")
+        };
+        assert_eq!(tx.max_fee, felt!("0x347e4e1c17e48"));
+        assert_eq!(tx.nonce, felt!("0xa"));
     }
 }
