@@ -152,7 +152,7 @@ pub fn url_from_env(chain: ChainId) -> String {
 #[cfg(test)]
 mod tests {
     use starknet_api::{
-        block::BlockNumber, class_hash, core::ChainId, felt, transaction::TransactionHash, tx_hash,
+        block::BlockNumber, class_hash, core::ChainId, felt, transaction::TransactionHash,
     };
     use starknet_core::types::{BlockStatus, ContractClass, InvokeTransaction, Transaction};
 
