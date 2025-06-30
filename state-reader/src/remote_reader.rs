@@ -45,18 +45,13 @@ pub enum RemoteReaderError {
 pub struct RemoteReader {
     client: Client,
     url: String,
-    block_number: BlockNumber,
 }
 
 impl RemoteReader {
-    pub fn new(url: String, block_number: BlockNumber) -> Self {
+    pub fn new(url: String) -> Self {
         let client = Client::new();
 
-        Self {
-            client,
-            url,
-            block_number,
-        }
+        Self { client, url }
     }
 
     pub fn send_rpc_request(
@@ -104,11 +99,12 @@ impl RemoteReader {
 
     pub fn get_contract_class(
         &self,
+        block_number: BlockNumber,
         class_hash: &ClassHash,
     ) -> Result<ContractClass, RemoteReaderError> {
         let params = json!({
             "block_id": {
-                "block_number": self.block_number,
+                "block_number": block_number,
             },
             "class_hash": class_hash.to_hex_string(),
         });
@@ -119,10 +115,13 @@ impl RemoteReader {
         Ok(result)
     }
 
-    pub fn get_block_with_tx_hashes(&self) -> Result<BlockWithTxHashes, RemoteReaderError> {
+    pub fn get_block_with_tx_hashes(
+        &self,
+        block_number: BlockNumber,
+    ) -> Result<BlockWithTxHashes, RemoteReaderError> {
         let params = json!({
             "block_id": {
-                "block_number": self.block_number,
+                "block_number": block_number,
             },
         });
 
@@ -154,12 +153,13 @@ impl RemoteReader {
 
     pub fn get_storage_at(
         &self,
+        block_number: BlockNumber,
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> Result<Felt, RemoteReaderError> {
         let params = json!({
             "block_id": {
-                "block_number": self.block_number,
+                "block_number": block_number,
             },
             "contract_address": contract_address,
             "key": key,
@@ -176,11 +176,12 @@ impl RemoteReader {
 
     pub fn get_nonce_at(
         &self,
+        block_number: BlockNumber,
         contract_address: ContractAddress,
     ) -> Result<Nonce, RemoteReaderError> {
         let params = json!({
             "block_id": {
-                "block_number": self.block_number,
+                "block_number": block_number,
             },
             "contract_address": contract_address,
         });
@@ -196,11 +197,12 @@ impl RemoteReader {
 
     pub fn get_class_hash_at(
         &self,
+        block_number: BlockNumber,
         contract_address: ContractAddress,
     ) -> Result<ClassHash, RemoteReaderError> {
         let params = json!({
             "block_id": {
-                "block_number": self.block_number,
+                "block_number": block_number,
             },
             "contract_address": contract_address,
         });
@@ -251,12 +253,13 @@ mod tests {
     #[test]
     pub fn get_contract_class() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let contract_class = reader
-            .get_contract_class(&class_hash!(
-                "0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"
-            ))
+            .get_contract_class(
+                BlockNumber(1500000),
+                &class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
+            )
             .unwrap();
 
         let ContractClass::Sierra(contract_class) = contract_class else {
@@ -269,9 +272,11 @@ mod tests {
     #[test]
     pub fn get_block_with_tx_hashes() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
-        let block = reader.get_block_with_tx_hashes().unwrap();
+        let block = reader
+            .get_block_with_tx_hashes(BlockNumber(1500000))
+            .unwrap();
 
         assert_eq!(block.status, BlockStatus::AcceptedOnL1);
         assert_eq!(block.transactions.len(), 22);
@@ -280,7 +285,7 @@ mod tests {
     #[test]
     pub fn get_tx() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let tx = reader
             .get_tx(&TransactionHash(felt!(
@@ -298,7 +303,7 @@ mod tests {
     #[test]
     pub fn get_tx_receipt() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let tx_receipt = reader
             .get_tx_receipt(&TransactionHash(felt!(
@@ -316,10 +321,11 @@ mod tests {
     #[test]
     pub fn get_storage_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let value = reader
             .get_storage_at(
+                BlockNumber(1500000),
                 contract_address!(
                     "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
                 ),
@@ -336,12 +342,15 @@ mod tests {
     #[test]
     pub fn get_nonce_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let value = reader
-            .get_nonce_at(contract_address!(
-                "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
-            ))
+            .get_nonce_at(
+                BlockNumber(1500000),
+                contract_address!(
+                    "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
+                ),
+            )
             .unwrap();
 
         assert_eq!(value, Nonce(felt!("0x7d080")));
@@ -350,12 +359,15 @@ mod tests {
     #[test]
     pub fn get_class_hash_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url, BlockNumber(1500000));
+        let reader = RemoteReader::new(url);
 
         let value = reader
-            .get_class_hash_at(contract_address!(
-                "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
-            ))
+            .get_class_hash_at(
+                BlockNumber(1500000),
+                contract_address!(
+                    "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
+                ),
+            )
             .unwrap();
 
         assert_eq!(
