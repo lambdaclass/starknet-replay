@@ -7675,6 +7675,7 @@ name = "state-reader"
 version = "0.1.0"
 dependencies = [
  "blockifier",
+ "cairo-lang-starknet-classes",
  "cairo-native",
  "cairo-vm",
  "flate2",

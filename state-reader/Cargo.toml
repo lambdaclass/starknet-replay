@@ -3,6 +3,9 @@ name = "state-reader"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+with-comp-stats = []
+
 [dependencies]
 
 blockifier.workspace = true
@@ -18,3 +21,4 @@ starknet_gateway.workspace = true
 flate2 = "1.0.25"
 cairo-vm = "2.0.1"
 cairo-native.workspace = true
+cairo-lang-starknet-classes.workspace = true
