@@ -11,7 +11,7 @@ use starknet_api::{
     core::{ChainId, ClassHash},
     transaction::TransactionHash,
 };
-use starknet_core::types::{BlockWithTxHashes, ContractClass, Transaction};
+use starknet_core::types::{BlockWithTxHashes, ContractClass, Transaction, TransactionReceipt};
 use starknet_gateway::rpc_objects::{
     RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
     RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
@@ -135,6 +135,18 @@ impl RemoteReader {
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
+
+    pub fn get_tx_receipt(
+        &self,
+        hash: &TransactionHash,
+    ) -> Result<TransactionReceipt, RemoteReaderError> {
+        let params = json!([hash]);
+
+        let response = self.send_rpc_request("starknet_getTransactionReceipt", params)?;
+        dbg!(&response);
+        let result = serde_json::from_value(response)?;
+        Ok(result)
+    }
 }
 
 pub fn url_from_env(chain: ChainId) -> String {
@@ -154,7 +166,9 @@ mod tests {
     use starknet_api::{
         block::BlockNumber, class_hash, core::ChainId, felt, transaction::TransactionHash,
     };
-    use starknet_core::types::{BlockStatus, ContractClass, InvokeTransaction, Transaction};
+    use starknet_core::types::{
+        BlockStatus, ContractClass, InvokeTransaction, Transaction, TransactionReceipt,
+    };
 
     use super::{url_from_env, RemoteReader};
 
@@ -203,5 +217,23 @@ mod tests {
         };
         assert_eq!(tx.max_fee, felt!("0x347e4e1c17e48"));
         assert_eq!(tx.nonce, felt!("0xa"));
+    }
+
+    #[test]
+    pub fn get_tx_receipt() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url, BlockNumber(1500000));
+
+        let tx_receipt = reader
+            .get_tx_receipt(&TransactionHash(felt!(
+                "0x04762bb00f9c71c748744d1d797ccd15396c22383a9fb40726e779a3322bbb64"
+            )))
+            .unwrap();
+
+        let TransactionReceipt::Invoke(tx_receipt) = tx_receipt else {
+            panic!("expected invoke transaction receipt")
+        };
+        assert_eq!(tx_receipt.messages_sent.len(), 0);
+        assert_eq!(tx_receipt.events.len(), 6);
     }
 }
