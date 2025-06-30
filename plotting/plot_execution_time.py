@@ -368,7 +368,7 @@ def plot_tx_speedup(df_txs: DataFrame):
 
     save_figure(
         "Tx Speedup Distribution",
-        "Calculates the distribution of speedup by transactions.",
+        "Calculates the distribution of speedup by transactions. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
     )
 
 
@@ -501,7 +501,7 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     save_figure(
         "Execution Time by Gas Usage",
-        "Correlates call execution time with gas usage. The scale is in log-log.",
+        "Compares call execution time with gas usage. The scale is in log-log.",
     )
 
 
@@ -691,7 +691,7 @@ def plot_block_speedup(df_txs: DataFrame):
     save_csv(df_blocks, "Blocks")
     save_figure(
         "Block Speedup Distribution",
-        "Calculates the distribution of speedup by blocks.",
+        "Calculates the distribution of speedup by blocks. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
     )
 
 
