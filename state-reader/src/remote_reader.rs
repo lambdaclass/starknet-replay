@@ -197,7 +197,7 @@ impl RemoteReader {
     pub fn get_class_hash_at(
         &self,
         contract_address: ContractAddress,
-    ) -> Result<Felt, RemoteReaderError> {
+    ) -> Result<ClassHash, RemoteReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": self.block_number,
@@ -209,7 +209,7 @@ impl RemoteReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(RemoteReaderError::ContractAddressNotFound) => Ok(ClassHash::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -360,7 +360,7 @@ mod tests {
 
         assert_eq!(
             value,
-            felt!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+            class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
         );
     }
 }
