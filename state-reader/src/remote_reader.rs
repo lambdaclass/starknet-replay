@@ -10,7 +10,7 @@ use starknet_api::{
     block::BlockNumber,
     core::{ChainId, ClassHash},
 };
-use starknet_core::types::ContractClass;
+use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_gateway::rpc_objects::{
     RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
     RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
@@ -113,6 +113,18 @@ impl RemoteReader {
 
         Ok(result)
     }
+
+    pub fn get_block_with_tx_hashes(&self) -> Result<BlockWithTxHashes, RemoteReaderError> {
+        let params = json!({
+            "block_id": {
+                "block_number": self.block_number,
+            },
+        });
+
+        let response = self.send_rpc_request("starknet_getBlockWithTxHashes", params)?;
+        let result = serde_json::from_value(response)?;
+        Ok(result)
+    }
 }
 
 pub fn url_from_env(chain: ChainId) -> String {
@@ -130,7 +142,7 @@ pub fn url_from_env(chain: ChainId) -> String {
 #[cfg(test)]
 mod tests {
     use starknet_api::{block::BlockNumber, class_hash, core::ChainId};
-    use starknet_core::types::ContractClass;
+    use starknet_core::types::{BlockStatus, ContractClass};
 
     use super::{url_from_env, RemoteReader};
 
@@ -150,5 +162,16 @@ mod tests {
         };
         assert_eq!(contract_class.contract_class_version, "0.1.0");
         assert_eq!(contract_class.sierra_program.len(), 7059);
+    }
+
+    #[test]
+    pub fn get_block_with_tx_hashes() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url, BlockNumber(1500000));
+
+        let block = reader.get_block_with_tx_hashes().unwrap();
+
+        assert_eq!(block.status, BlockStatus::AcceptedOnL1);
+        assert_eq!(block.transactions.len(), 22);
     }
 }
