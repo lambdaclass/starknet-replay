@@ -4,11 +4,12 @@
 
 use std::env;
 
+use blockifier::state::errors::StateError;
 use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
-    core::{ChainId, ClassHash, ContractAddress},
+    core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::TransactionHash,
 };
@@ -176,7 +177,7 @@ impl RemoteReader {
     pub fn get_nonce_at(
         &self,
         contract_address: ContractAddress,
-    ) -> Result<Felt, RemoteReaderError> {
+    ) -> Result<Nonce, RemoteReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": self.block_number,
@@ -188,7 +189,7 @@ impl RemoteReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Nonce::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -214,6 +215,12 @@ impl RemoteReader {
     }
 }
 
+impl Into<StateError> for RemoteReaderError {
+    fn into(self) -> StateError {
+        StateError::StateReadError(self.to_string())
+    }
+}
+
 pub fn url_from_env(chain: ChainId) -> String {
     match chain {
         ChainId::Mainnet => {
@@ -229,7 +236,10 @@ pub fn url_from_env(chain: ChainId) -> String {
 #[cfg(test)]
 mod tests {
     use starknet_api::{
-        block::BlockNumber, class_hash, contract_address, core::ChainId, felt, storage_key,
+        block::BlockNumber,
+        class_hash, contract_address,
+        core::{ChainId, Nonce},
+        felt, storage_key,
         transaction::TransactionHash,
     };
     use starknet_core::types::{
@@ -334,7 +344,7 @@ mod tests {
             ))
             .unwrap();
 
-        assert_eq!(value, felt!("0x7d080"));
+        assert_eq!(value, Nonce(felt!("0x7d080")));
     }
 
     #[test]
