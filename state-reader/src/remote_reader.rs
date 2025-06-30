@@ -172,6 +172,26 @@ impl RemoteReader {
             Err(err) => Err(err)?,
         }
     }
+
+    pub fn get_nonce_at(
+        &self,
+        contract_address: ContractAddress,
+    ) -> Result<Felt, RemoteReaderError> {
+        let params = json!({
+            "block_id": {
+                "block_number": self.block_number,
+            },
+            "contract_address": contract_address,
+        });
+
+        let response = self.send_rpc_request("starknet_getNonce", params);
+
+        match response {
+            Ok(response) => Ok(serde_json::from_value(response)?),
+            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(err) => Err(err)?,
+        }
+    }
 }
 
 pub fn url_from_env(chain: ChainId) -> String {
@@ -281,5 +301,19 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+    }
+
+    #[test]
+    pub fn get_nonce_at() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url, BlockNumber(1500000));
+
+        let value = reader
+            .get_nonce_at(contract_address!(
+                "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
+            ))
+            .unwrap();
+
+        assert_eq!(value, felt!("0x7d080"));
     }
 }
