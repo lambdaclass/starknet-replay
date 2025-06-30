@@ -7645,6 +7645,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 3.13.0",
+ "starknet-core 0.6.1",
  "starknet-types-core",
  "starknet_api",
  "starknet_gateway",
