@@ -8,10 +8,13 @@ use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
-    core::{ChainId, ClassHash},
+    core::{ChainId, ClassHash, ContractAddress},
+    state::StorageKey,
     transaction::TransactionHash,
 };
-use starknet_core::types::{BlockWithTxHashes, ContractClass, Transaction, TransactionReceipt};
+use starknet_core::types::{
+    BlockWithTxHashes, ContractClass, Felt, Transaction, TransactionReceipt,
+};
 use starknet_gateway::rpc_objects::{
     RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
     RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
@@ -147,6 +150,28 @@ impl RemoteReader {
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
+
+    pub fn get_storage_at(
+        &self,
+        contract_address: ContractAddress,
+        key: StorageKey,
+    ) -> Result<Felt, RemoteReaderError> {
+        let params = json!({
+            "block_id": {
+                "block_number": self.block_number,
+            },
+            "contract_address": contract_address,
+            "key": key,
+        });
+
+        let response = self.send_rpc_request("starknet_getStorageAt", params);
+
+        match response {
+            Ok(response) => Ok(serde_json::from_value(response)?),
+            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(err) => Err(err)?,
+        }
+    }
 }
 
 pub fn url_from_env(chain: ChainId) -> String {
@@ -164,7 +189,8 @@ pub fn url_from_env(chain: ChainId) -> String {
 #[cfg(test)]
 mod tests {
     use starknet_api::{
-        block::BlockNumber, class_hash, core::ChainId, felt, transaction::TransactionHash,
+        block::BlockNumber, class_hash, contract_address, core::ChainId, felt, storage_key,
+        transaction::TransactionHash,
     };
     use starknet_core::types::{
         BlockStatus, ContractClass, InvokeTransaction, Transaction, TransactionReceipt,
@@ -235,5 +261,25 @@ mod tests {
         };
         assert_eq!(tx_receipt.messages_sent.len(), 0);
         assert_eq!(tx_receipt.events.len(), 6);
+    }
+
+    #[test]
+    pub fn get_storage_at() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url, BlockNumber(1500000));
+
+        let value = reader
+            .get_storage_at(
+                contract_address!(
+                    "0x055e557a4c975059522a1321d7a7bd215287450907419e5f8aa98145c7699a2c"
+                ),
+                storage_key!("0x01ccc09c8a19948e048de7add6929589945e25f22059c7345aaf7837188d8d05"),
+            )
+            .unwrap();
+
+        assert_eq!(
+            value,
+            felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
+        );
     }
 }
