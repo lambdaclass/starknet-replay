@@ -1,0 +1,16 @@
+[package]
+name = "state-reader"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+blockifier.workspace = true
+starknet_api.workspace = true
+starknet-types-core.workspace = true
+reqwest = { version = "0.12.20", features = ["blocking"] }
+serde_json.workspace = true
+serde_with.workspace = true
+serde.workspace = true
+thiserror = "2.0.12"
+starknet_gateway.workspace = true
