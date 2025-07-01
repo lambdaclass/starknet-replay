@@ -2,7 +2,7 @@
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.
 
-use std::env;
+use std::{env, string::FromUtf8Error};
 
 use blockifier::state::errors::StateError;
 use reqwest::{blocking::Client, StatusCode};
@@ -40,6 +40,10 @@ pub enum RemoteReaderError {
     ReqwestError(#[from] reqwest::Error),
     #[error(transparent)]
     ParseError(#[from] serde_json::Error),
+    #[error(transparent)]
+    FromHexError(#[from] hex::FromHexError),
+    #[error(transparent)]
+    FromUtf8Error(#[from] FromUtf8Error),
 }
 
 pub struct RemoteReader {
@@ -215,6 +219,20 @@ impl RemoteReader {
             Err(err) => Err(err)?,
         }
     }
+
+    pub fn get_chain_id(&self) -> Result<ChainId, RemoteReaderError> {
+        let params = json!([]);
+
+        let response = self.send_rpc_request("starknet_chainId", params)?;
+
+        let chain_id_hex: String = serde_json::from_value(response)?;
+        let chain_id_hex = chain_id_hex.strip_prefix("0x").unwrap_or(&chain_id_hex);
+
+        let chain_id_bytes = hex::decode(chain_id_hex)?;
+        let chain_id_string = String::from_utf8(chain_id_bytes)?;
+
+        Ok(ChainId::from(chain_id_string))
+    }
 }
 
 impl Into<StateError> for RemoteReaderError {
@@ -374,5 +392,18 @@ mod tests {
             value,
             class_hash!("0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
         );
+    }
+
+    #[test]
+    pub fn get_chain_id() {
+        let url = url_from_env(ChainId::Mainnet);
+        let reader = RemoteReader::new(url);
+        let value = reader.get_chain_id().unwrap();
+        assert_eq!(value, ChainId::Mainnet);
+
+        let url = url_from_env(ChainId::Sepolia);
+        let reader = RemoteReader::new(url);
+        let value = reader.get_chain_id().unwrap();
+        assert_eq!(value, ChainId::Sepolia);
     }
 }
