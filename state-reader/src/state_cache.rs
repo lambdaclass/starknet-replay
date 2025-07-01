@@ -35,7 +35,7 @@ pub struct RemoteCache {
 }
 
 impl RemoteCache {
-    pub fn new() -> Self {
+    pub fn load() -> Self {
         let cache_path = format!("cache/rpc.json");
         let lockfile_path = format!("{}.lock", cache_path);
 
@@ -65,6 +65,58 @@ impl RemoteCache {
         cache
     }
 
+    pub fn merge(&mut self, other: RemoteCache) {
+        if other.chain_id.is_some() {
+            if self.chain_id.is_some() {
+                assert_eq!(other.chain_id, self.chain_id)
+            } else {
+                self.chain_id = other.chain_id;
+            }
+        }
+        other.blocks.into_iter().for_each(|(k, v)| {
+            let old = self.blocks.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.transactions.into_iter().for_each(|(k, v)| {
+            let old = self.transactions.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.transaction_receipts.into_iter().for_each(|(k, v)| {
+            let old = self.transaction_receipts.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.contract_classes.into_iter().for_each(|(k, v)| {
+            let old = self.contract_classes.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.nonces.into_iter().for_each(|(k, v)| {
+            let old = self.nonces.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.class_hashes.into_iter().for_each(|(k, v)| {
+            let old = self.class_hashes.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+        other.storage.into_iter().for_each(|(k, v)| {
+            let old = self.storage.insert(k, v.clone());
+            if let Some(old) = old {
+                assert_eq!(old, v)
+            }
+        });
+    }
+
     pub fn save(&mut self) {
         let cache_path = format!("cache/rpc.json");
 
@@ -78,8 +130,9 @@ impl RemoteCache {
         let lockfile = lockfile.expect("failed to take lock");
 
         if let Ok(file) = File::open(&cache_path) {
-            let _existing_cache: RemoteCache =
+            let existing_cache: RemoteCache =
                 serde_json::from_reader(file).expect("failed to read cache");
+            self.merge(existing_cache);
         }
 
         let mut file = File::create(&cache_path).expect("failed to create cache file");

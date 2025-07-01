@@ -54,7 +54,7 @@ impl StateManager {
     pub fn new(remote_reader: RemoteReader) -> Self {
         Self {
             remote_reader,
-            cache: RemoteCache::new(),
+            cache: RemoteCache::load(),
         }
     }
 
