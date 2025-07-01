@@ -6181,6 +6181,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "blockifier",
+ "blockifier_reexecution",
  "cairo-lang-sierra",
  "cairo-native",
  "chrono",
@@ -6190,8 +6191,10 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with 3.13.0",
+ "starknet-core 0.14.0",
  "starknet-types-core",
  "starknet_api",
+ "state-reader",
  "tracing",
  "tracing-subscriber",
 ]
@@ -7675,6 +7678,7 @@ name = "state-reader"
 version = "0.1.0"
 dependencies = [
  "blockifier",
+ "blockifier_reexecution",
  "cairo-lang-starknet-classes",
  "cairo-native",
  "cairo-vm",

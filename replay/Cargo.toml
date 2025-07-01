@@ -26,6 +26,9 @@ profiling = []
 # starknet specific crates
 blockifier = { workspace = true }
 rpc-state-reader = { path = "../rpc-state-reader" }
+state-reader = { path = "../state-reader" }
+starknet-core = "0.14.0"
+blockifier_reexecution = { workspace = true }
 starknet_api = { workspace = true }
 starknet-types-core = { workspace = true, optional = true }
 cairo-native = { workspace = true }
