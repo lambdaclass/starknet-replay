@@ -45,6 +45,8 @@ use std::sync::Arc;
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
 
+mod execution;
+
 #[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
