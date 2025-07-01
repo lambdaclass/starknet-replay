@@ -9,7 +9,7 @@ use remote_reader::{RemoteReader, RemoteReaderError};
 use starknet_api::{
     block::BlockNumber,
     contract_class::{ClassInfo, ContractClass as CompiledContractClass, SierraVersion},
-    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
+    core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
     StarknetApiError,
@@ -18,20 +18,15 @@ use starknet_api::{
 use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
-use blockifier::{
-    execution::contract_class::RunnableCompiledClass,
-    state::{
-        errors::StateError,
-        state_api::{StateReader, StateResult},
-    },
-};
-use state_cache::RemoteCache;
+use blockifier::execution::contract_class::RunnableCompiledClass;
+use remote_cache::RemoteCache;
 use thiserror::Error;
 
+pub mod block_state_reader;
 pub mod compiler;
 pub mod objects;
+pub mod remote_cache;
 pub mod remote_reader;
-pub mod state_cache;
 
 #[derive(Debug, Error)]
 pub enum StateManagerError {
@@ -47,55 +42,62 @@ pub enum StateManagerError {
 
 pub struct StateManager {
     remote_reader: RemoteReader,
-    cache: RemoteCache,
+    cache: RefCell<RemoteCache>,
 }
 
 impl StateManager {
     pub fn new(remote_reader: RemoteReader) -> Self {
         Self {
             remote_reader,
-            cache: RemoteCache::load(),
+            cache: RefCell::new(RemoteCache::load()),
         }
     }
 
     pub fn get_block(
-        &mut self,
+        &self,
         block_number: BlockNumber,
     ) -> Result<BlockWithTxHashes, StateManagerError> {
-        if let Some(result) = self.cache.blocks.get(&block_number) {
+        if let Some(result) = self.cache.borrow().blocks.get(&block_number) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
-        self.cache.blocks.insert(block_number, result.clone());
+        self.cache
+            .borrow_mut()
+            .blocks
+            .insert(block_number, result.clone());
 
         Ok(result)
     }
 
-    pub fn get_tx(&mut self, tx_hash: TransactionHash) -> Result<Transaction, StateManagerError> {
-        if let Some(result) = self.cache.transactions.get(&tx_hash) {
+    pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, StateManagerError> {
+        if let Some(result) = self.cache.borrow().transactions.get(&tx_hash) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx(&tx_hash)?;
 
-        self.cache.transactions.insert(tx_hash, result.clone());
+        self.cache
+            .borrow_mut()
+            .transactions
+            .insert(tx_hash, result.clone());
 
         Ok(result)
     }
 
     pub fn get_tx_receipt(
-        &mut self,
+        &self,
         tx_hash: TransactionHash,
     ) -> Result<RpcTransactionReceipt, StateManagerError> {
-        if let Some(result) = self.cache.transaction_receipts.get(&tx_hash) {
+        if let Some(result) = self.cache.borrow().transaction_receipts.get(&tx_hash) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
 
         self.cache
+            .borrow_mut()
             .transaction_receipts
             .insert(tx_hash, result.clone());
 
@@ -103,16 +105,17 @@ impl StateManager {
     }
 
     pub fn get_storage_at(
-        &mut self,
+        &self,
         block_number: BlockNumber,
 
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> Result<Felt, StateManagerError> {
-        if let Some(result) = self
-            .cache
-            .storage
-            .get(&(block_number, contract_address, key))
+        if let Some(result) =
+            self.cache
+                .borrow()
+                .storage
+                .get(&(block_number, contract_address, key))
         {
             return Ok(result.clone());
         }
@@ -122,6 +125,7 @@ impl StateManager {
             .get_storage_at(block_number, contract_address, key)?;
 
         self.cache
+            .borrow_mut()
             .storage
             .insert((block_number, contract_address, key), result.clone());
 
@@ -129,11 +133,16 @@ impl StateManager {
     }
 
     pub fn get_nonce_at(
-        &mut self,
+        &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
     ) -> Result<Nonce, StateManagerError> {
-        if let Some(result) = self.cache.nonces.get(&(block_number, contract_address)) {
+        if let Some(result) = self
+            .cache
+            .borrow()
+            .nonces
+            .get(&(block_number, contract_address))
+        {
             return Ok(result.clone());
         }
 
@@ -142,6 +151,7 @@ impl StateManager {
             .get_nonce_at(block_number, contract_address)?;
 
         self.cache
+            .borrow_mut()
             .nonces
             .insert((block_number, contract_address), result.clone());
 
@@ -149,12 +159,13 @@ impl StateManager {
     }
 
     pub fn get_class_hash_at(
-        &mut self,
+        &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
     ) -> Result<ClassHash, StateManagerError> {
         if let Some(result) = self
             .cache
+            .borrow()
             .class_hashes
             .get(&(block_number, contract_address))
         {
@@ -166,6 +177,7 @@ impl StateManager {
             .get_class_hash_at(block_number, contract_address)?;
 
         self.cache
+            .borrow_mut()
             .class_hashes
             .insert((block_number, contract_address), result.clone());
 
@@ -173,11 +185,11 @@ impl StateManager {
     }
 
     pub fn get_contract_class(
-        &mut self,
+        &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<ContractClass, StateManagerError> {
-        if let Some(result) = self.cache.contract_classes.get(&class_hash) {
+        if let Some(result) = self.cache.borrow().contract_classes.get(&class_hash) {
             return Ok(result.clone());
         }
 
@@ -186,6 +198,7 @@ impl StateManager {
             .get_contract_class(block_number, &class_hash)?;
 
         self.cache
+            .borrow_mut()
             .contract_classes
             .insert(class_hash, result.clone());
 
@@ -193,7 +206,7 @@ impl StateManager {
     }
 
     pub fn get_compiled_class(
-        &mut self,
+        &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<RunnableCompiledClass, StateManagerError> {
@@ -205,7 +218,7 @@ impl StateManager {
     }
 
     pub fn get_class_info(
-        &mut self,
+        &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<ClassInfo, StateManagerError> {
@@ -243,14 +256,14 @@ impl StateManager {
         })
     }
 
-    pub fn get_chain_id(&mut self) -> Result<ChainId, StateManagerError> {
-        if let Some(result) = &self.cache.chain_id {
+    pub fn get_chain_id(&self) -> Result<ChainId, StateManagerError> {
+        if let Some(result) = &self.cache.borrow().chain_id {
             return Ok(result.clone());
         }
 
         let chain_id = self.remote_reader.get_chain_id()?;
 
-        let _ = self.cache.chain_id.insert(chain_id.clone());
+        let _ = self.cache.borrow_mut().chain_id.insert(chain_id.clone());
 
         Ok(chain_id)
     }
@@ -258,64 +271,8 @@ impl StateManager {
 
 impl Drop for StateManager {
     fn drop(&mut self) {
-        self.cache.save()
+        self.cache.borrow_mut().save()
     }
-}
-
-pub struct BlockStateReader<'s> {
-    block_number: BlockNumber,
-    state_manager: &'s RefCell<StateManager>,
-}
-
-impl<'s> BlockStateReader<'s> {
-    pub fn new(block_number: BlockNumber, state_manager: &'s RefCell<StateManager>) -> Self {
-        Self {
-            block_number,
-            state_manager,
-        }
-    }
-}
-
-impl<'s> StateReader for BlockStateReader<'s> {
-    fn get_storage_at(
-        &self,
-        contract_address: ContractAddress,
-        key: StorageKey,
-    ) -> StateResult<Felt> {
-        self.state_manager
-            .borrow_mut()
-            .get_storage_at(self.block_number, contract_address, key)
-            .map_err(to_state_error)
-    }
-
-    fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
-        self.state_manager
-            .borrow_mut()
-            .get_nonce_at(self.block_number, contract_address)
-            .map_err(to_state_error)
-    }
-
-    fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        self.state_manager
-            .borrow_mut()
-            .get_class_hash_at(self.block_number, contract_address)
-            .map_err(to_state_error)
-    }
-
-    fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
-        self.state_manager
-            .borrow_mut()
-            .get_compiled_class(self.block_number, class_hash)
-            .map_err(to_state_error)
-    }
-
-    fn get_compiled_class_hash(&self, _: ClassHash) -> StateResult<CompiledClassHash> {
-        todo!()
-    }
-}
-
-pub fn to_state_error<E: std::error::Error>(error: E) -> StateError {
-    StateError::StateReadError(error.to_string())
 }
 
 #[cfg(test)]
@@ -334,7 +291,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
 
         state
             .get_compiled_class(
@@ -356,7 +313,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
 
         state
             .get_compiled_class(
@@ -378,7 +335,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
 
         state
             .get_class_info(
@@ -400,7 +357,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
 
         state
             .get_class_info(
@@ -422,7 +379,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
 
         let value = state
             .get_storage_at(
@@ -460,7 +417,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
 
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
         let value = state
             .get_storage_at(
                 BlockNumber(1500000),
@@ -478,7 +435,7 @@ mod tests {
 
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteReader::new(url);
-        let mut state = StateManager::new(remote_reader);
+        let state = StateManager::new(remote_reader);
         let value = state
             .get_storage_at(
                 BlockNumber(1500000),
