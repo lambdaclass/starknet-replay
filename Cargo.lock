@@ -7679,6 +7679,7 @@ dependencies = [
  "cairo-native",
  "cairo-vm",
  "flate2",
+ "hex",
  "reqwest 0.12.20",
  "serde",
  "serde_json",

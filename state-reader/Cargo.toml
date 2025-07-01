@@ -20,5 +20,6 @@ starknet-core = "0.14.0"
 starknet_gateway.workspace = true
 flate2 = "1.0.25"
 cairo-vm = "2.0.1"
+hex = "0.4.3"
 cairo-native.workspace = true
 cairo-lang-starknet-classes.workspace = true

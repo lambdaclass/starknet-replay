@@ -3,27 +3,26 @@ use std::{
     fs::{self, File},
     io::{self, Read},
     path::PathBuf,
-    sync::Arc,
     thread::sleep,
     time::Duration,
 };
 
 use blockifier::execution::{
-    contract_class::{
-        CompiledClassV0, CompiledClassV0Inner, CompiledClassV1, RunnableCompiledClass,
-    },
+    contract_class::{CompiledClassV0, CompiledClassV1, RunnableCompiledClass},
     native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
 };
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
-use cairo_vm::types::{errors::program_errors::ProgramError, program::Program};
+use cairo_vm::types::errors::program_errors::ProgramError;
 use starknet_api::{
-    contract_class::{EntryPointType, SierraVersion},
+    contract_class::{EntryPointType, SierraVersion, VersionedCasm},
     core::{ClassHash, EntryPointSelector},
-    deprecated_contract_class::{EntryPointOffset, EntryPointV0},
+    deprecated_contract_class::{
+        ContractClass as DeprecatedContractClass, EntryPointOffset, EntryPointV0,
+    },
     hash::StarkHash,
 };
 use starknet_core::types::{
-    CompressedLegacyContractClass, ContractClass as ProcessedContractClass, FlattenedSierraClass,
+    CompressedLegacyContractClass, ContractClass as ApiContractClass, FlattenedSierraClass,
     LegacyContractEntryPoint, LegacyEntryPointsByType,
 };
 use thiserror::Error;
@@ -53,15 +52,20 @@ pub enum ClassManagerError {
 
 pub fn compile_class(
     class_hash: &ClassHash,
-    contract_class: ProcessedContractClass,
+    contract_class: ApiContractClass,
 ) -> Result<RunnableCompiledClass, ClassManagerError> {
     Ok(match contract_class {
-        ProcessedContractClass::Legacy(legacy_class) => compile_legacy_class(legacy_class)?,
-        ProcessedContractClass::Sierra(sierra_class) => {
+        ApiContractClass::Legacy(class) => {
+            let compiled_class = decompress_v0_class(class)?;
+            RunnableCompiledClass::V0(CompiledClassV0::try_from(compiled_class)?)
+        }
+        ApiContractClass::Sierra(sierra_class) => {
             let contract_class = processed_class_to_contract_class(sierra_class)?;
-            let casm_class = compile_contract_class(contract_class.clone())?;
-            let native_executor = compile_native_class(class_hash, contract_class)?;
 
+            let versioned_casm = compile_v1_class(contract_class.clone())?;
+            let casm_class = CompiledClassV1::try_from(versioned_casm)?;
+
+            let native_executor = compile_native_class(class_hash, contract_class)?;
             let contract_executor = ContractExecutor::Aot(native_executor);
 
             RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
@@ -72,24 +76,22 @@ pub fn compile_class(
     })
 }
 
-fn compile_legacy_class(
-    legacy_class: CompressedLegacyContractClass,
-) -> Result<RunnableCompiledClass, ClassManagerError> {
-    let program_as_string = gz_decode_bytes_into_string(&legacy_class.program)?;
-    let program = Program::from_bytes(program_as_string.as_bytes(), None)?;
-    let entry_points_by_type = map_legacy_entrypoints_by_type(legacy_class.entry_points_by_type);
-    Ok(RunnableCompiledClass::V0(CompiledClassV0(Arc::new(
-        CompiledClassV0Inner {
-            program,
-            entry_points_by_type,
-        },
-    ))))
+pub fn decompress_v0_class(
+    class: CompressedLegacyContractClass,
+) -> Result<DeprecatedContractClass, ClassManagerError> {
+    let program_as_string = gz_decode_bytes_into_string(&class.program)?;
+    let program = serde_json::from_str(&program_as_string)?;
+    let entry_points_by_type = map_legacy_entrypoints_by_type(class.entry_points_by_type);
+
+    Ok(DeprecatedContractClass {
+        abi: None,
+        program,
+        entry_points_by_type,
+    })
 }
 
-fn compile_contract_class(
-    contract_class: ContractClass,
-) -> Result<CompiledClassV1, ClassManagerError> {
-    let sierra_program_values = contract_class
+pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, ClassManagerError> {
+    let sierra_program_values = class
         .sierra_program
         .iter()
         .take(3)
@@ -100,13 +102,12 @@ fn compile_contract_class(
 
     let casm_class =
         cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(
-            contract_class,
+            class,
             false,
             usize::MAX,
         )?;
 
-    let versioned_casm = (casm_class, sierra_version);
-    Ok(CompiledClassV1::try_from(versioned_casm)?)
+    Ok((casm_class, sierra_version))
 }
 
 pub fn compile_native_class(
