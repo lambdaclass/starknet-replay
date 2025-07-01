@@ -264,14 +264,14 @@ impl Drop for StateManager {
 
 pub struct BlockStateReader<'s> {
     block_number: BlockNumber,
-    state_manager: RefCell<&'s mut StateManager>,
+    state_manager: &'s RefCell<StateManager>,
 }
 
 impl<'s> BlockStateReader<'s> {
-    pub fn new(block_number: BlockNumber, state_manager: &'s mut StateManager) -> Self {
+    pub fn new(block_number: BlockNumber, state_manager: &'s RefCell<StateManager>) -> Self {
         Self {
             block_number,
-            state_manager: RefCell::new(state_manager),
+            state_manager,
         }
     }
 }
