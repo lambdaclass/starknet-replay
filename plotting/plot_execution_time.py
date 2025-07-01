@@ -253,6 +253,7 @@ def load_data(path):
         },
         inplace=True,
     )
+    info["Minimum sierra version for sierra gas"] = "0.0.0"
 
     return df_txs, df_calls, info
 
