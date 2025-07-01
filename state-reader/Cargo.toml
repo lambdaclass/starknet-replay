@@ -24,3 +24,4 @@ hex = "0.4.3"
 cairo-native.workspace = true
 cairo-lang-starknet-classes.workspace = true
 blockifier_reexecution = { workspace = true }
+lockfile = "0.4.0"
