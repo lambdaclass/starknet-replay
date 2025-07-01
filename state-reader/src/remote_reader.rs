@@ -5,22 +5,23 @@
 use std::{env, string::FromUtf8Error};
 
 use blockifier::state::errors::StateError;
+use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
 use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
     core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
-    transaction::TransactionHash,
+    transaction::{Transaction, TransactionHash},
 };
-use starknet_core::types::{
-    BlockWithTxHashes, ContractClass, Felt, Transaction, TransactionReceipt,
-};
+use starknet_core::types::{BlockWithTxHashes, ContractClass, Felt};
 use starknet_gateway::rpc_objects::{
     RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
     RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
 };
 use thiserror::Error;
+
+use crate::objects::RpcTransactionReceipt;
 
 #[derive(Debug, Error)]
 pub enum RemoteReaderError {
@@ -138,19 +139,18 @@ impl RemoteReader {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionByHash", params)?;
-        dbg!(&response);
-        let result = serde_json::from_value(response)?;
-        Ok(result)
+        let tx = deserialize_transaction_json_to_starknet_api_tx(response)?;
+
+        Ok(tx)
     }
 
     pub fn get_tx_receipt(
         &self,
         hash: &TransactionHash,
-    ) -> Result<TransactionReceipt, RemoteReaderError> {
+    ) -> Result<RpcTransactionReceipt, RemoteReaderError> {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionReceipt", params)?;
-        dbg!(&response);
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
@@ -260,11 +260,9 @@ mod tests {
         class_hash, contract_address,
         core::{ChainId, Nonce},
         felt, storage_key,
-        transaction::TransactionHash,
+        transaction::{fields::Fee, InvokeTransaction, Transaction, TransactionHash},
     };
-    use starknet_core::types::{
-        BlockStatus, ContractClass, InvokeTransaction, Transaction, TransactionReceipt,
-    };
+    use starknet_core::types::{BlockStatus, ContractClass};
 
     use super::{url_from_env, RemoteReader};
 
@@ -314,8 +312,8 @@ mod tests {
         let Transaction::Invoke(InvokeTransaction::V1(tx)) = tx else {
             panic!("expected invoke 0x1 transaction")
         };
-        assert_eq!(tx.max_fee, felt!("0x347e4e1c17e48"));
-        assert_eq!(tx.nonce, felt!("0xa"));
+        assert_eq!(tx.max_fee, Fee(923473295801928));
+        assert_eq!(tx.nonce, Nonce(felt!("0xa")));
     }
 
     #[test]
@@ -329,9 +327,6 @@ mod tests {
             )))
             .unwrap();
 
-        let TransactionReceipt::Invoke(tx_receipt) = tx_receipt else {
-            panic!("expected invoke transaction receipt")
-        };
         assert_eq!(tx_receipt.messages_sent.len(), 0);
         assert_eq!(tx_receipt.events.len(), 6);
     }

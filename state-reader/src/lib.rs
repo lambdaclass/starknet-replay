@@ -2,23 +2,31 @@ use compiler::{
     compile_class, compile_v1_class, decompress_v0_class, processed_class_to_contract_class,
     ClassManagerError,
 };
+use objects::RpcTransactionReceipt;
 use remote_reader::{RemoteReader, RemoteReaderError};
 use starknet_api::{
     block::BlockNumber,
     contract_class::{ClassInfo, ContractClass as CompiledContractClass, SierraVersion},
-    core::{ChainId, ClassHash, ContractAddress, Nonce},
+    core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
-    transaction::TransactionHash,
+    transaction::{Transaction, TransactionHash},
     StarknetApiError,
 };
 
-use starknet_core::types::{BlockWithTxHashes, ContractClass, Transaction};
+use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
-use blockifier::execution::contract_class::RunnableCompiledClass;
+use blockifier::{
+    execution::contract_class::RunnableCompiledClass,
+    state::{
+        errors::StateError,
+        state_api::{StateReader, StateResult},
+    },
+};
 use thiserror::Error;
 
 pub mod compiler;
+pub mod objects;
 pub mod remote_reader;
 
 #[derive(Debug, Error)]
@@ -52,6 +60,14 @@ impl StateManager {
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, StateManagerError> {
         let result = self.remote_reader.get_tx(&tx_hash)?;
+        Ok(result)
+    }
+
+    pub fn get_tx_receipt(
+        &self,
+        tx_hash: TransactionHash,
+    ) -> Result<RpcTransactionReceipt, StateManagerError> {
+        let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
         Ok(result)
     }
 
@@ -159,6 +175,58 @@ impl StateManager {
         let chain_id = self.remote_reader.get_chain_id()?;
         Ok(chain_id)
     }
+}
+
+pub struct BlockStateReader<'s> {
+    block_number: BlockNumber,
+    state_manager: &'s StateManager,
+}
+
+impl<'s> BlockStateReader<'s> {
+    pub fn new(block_number: BlockNumber, state_manager: &'s StateManager) -> Self {
+        Self {
+            block_number,
+            state_manager,
+        }
+    }
+}
+
+impl<'s> StateReader for BlockStateReader<'s> {
+    fn get_storage_at(
+        &self,
+        contract_address: ContractAddress,
+        key: StorageKey,
+    ) -> StateResult<Felt> {
+        self.state_manager
+            .get_storage_at(self.block_number, contract_address, key)
+            .map_err(to_state_error)
+    }
+
+    fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
+        self.state_manager
+            .get_nonce_at(self.block_number, contract_address)
+            .map_err(to_state_error)
+    }
+
+    fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
+        self.state_manager
+            .get_class_hash_at(self.block_number, contract_address)
+            .map_err(to_state_error)
+    }
+
+    fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
+        self.state_manager
+            .get_compiled_class(self.block_number, class_hash)
+            .map_err(to_state_error)
+    }
+
+    fn get_compiled_class_hash(&self, _: ClassHash) -> StateResult<CompiledClassHash> {
+        todo!()
+    }
+}
+
+pub fn to_state_error<E: std::error::Error>(error: E) -> StateError {
+    StateError::StateReadError(error.to_string())
 }
 
 #[cfg(test)]
