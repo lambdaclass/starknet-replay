@@ -185,7 +185,7 @@ fn main() {
                 validate: true,
             };
             execute_block(&full_reader, block_number, execution_flags)
-                .expect("failed to execute block")
+                .expect("failed to execute block");
         }
         ReplayExecute::BlockTxs {
             chain,
@@ -211,7 +211,7 @@ fn main() {
                 validate: true,
             };
             execute_txs(&full_reader, block_number, tx_hashes, execution_flags)
-                .expect("failed to execute block")
+                .expect("failed to execute block");
         }
         ReplayExecute::BlockRange {
             block_start,
@@ -237,7 +237,7 @@ fn main() {
                     BlockNumber(block_number),
                     execution_flags.clone(),
                 )
-                .expect("failed to execute block")
+                .expect("failed to execute block");
             }
         }
         #[cfg(feature = "benchmark")]
