@@ -25,12 +25,7 @@ use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
-use {
-    crate::benchmark::{
-        aggregate_executions, execute_block_range, fetch_block_range_data, fetch_transaction_data,
-    },
-    std::time::Instant,
-};
+use crate::benchmark::aggregate_executions;
 #[cfg(feature = "block-composition")]
 use {
     block_composition::save_entry_point_execution, chrono::DateTime,
@@ -248,65 +243,63 @@ fn main() {
             number_of_runs,
             output,
         } => {
-            let block_start = BlockNumber(block_start);
-            let block_end = BlockNumber(block_end);
             let chain = parse_network(&chain);
+            let url = url_from_env(chain);
 
-            let mut block_range_data = {
-                let _caching_span = tracing::info_span!("caching block range").entered();
+            let remote_reader = RemoteStateReader::new(url);
+            let full_reader = FullStateReader::new(remote_reader);
 
-                info!("fetching block range data");
-                let mut block_range_data = fetch_block_range_data(block_start, block_end, chain);
-
-                // We must execute the block range once first to ensure that all data required by blockifier is cached
-                info!("filling up execution cache");
-                execute_block_range(&mut block_range_data);
-
-                // Benchmark run should make no api requests as all data is cached
-                // To ensure this, we disable the inner StateReader
-                for (cached_state, ..) in &mut block_range_data {
-                    cached_state.state.disable();
-                }
-
-                block_range_data
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: true,
+                validate: true,
             };
+
+            // We execute the block range once, to ensure that everything is cached.
+            for block_number in block_start..=block_end {
+                execute_block(
+                    &full_reader,
+                    BlockNumber(block_number),
+                    execution_flags.clone(),
+                )
+                .expect("failed to execute block");
+            }
 
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            {
-                let _benchmark_span = tracing::info_span!("benchmarking block range").entered();
+            let mut block_executions = Vec::new();
 
-                let mut executions = Vec::new();
+            for _ in 0..number_of_runs {
+                for block_number in block_start..=block_end {
+                    let executions = execute_block(
+                        &full_reader,
+                        BlockNumber(block_number),
+                        execution_flags.clone(),
+                    )
+                    .expect("failed to execute block");
 
-                info!("executing block range");
-                let before_execution = Instant::now();
-                for _ in 0..number_of_runs {
-                    executions.push(execute_block_range(&mut block_range_data));
+                    // TODO: The `execute_block` output representation
+                    // is translated into the representation used by
+                    // `aggregate_executions`. We should update the benchmark
+                    // feature to better use the representation returned on
+                    // execution, instead of translating them.
+                    block_executions.push((
+                        BlockNumber(block_number),
+                        executions
+                            .into_iter()
+                            .filter_map(|x| Some((x.hash, x.result.ok()?, x.time)))
+                            .collect(),
+                    ));
                 }
-                let execution_time = before_execution.elapsed();
-
-                info!("saving execution info");
-
-                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let benchmarking_data = aggregate_executions(executions);
-
-                let average_time = execution_time.div_f32(number_of_runs as f32);
-
-                let file = std::fs::File::create(output).unwrap();
-                serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
-
-                info!(
-                    block_start = block_start.0,
-                    block_end = block_end.0,
-                    number_of_runs,
-                    total_run_time = execution_time.as_secs_f64(),
-                    average_run_time = average_time.as_secs_f64(),
-                    "benchmark finished",
-                );
             }
+
+            let benchmarking_data = aggregate_executions(block_executions);
+
+            let file = std::fs::File::create(output).unwrap();
+            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchTx {
@@ -317,66 +310,63 @@ fn main() {
             output,
         } => {
             let chain = parse_network(&chain);
-            let block = BlockNumber(block);
+            let url = url_from_env(chain);
+            let block_number = BlockNumber(block);
+            let tx_hash = TransactionHash(felt!(tx.as_str()));
 
-            let mut block_range_data = {
-                let _caching_span = tracing::info_span!("caching block range").entered();
+            let remote_reader = RemoteStateReader::new(url);
+            let full_reader = FullStateReader::new(remote_reader);
 
-                info!("fetching transaction data");
-                let transaction_data = fetch_transaction_data(&tx, block, chain);
-
-                // We insert it into a vector so that we can reuse `execute_block_range`
-                let mut block_range_data = vec![transaction_data];
-
-                // We must execute the block range once first to ensure that all data required by blockifier is chached
-                info!("filling up execution cache");
-                execute_block_range(&mut block_range_data);
-
-                // Benchmark run should make no api requests as all data is cached
-                // To ensure this, we disable the inner StateReader
-                for (cached_state, ..) in &mut block_range_data {
-                    cached_state.state.disable();
-                }
-
-                block_range_data
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: true,
+                validate: true,
             };
+
+            // We execute the transaction once, to ensure that everything is cached.
+            execute_txs(
+                &full_reader,
+                block_number,
+                vec![tx_hash],
+                execution_flags.clone(),
+            )
+            .expect("failed to execute transaction");
 
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            {
-                let _benchmark_span = tracing::info_span!("benchmarking block range").entered();
+            let mut block_executions = Vec::new();
 
-                let mut executions = Vec::new();
+            for _ in 0..number_of_runs {
+                // We execute the transaction once, to ensure that everything is cached.
+                let executions = execute_txs(
+                    &full_reader,
+                    block_number,
+                    vec![tx_hash],
+                    execution_flags.clone(),
+                )
+                .expect("failed to execute transaction");
 
-                info!("executing block range");
-                let before_execution = Instant::now();
-                for _ in 0..number_of_runs {
-                    executions.push(execute_block_range(&mut block_range_data));
-                }
-                let execution_time = before_execution.elapsed();
-
-                info!("saving execution info");
-
-                let executions = executions.into_iter().flatten().collect::<Vec<_>>();
-                let benchmarking_data = aggregate_executions(executions);
-
-                let average_time = execution_time.div_f32(number_of_runs as f32);
-
-                let file = std::fs::File::create(output).unwrap();
-                serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
-
-                info!(
-                    tx = tx,
-                    block = block.0,
-                    number_of_runs,
-                    total_run_time = execution_time.as_secs_f64(),
-                    average_run_time = average_time.as_secs_f64(),
-                    "benchmark finished",
-                );
+                // TODO: The `execute_block` output representation
+                // is translated into the representation used by
+                // `aggregate_executions`. We should update the benchmark
+                // feature to better use the representation returned on
+                // execution, instead of translating them.
+                block_executions.push((
+                    block_number,
+                    executions
+                        .into_iter()
+                        .filter_map(|x| Some((x.hash, x.result.ok()?, x.time)))
+                        .collect(),
+                ));
             }
+
+            let benchmarking_data = aggregate_executions(block_executions);
+
+            let file = std::fs::File::create(output).unwrap();
+            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
         }
         #[cfg(feature = "block-composition")]
         ReplayExecute::BlockCompose {
