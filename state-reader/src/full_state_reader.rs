@@ -30,11 +30,14 @@ pub enum FullStateReaderError {
     ClassManagerError(#[from] ClassManagerError),
     #[error(transparent)]
     StarknetApiError(#[from] StarknetApiError),
-    #[error("A legacy contract should always have an ABI")]
+    #[error("a legacy contract should always have an ABI")]
     LegacyContractWithoutAbi,
+    #[error("could not find requested value")]
+    NotFound,
 }
 
 pub struct FullStateReader {
+    pub with_remote: bool,
     remote_reader: RemoteStateReader,
     remote_cache: RefCell<RemoteStateCache>,
 }
@@ -42,6 +45,7 @@ pub struct FullStateReader {
 impl FullStateReader {
     pub fn new(remote_reader: RemoteStateReader) -> Self {
         Self {
+            with_remote: true,
             remote_reader,
             remote_cache: RefCell::new(RemoteStateCache::load()),
         }
@@ -55,14 +59,18 @@ impl FullStateReader {
             return Ok(result.clone());
         }
 
-        let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
+        if self.with_remote {
+            let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .blocks
-            .insert(block_number, result.clone());
+            self.remote_cache
+                .borrow_mut()
+                .blocks
+                .insert(block_number, result.clone());
 
-        Ok(result)
+            return Ok(result);
+        }
+
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
@@ -70,14 +78,18 @@ impl FullStateReader {
             return Ok(result.clone());
         }
 
-        let result = self.remote_reader.get_tx(&tx_hash)?;
+        if self.with_remote {
+            let result = self.remote_reader.get_tx(&tx_hash)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .transactions
-            .insert(tx_hash, result.clone());
+            self.remote_cache
+                .borrow_mut()
+                .transactions
+                .insert(tx_hash, result.clone());
 
-        Ok(result)
+            return Ok(result);
+        }
+
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_tx_receipt(
@@ -93,14 +105,17 @@ impl FullStateReader {
             return Ok(result.clone());
         }
 
-        let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
+        if self.with_remote {
+            let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
+            self.remote_cache
+                .borrow_mut()
+                .transaction_receipts
+                .insert(tx_hash, result.clone());
 
-        self.remote_cache
-            .borrow_mut()
-            .transaction_receipts
-            .insert(tx_hash, result.clone());
+            return Ok(result);
+        }
 
-        Ok(result)
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_storage_at(
@@ -119,16 +134,19 @@ impl FullStateReader {
             return Ok(*result);
         }
 
-        let result = self
-            .remote_reader
-            .get_storage_at(block_number, contract_address, key)?;
+        if self.with_remote {
+            let result = self
+                .remote_reader
+                .get_storage_at(block_number, contract_address, key)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .storage
-            .insert((block_number, contract_address, key), result);
+            self.remote_cache
+                .borrow_mut()
+                .storage
+                .insert((block_number, contract_address, key), result);
+            return Ok(result);
+        }
 
-        Ok(result)
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_nonce_at(
@@ -145,16 +163,20 @@ impl FullStateReader {
             return Ok(*result);
         }
 
-        let result = self
-            .remote_reader
-            .get_nonce_at(block_number, contract_address)?;
+        if self.with_remote {
+            let result = self
+                .remote_reader
+                .get_nonce_at(block_number, contract_address)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .nonces
-            .insert((block_number, contract_address), result);
+            self.remote_cache
+                .borrow_mut()
+                .nonces
+                .insert((block_number, contract_address), result);
 
-        Ok(result)
+            return Ok(result);
+        }
+
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_class_hash_at(
@@ -171,16 +193,20 @@ impl FullStateReader {
             return Ok(*result);
         }
 
-        let result = self
-            .remote_reader
-            .get_class_hash_at(block_number, contract_address)?;
+        if self.with_remote {
+            let result = self
+                .remote_reader
+                .get_class_hash_at(block_number, contract_address)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .class_hashes
-            .insert((block_number, contract_address), result);
+            self.remote_cache
+                .borrow_mut()
+                .class_hashes
+                .insert((block_number, contract_address), result);
 
-        Ok(result)
+            return Ok(result);
+        }
+
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_contract_class(
@@ -192,16 +218,20 @@ impl FullStateReader {
             return Ok(result.clone());
         }
 
-        let result = self
-            .remote_reader
-            .get_contract_class(block_number, &class_hash)?;
+        if self.with_remote {
+            let result = self
+                .remote_reader
+                .get_contract_class(block_number, &class_hash)?;
 
-        self.remote_cache
-            .borrow_mut()
-            .contract_classes
-            .insert(class_hash, result.clone());
+            self.remote_cache
+                .borrow_mut()
+                .contract_classes
+                .insert(class_hash, result.clone());
 
-        Ok(result)
+            return Ok(result);
+        }
+
+        Err(FullStateReaderError::NotFound)
     }
 
     pub fn get_compiled_class(
@@ -382,7 +412,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let mut state = FullStateReader::new(remote_reader);
 
         let value = state
             .get_storage_at(
@@ -398,6 +428,8 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+
+        state.with_remote = false;
 
         let value = state
             .get_storage_at(
@@ -421,6 +453,7 @@ mod tests {
         let remote_reader = RemoteStateReader::new(url);
 
         let state = FullStateReader::new(remote_reader);
+
         let value = state
             .get_storage_at(
                 BlockNumber(1500000),
@@ -438,7 +471,10 @@ mod tests {
 
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
-        let state = FullStateReader::new(remote_reader);
+
+        let mut state = FullStateReader::new(remote_reader);
+        state.with_remote = false;
+
         let value = state
             .get_storage_at(
                 BlockNumber(1500000),
