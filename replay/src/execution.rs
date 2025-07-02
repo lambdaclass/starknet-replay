@@ -19,11 +19,11 @@ use starknet_core::types::{BlockWithTxHashes, Felt};
 use state_reader::full_state_reader::FullStateReader;
 
 pub fn get_block_context(
-    state_manager: &FullStateReader,
+    reader: &FullStateReader,
     block_number: BlockNumber,
 ) -> anyhow::Result<BlockContext> {
-    let block = state_manager.get_block(block_number)?;
-    let chain_id = state_manager.get_chain_id()?;
+    let block = reader.get_block(block_number)?;
+    let chain_id = reader.get_chain_id()?;
 
     let block_info = get_block_info(&block)?;
     let chain_info = get_chain_info(&chain_id);
@@ -38,15 +38,15 @@ pub fn get_block_context(
 }
 
 pub fn get_blockifier_transaction(
-    state_manager: &FullStateReader,
+    reader: &FullStateReader,
     block_number: BlockNumber,
     tx_hash: TransactionHash,
     execution_flags: ExecutionFlags,
 ) -> anyhow::Result<BlockifierTransaction> {
-    let tx = state_manager.get_tx(tx_hash)?;
+    let tx = reader.get_tx(tx_hash)?;
 
     let class_info = if let Transaction::Declare(declare_tx) = &tx {
-        Some(state_manager.get_class_info(block_number, declare_tx.class_hash())?)
+        Some(reader.get_class_info(block_number, declare_tx.class_hash())?)
     } else {
         None
     };
