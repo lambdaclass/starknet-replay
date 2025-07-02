@@ -136,7 +136,7 @@ pub fn compile_native_class(
 
     let (sierra_version, _) =
         version_id_from_serialized_sierra_program(&contract_class.sierra_program)
-            .map_err(|err| StarknetSierraCompilationError::from(err))?;
+            .map_err(StarknetSierraCompilationError::from)?;
 
     let executor = loop {
         // it could be the case that the file was created after we've entered this branch
@@ -160,7 +160,7 @@ pub fn compile_native_class(
         match AotContractExecutor::new_into(
             &contract_class
                 .extract_sierra_program()
-                .map_err(|err| StarknetSierraCompilationError::from(err))?,
+                .map_err(StarknetSierraCompilationError::from)?,
             &contract_class.entry_points_by_type,
             sierra_version,
             &cache_path,
@@ -202,7 +202,7 @@ pub fn processed_class_to_contract_class(
 /// slice is encoded incorrectly, or if the output is not a valid string.
 pub fn gz_decode_bytes_into_string(bytes: &[u8]) -> io::Result<String> {
     use flate2::bufread;
-    let mut decoder = bufread::GzDecoder::new(&bytes[..]);
+    let mut decoder = bufread::GzDecoder::new(bytes);
     let mut string = String::new();
     decoder.read_to_string(&mut string)?;
     Ok(string)

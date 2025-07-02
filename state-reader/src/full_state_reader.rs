@@ -111,7 +111,7 @@ impl FullStateReader {
                 .storage
                 .get(&(block_number, contract_address, key))
         {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let result = self
@@ -121,7 +121,7 @@ impl FullStateReader {
         self.cache
             .borrow_mut()
             .storage
-            .insert((block_number, contract_address, key), result.clone());
+            .insert((block_number, contract_address, key), result);
 
         Ok(result)
     }
@@ -137,7 +137,7 @@ impl FullStateReader {
             .nonces
             .get(&(block_number, contract_address))
         {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let result = self
@@ -147,7 +147,7 @@ impl FullStateReader {
         self.cache
             .borrow_mut()
             .nonces
-            .insert((block_number, contract_address), result.clone());
+            .insert((block_number, contract_address), result);
 
         Ok(result)
     }
@@ -163,7 +163,7 @@ impl FullStateReader {
             .class_hashes
             .get(&(block_number, contract_address))
         {
-            return Ok(result.clone());
+            return Ok(*result);
         }
 
         let result = self
@@ -173,7 +173,7 @@ impl FullStateReader {
         self.cache
             .borrow_mut()
             .class_hashes
-            .insert((block_number, contract_address), result.clone());
+            .insert((block_number, contract_address), result);
 
         Ok(result)
     }

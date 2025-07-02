@@ -4,7 +4,6 @@
 
 use std::{env, string::FromUtf8Error};
 
-use blockifier::state::errors::StateError;
 use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
 use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
@@ -232,12 +231,6 @@ impl RemoteStateReader {
         let chain_id_string = String::from_utf8(chain_id_bytes)?;
 
         Ok(ChainId::from(chain_id_string))
-    }
-}
-
-impl Into<StateError> for RemoteStateReaderError {
-    fn into(self) -> StateError {
-        StateError::StateReadError(self.to_string())
     }
 }
 

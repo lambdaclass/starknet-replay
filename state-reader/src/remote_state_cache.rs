@@ -36,7 +36,7 @@ pub struct RemoteStateCache {
 
 impl RemoteStateCache {
     pub fn load() -> Self {
-        let cache_path = format!("cache/rpc.json");
+        let cache_path = "cache/rpc.json".to_string();
         let lockfile_path = format!("{}.lock", cache_path);
 
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
@@ -98,19 +98,19 @@ impl RemoteStateCache {
             }
         });
         other.nonces.into_iter().for_each(|(k, v)| {
-            let old = self.nonces.insert(k, v.clone());
+            let old = self.nonces.insert(k, v);
             if let Some(old) = old {
                 assert_eq!(old, v)
             }
         });
         other.class_hashes.into_iter().for_each(|(k, v)| {
-            let old = self.class_hashes.insert(k, v.clone());
+            let old = self.class_hashes.insert(k, v);
             if let Some(old) = old {
                 assert_eq!(old, v)
             }
         });
         other.storage.into_iter().for_each(|(k, v)| {
-            let old = self.storage.insert(k, v.clone());
+            let old = self.storage.insert(k, v);
             if let Some(old) = old {
                 assert_eq!(old, v)
             }
@@ -118,7 +118,7 @@ impl RemoteStateCache {
     }
 
     pub fn save(&mut self) {
-        let cache_path = format!("cache/rpc.json");
+        let cache_path = "cache/rpc.json".to_string();
 
         let lockfile_path = format!("{}.lock", cache_path);
 

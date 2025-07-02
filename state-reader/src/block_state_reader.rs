@@ -1,4 +1,4 @@
-use crate::full_state_reader::FullStateReader;
+use crate::full_state_reader::{FullStateReader, FullStateReaderError};
 use starknet_api::{
     block::BlockNumber,
     core::{ClassHash, CompiledClassHash, ContractAddress, Nonce},
@@ -29,33 +29,33 @@ impl<'s> BlockStateReader<'s> {
     }
 }
 
-impl<'s> StateReader for BlockStateReader<'s> {
+impl StateReader for BlockStateReader<'_> {
     fn get_storage_at(
         &self,
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> StateResult<Felt> {
-        self.state_manager
-            .get_storage_at(self.block_number, contract_address, key)
-            .map_err(to_state_error)
+        Ok(self
+            .state_manager
+            .get_storage_at(self.block_number, contract_address, key)?)
     }
 
     fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
-        self.state_manager
-            .get_nonce_at(self.block_number, contract_address)
-            .map_err(to_state_error)
+        Ok(self
+            .state_manager
+            .get_nonce_at(self.block_number, contract_address)?)
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
-        self.state_manager
-            .get_class_hash_at(self.block_number, contract_address)
-            .map_err(to_state_error)
+        Ok(self
+            .state_manager
+            .get_class_hash_at(self.block_number, contract_address)?)
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
-        self.state_manager
-            .get_compiled_class(self.block_number, class_hash)
-            .map_err(to_state_error)
+        Ok(self
+            .state_manager
+            .get_compiled_class(self.block_number, class_hash)?)
     }
 
     fn get_compiled_class_hash(&self, _: ClassHash) -> StateResult<CompiledClassHash> {
@@ -63,6 +63,8 @@ impl<'s> StateReader for BlockStateReader<'s> {
     }
 }
 
-pub fn to_state_error<E: std::error::Error>(error: E) -> StateError {
-    StateError::StateReadError(error.to_string())
+impl From<FullStateReaderError> for StateError {
+    fn from(value: FullStateReaderError) -> Self {
+        StateError::StateReadError(value.to_string())
+    }
 }
