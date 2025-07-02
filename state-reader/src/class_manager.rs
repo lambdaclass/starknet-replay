@@ -3,16 +3,14 @@ use std::{
     fs::{self, File},
     io::{self, Read},
     path::PathBuf,
-    thread::sleep,
+    thread::{self, sleep},
     time::Duration,
 };
 
-use blockifier::execution::{
-    contract_class::{CompiledClassV0, CompiledClassV1, RunnableCompiledClass},
-    native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
-};
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use cairo_vm::types::errors::program_errors::ProgramError;
+use lockfile::Lockfile;
+use starknet_api::contract_class::ContractClass as CompiledContractClass;
 use starknet_api::{
     contract_class::{EntryPointType, SierraVersion, VersionedCasm},
     core::{ClassHash, EntryPointSelector},
@@ -50,34 +48,147 @@ pub enum ClassManagerError {
     StarknetSierraCompilationError(#[from] StarknetSierraCompilationError),
 }
 
-pub fn compile_class(
-    class_hash: &ClassHash,
-    contract_class: ApiContractClass,
-) -> Result<RunnableCompiledClass, ClassManagerError> {
-    Ok(match contract_class {
-        ApiContractClass::Legacy(class) => {
-            let compiled_class = decompress_v0_class(class)?;
-            RunnableCompiledClass::V0(CompiledClassV0::try_from(compiled_class)?)
+#[derive(Default)]
+pub struct ClassManager {
+    executors: HashMap<ClassHash, AotContractExecutor>,
+    compiled_classes: HashMap<ClassHash, CompiledContractClass>,
+}
+
+impl ClassManager {
+    pub fn new() -> Self {
+        Self {
+            executors: HashMap::default(),
+            compiled_classes: HashMap::default(),
         }
-        ApiContractClass::Sierra(sierra_class) => {
-            let contract_class = processed_class_to_contract_class(sierra_class)?;
+    }
 
-            let versioned_casm = compile_v1_class(contract_class.clone())?;
-            let casm_class = CompiledClassV1::try_from(versioned_casm)?;
+    pub fn get_casm_class(&self, class_hash: &ClassHash) -> Option<CompiledContractClass> {
+        self.compiled_classes.get(class_hash).cloned()
+    }
 
-            if cfg!(feature = "only-casm") {
-                RunnableCompiledClass::V1(casm_class)
-            } else {
-                let native_executor = compile_native_class(class_hash, contract_class)?;
-                let contract_executor = ContractExecutor::Aot(native_executor);
+    pub fn get_native_executor(&self, class_hash: &ClassHash) -> Option<AotContractExecutor> {
+        self.executors.get(class_hash).cloned()
+    }
 
-                RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
-                    contract_executor,
-                    casm_class,
-                ))
+    pub fn compile_casm_class(
+        &mut self,
+        class_hash: &ClassHash,
+        contract_class: ApiContractClass,
+    ) -> Result<CompiledContractClass, ClassManagerError> {
+        let cache_path = format!("cache/casm/{}.json", class_hash.to_hex_string());
+        let lockfile_path = format!("{}.lock", cache_path);
+
+        let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
+        while let Err(lockfile::Error::LockTaken) = lockfile {
+            thread::sleep(Duration::from_secs(1));
+            lockfile = Lockfile::create_with_parents(&lockfile_path);
+        }
+        let lockfile = lockfile.expect("failed to take lock");
+
+        let compiled_class = match File::open(&cache_path) {
+            Ok(file) => serde_json::from_reader(file)?,
+            Err(_) => {
+                let compiled_class = match contract_class {
+                    ApiContractClass::Legacy(class) => {
+                        let compiled_class = decompress_v0_class(class)?;
+                        CompiledContractClass::V0(compiled_class)
+                    }
+                    ApiContractClass::Sierra(sierra_class) => {
+                        let contract_class = processed_class_to_contract_class(sierra_class)?;
+
+                        let versioned_casm = compile_v1_class(contract_class.clone())?;
+                        CompiledContractClass::V1(versioned_casm)
+                    }
+                };
+
+                let file = File::create(&cache_path)?;
+                serde_json::to_writer(file, &compiled_class)?;
+
+                compiled_class
             }
+        };
+
+        lockfile.release().expect("failed to release lockfile");
+
+        self.compiled_classes
+            .insert(*class_hash, compiled_class.clone());
+
+        Ok(compiled_class)
+    }
+
+    pub fn compile_native_class(
+        &mut self,
+        class_hash: &ClassHash,
+        sierra_class: FlattenedSierraClass,
+    ) -> Result<AotContractExecutor, ClassManagerError> {
+        let contract_class = processed_class_to_contract_class(sierra_class)?;
+
+        let cache_path =
+            PathBuf::from(format!("cache/native/{}.{}", class_hash.to_hex_string(), {
+                if cfg!(target_os = "macos") {
+                    "dylib"
+                } else {
+                    "so"
+                }
+            }));
+
+        if let Some(p) = cache_path.parent() {
+            fs::create_dir_all(p)?;
         }
-    })
+
+        let (sierra_version, _) =
+            version_id_from_serialized_sierra_program(&contract_class.sierra_program)
+                .map_err(StarknetSierraCompilationError::from)?;
+
+        let native_executor = loop {
+            // it could be the case that the file was created after we've entered this branch
+            // so we should load it instead of compiling it again
+            if cache_path.exists() {
+                match AotContractExecutor::from_path(&cache_path)? {
+                    None => {
+                        sleep(Duration::from_secs(1));
+                        continue;
+                    }
+                    Some(e) => break e,
+                }
+            }
+
+            let mut statistics = if cfg!(feature = "with-comp-stats") {
+                Some(Statistics::default())
+            } else {
+                None
+            };
+
+            match AotContractExecutor::new_into(
+                &contract_class
+                    .extract_sierra_program()
+                    .map_err(StarknetSierraCompilationError::from)?,
+                &contract_class.entry_points_by_type,
+                sierra_version,
+                &cache_path,
+                OptLevel::Aggressive,
+                statistics.as_mut(),
+            )? {
+                Some(e) => {
+                    if let Some(statistics) = statistics {
+                        let stats_path = cache_path.with_extension("stats.json");
+                        let stats_file = File::create(stats_path)?;
+                        serde_json::to_writer_pretty(stats_file, &statistics)?;
+                    }
+
+                    break e;
+                }
+                None => {
+                    sleep(Duration::from_secs(1));
+                    continue;
+                }
+            }
+        };
+
+        self.executors.insert(*class_hash, native_executor.clone());
+
+        Ok(native_executor)
+    }
 }
 
 pub fn decompress_v0_class(
@@ -112,78 +223,6 @@ pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, ClassMana
         )?;
 
     Ok((casm_class, sierra_version))
-}
-
-pub fn compile_native_class(
-    class_hash: &ClassHash,
-    contract_class: ContractClass,
-) -> Result<AotContractExecutor, ClassManagerError> {
-    let cache_path = PathBuf::from(format!(
-        "compiled_programs/{}.{}",
-        class_hash.to_hex_string(),
-        {
-            if cfg!(target_os = "macos") {
-                "dylib"
-            } else {
-                "so"
-            }
-        }
-    ));
-
-    if let Some(p) = cache_path.parent() {
-        fs::create_dir_all(p)?;
-    }
-
-    let (sierra_version, _) =
-        version_id_from_serialized_sierra_program(&contract_class.sierra_program)
-            .map_err(StarknetSierraCompilationError::from)?;
-
-    let executor = loop {
-        // it could be the case that the file was created after we've entered this branch
-        // so we should load it instead of compiling it again
-        if cache_path.exists() {
-            match AotContractExecutor::from_path(&cache_path)? {
-                None => {
-                    sleep(Duration::from_secs(1));
-                    continue;
-                }
-                Some(e) => break e,
-            }
-        }
-
-        let mut statistics = if cfg!(feature = "with-comp-stats") {
-            Some(Statistics::default())
-        } else {
-            None
-        };
-
-        match AotContractExecutor::new_into(
-            &contract_class
-                .extract_sierra_program()
-                .map_err(StarknetSierraCompilationError::from)?,
-            &contract_class.entry_points_by_type,
-            sierra_version,
-            &cache_path,
-            OptLevel::Aggressive,
-            statistics.as_mut(),
-        )? {
-            Some(e) => {
-                if let Some(statistics) = statistics {
-                    let stats_path = cache_path.with_extension("stats.json");
-                    let stats_file = File::create(stats_path)?;
-                    serde_json::to_writer_pretty(stats_file, &statistics)?;
-                }
-
-                break e;
-            }
-            None => {
-                sleep(Duration::from_secs(1));
-                continue;
-            }
-        }
-    };
-
-    Ok(executor)
 }
 
 /// Converts the processed class format into the compiler class format.

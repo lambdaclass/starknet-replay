@@ -1,11 +1,11 @@
 use std::cell::RefCell;
 
-use crate::class_manager::{
-    compile_class, compile_v1_class, decompress_v0_class, processed_class_to_contract_class,
-    ClassManagerError,
-};
+use crate::class_manager::{ClassManager, ClassManagerError};
 use crate::objects::RpcTransactionReceipt;
 use crate::remote_state_reader::{RemoteStateReader, RemoteStateReaderError};
+use blockifier::execution::native::contract_class::NativeCompiledClassV1;
+use blockifier::execution::native::executor::ContractExecutor;
+use cairo_vm::types::errors::program_errors::ProgramError;
 use starknet_api::{
     block::BlockNumber,
     contract_class::{ClassInfo, ContractClass as CompiledContractClass, SierraVersion},
@@ -19,7 +19,9 @@ use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
 use crate::remote_state_cache::RemoteStateCache;
-use blockifier::execution::contract_class::RunnableCompiledClass;
+use blockifier::execution::contract_class::{
+    CompiledClassV0, CompiledClassV1, RunnableCompiledClass,
+};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -30,6 +32,8 @@ pub enum FullStateReaderError {
     ClassManagerError(#[from] ClassManagerError),
     #[error(transparent)]
     StarknetApiError(#[from] StarknetApiError),
+    #[error(transparent)]
+    ProgramError(#[from] ProgramError),
     #[error("a legacy contract should always have an ABI")]
     LegacyContractWithoutAbi,
     #[error("could not find requested value")]
@@ -38,16 +42,20 @@ pub enum FullStateReaderError {
 
 pub struct FullStateReader {
     pub with_remote: bool,
+    pub with_compilation: bool,
     remote_reader: RemoteStateReader,
     remote_cache: RefCell<RemoteStateCache>,
+    class_manager: RefCell<ClassManager>,
 }
 
 impl FullStateReader {
     pub fn new(remote_reader: RemoteStateReader) -> Self {
         Self {
             with_remote: true,
+            with_compilation: true,
             remote_reader,
             remote_cache: RefCell::new(RemoteStateCache::load()),
+            class_manager: RefCell::new(ClassManager::new()),
         }
     }
 
@@ -239,11 +247,58 @@ impl FullStateReader {
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<RunnableCompiledClass, FullStateReaderError> {
-        let contract_class = self.get_contract_class(block_number, class_hash)?;
+        let mut class_manager = self.class_manager.borrow_mut();
+        let casm_class = match class_manager.get_casm_class(&class_hash) {
+            Some(casm_class) => casm_class,
+            None => {
+                if !self.with_compilation {
+                    return Err(FullStateReaderError::NotFound);
+                }
 
-        let runnable_class = compile_class(&class_hash, contract_class)?;
+                let contract_class = self.get_contract_class(block_number, class_hash)?;
+                class_manager.compile_casm_class(&class_hash, contract_class)?
+            }
+        };
 
-        Ok(runnable_class)
+        let native_executor = if cfg!(feature = "only-casm") {
+            None
+        } else {
+            match class_manager.get_native_executor(&class_hash) {
+                Some(native_executor) => Some(native_executor),
+                None => {
+                    let contract_class = self.get_contract_class(block_number, class_hash)?;
+                    if let ContractClass::Sierra(sierra_class) = contract_class {
+                        if !self.with_compilation {
+                            return Err(FullStateReaderError::NotFound);
+                        }
+
+                        Some(class_manager.compile_native_class(&class_hash, sierra_class)?)
+                    } else {
+                        None
+                    }
+                }
+            }
+        };
+
+        Ok(match casm_class {
+            CompiledContractClass::V0(deprecated_class) => {
+                RunnableCompiledClass::V0(CompiledClassV0::try_from(deprecated_class)?)
+            }
+            CompiledContractClass::V1(versioned_casm) => {
+                let casm_class = CompiledClassV1::try_from(versioned_casm)?;
+
+                match native_executor {
+                    Some(native_executor) => {
+                        let contract_executor = ContractExecutor::Aot(native_executor);
+                        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
+                            contract_executor,
+                            casm_class,
+                        ))
+                    }
+                    None => RunnableCompiledClass::V1(casm_class),
+                }
+            }
+        })
     }
 
     pub fn get_class_info(
@@ -253,6 +308,17 @@ impl FullStateReader {
     ) -> Result<ClassInfo, FullStateReaderError> {
         let contract_class = self.get_contract_class(block_number, class_hash)?;
 
+        let mut class_manager = self.class_manager.borrow_mut();
+        let casm_class = match class_manager.get_casm_class(&class_hash) {
+            Some(casm_class) => casm_class,
+            None => {
+                if !self.with_compilation {
+                    return Err(FullStateReaderError::NotFound);
+                }
+                class_manager.compile_casm_class(&class_hash, contract_class.clone())?
+            }
+        };
+
         Ok(match contract_class {
             ContractClass::Legacy(legacy) => {
                 let abi_length = legacy
@@ -260,27 +326,19 @@ impl FullStateReader {
                     .as_ref()
                     .ok_or(FullStateReaderError::LegacyContractWithoutAbi)?
                     .len();
-                let compiled_class = decompress_v0_class(legacy)?;
-                ClassInfo::new(
-                    &CompiledContractClass::V0(compiled_class),
-                    0,
-                    abi_length,
-                    SierraVersion::DEPRECATED,
-                )?
+                ClassInfo::new(&casm_class, 0, abi_length, SierraVersion::DEPRECATED)?
             }
             ContractClass::Sierra(sierra) => {
                 let abi_length = sierra.abi.len();
                 let sierra_length = sierra.sierra_program.len();
 
-                let class = processed_class_to_contract_class(sierra)?;
-                let (compiled_class, sierra_version) = compile_v1_class(class)?;
-
-                ClassInfo::new(
-                    &CompiledContractClass::V1((compiled_class, sierra_version.clone())),
-                    sierra_length,
-                    abi_length,
-                    sierra_version,
-                )?
+                let sierra_version = match &casm_class {
+                    CompiledContractClass::V0(_) => {
+                        panic!("a sierra class cannot have a deprecated compiled class")
+                    }
+                    CompiledContractClass::V1((_, version)) => version.clone(),
+                };
+                ClassInfo::new(&casm_class, sierra_length, abi_length, sierra_version)?
             }
         })
     }
@@ -324,7 +382,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let mut state = FullStateReader::new(remote_reader);
 
         state
             .get_compiled_class(
@@ -332,6 +390,9 @@ mod tests {
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
+
+        state.with_compilation = false;
+        state.with_remote = false;
 
         state
             .get_compiled_class(
@@ -346,7 +407,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let mut state = FullStateReader::new(remote_reader);
 
         state
             .get_compiled_class(
@@ -354,6 +415,9 @@ mod tests {
                 class_hash!("0x010455c752b86932ce552f2b0fe81a880746649b9aee7e0d842bf3f52378f9f8"),
             )
             .unwrap();
+
+        state.with_compilation = false;
+        state.with_remote = false;
 
         state
             .get_compiled_class(
@@ -368,7 +432,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let mut state = FullStateReader::new(remote_reader);
 
         state
             .get_class_info(
@@ -376,6 +440,9 @@ mod tests {
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
+
+        state.with_compilation = false;
+        state.with_remote = false;
 
         state
             .get_class_info(
@@ -390,7 +457,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let mut state = FullStateReader::new(remote_reader);
 
         state
             .get_class_info(
@@ -398,6 +465,9 @@ mod tests {
                 class_hash!("0x010455c752b86932ce552f2b0fe81a880746649b9aee7e0d842bf3f52378f9f8"),
             )
             .unwrap();
+
+        state.with_compilation = false;
+        state.with_remote = false;
 
         state
             .get_class_info(
