@@ -65,13 +65,17 @@ pub fn compile_class(
             let versioned_casm = compile_v1_class(contract_class.clone())?;
             let casm_class = CompiledClassV1::try_from(versioned_casm)?;
 
-            let native_executor = compile_native_class(class_hash, contract_class)?;
-            let contract_executor = ContractExecutor::Aot(native_executor);
+            if cfg!(feature = "only-casm") {
+                RunnableCompiledClass::V1(casm_class)
+            } else {
+                let native_executor = compile_native_class(class_hash, contract_class)?;
+                let contract_executor = ContractExecutor::Aot(native_executor);
 
-            RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
-                contract_executor,
-                casm_class,
-            ))
+                RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
+                    contract_executor,
+                    casm_class,
+                ))
+            }
         }
     })
 }
