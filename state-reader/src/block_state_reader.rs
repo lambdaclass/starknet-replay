@@ -1,4 +1,4 @@
-use crate::StateManager;
+use crate::full_state_reader::FullStateReader;
 use starknet_api::{
     block::BlockNumber,
     core::{ClassHash, CompiledClassHash, ContractAddress, Nonce},
@@ -17,11 +17,11 @@ use blockifier::{
 
 pub struct BlockStateReader<'s> {
     block_number: BlockNumber,
-    state_manager: &'s StateManager,
+    state_manager: &'s FullStateReader,
 }
 
 impl<'s> BlockStateReader<'s> {
-    pub fn new(block_number: BlockNumber, state_manager: &'s StateManager) -> Self {
+    pub fn new(block_number: BlockNumber, state_manager: &'s FullStateReader) -> Self {
         Self {
             block_number,
             state_manager,

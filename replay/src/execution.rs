@@ -16,10 +16,10 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 use starknet_core::types::{BlockWithTxHashes, Felt};
-use state_reader::StateManager;
+use state_reader::full_state_reader::FullStateReader;
 
 pub fn get_block_context(
-    state_manager: &StateManager,
+    state_manager: &FullStateReader,
     block_number: BlockNumber,
 ) -> anyhow::Result<BlockContext> {
     let block = state_manager.get_block(block_number)?;
@@ -38,7 +38,7 @@ pub fn get_block_context(
 }
 
 pub fn get_blockifier_transaction(
-    state_manager: &StateManager,
+    state_manager: &FullStateReader,
     block_number: BlockNumber,
     tx_hash: TransactionHash,
     execution_flags: ExecutionFlags,

@@ -24,7 +24,7 @@ use thiserror::Error;
 use crate::objects::RpcTransactionReceipt;
 
 #[derive(Debug, Error)]
-pub enum RemoteReaderError {
+pub enum RemoteStateReaderError {
     #[error("block not found")]
     BlockNotFound,
     #[error("class hash not found")]
@@ -47,12 +47,12 @@ pub enum RemoteReaderError {
     FromUtf8Error(#[from] FromUtf8Error),
 }
 
-pub struct RemoteReader {
+pub struct RemoteStateReader {
     client: Client,
     url: String,
 }
 
-impl RemoteReader {
+impl RemoteStateReader {
     pub fn new(url: String) -> Self {
         let client = Client::new();
 
@@ -63,7 +63,7 @@ impl RemoteReader {
         &self,
         method: &str,
         params: Value,
-    ) -> Result<Value, RemoteReaderError> {
+    ) -> Result<Value, RemoteStateReaderError> {
         let body = json!({
             "jsonrpc": "2.0",
             "id": 0,
@@ -79,7 +79,7 @@ impl RemoteReader {
             .send()?;
 
         if !response.status().is_success() {
-            return Err(RemoteReaderError::BadStatus(response.status()));
+            return Err(RemoteStateReaderError::BadStatus(response.status()));
         };
 
         let response: RpcResponse = response.json()?;
@@ -87,15 +87,15 @@ impl RemoteReader {
         match response {
             RpcResponse::Success(rpc_success_response) => Ok(rpc_success_response.result),
             RpcResponse::Error(rpc_error_response) => match rpc_error_response.error.code {
-                RPC_ERROR_BLOCK_NOT_FOUND => Err(RemoteReaderError::BlockNotFound),
+                RPC_ERROR_BLOCK_NOT_FOUND => Err(RemoteStateReaderError::BlockNotFound),
                 RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND => {
-                    Err(RemoteReaderError::ContractAddressNotFound)
+                    Err(RemoteStateReaderError::ContractAddressNotFound)
                 }
-                RPC_CLASS_HASH_NOT_FOUND => Err(RemoteReaderError::ClassHashNotFound),
+                RPC_CLASS_HASH_NOT_FOUND => Err(RemoteStateReaderError::ClassHashNotFound),
                 RPC_ERROR_INVALID_PARAMS => {
-                    Err(RemoteReaderError::InvalidParams(rpc_error_response))
+                    Err(RemoteStateReaderError::InvalidParams(rpc_error_response))
                 }
-                _ => Err(RemoteReaderError::UnexpectedErrorCode(
+                _ => Err(RemoteStateReaderError::UnexpectedErrorCode(
                     rpc_error_response.error.code,
                 )),
             },
@@ -106,7 +106,7 @@ impl RemoteReader {
         &self,
         block_number: BlockNumber,
         class_hash: &ClassHash,
-    ) -> Result<ContractClass, RemoteReaderError> {
+    ) -> Result<ContractClass, RemoteStateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -123,7 +123,7 @@ impl RemoteReader {
     pub fn get_block_with_tx_hashes(
         &self,
         block_number: BlockNumber,
-    ) -> Result<BlockWithTxHashes, RemoteReaderError> {
+    ) -> Result<BlockWithTxHashes, RemoteStateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -135,7 +135,7 @@ impl RemoteReader {
         Ok(result)
     }
 
-    pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, RemoteReaderError> {
+    pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, RemoteStateReaderError> {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionByHash", params)?;
@@ -147,7 +147,7 @@ impl RemoteReader {
     pub fn get_tx_receipt(
         &self,
         hash: &TransactionHash,
-    ) -> Result<RpcTransactionReceipt, RemoteReaderError> {
+    ) -> Result<RpcTransactionReceipt, RemoteStateReaderError> {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionReceipt", params)?;
@@ -160,7 +160,7 @@ impl RemoteReader {
         block_number: BlockNumber,
         contract_address: ContractAddress,
         key: StorageKey,
-    ) -> Result<Felt, RemoteReaderError> {
+    ) -> Result<Felt, RemoteStateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -173,7 +173,7 @@ impl RemoteReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(Felt::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -182,7 +182,7 @@ impl RemoteReader {
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<Nonce, RemoteReaderError> {
+    ) -> Result<Nonce, RemoteStateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -194,7 +194,7 @@ impl RemoteReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteReaderError::ContractAddressNotFound) => Ok(Nonce::default()),
+            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(Nonce::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -203,7 +203,7 @@ impl RemoteReader {
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<ClassHash, RemoteReaderError> {
+    ) -> Result<ClassHash, RemoteStateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -215,12 +215,12 @@ impl RemoteReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteReaderError::ContractAddressNotFound) => Ok(ClassHash::default()),
+            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(ClassHash::default()),
             Err(err) => Err(err)?,
         }
     }
 
-    pub fn get_chain_id(&self) -> Result<ChainId, RemoteReaderError> {
+    pub fn get_chain_id(&self) -> Result<ChainId, RemoteStateReaderError> {
         let params = json!([]);
 
         let response = self.send_rpc_request("starknet_chainId", params)?;
@@ -235,7 +235,7 @@ impl RemoteReader {
     }
 }
 
-impl Into<StateError> for RemoteReaderError {
+impl Into<StateError> for RemoteStateReaderError {
     fn into(self) -> StateError {
         StateError::StateReadError(self.to_string())
     }
@@ -264,12 +264,12 @@ mod tests {
     };
     use starknet_core::types::{BlockStatus, ContractClass};
 
-    use super::{url_from_env, RemoteReader};
+    use super::{url_from_env, RemoteStateReader};
 
     #[test]
     pub fn get_contract_class() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let contract_class = reader
             .get_contract_class(
@@ -288,7 +288,7 @@ mod tests {
     #[test]
     pub fn get_block_with_tx_hashes() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let block = reader
             .get_block_with_tx_hashes(BlockNumber(1500000))
@@ -301,7 +301,7 @@ mod tests {
     #[test]
     pub fn get_tx() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let tx = reader
             .get_tx(&TransactionHash(felt!(
@@ -319,7 +319,7 @@ mod tests {
     #[test]
     pub fn get_tx_receipt() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let tx_receipt = reader
             .get_tx_receipt(&TransactionHash(felt!(
@@ -334,7 +334,7 @@ mod tests {
     #[test]
     pub fn get_storage_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let value = reader
             .get_storage_at(
@@ -355,7 +355,7 @@ mod tests {
     #[test]
     pub fn get_nonce_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let value = reader
             .get_nonce_at(
@@ -372,7 +372,7 @@ mod tests {
     #[test]
     pub fn get_class_hash_at() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
 
         let value = reader
             .get_class_hash_at(
@@ -392,12 +392,12 @@ mod tests {
     #[test]
     pub fn get_chain_id() {
         let url = url_from_env(ChainId::Mainnet);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
         let value = reader.get_chain_id().unwrap();
         assert_eq!(value, ChainId::Mainnet);
 
         let url = url_from_env(ChainId::Sepolia);
-        let reader = RemoteReader::new(url);
+        let reader = RemoteStateReader::new(url);
         let value = reader.get_chain_id().unwrap();
         assert_eq!(value, ChainId::Sepolia);
     }
