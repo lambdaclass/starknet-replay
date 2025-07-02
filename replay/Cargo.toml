@@ -7,7 +7,7 @@ edition = "2021"
 block-composition = ["structured_logging"]
 benchmark = ["dep:serde_with"]
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
-only_cairo_vm = ["rpc-state-reader/only_casm"]
+only_cairo_vm = ["rpc-state-reader/only_casm", "state-reader/only-casm"]
 # The only-native feature uses native exclusively, with every cairo 1 contract
 only-native = ["blockifier/only-native"]
 structured_logging = []

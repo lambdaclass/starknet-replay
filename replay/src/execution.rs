@@ -2,9 +2,11 @@ use blockifier::{
     blockifier::block::validated_gas_prices,
     bouncer::BouncerConfig,
     context::BlockContext,
+    state::{cached_state::CachedState, state_api::StateReader},
     transaction::{
         account_transaction::ExecutionFlags,
         transaction_execution::Transaction as BlockifierTransaction,
+        transactions::ExecutableTransaction,
     },
     versioned_constants::VersionedConstants,
 };
@@ -16,7 +18,94 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 use starknet_core::types::{BlockWithTxHashes, Felt};
-use state_reader::full_state_reader::FullStateReader;
+use state_reader::{block_state_reader::BlockStateReader, full_state_reader::FullStateReader};
+use tracing::{error, info, info_span};
+
+pub fn execute_block(
+    reader: &FullStateReader,
+    block_number: BlockNumber,
+    execution_flags: ExecutionFlags,
+) -> anyhow::Result<()> {
+    let _block_execution_span = info_span!("block execution", block = block_number.0).entered();
+
+    let block = reader.get_block(block_number)?;
+    let tx_hashes: Vec<TransactionHash> = block
+        .transactions
+        .into_iter()
+        .map(TransactionHash)
+        .collect();
+
+    execute_txs(reader, block_number, tx_hashes, execution_flags)?;
+
+    Ok(())
+}
+
+pub fn execute_txs(
+    reader: &FullStateReader,
+    block_number: BlockNumber,
+    tx_hashes: Vec<TransactionHash>,
+    execution_flags: ExecutionFlags,
+) -> anyhow::Result<()> {
+    let block_reader = BlockStateReader::new(
+        block_number
+            .prev()
+            .expect("block number should not be zero"),
+        reader,
+    );
+    let mut state = CachedState::new(block_reader);
+    let block_context = get_block_context(reader, block_number)?;
+
+    for tx_hash in tx_hashes {
+        let _ = execute_tx(
+            &mut state,
+            reader,
+            &block_context,
+            tx_hash,
+            execution_flags.clone(),
+        );
+    }
+
+    Ok(())
+}
+pub fn execute_tx(
+    state: &mut CachedState<impl StateReader>,
+    reader: &FullStateReader,
+    block_context: &BlockContext,
+    tx_hash: TransactionHash,
+    execution_flags: ExecutionFlags,
+) -> anyhow::Result<()> {
+    let _transaction_execution_span =
+        info_span!("transaction execution", hash = tx_hash.to_hex_string(),).entered();
+
+    let tx = get_blockifier_transaction(
+        reader,
+        block_context.block_info().block_number,
+        tx_hash,
+        execution_flags,
+    )
+    .inspect_err(|err| error!("failed to fetch transaction: {}", err))?;
+
+    info!("starting transaction execution");
+
+    let execution_info_result = tx.execute(state, block_context);
+
+    info!("finished transaction execution");
+
+    #[cfg(feature = "state_dump")]
+    crate::state_dump::create_state_dump(
+        state,
+        block_context.block_info().block_number.0,
+        &tx_hash.to_hex_string(),
+        &execution_info_result,
+    );
+
+    #[cfg(feature = "with-libfunc-profiling")]
+    crate::libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
+
+    execution_info_result.inspect_err(|err| error!("failed to execute transaction: {}", err))?;
+
+    Ok(())
+}
 
 pub fn get_block_context(
     reader: &FullStateReader,
