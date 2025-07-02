@@ -17,14 +17,14 @@ use blockifier::{
 
 pub struct BlockStateReader<'s> {
     block_number: BlockNumber,
-    state_manager: &'s FullStateReader,
+    reader: &'s FullStateReader,
 }
 
 impl<'s> BlockStateReader<'s> {
-    pub fn new(block_number: BlockNumber, state_manager: &'s FullStateReader) -> Self {
+    pub fn new(block_number: BlockNumber, reader: &'s FullStateReader) -> Self {
         Self {
             block_number,
-            state_manager,
+            reader,
         }
     }
 }
@@ -36,25 +36,25 @@ impl StateReader for BlockStateReader<'_> {
         key: StorageKey,
     ) -> StateResult<Felt> {
         Ok(self
-            .state_manager
+            .reader
             .get_storage_at(self.block_number, contract_address, key)?)
     }
 
     fn get_nonce_at(&self, contract_address: ContractAddress) -> StateResult<Nonce> {
         Ok(self
-            .state_manager
+            .reader
             .get_nonce_at(self.block_number, contract_address)?)
     }
 
     fn get_class_hash_at(&self, contract_address: ContractAddress) -> StateResult<ClassHash> {
         Ok(self
-            .state_manager
+            .reader
             .get_class_hash_at(self.block_number, contract_address)?)
     }
 
     fn get_compiled_class(&self, class_hash: ClassHash) -> StateResult<RunnableCompiledClass> {
         Ok(self
-            .state_manager
+            .reader
             .get_compiled_class(self.block_number, class_hash)?)
     }
 

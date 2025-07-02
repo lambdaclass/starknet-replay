@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use crate::compiler::{
+use crate::class_manager::{
     compile_class, compile_v1_class, decompress_v0_class, processed_class_to_contract_class,
     ClassManagerError,
 };
@@ -36,14 +36,14 @@ pub enum FullStateReaderError {
 
 pub struct FullStateReader {
     remote_reader: RemoteStateReader,
-    cache: RefCell<RemoteStateCache>,
+    remote_cache: RefCell<RemoteStateCache>,
 }
 
 impl FullStateReader {
     pub fn new(remote_reader: RemoteStateReader) -> Self {
         Self {
             remote_reader,
-            cache: RefCell::new(RemoteStateCache::load()),
+            remote_cache: RefCell::new(RemoteStateCache::load()),
         }
     }
 
@@ -51,13 +51,13 @@ impl FullStateReader {
         &self,
         block_number: BlockNumber,
     ) -> Result<BlockWithTxHashes, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().blocks.get(&block_number) {
+        if let Some(result) = self.remote_cache.borrow().blocks.get(&block_number) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .blocks
             .insert(block_number, result.clone());
@@ -66,13 +66,13 @@ impl FullStateReader {
     }
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().transactions.get(&tx_hash) {
+        if let Some(result) = self.remote_cache.borrow().transactions.get(&tx_hash) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx(&tx_hash)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .transactions
             .insert(tx_hash, result.clone());
@@ -84,13 +84,18 @@ impl FullStateReader {
         &self,
         tx_hash: TransactionHash,
     ) -> Result<RpcTransactionReceipt, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().transaction_receipts.get(&tx_hash) {
+        if let Some(result) = self
+            .remote_cache
+            .borrow()
+            .transaction_receipts
+            .get(&tx_hash)
+        {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .transaction_receipts
             .insert(tx_hash, result.clone());
@@ -106,7 +111,7 @@ impl FullStateReader {
         key: StorageKey,
     ) -> Result<Felt, FullStateReaderError> {
         if let Some(result) =
-            self.cache
+            self.remote_cache
                 .borrow()
                 .storage
                 .get(&(block_number, contract_address, key))
@@ -118,7 +123,7 @@ impl FullStateReader {
             .remote_reader
             .get_storage_at(block_number, contract_address, key)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .storage
             .insert((block_number, contract_address, key), result);
@@ -132,7 +137,7 @@ impl FullStateReader {
         contract_address: ContractAddress,
     ) -> Result<Nonce, FullStateReaderError> {
         if let Some(result) = self
-            .cache
+            .remote_cache
             .borrow()
             .nonces
             .get(&(block_number, contract_address))
@@ -144,7 +149,7 @@ impl FullStateReader {
             .remote_reader
             .get_nonce_at(block_number, contract_address)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .nonces
             .insert((block_number, contract_address), result);
@@ -158,7 +163,7 @@ impl FullStateReader {
         contract_address: ContractAddress,
     ) -> Result<ClassHash, FullStateReaderError> {
         if let Some(result) = self
-            .cache
+            .remote_cache
             .borrow()
             .class_hashes
             .get(&(block_number, contract_address))
@@ -170,7 +175,7 @@ impl FullStateReader {
             .remote_reader
             .get_class_hash_at(block_number, contract_address)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .class_hashes
             .insert((block_number, contract_address), result);
@@ -183,7 +188,7 @@ impl FullStateReader {
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<ContractClass, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().contract_classes.get(&class_hash) {
+        if let Some(result) = self.remote_cache.borrow().contract_classes.get(&class_hash) {
             return Ok(result.clone());
         }
 
@@ -191,7 +196,7 @@ impl FullStateReader {
             .remote_reader
             .get_contract_class(block_number, &class_hash)?;
 
-        self.cache
+        self.remote_cache
             .borrow_mut()
             .contract_classes
             .insert(class_hash, result.clone());
@@ -251,13 +256,17 @@ impl FullStateReader {
     }
 
     pub fn get_chain_id(&self) -> Result<ChainId, FullStateReaderError> {
-        if let Some(result) = &self.cache.borrow().chain_id {
+        if let Some(result) = &self.remote_cache.borrow().chain_id {
             return Ok(result.clone());
         }
 
         let chain_id = self.remote_reader.get_chain_id()?;
 
-        let _ = self.cache.borrow_mut().chain_id.insert(chain_id.clone());
+        let _ = self
+            .remote_cache
+            .borrow_mut()
+            .chain_id
+            .insert(chain_id.clone());
 
         Ok(chain_id)
     }
@@ -265,7 +274,7 @@ impl FullStateReader {
 
 impl Drop for FullStateReader {
     fn drop(&mut self) {
-        self.cache.borrow_mut().save()
+        self.remote_cache.borrow_mut().save()
     }
 }
 
