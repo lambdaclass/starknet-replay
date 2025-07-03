@@ -14,6 +14,7 @@ use blockifier::{
     versioned_constants::VersionedConstants,
 };
 use blockifier_reexecution::state_reader::utils::get_chain_info;
+use serde::Serialize;
 use starknet_api::{
     block::{BlockInfo, BlockNumber, BlockTimestamp, GasPrice, NonzeroGasPrice, StarknetVersion},
     core::{ContractAddress, PatriciaKey},
@@ -21,9 +22,15 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 use starknet_core::types::{BlockWithTxHashes, Felt};
-use state_reader::{block_state_reader::BlockStateReader, full_state_reader::FullStateReader};
+use state_reader::{
+    block_state_reader::BlockStateReader, full_state_reader::FullStateReader,
+    objects::RpcTransactionReceipt,
+};
 use tracing::{error, info, info_span};
 
+// the fields are used by the benchmark feature
+// so we allow dead code to silence warnings.
+#[allow(dead_code)]
 pub struct TransactionExecution {
     pub result: TransactionExecutionResult<TransactionExecutionInfo>,
     pub time: Duration,
@@ -101,8 +108,6 @@ pub fn execute_tx(
     let execution_result = tx.execute(state, block_context);
     let execution_time = pre_execute_instant.elapsed();
 
-    info!("finished transaction execution");
-
     // TODO: Move this to the caller.
     // This function should only execute the transaction and return relevant information.
     #[cfg(feature = "state_dump")]
@@ -118,11 +123,85 @@ pub fn execute_tx(
     #[cfg(feature = "with-libfunc-profiling")]
     crate::libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
 
+    match &execution_result {
+        Ok(execution_info) => {
+            let result_string = execution_info
+                .revert_error
+                .as_ref()
+                .map(|err| err.to_string())
+                .unwrap_or("ok".to_string());
+
+            info!("transaction execution finished: {}", result_string);
+
+            let receipt = reader.get_tx_receipt(tx_hash)?;
+            validate_tx_with_receipt(execution_info, receipt);
+        }
+        Err(err) => error!("transaction execution failed: {err}"),
+    }
+
     Ok(TransactionExecution {
         result: execution_result,
         time: execution_time,
         hash: tx_hash,
     })
+}
+
+/// Validates the transaction execution with the network receipt,
+/// and logs the result
+fn validate_tx_with_receipt(
+    execution_info: &TransactionExecutionInfo,
+    receipt: RpcTransactionReceipt,
+) {
+    #[derive(PartialEq, Debug, Serialize)]
+    struct TransactionSummary {
+        reverted: bool,
+        events: usize,
+        messages: usize,
+    }
+
+    let actual_execution_summary = {
+        TransactionSummary {
+            reverted: execution_info.is_reverted(),
+            events: execution_info
+                .receipt
+                .resources
+                .starknet_resources
+                .archival_data
+                .event_summary
+                .n_events
+                + 1,
+            messages: execution_info
+                .receipt
+                .resources
+                .starknet_resources
+                .messages
+                .l2_to_l1_payload_lengths
+                .len(),
+        }
+    };
+    let expected_execution_summary = {
+        TransactionSummary {
+            reverted: receipt.execution_result.revert_reason().is_some(),
+            events: receipt.events.len(),
+            messages: receipt.messages_sent.len(),
+        }
+    };
+
+    if actual_execution_summary == expected_execution_summary {
+        info!(
+            "execution summary coincides with network: {}",
+            serde_json::to_string(&actual_execution_summary)
+                .expect("serializing simple struct cannot fail"),
+        )
+    } else {
+        error!(
+            "execution summary differs with network: {} vs. {}",
+            serde_json::to_string(&actual_execution_summary)
+                .expect("serializing simple struct cannot fail"),
+            serde_json::to_string(&expected_execution_summary)
+                .expect("serializing simple struct cannot fail"),
+        )
+    }
 }
 
 pub fn get_block_context(
