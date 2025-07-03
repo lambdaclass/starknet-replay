@@ -7,12 +7,18 @@ use std::{
     time::Duration,
 };
 
+use blockifier::execution::{
+    contract_class::{CompiledClassV0, CompiledClassV1, RunnableCompiledClass},
+    native::contract_class::NativeCompiledClassV1,
+};
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use cairo_vm::types::errors::program_errors::ProgramError;
 use lockfile::Lockfile;
-use starknet_api::contract_class::ContractClass as CompiledContractClass;
 use starknet_api::{
-    contract_class::{EntryPointType, SierraVersion, VersionedCasm},
+    contract_class::{
+        ClassInfo, ContractClass as CompiledContractClass, EntryPointType, SierraVersion,
+        VersionedCasm,
+    },
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{
         ContractClass as DeprecatedContractClass, EntryPointOffset, EntryPointV0,
@@ -26,14 +32,12 @@ use starknet_core::types::{
 use thiserror::Error;
 
 use cairo_lang_starknet_classes::{
-    casm_contract_class::StarknetSierraCompilationError,
+    casm_contract_class::{CasmContractClass, StarknetSierraCompilationError},
     contract_class::{version_id_from_serialized_sierra_program, ContractClass},
 };
 
 #[derive(Error, Debug)]
 pub enum ClassManagerError {
-    #[error("could not find compiled class in cache")]
-    CompiledClassNotFound,
     #[error(transparent)]
     CairoNativeError(#[from] cairo_native::error::Error),
     #[error(transparent)]
@@ -46,35 +50,65 @@ pub enum ClassManagerError {
     StarknetApiError(#[from] starknet_api::StarknetApiError),
     #[error(transparent)]
     StarknetSierraCompilationError(#[from] StarknetSierraCompilationError),
+    #[error("a legacy contract should always have an ABI")]
+    LegacyContractWithoutAbi,
 }
 
 #[derive(Default)]
 pub struct ClassManager {
-    executors: HashMap<ClassHash, AotContractExecutor>,
-    compiled_classes: HashMap<ClassHash, CompiledContractClass>,
+    runnable_classes: HashMap<ClassHash, RunnableCompiledClass>,
 }
 
 impl ClassManager {
     pub fn new() -> Self {
-        Self {
-            executors: HashMap::default(),
-            compiled_classes: HashMap::default(),
-        }
+        Default::default()
     }
 
-    pub fn get_casm_class(&self, class_hash: &ClassHash) -> Option<CompiledContractClass> {
-        self.compiled_classes.get(class_hash).cloned()
+    pub fn get_runnable_class(&self, class_hash: &ClassHash) -> Option<RunnableCompiledClass> {
+        self.runnable_classes.get(class_hash).cloned()
     }
 
-    pub fn get_native_executor(&self, class_hash: &ClassHash) -> Option<AotContractExecutor> {
-        self.executors.get(class_hash).cloned()
-    }
-
-    pub fn compile_casm_class(
+    pub fn compile_runnable_class(
         &mut self,
         class_hash: &ClassHash,
         contract_class: ApiContractClass,
-    ) -> Result<CompiledContractClass, ClassManagerError> {
+    ) -> Result<RunnableCompiledClass, ClassManagerError> {
+        let runnable_compiled_class = match contract_class {
+            ApiContractClass::Sierra(sierra_class) => {
+                let casm_class = CompiledClassV1::try_from(
+                    self.compile_casm_v1_class(class_hash, &sierra_class)?,
+                )?;
+
+                if cfg!(feature = "only-casm") {
+                    RunnableCompiledClass::V1(casm_class)
+                } else {
+                    let native_executor = self.compile_native_class(class_hash, &sierra_class)?;
+
+                    RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
+                        native_executor.into(),
+                        casm_class,
+                    ))
+                }
+            }
+            ApiContractClass::Legacy(legacy_class) => {
+                let contract_class = decompress_v0_class(legacy_class)?;
+                RunnableCompiledClass::V0(CompiledClassV0::try_from(contract_class)?)
+            }
+        };
+
+        self.runnable_classes
+            .insert(*class_hash, runnable_compiled_class.clone());
+
+        Ok(runnable_compiled_class)
+    }
+
+    pub fn compile_casm_v1_class(
+        &self,
+        class_hash: &ClassHash,
+        sierra_class: &FlattenedSierraClass,
+    ) -> Result<VersionedCasm, ClassManagerError> {
+        let contract_class = processed_class_to_contract_class(sierra_class)?;
+
         let cache_path = format!("cache/casm/{}.json", class_hash.to_hex_string());
         let lockfile_path = format!("{}.lock", cache_path);
 
@@ -85,43 +119,41 @@ impl ClassManager {
         }
         let lockfile = lockfile.expect("failed to take lock");
 
-        let compiled_class = match File::open(&cache_path) {
+        let versioned_casm_class = match File::open(&cache_path) {
             Ok(file) => serde_json::from_reader(file)?,
             Err(_) => {
-                let compiled_class = match contract_class {
-                    ApiContractClass::Legacy(class) => {
-                        let compiled_class = decompress_v0_class(class)?;
-                        CompiledContractClass::V0(compiled_class)
-                    }
-                    ApiContractClass::Sierra(sierra_class) => {
-                        let contract_class = processed_class_to_contract_class(sierra_class)?;
+                let sierra_program_values = contract_class
+                    .sierra_program
+                    .iter()
+                    .take(3)
+                    .map(|felt| felt.value.clone())
+                    .collect::<Vec<_>>();
 
-                        let versioned_casm = compile_v1_class(contract_class.clone())?;
-                        CompiledContractClass::V1(versioned_casm)
-                    }
-                };
+                let sierra_version = SierraVersion::extract_from_program(&sierra_program_values)?;
+
+                let casm_class =
+                    CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+
+                let versioned_casm_class = (casm_class, sierra_version);
 
                 let file = File::create(&cache_path)?;
-                serde_json::to_writer(file, &compiled_class)?;
+                serde_json::to_writer(file, &versioned_casm_class)?;
 
-                compiled_class
+                versioned_casm_class
             }
         };
 
         lockfile.release().expect("failed to release lockfile");
 
-        self.compiled_classes
-            .insert(*class_hash, compiled_class.clone());
-
-        Ok(compiled_class)
+        Ok(versioned_casm_class)
     }
 
     pub fn compile_native_class(
-        &mut self,
+        &self,
         class_hash: &ClassHash,
-        sierra_class: FlattenedSierraClass,
+        sierra_class: &FlattenedSierraClass,
     ) -> Result<AotContractExecutor, ClassManagerError> {
-        let contract_class = processed_class_to_contract_class(sierra_class)?;
+        let contract_class = processed_class_to_contract_class(&sierra_class)?;
 
         let cache_path =
             PathBuf::from(format!("cache/native/{}.{}", class_hash.to_hex_string(), {
@@ -185,9 +217,46 @@ impl ClassManager {
             }
         };
 
-        self.executors.insert(*class_hash, native_executor.clone());
-
         Ok(native_executor)
+    }
+
+    pub fn get_class_info(
+        &self,
+        class_hash: &ClassHash,
+        contract_class: ApiContractClass,
+    ) -> Result<ClassInfo, ClassManagerError> {
+        Ok(match contract_class {
+            ApiContractClass::Legacy(legacy_class) => {
+                let abi_length = legacy_class
+                    .abi
+                    .as_ref()
+                    .ok_or(ClassManagerError::LegacyContractWithoutAbi)?
+                    .len();
+
+                let casm_class = decompress_v0_class(legacy_class)?;
+
+                ClassInfo::new(
+                    &CompiledContractClass::V0(casm_class),
+                    0,
+                    abi_length,
+                    SierraVersion::DEPRECATED,
+                )?
+            }
+            ApiContractClass::Sierra(sierra_class) => {
+                let abi_length = sierra_class.abi.len();
+                let sierra_length = sierra_class.sierra_program.len();
+
+                let versioned_casm = self.compile_casm_v1_class(&class_hash, &sierra_class)?;
+                let sierra_version = versioned_casm.1.clone();
+
+                ClassInfo::new(
+                    &CompiledContractClass::V1(versioned_casm),
+                    sierra_length,
+                    abi_length,
+                    sierra_version,
+                )?
+            }
+        })
     }
 }
 
@@ -227,7 +296,7 @@ pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, ClassMana
 
 /// Converts the processed class format into the compiler class format.
 pub fn processed_class_to_contract_class(
-    sierra_class: FlattenedSierraClass,
+    sierra_class: &FlattenedSierraClass,
 ) -> Result<ContractClass, ClassManagerError> {
     let mut value = serde_json::to_value(sierra_class)?;
     value

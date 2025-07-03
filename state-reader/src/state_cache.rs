@@ -16,7 +16,7 @@ use crate::objects::RpcTransactionReceipt;
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
-pub struct RemoteStateCache {
+pub struct StateCache {
     pub chain_id: Option<ChainId>,
     #[serde_as(as = "Vec<(_, _)>")]
     pub blocks: HashMap<BlockNumber, BlockWithTxHashes>,
@@ -34,7 +34,7 @@ pub struct RemoteStateCache {
     pub storage: HashMap<(BlockNumber, ContractAddress, StorageKey), Felt>,
 }
 
-impl RemoteStateCache {
+impl StateCache {
     pub fn load() -> Self {
         let cache_path = "cache/rpc.json".to_string();
         let lockfile_path = format!("{}.lock", cache_path);
@@ -65,7 +65,7 @@ impl RemoteStateCache {
         cache
     }
 
-    pub fn merge(&mut self, other: RemoteStateCache) {
+    pub fn merge(&mut self, other: StateCache) {
         if other.chain_id.is_some() {
             if self.chain_id.is_some() {
                 assert_eq!(other.chain_id, self.chain_id)
@@ -130,7 +130,7 @@ impl RemoteStateCache {
         let lockfile = lockfile.expect("failed to take lock");
 
         if let Ok(file) = File::open(&cache_path) {
-            let existing_cache: RemoteStateCache =
+            let existing_cache: StateCache =
                 serde_json::from_reader(file).expect("failed to read cache");
             self.merge(existing_cache);
         }

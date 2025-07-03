@@ -3,25 +3,19 @@ use std::cell::RefCell;
 use crate::class_manager::{ClassManager, ClassManagerError};
 use crate::objects::RpcTransactionReceipt;
 use crate::remote_state_reader::{RemoteStateReader, RemoteStateReaderError};
-use blockifier::execution::native::contract_class::NativeCompiledClassV1;
-use blockifier::execution::native::executor::ContractExecutor;
-use cairo_vm::types::errors::program_errors::ProgramError;
 use starknet_api::{
     block::BlockNumber,
-    contract_class::{ClassInfo, ContractClass as CompiledContractClass, SierraVersion},
+    contract_class::ClassInfo,
     core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
-    StarknetApiError,
 };
 
 use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
-use crate::remote_state_cache::RemoteStateCache;
-use blockifier::execution::contract_class::{
-    CompiledClassV0, CompiledClassV1, RunnableCompiledClass,
-};
+use crate::state_cache::StateCache;
+use blockifier::execution::contract_class::RunnableCompiledClass;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -30,19 +24,11 @@ pub enum FullStateReaderError {
     RemoteReaderError(#[from] RemoteStateReaderError),
     #[error(transparent)]
     ClassManagerError(#[from] ClassManagerError),
-    #[error(transparent)]
-    StarknetApiError(#[from] StarknetApiError),
-    #[error(transparent)]
-    ProgramError(#[from] ProgramError),
-    #[error("a legacy contract should always have an ABI")]
-    LegacyContractWithoutAbi,
-    #[error("could not find requested value")]
-    NotFound,
 }
 
 pub struct FullStateReader {
     remote_reader: RemoteStateReader,
-    remote_cache: RefCell<RemoteStateCache>,
+    cache: RefCell<StateCache>,
     class_manager: RefCell<ClassManager>,
 }
 
@@ -50,7 +36,7 @@ impl FullStateReader {
     pub fn new(remote_reader: RemoteStateReader) -> Self {
         Self {
             remote_reader,
-            remote_cache: RefCell::new(RemoteStateCache::load()),
+            cache: RefCell::new(StateCache::load()),
             class_manager: RefCell::new(ClassManager::new()),
         }
     }
@@ -59,13 +45,13 @@ impl FullStateReader {
         &self,
         block_number: BlockNumber,
     ) -> Result<BlockWithTxHashes, FullStateReaderError> {
-        if let Some(result) = self.remote_cache.borrow().blocks.get(&block_number) {
+        if let Some(result) = self.cache.borrow().blocks.get(&block_number) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .blocks
             .insert(block_number, result.clone());
@@ -74,13 +60,13 @@ impl FullStateReader {
     }
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
-        if let Some(result) = self.remote_cache.borrow().transactions.get(&tx_hash) {
+        if let Some(result) = self.cache.borrow().transactions.get(&tx_hash) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx(&tx_hash)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .transactions
             .insert(tx_hash, result.clone());
@@ -92,17 +78,12 @@ impl FullStateReader {
         &self,
         tx_hash: TransactionHash,
     ) -> Result<RpcTransactionReceipt, FullStateReaderError> {
-        if let Some(result) = self
-            .remote_cache
-            .borrow()
-            .transaction_receipts
-            .get(&tx_hash)
-        {
+        if let Some(result) = self.cache.borrow().transaction_receipts.get(&tx_hash) {
             return Ok(result.clone());
         }
 
         let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .transaction_receipts
             .insert(tx_hash, result.clone());
@@ -118,7 +99,7 @@ impl FullStateReader {
         key: StorageKey,
     ) -> Result<Felt, FullStateReaderError> {
         if let Some(result) =
-            self.remote_cache
+            self.cache
                 .borrow()
                 .storage
                 .get(&(block_number, contract_address, key))
@@ -130,7 +111,7 @@ impl FullStateReader {
             .remote_reader
             .get_storage_at(block_number, contract_address, key)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .storage
             .insert((block_number, contract_address, key), result);
@@ -144,7 +125,7 @@ impl FullStateReader {
         contract_address: ContractAddress,
     ) -> Result<Nonce, FullStateReaderError> {
         if let Some(result) = self
-            .remote_cache
+            .cache
             .borrow()
             .nonces
             .get(&(block_number, contract_address))
@@ -156,7 +137,7 @@ impl FullStateReader {
             .remote_reader
             .get_nonce_at(block_number, contract_address)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .nonces
             .insert((block_number, contract_address), result);
@@ -170,7 +151,7 @@ impl FullStateReader {
         contract_address: ContractAddress,
     ) -> Result<ClassHash, FullStateReaderError> {
         if let Some(result) = self
-            .remote_cache
+            .cache
             .borrow()
             .class_hashes
             .get(&(block_number, contract_address))
@@ -182,7 +163,7 @@ impl FullStateReader {
             .remote_reader
             .get_class_hash_at(block_number, contract_address)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .class_hashes
             .insert((block_number, contract_address), result);
@@ -195,7 +176,7 @@ impl FullStateReader {
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<ContractClass, FullStateReaderError> {
-        if let Some(result) = self.remote_cache.borrow().contract_classes.get(&class_hash) {
+        if let Some(result) = self.cache.borrow().contract_classes.get(&class_hash) {
             return Ok(result.clone());
         }
 
@@ -203,7 +184,7 @@ impl FullStateReader {
             .remote_reader
             .get_contract_class(block_number, &class_hash)?;
 
-        self.remote_cache
+        self.cache
             .borrow_mut()
             .contract_classes
             .insert(class_hash, result.clone());
@@ -216,50 +197,16 @@ impl FullStateReader {
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<RunnableCompiledClass, FullStateReaderError> {
-        let mut class_manager = self.class_manager.borrow_mut();
-        let casm_class = match class_manager.get_casm_class(&class_hash) {
-            Some(casm_class) => casm_class,
-            None => {
-                let contract_class = self.get_contract_class(block_number, class_hash)?;
-                class_manager.compile_casm_class(&class_hash, contract_class)?
-            }
-        };
+        if let Some(result) = self.class_manager.borrow().get_runnable_class(&class_hash) {
+            return Ok(result.clone());
+        }
 
-        let native_executor = if cfg!(feature = "only-casm") {
-            None
-        } else {
-            match class_manager.get_native_executor(&class_hash) {
-                Some(native_executor) => Some(native_executor),
-                None => {
-                    let contract_class = self.get_contract_class(block_number, class_hash)?;
-                    if let ContractClass::Sierra(sierra_class) = contract_class {
-                        Some(class_manager.compile_native_class(&class_hash, sierra_class)?)
-                    } else {
-                        None
-                    }
-                }
-            }
-        };
+        let contract_class = self.get_contract_class(block_number, class_hash)?;
 
-        Ok(match casm_class {
-            CompiledContractClass::V0(deprecated_class) => {
-                RunnableCompiledClass::V0(CompiledClassV0::try_from(deprecated_class)?)
-            }
-            CompiledContractClass::V1(versioned_casm) => {
-                let casm_class = CompiledClassV1::try_from(versioned_casm)?;
-
-                match native_executor {
-                    Some(native_executor) => {
-                        let contract_executor = ContractExecutor::Aot(native_executor);
-                        RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
-                            contract_executor,
-                            casm_class,
-                        ))
-                    }
-                    None => RunnableCompiledClass::V1(casm_class),
-                }
-            }
-        })
+        Ok(self
+            .class_manager
+            .borrow_mut()
+            .compile_runnable_class(&class_hash, contract_class)?)
     }
 
     pub fn get_class_info(
@@ -269,48 +216,23 @@ impl FullStateReader {
     ) -> Result<ClassInfo, FullStateReaderError> {
         let contract_class = self.get_contract_class(block_number, class_hash)?;
 
-        let mut class_manager = self.class_manager.borrow_mut();
-        let casm_class = match class_manager.get_casm_class(&class_hash) {
-            Some(casm_class) => casm_class,
-            None => class_manager.compile_casm_class(&class_hash, contract_class.clone())?,
-        };
-
-        Ok(match contract_class {
-            ContractClass::Legacy(legacy) => {
-                let abi_length = legacy
-                    .abi
-                    .as_ref()
-                    .ok_or(FullStateReaderError::LegacyContractWithoutAbi)?
-                    .len();
-                ClassInfo::new(&casm_class, 0, abi_length, SierraVersion::DEPRECATED)?
-            }
-            ContractClass::Sierra(sierra) => {
-                let abi_length = sierra.abi.len();
-                let sierra_length = sierra.sierra_program.len();
-
-                let sierra_version = match &casm_class {
-                    CompiledContractClass::V0(_) => {
-                        panic!("a sierra class cannot have a deprecated compiled class")
-                    }
-                    CompiledContractClass::V1((_, version)) => version.clone(),
-                };
-                ClassInfo::new(&casm_class, sierra_length, abi_length, sierra_version)?
-            }
-        })
+        // This value is not cached in memory as its only used before executing
+        // a transaction. This means that it won't affect a transaction
+        // performance.
+        Ok(self
+            .class_manager
+            .borrow()
+            .get_class_info(&class_hash, contract_class)?)
     }
 
     pub fn get_chain_id(&self) -> Result<ChainId, FullStateReaderError> {
-        if let Some(result) = &self.remote_cache.borrow().chain_id {
+        if let Some(result) = &self.cache.borrow().chain_id {
             return Ok(result.clone());
         }
 
         let chain_id = self.remote_reader.get_chain_id()?;
 
-        let _ = self
-            .remote_cache
-            .borrow_mut()
-            .chain_id
-            .insert(chain_id.clone());
+        let _ = self.cache.borrow_mut().chain_id.insert(chain_id.clone());
 
         Ok(chain_id)
     }
@@ -318,7 +240,7 @@ impl FullStateReader {
 
 impl Drop for FullStateReader {
     fn drop(&mut self) {
-        self.remote_cache.borrow_mut().save()
+        self.cache.borrow_mut().save()
     }
 }
 
