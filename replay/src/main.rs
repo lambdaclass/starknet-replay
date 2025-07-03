@@ -340,7 +340,6 @@ fn main() {
             let mut block_executions = Vec::new();
 
             for _ in 0..number_of_runs {
-                // We execute the transaction once, to ensure that everything is cached.
                 let executions = execute_txs(
                     &full_reader,
                     block_number,
