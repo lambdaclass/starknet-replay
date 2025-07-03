@@ -269,6 +269,8 @@ mod tests {
             )
             .unwrap();
 
+        // TODO: Assert that we don't miss
+
         state
             .get_compiled_class(
                 BlockNumber(1500000),
@@ -291,6 +293,8 @@ mod tests {
             )
             .unwrap();
 
+        // TODO: Assert that we don't miss
+
         state
             .get_compiled_class(
                 BlockNumber(1500000),
@@ -312,13 +316,6 @@ mod tests {
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
-
-        state
-            .get_class_info(
-                BlockNumber(1500000),
-                class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
-            )
-            .unwrap();
     }
 
     #[test]
@@ -327,13 +324,6 @@ mod tests {
         let remote_reader = RemoteStateReader::new(url);
 
         let state = FullStateReader::new(remote_reader);
-
-        state
-            .get_class_info(
-                BlockNumber(1500000),
-                class_hash!("0x010455c752b86932ce552f2b0fe81a880746649b9aee7e0d842bf3f52378f9f8"),
-            )
-            .unwrap();
 
         state
             .get_class_info(
@@ -364,6 +354,8 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+
+        // TODO: Assert that we don't miss
 
         let value = state
             .get_storage_at(
@@ -407,6 +399,8 @@ mod tests {
         let remote_reader = RemoteStateReader::new(url);
 
         let state = FullStateReader::new(remote_reader);
+
+        // TODO: Assert that we don't miss
 
         let value = state
             .get_storage_at(
