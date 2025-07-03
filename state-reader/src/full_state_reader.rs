@@ -56,7 +56,7 @@ impl FullStateReader {
             .blocks
             .insert(block_number, result.clone());
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
@@ -71,7 +71,7 @@ impl FullStateReader {
             .transactions
             .insert(tx_hash, result.clone());
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_tx_receipt(
@@ -88,7 +88,7 @@ impl FullStateReader {
             .transaction_receipts
             .insert(tx_hash, result.clone());
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_storage_at(
@@ -116,7 +116,7 @@ impl FullStateReader {
             .storage
             .insert((block_number, contract_address, key), result);
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_nonce_at(
@@ -142,7 +142,7 @@ impl FullStateReader {
             .nonces
             .insert((block_number, contract_address), result);
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_class_hash_at(
@@ -168,7 +168,7 @@ impl FullStateReader {
             .class_hashes
             .insert((block_number, contract_address), result);
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_contract_class(
@@ -189,7 +189,7 @@ impl FullStateReader {
             .contract_classes
             .insert(class_hash, result.clone());
 
-        return Ok(result);
+        Ok(result)
     }
 
     pub fn get_compiled_class(

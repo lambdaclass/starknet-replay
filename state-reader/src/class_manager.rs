@@ -153,7 +153,7 @@ impl ClassManager {
         class_hash: &ClassHash,
         sierra_class: &FlattenedSierraClass,
     ) -> Result<AotContractExecutor, ClassManagerError> {
-        let contract_class = processed_class_to_contract_class(&sierra_class)?;
+        let contract_class = processed_class_to_contract_class(sierra_class)?;
 
         let cache_path =
             PathBuf::from(format!("cache/native/{}.{}", class_hash.to_hex_string(), {
@@ -246,7 +246,7 @@ impl ClassManager {
                 let abi_length = sierra_class.abi.len();
                 let sierra_length = sierra_class.sierra_program.len();
 
-                let versioned_casm = self.compile_casm_v1_class(&class_hash, &sierra_class)?;
+                let versioned_casm = self.compile_casm_v1_class(class_hash, &sierra_class)?;
                 let sierra_version = versioned_casm.1.clone();
 
                 ClassInfo::new(
