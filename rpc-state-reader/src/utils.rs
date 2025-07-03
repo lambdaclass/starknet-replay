@@ -14,7 +14,7 @@ use cairo_lang_starknet_classes::contract_class::{
 };
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
     contract_class::{EntryPointType, SierraVersion},
@@ -147,6 +147,17 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
                         );
 
                         if let Some(statistics) = statistics {
+                            #[derive(Serialize)]
+                            struct StatisticsWithCtx {
+                                pub class_hash: ClassHash,
+                                pub statistics: Statistics,
+                            }
+
+                            let statistics = StatisticsWithCtx {
+                                class_hash,
+                                statistics,
+                            };
+
                             let stats_path = path.with_extension("stats.json");
                             let stats_file =
                                 File::create(stats_path).expect("failed to open stats file");
