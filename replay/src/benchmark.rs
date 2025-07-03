@@ -44,27 +44,29 @@ pub fn aggregate_executions(
 
     for (block_number, executions) in executions {
         for execution in executions {
+            let Ok(execution_info) = execution.result else {
+                continue;
+            };
+
             let first_class_index = calls.len();
 
             let mut gas_consumed = 0;
             let mut steps = 0;
 
-            if let Ok(execution) = execution.result {
-                if let Some(call) = execution.validate_call_info {
-                    gas_consumed += call.execution.gas_consumed;
-                    steps += call.resources.n_steps as u64;
-                    calls.append(&mut get_calls(call));
-                }
-                if let Some(call) = execution.execute_call_info {
-                    gas_consumed += call.execution.gas_consumed;
-                    steps += call.resources.n_steps as u64;
-                    calls.append(&mut get_calls(call));
-                }
-                if let Some(call) = execution.fee_transfer_call_info {
-                    gas_consumed += call.execution.gas_consumed;
-                    steps += call.resources.n_steps as u64;
-                    calls.append(&mut get_calls(call));
-                }
+            if let Some(call) = execution_info.validate_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
+            }
+            if let Some(call) = execution_info.execute_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
+            }
+            if let Some(call) = execution_info.fee_transfer_call_info {
+                gas_consumed += call.execution.gas_consumed;
+                steps += call.resources.n_steps as u64;
+                calls.append(&mut get_calls(call));
             }
 
             transactions.push(TransactionExecutionData {
