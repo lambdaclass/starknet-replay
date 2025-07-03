@@ -1,9 +1,6 @@
 use std::time::Duration;
 
-use blockifier::{
-    execution::{call_info::CallInfo, contract_class::TrackedResource},
-    transaction::objects::TransactionExecutionInfo,
-};
+use blockifier::execution::{call_info::CallInfo, contract_class::TrackedResource};
 use serde::Serialize;
 use starknet_api::{
     block::BlockNumber,
@@ -11,7 +8,7 @@ use starknet_api::{
     transaction::TransactionHash,
 };
 
-type TransactionExecutionOutput = (TransactionHash, TransactionExecutionInfo, Duration);
+use crate::execution::TransactionExecution;
 
 #[derive(Serialize)]
 pub struct BenchmarkingData {
@@ -40,37 +37,39 @@ pub struct TransactionExecutionData {
 }
 
 pub fn aggregate_executions(
-    executions: Vec<(BlockNumber, Vec<TransactionExecutionOutput>)>,
+    executions: Vec<(BlockNumber, Vec<TransactionExecution>)>,
 ) -> BenchmarkingData {
     let mut calls = vec![];
     let mut transactions = vec![];
 
     for (block_number, executions) in executions {
-        for (hash, execution, time) in executions {
+        for execution in executions {
             let first_class_index = calls.len();
 
             let mut gas_consumed = 0;
             let mut steps = 0;
 
-            if let Some(call) = execution.validate_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
-            }
-            if let Some(call) = execution.execute_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
-            }
-            if let Some(call) = execution.fee_transfer_call_info {
-                gas_consumed += call.execution.gas_consumed;
-                steps += call.resources.n_steps as u64;
-                calls.append(&mut get_calls(call));
+            if let Ok(execution) = execution.result {
+                if let Some(call) = execution.validate_call_info {
+                    gas_consumed += call.execution.gas_consumed;
+                    steps += call.resources.n_steps as u64;
+                    calls.append(&mut get_calls(call));
+                }
+                if let Some(call) = execution.execute_call_info {
+                    gas_consumed += call.execution.gas_consumed;
+                    steps += call.resources.n_steps as u64;
+                    calls.append(&mut get_calls(call));
+                }
+                if let Some(call) = execution.fee_transfer_call_info {
+                    gas_consumed += call.execution.gas_consumed;
+                    steps += call.resources.n_steps as u64;
+                    calls.append(&mut get_calls(call));
+                }
             }
 
             transactions.push(TransactionExecutionData {
-                hash,
-                time_ns: time.as_nanos(),
+                hash: execution.hash,
+                time_ns: execution.time.as_nanos(),
                 first_call: first_class_index,
                 gas_consumed,
                 steps,

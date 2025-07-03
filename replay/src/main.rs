@@ -281,18 +281,7 @@ fn main() {
                     )
                     .expect("failed to execute block");
 
-                    // TODO: The `execute_block` output representation
-                    // is translated into the representation used by
-                    // `aggregate_executions`. We should update the benchmark
-                    // feature to better use the representation returned on
-                    // execution, instead of translating them.
-                    block_executions.push((
-                        BlockNumber(block_number),
-                        executions
-                            .into_iter()
-                            .filter_map(|x| Some((x.hash, x.result.ok()?, x.time)))
-                            .collect(),
-                    ));
+                    block_executions.push((BlockNumber(block_number), executions));
                 }
             }
 
@@ -348,18 +337,7 @@ fn main() {
                 )
                 .expect("failed to execute transaction");
 
-                // TODO: The `execute_block` output representation
-                // is translated into the representation used by
-                // `aggregate_executions`. We should update the benchmark
-                // feature to better use the representation returned on
-                // execution, instead of translating them.
-                block_executions.push((
-                    block_number,
-                    executions
-                        .into_iter()
-                        .filter_map(|x| Some((x.hash, x.result.ok()?, x.time)))
-                        .collect(),
-                ));
+                block_executions.push((block_number, executions));
             }
 
             let benchmarking_data = aggregate_executions(block_executions);
