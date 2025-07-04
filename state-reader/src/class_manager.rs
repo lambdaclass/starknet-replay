@@ -53,6 +53,8 @@ pub enum ClassManagerError {
     StarknetSierraCompilationError(#[from] StarknetSierraCompilationError),
     #[error("a legacy contract should always have an ABI")]
     LegacyContractWithoutAbi,
+    #[error("the received sierra class was invalid")]
+    InvalidSierraClass,
 }
 
 /// A compiled class cache for both CASM and Native.
@@ -346,7 +348,7 @@ pub fn processed_class_to_contract_class(
     let mut value = serde_json::to_value(sierra_class)?;
     value
         .as_object_mut()
-        .expect("should be an object")
+        .ok_or(ClassManagerError::InvalidSierraClass)?
         .remove("abi");
     Ok(serde_json::from_value(value)?)
 }
