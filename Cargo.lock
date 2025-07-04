@@ -6193,7 +6193,6 @@ dependencies = [
  "chrono",
  "clap",
  "dotenvy",
- "rpc-state-reader",
  "serde",
  "serde_json",
  "serde_with 3.13.0",
