@@ -16,6 +16,16 @@ use crate::objects::RpcTransactionReceipt;
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
+/// A Cache for network state. Its saved to disk as is.
+///
+/// TODO: Separate between networks.
+///
+/// TODO: This cache is saved to disk as is. This implies that the file can get
+/// big fast (2GB for 400k transactions). Although the size cannot be reduced
+/// easily, we can increase the loading times by separating them into different
+/// files:
+/// - 1 file for each block
+/// - 1 file for each contract class
 pub struct StateCache {
     pub chain_id: Option<ChainId>,
     #[serde_as(as = "Vec<(_, _)>")]
