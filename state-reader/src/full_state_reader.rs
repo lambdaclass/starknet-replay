@@ -295,7 +295,11 @@ impl Drop for FullStateReader {
 #[cfg(test)]
 mod tests {
     use starknet_api::{
-        block::BlockNumber, class_hash, contract_address, core::ChainId, felt, storage_key,
+        block::BlockNumber,
+        class_hash, contract_address,
+        core::ChainId,
+        felt, storage_key,
+        transaction::{TransactionHash, TransactionVersion},
     };
 
     use crate::full_state_reader::FullStateReader;
@@ -441,5 +445,27 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+    }
+
+    #[test]
+    pub fn get_block() {
+        let state = FullStateReader::load(ChainId::Sepolia).expect("failed to load reader");
+
+        let block = state.get_block(BlockNumber(750000)).unwrap();
+
+        assert_eq!(block.transactions.len(), 10);
+    }
+
+    #[test]
+    pub fn get_tx() {
+        let state = FullStateReader::load(ChainId::Sepolia).expect("failed to load reader");
+
+        let tx = state
+            .get_tx(TransactionHash(felt!(
+                "0x186f6c7338057937dfca8f6feb85dfa056a46d496b75659bc7145d15e4c25ed"
+            )))
+            .unwrap();
+
+        assert_eq!(tx.version(), TransactionVersion(felt!("0x3")));
     }
 }
