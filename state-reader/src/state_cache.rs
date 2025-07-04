@@ -1,4 +1,10 @@
-use std::{collections::HashMap, fs::File, io::Write, thread, time::Duration};
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::{self, Write},
+    thread,
+    time::Duration,
+};
 
 use lockfile::Lockfile;
 use serde::{Deserialize, Serialize};
@@ -11,8 +17,19 @@ use starknet_api::{
 };
 use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
+use thiserror::Error;
 
 use crate::objects::RpcTransactionReceipt;
+
+#[derive(Debug, Error)]
+pub enum StateCacheError {
+    #[error(transparent)]
+    IoError(#[from] io::Error),
+    #[error(transparent)]
+    LockfileError(#[from] lockfile::Error),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
+}
 
 /// A Cache for network state. Its saved to disk as is.
 ///
@@ -58,7 +75,7 @@ impl StateCache {
         }
     }
 
-    pub fn load() -> Self {
+    pub fn load() -> Result<Self, StateCacheError> {
         let cache_path = "cache/rpc.json".to_string();
         let lockfile_path = format!("{}.lock", cache_path);
 
@@ -67,10 +84,21 @@ impl StateCache {
             thread::sleep(Duration::from_secs(1));
             lockfile = Lockfile::create_with_parents(&lockfile_path);
         }
-        let lockfile = lockfile.expect("failed to take lock");
+        let lockfile = lockfile?;
+
+        let default_cache = Self {
+            blocks: Default::default(),
+            transactions: Default::default(),
+            transaction_receipts: Default::default(),
+            contract_classes: Default::default(),
+            nonces: Default::default(),
+            class_hashes: Default::default(),
+            storage: Default::default(),
+            chain_id: Default::default(),
+        };
 
         let cache = match File::open(cache_path) {
-            Ok(file) => serde_json::from_reader(file).expect("failed to read cache"),
+            Ok(file) => serde_json::from_reader(file).unwrap_or(default_cache),
             Err(_) => Self {
                 blocks: Default::default(),
                 transactions: Default::default(),
@@ -83,9 +111,9 @@ impl StateCache {
             },
         };
 
-        lockfile.release().expect("failed to release lockfile");
+        lockfile.release()?;
 
-        cache
+        Ok(cache)
     }
 
     pub fn merge(&mut self, other: StateCache) {
@@ -140,7 +168,7 @@ impl StateCache {
         });
     }
 
-    pub fn save(&mut self) {
+    pub fn save(&mut self) -> Result<(), StateCacheError> {
         let cache_path = "cache/rpc.json".to_string();
 
         let lockfile_path = format!("{}.lock", cache_path);
@@ -150,20 +178,22 @@ impl StateCache {
             thread::sleep(Duration::from_secs(1));
             lockfile = Lockfile::create_with_parents(&lockfile_path);
         }
-        let lockfile = lockfile.expect("failed to take lock");
+        let lockfile = lockfile?;
 
         if let Ok(file) = File::open(&cache_path) {
-            let existing_cache: StateCache =
-                serde_json::from_reader(file).expect("failed to read cache");
-            self.merge(existing_cache);
+            if let Ok(existing_cache) = serde_json::from_reader(file) {
+                self.merge(existing_cache);
+            }
         }
 
-        let mut file = File::create(&cache_path).expect("failed to create cache file");
+        let mut file = File::create(&cache_path)?;
 
-        serde_json::to_writer(&file, &self).expect("failed to write cache file");
+        serde_json::to_writer(&file, &self)?;
 
-        file.flush().expect("failed to flush file");
+        file.flush()?;
 
-        lockfile.release().expect("failed to release lockfile");
+        lockfile.release()?;
+
+        Ok(())
     }
 }

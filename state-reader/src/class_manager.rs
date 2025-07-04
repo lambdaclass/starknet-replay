@@ -44,6 +44,8 @@ pub enum ClassManagerError {
     #[error(transparent)]
     IoError(#[from] io::Error),
     #[error(transparent)]
+    LockfileError(#[from] lockfile::Error),
+    #[error(transparent)]
     ProgramError(#[from] ProgramError),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
@@ -164,7 +166,7 @@ impl ClassManager {
             thread::sleep(Duration::from_secs(1));
             lockfile = Lockfile::create_with_parents(&lockfile_path);
         }
-        let lockfile = lockfile.expect("failed to take lock");
+        let lockfile = lockfile?;
 
         let versioned_casm_class = match File::open(&cache_path) {
             Ok(file) => serde_json::from_reader(file)?,
@@ -190,7 +192,7 @@ impl ClassManager {
             }
         };
 
-        lockfile.release().expect("failed to release lockfile");
+        lockfile.release()?;
 
         Ok(versioned_casm_class)
     }

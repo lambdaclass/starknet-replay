@@ -146,7 +146,8 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx_hash.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -167,7 +168,8 @@ fn main() {
             let block_number = BlockNumber(block_number);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -193,7 +195,8 @@ fn main() {
             let block_number = BlockNumber(block_number);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -213,7 +216,8 @@ fn main() {
             let url = url_from_env(chain);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -242,7 +246,8 @@ fn main() {
             let url = url_from_env(chain);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -307,7 +312,8 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -365,7 +371,8 @@ fn main() {
             let chain = parse_network(&chain);
             let url = url_from_env(chain.clone());
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -418,7 +425,8 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::load(remote_reader);
+            let full_reader =
+                FullStateReader::load(remote_reader).expect("failed to load state reader");
 
             let block_reader = BlockStateReader::new(
                 block_number

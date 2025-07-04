@@ -14,7 +14,7 @@ use starknet_api::{
 use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
-use crate::state_cache::StateCache;
+use crate::state_cache::{StateCache, StateCacheError};
 use blockifier::execution::contract_class::RunnableCompiledClass;
 use thiserror::Error;
 
@@ -24,6 +24,8 @@ pub enum FullStateReaderError {
     RemoteReaderError(#[from] RemoteStateReaderError),
     #[error(transparent)]
     ClassManagerError(#[from] ClassManagerError),
+    #[error(transparent)]
+    StateCacheError(#[from] StateCacheError),
 }
 
 /// Reader and cache for a Starknet node's state.
@@ -42,14 +44,14 @@ pub struct FullStateReader {
 }
 
 impl FullStateReader {
-    pub fn load(remote_reader: RemoteStateReader) -> Self {
-        Self {
+    pub fn load(remote_reader: RemoteStateReader) -> Result<Self, FullStateReaderError> {
+        Ok(Self {
             remote_reader,
-            cache: RefCell::new(StateCache::load()),
+            cache: RefCell::new(StateCache::load()?),
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
-        }
+        })
     }
 
     pub fn new(remote_reader: RemoteStateReader) -> Self {
@@ -292,7 +294,7 @@ impl FullStateReader {
 
 impl Drop for FullStateReader {
     fn drop(&mut self) {
-        self.cache.borrow_mut().save()
+        let _ = self.cache.borrow_mut().save();
     }
 }
 
@@ -362,7 +364,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::load(remote_reader);
+        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
 
         state
             .get_class_info(
@@ -377,7 +379,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::load(remote_reader);
+        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
 
         state
             .get_class_info(
@@ -433,7 +435,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::load(remote_reader);
+        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
 
         let value = state
             .get_storage_at(
@@ -453,7 +455,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::load(remote_reader);
+        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
 
         let value = state
             .get_storage_at(
