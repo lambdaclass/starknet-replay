@@ -27,10 +27,7 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 #[cfg(feature = "benchmark")]
 use crate::benchmark::aggregate_executions;
 #[cfg(feature = "block-composition")]
-use {
-    block_composition::save_entry_point_execution, chrono::DateTime,
-    rpc_state_reader::execution::fetch_block_context,
-};
+use {block_composition::save_entry_point_execution, chrono::DateTime};
 
 use std::fs::File;
 use std::path::PathBuf;
@@ -351,57 +348,39 @@ fn main() {
             block_end,
             chain,
         } => {
-            info!("executing block range: {} - {}", block_start, block_end);
+            let chain = parse_network(&chain);
+            let url = url_from_env(chain.clone());
+            let remote_reader = RemoteStateReader::new(url);
+            let full_reader = FullStateReader::new(remote_reader);
+
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: true,
+                validate: true,
+            };
 
             let mut block_executions = Vec::new();
 
             for block_number in block_start..=block_end {
-                let _block_span = tracing::info_span!("block", number = block_number).entered();
-
-                let mut state = build_cached_state(&chain, block_number - 1);
-                let reader = build_reader(&chain, block_number);
-
-                let flags = ExecutionFlags {
-                    only_query: false,
-                    charge_fee: false,
-                    validate: true,
-                };
-
-                let block_context = fetch_block_context(&reader).unwrap();
-
-                // fetch and execute transactions
-                let entrypoints =
-                    rpc_state_reader::reader::StateReader::get_block_with_tx_hashes(&reader)
-                        .unwrap()
-                        .transactions
-                        .into_iter()
-                        .map(|hash| {
-                            let (tx, _) =
-                                fetch_transaction_with_state(&reader, &hash, flags.clone())
-                                    .unwrap();
-                            let execution =
-                        blockifier::transaction::transactions::ExecutableTransaction::execute(
-                            &tx,
-                            &mut state,
-                            &block_context,
-                        );
-                            #[cfg(feature = "state_dump")]
-                            state_dump::create_state_dump(
-                                &mut state,
-                                block_number,
-                                &hash.to_string(),
-                                &execution,
-                            );
-                            execution
-                        })
-                        .collect::<Vec<_>>();
+                let block_context =
+                    execution::get_block_context(&full_reader, BlockNumber(block_number))
+                        .expect("failed to feetch block context");
 
                 let block_timestamp = DateTime::from_timestamp(
                     block_context.block_info().block_timestamp.0 as i64,
                     0,
                 )
-                .unwrap()
+                .expect("failed to build timestamp")
                 .to_string();
+
+                let executions = execute_block(
+                    &full_reader,
+                    BlockNumber(block_number),
+                    execution_flags.clone(),
+                )
+                .expect("failed to execute block");
+
+                let entrypoints = executions.into_iter().map(|tx| tx.result).collect();
 
                 block_executions.push((block_number, block_timestamp, entrypoints));
             }
