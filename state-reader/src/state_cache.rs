@@ -14,8 +14,6 @@ use starknet_types_core::felt::Felt;
 
 use crate::objects::RpcTransactionReceipt;
 
-#[serde_as]
-#[derive(Serialize, Deserialize)]
 /// A Cache for network state. Its saved to disk as is.
 ///
 /// TODO: Separate between networks.
@@ -26,6 +24,8 @@ use crate::objects::RpcTransactionReceipt;
 /// files:
 /// - 1 file for each block
 /// - 1 file for each contract class
+#[serde_as]
+#[derive(Serialize, Deserialize)]
 pub struct StateCache {
     pub chain_id: Option<ChainId>,
     #[serde_as(as = "Vec<(_, _)>")]
