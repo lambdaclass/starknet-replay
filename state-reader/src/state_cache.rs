@@ -61,6 +61,12 @@ pub struct StateCache {
     pub storage: HashMap<(BlockNumber, ContractAddress, StorageKey), Felt>,
 }
 
+impl Default for StateCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StateCache {
     pub fn new() -> Self {
         Self {
