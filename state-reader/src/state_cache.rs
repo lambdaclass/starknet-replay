@@ -29,11 +29,11 @@ pub enum StateCacheError {
     LockfileError(#[from] lockfile::Error),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("the chain id differs from the cached one")]
+    InvalidChainId,
 }
 
 /// A Cache for network state. Its saved to disk as is.
-///
-/// TODO: Separate between networks.
 ///
 /// TODO: This cache is saved to disk as is. This implies that the file can get
 /// big fast (2GB for 400k transactions). Although the size cannot be reduced
@@ -44,7 +44,7 @@ pub enum StateCacheError {
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct StateCache {
-    pub chain_id: Option<ChainId>,
+    pub chain_id: ChainId,
     #[serde_as(as = "Vec<(_, _)>")]
     pub blocks: HashMap<BlockNumber, BlockWithTxHashes>,
     #[serde_as(as = "Vec<(_, _)>")]
@@ -61,15 +61,10 @@ pub struct StateCache {
     pub storage: HashMap<(BlockNumber, ContractAddress, StorageKey), Felt>,
 }
 
-impl Default for StateCache {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl StateCache {
-    pub fn new() -> Self {
+    pub fn new(chain_id: ChainId) -> Self {
         Self {
+            chain_id,
             blocks: Default::default(),
             transactions: Default::default(),
             transaction_receipts: Default::default(),
@@ -77,12 +72,11 @@ impl StateCache {
             nonces: Default::default(),
             class_hashes: Default::default(),
             storage: Default::default(),
-            chain_id: Default::default(),
         }
     }
 
-    pub fn load() -> Result<Self, StateCacheError> {
-        let cache_path = "cache/rpc.json".to_string();
+    pub fn load(chain_id: ChainId) -> Result<Self, StateCacheError> {
+        let cache_path = format!("cache/rpc-{}.json", chain_id);
         let lockfile_path = format!("{}.lock", cache_path);
 
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
@@ -92,20 +86,19 @@ impl StateCache {
         }
         let lockfile = lockfile?;
 
-        let default_cache = Self {
-            blocks: Default::default(),
-            transactions: Default::default(),
-            transaction_receipts: Default::default(),
-            contract_classes: Default::default(),
-            nonces: Default::default(),
-            class_hashes: Default::default(),
-            storage: Default::default(),
-            chain_id: Default::default(),
-        };
-
-        let cache = match File::open(cache_path) {
-            Ok(file) => serde_json::from_reader(file).unwrap_or(default_cache),
+        let cache = match File::open(cache_path)
+            .map_err(StateCacheError::from)
+            .and_then(|file| {
+                serde_json::from_reader::<_, StateCache>(file).map_err(StateCacheError::from)
+            }) {
+            Ok(cache) => {
+                if cache.chain_id != chain_id {
+                    return Err(StateCacheError::InvalidChainId);
+                }
+                cache
+            }
             Err(_) => Self {
+                chain_id,
                 blocks: Default::default(),
                 transactions: Default::default(),
                 transaction_receipts: Default::default(),
@@ -113,7 +106,6 @@ impl StateCache {
                 nonces: Default::default(),
                 class_hashes: Default::default(),
                 storage: Default::default(),
-                chain_id: Default::default(),
             },
         };
 
@@ -123,13 +115,6 @@ impl StateCache {
     }
 
     pub fn merge(&mut self, other: StateCache) {
-        if other.chain_id.is_some() {
-            if self.chain_id.is_some() {
-                assert_eq!(other.chain_id, self.chain_id)
-            } else {
-                self.chain_id = other.chain_id;
-            }
-        }
         other.blocks.into_iter().for_each(|(k, v)| {
             let old = self.blocks.insert(k, v.clone());
             if let Some(old) = old {
@@ -175,7 +160,7 @@ impl StateCache {
     }
 
     pub fn save(&mut self) -> Result<(), StateCacheError> {
-        let cache_path = "cache/rpc.json".to_string();
+        let cache_path = format!("cache/rpc-{}.json", self.chain_id);
         let tmp_path = format!("{}.tmp", cache_path);
         let lockfile_path = format!("{}.lock", cache_path);
 

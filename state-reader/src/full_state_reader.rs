@@ -2,7 +2,7 @@ use std::cell::{Cell, RefCell};
 
 use crate::class_manager::{ClassManager, ClassManagerError};
 use crate::objects::RpcTransactionReceipt;
-use crate::remote_state_reader::{RemoteStateReader, RemoteStateReaderError};
+use crate::remote_state_reader::{url_from_env, RemoteStateReader, RemoteStateReaderError};
 use starknet_api::{
     block::BlockNumber,
     contract_class::ClassInfo,
@@ -44,20 +44,24 @@ pub struct FullStateReader {
 }
 
 impl FullStateReader {
-    pub fn load(remote_reader: RemoteStateReader) -> Result<Self, FullStateReaderError> {
+    pub fn load(chain_id: ChainId) -> Result<Self, FullStateReaderError> {
+        let remote_url = url_from_env(&chain_id);
+        let remote_reader = RemoteStateReader::new(remote_url);
         Ok(Self {
             remote_reader,
-            cache: RefCell::new(StateCache::load()?),
+            cache: RefCell::new(StateCache::load(chain_id)?),
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
         })
     }
 
-    pub fn new(remote_reader: RemoteStateReader) -> Self {
+    pub fn new(chain_id: ChainId) -> Self {
+        let remote_url = url_from_env(&chain_id);
+        let remote_reader = RemoteStateReader::new(remote_url);
         Self {
             remote_reader,
-            cache: RefCell::new(StateCache::new()),
+            cache: RefCell::new(StateCache::new(chain_id)),
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
@@ -278,17 +282,7 @@ impl FullStateReader {
     }
 
     pub fn get_chain_id(&self) -> Result<ChainId, FullStateReaderError> {
-        if let Some(result) = &self.cache.borrow().chain_id {
-            self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(result.clone());
-        }
-        self.miss_counter.set(self.miss_counter.get() + 1);
-
-        let chain_id = self.remote_reader.get_chain_id()?;
-
-        let _ = self.cache.borrow_mut().chain_id.insert(chain_id.clone());
-
-        Ok(chain_id)
+        Ok(self.cache.borrow().chain_id.clone())
     }
 }
 
@@ -304,17 +298,11 @@ mod tests {
         block::BlockNumber, class_hash, contract_address, core::ChainId, felt, storage_key,
     };
 
-    use crate::{
-        full_state_reader::FullStateReader,
-        remote_state_reader::{url_from_env, RemoteStateReader},
-    };
+    use crate::full_state_reader::FullStateReader;
 
     #[test]
     pub fn get_contract_class() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         state
             .get_compiled_class(
@@ -336,10 +324,7 @@ mod tests {
 
     #[test]
     pub fn get_legacy_contract_class() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         state
             .get_compiled_class(
@@ -361,10 +346,7 @@ mod tests {
 
     #[test]
     pub fn get_contract_class_info() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
+        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
 
         state
             .get_class_info(
@@ -376,10 +358,7 @@ mod tests {
 
     #[test]
     pub fn get_legacy_contract_class_info() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
+        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
 
         state
             .get_class_info(
@@ -391,10 +370,7 @@ mod tests {
 
     #[test]
     pub fn get_cached_storage() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         let value = state
             .get_storage_at(
@@ -432,10 +408,7 @@ mod tests {
 
     #[test]
     pub fn get_disk_cached_storage() {
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
+        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
 
         let value = state
             .get_storage_at(
@@ -452,10 +425,7 @@ mod tests {
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
 
-        let url = url_from_env(ChainId::Mainnet);
-        let remote_reader = RemoteStateReader::new(url);
-
-        let state = FullStateReader::load(remote_reader).expect("failed to load reader");
+        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
 
         let value = state
             .get_storage_at(

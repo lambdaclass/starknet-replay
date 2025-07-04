@@ -235,7 +235,7 @@ impl RemoteStateReader {
     }
 }
 
-pub fn url_from_env(chain: ChainId) -> String {
+pub fn url_from_env(chain: &ChainId) -> String {
     match chain {
         ChainId::Mainnet => {
             env::var("RPC_ENDPOINT_MAINNET").expect("Missing env var: RPC_ENDPOINT_MAINNET")
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     pub fn get_contract_class() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let contract_class = reader
@@ -281,7 +281,7 @@ mod tests {
 
     #[test]
     pub fn get_block_with_tx_hashes() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let block = reader
@@ -294,7 +294,7 @@ mod tests {
 
     #[test]
     pub fn get_tx() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let tx = reader
@@ -312,7 +312,7 @@ mod tests {
 
     #[test]
     pub fn get_tx_receipt() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let tx_receipt = reader
@@ -327,7 +327,7 @@ mod tests {
 
     #[test]
     pub fn get_storage_at() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let value = reader
@@ -348,7 +348,7 @@ mod tests {
 
     #[test]
     pub fn get_nonce_at() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let value = reader
@@ -365,7 +365,7 @@ mod tests {
 
     #[test]
     pub fn get_class_hash_at() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
 
         let value = reader
@@ -385,12 +385,12 @@ mod tests {
 
     #[test]
     pub fn get_chain_id() {
-        let url = url_from_env(ChainId::Mainnet);
+        let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
         let value = reader.get_chain_id().unwrap();
         assert_eq!(value, ChainId::Mainnet);
 
-        let url = url_from_env(ChainId::Sepolia);
+        let url = url_from_env(&ChainId::Sepolia);
         let reader = RemoteStateReader::new(url);
         let value = reader.get_chain_id().unwrap();
         assert_eq!(value, ChainId::Sepolia);

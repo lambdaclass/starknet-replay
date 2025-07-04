@@ -18,7 +18,6 @@ use starknet_api::felt;
 use starknet_api::transaction::TransactionHash;
 use state_reader::block_state_reader::BlockStateReader;
 use state_reader::full_state_reader::FullStateReader;
-use state_reader::remote_state_reader::{url_from_env, RemoteStateReader};
 use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
@@ -141,13 +140,10 @@ fn main() {
             charge_fee,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
             let block_number = BlockNumber(block_number);
             let tx_hash = TransactionHash(felt!(tx_hash.as_str()));
 
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -164,12 +160,9 @@ fn main() {
             charge_fee,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
             let block_number = BlockNumber(block_number);
 
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -191,12 +184,9 @@ fn main() {
                 .collect();
 
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
             let block_number = BlockNumber(block_number);
 
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -213,11 +203,7 @@ fn main() {
             charge_fee,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
-
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -243,11 +229,7 @@ fn main() {
             output,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
-
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -307,13 +289,10 @@ fn main() {
             output,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
             let block_number = BlockNumber(block);
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -369,10 +348,8 @@ fn main() {
             chain,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain.clone());
-            let remote_reader = RemoteStateReader::new(url);
             let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+                FullStateReader::load(chain.clone()).expect("failed to load state reader");
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -420,13 +397,10 @@ fn main() {
             chain,
         } => {
             let chain = parse_network(&chain);
-            let url = url_from_env(chain);
             let block_number = BlockNumber(block_number);
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
-            let remote_reader = RemoteStateReader::new(url);
-            let full_reader =
-                FullStateReader::load(remote_reader).expect("failed to load state reader");
+            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
 
             let block_reader = BlockStateReader::new(
                 block_number
