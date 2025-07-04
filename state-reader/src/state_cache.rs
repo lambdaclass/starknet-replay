@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    fs::File,
+    fs::{self, File},
     io::{self, Write},
     thread,
     time::Duration,
@@ -170,7 +170,7 @@ impl StateCache {
 
     pub fn save(&mut self) -> Result<(), StateCacheError> {
         let cache_path = "cache/rpc.json".to_string();
-
+        let tmp_path = format!("{}.tmp", cache_path);
         let lockfile_path = format!("{}.lock", cache_path);
 
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
@@ -186,11 +186,13 @@ impl StateCache {
             }
         }
 
-        let mut file = File::create(&cache_path)?;
-
+        // Use temporary file and rename to final path. As the rename syscall is
+        // atomic, we ensure that the cache file is never invalid.
+        let mut file = File::create(&tmp_path)?;
         serde_json::to_writer(&file, &self)?;
-
         file.flush()?;
+        drop(file);
+        fs::rename(tmp_path, cache_path)?;
 
         lockfile.release()?;
 
