@@ -168,8 +168,11 @@ impl ClassManager {
         }
         let lockfile = lockfile?;
 
-        let versioned_casm_class = match File::open(&cache_path) {
-            Ok(file) => serde_json::from_reader(file)?,
+        let versioned_casm_class = match File::open(&cache_path)
+            .map_err(ClassManagerError::from)
+            .and_then(|file| serde_json::from_reader(file).map_err(ClassManagerError::from))
+        {
+            Ok(versioned_casm_class) => versioned_casm_class,
             Err(_) => {
                 let sierra_program_values = contract_class
                     .sierra_program
