@@ -16,6 +16,7 @@ with-sierra-emu = ["state-reader/with-sierra-emu"]
 with-trace-dump = ["blockifier/with-trace-dump", "state-reader/with-trace-dump"]
 with-libfunc-profiling = [
   "state-reader/with-libfunc-profiling",
+  "blockifier/with-libfunc-profiling",
   "dep:starknet-types-core",
   "dep:cairo-lang-sierra",
 ]
