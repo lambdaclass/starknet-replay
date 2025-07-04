@@ -9,16 +9,14 @@ use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use clap::{Parser, Subcommand};
 
-use execution::{execute_block, execute_txs};
-use rpc_state_reader::cache::RpcCachedStateReader;
-use rpc_state_reader::execution::fetch_transaction_with_state;
-use rpc_state_reader::reader::RpcStateReader;
+use execution::{execute_block, execute_txs, get_block_context, get_blockifier_transaction};
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
 
 use starknet_api::felt;
 use starknet_api::transaction::TransactionHash;
+use state_reader::block_state_reader::BlockStateReader;
 use state_reader::full_state_reader::FullStateReader;
 use state_reader::remote_state_reader::{url_from_env, RemoteStateReader};
 use tracing::{error, info};
@@ -398,15 +396,36 @@ fn main() {
             block_number,
             chain,
         } => {
-            let mut state = build_cached_state(&chain, block_number - 1);
-            let reader = build_reader(&chain, block_number);
+            let chain = parse_network(&chain);
+            let url = url_from_env(chain);
+            let block_number = BlockNumber(block_number);
+            let tx_hash = TransactionHash(felt!(tx.as_str()));
+
+            let remote_reader = RemoteStateReader::new(url);
+            let full_reader = FullStateReader::new(remote_reader);
+
+            let block_reader = BlockStateReader::new(
+                block_number
+                    .prev()
+                    .expect("block number should not be zero"),
+                &full_reader,
+            );
+            let mut state = CachedState::new(block_reader);
+
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: true,
+                validate: true,
+            };
 
             let call_file = File::open(call_path).unwrap();
             let call: ExecutableCallEntryPoint = serde_json::from_reader(call_file).unwrap();
 
             // We fetch the compile class from the next block, instead of the current block.
             // This ensures that it always exists.
-            let compiled_class = reader.get_compiled_class(call.class_hash).unwrap();
+            let compiled_class = full_reader
+                .get_compiled_class(block_number, call.class_hash)
+                .expect("failed to target compiled class");
 
             // This mocked context was built from trial and error. It only sets
             // the required fields to execute a sample transaction, but probably
@@ -419,14 +438,16 @@ fn main() {
             // single field. This was not chosen as the current implementation for the sake of simplicity, but it
             // may be a valid approach in the future.
             let mut context = {
-                let tx_hash = TransactionHash(felt!(tx.as_str()));
-                let flags = ExecutionFlags {
-                    only_query: false,
-                    charge_fee: false,
-                    validate: true,
-                };
-                let (tx, block_context) =
-                    fetch_transaction_with_state(&reader, &tx_hash, flags).unwrap();
+                let block_context = get_block_context(&full_reader, block_number)
+                    .expect("failed to get block context");
+
+                let tx = get_blockifier_transaction(
+                    &full_reader,
+                    block_number,
+                    tx_hash,
+                    execution_flags,
+                )
+                .expect("faield to get executable transaction");
 
                 let tx_context = Arc::new(block_context.to_tx_context(&tx));
                 let mut context = EntryPointExecutionContext::new_invoke(
@@ -481,17 +502,6 @@ fn parse_network(network: &str) -> ChainId {
         "testnet" => ChainId::Sepolia,
         _ => panic!("Invalid network name, it should be one of: mainnet, testnet"),
     }
-}
-
-fn build_cached_state(network: &str, block_number: u64) -> CachedState<RpcCachedStateReader> {
-    let rpc_reader = build_reader(network, block_number);
-    CachedState::new(rpc_reader)
-}
-fn build_reader(network: &str, block_number: u64) -> RpcCachedStateReader {
-    let block_number = BlockNumber(block_number);
-    let rpc_chain = parse_network(network);
-
-    RpcCachedStateReader::new(RpcStateReader::new(rpc_chain, block_number))
 }
 
 fn set_global_subscriber() {
