@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use crate::class_manager::{ClassManager, ClassManagerError};
 use crate::objects::RpcTransactionReceipt;
@@ -29,20 +29,50 @@ pub enum FullStateReaderError {
 /// Reader and cache for a Starknet node's state.
 ///
 /// Creating/Dropping this reader may take a while, as it has to load/save data to disk.
-// TODO: Add statistics for cache miss/hit ratio.
+///
+/// As the blockifier state reader expectes an inmutable reference, we need a
+/// `RefCell`/`Cell` allow method signatures to receive inmutable references. As there
+/// is no recursion, a runtime panic is impossible.
 pub struct FullStateReader {
+    hit_counter: Cell<u64>,
+    miss_counter: Cell<u64>,
     remote_reader: RemoteStateReader,
     cache: RefCell<StateCache>,
     class_manager: RefCell<ClassManager>,
 }
 
 impl FullStateReader {
-    pub fn new(remote_reader: RemoteStateReader) -> Self {
+    pub fn load(remote_reader: RemoteStateReader) -> Self {
         Self {
             remote_reader,
             cache: RefCell::new(StateCache::load()),
             class_manager: RefCell::new(ClassManager::new()),
+            hit_counter: Cell::new(0),
+            miss_counter: Cell::new(0),
         }
+    }
+
+    pub fn new(remote_reader: RemoteStateReader) -> Self {
+        Self {
+            remote_reader,
+            cache: RefCell::new(StateCache::new()),
+            class_manager: RefCell::new(ClassManager::new()),
+            hit_counter: Cell::new(0),
+            miss_counter: Cell::new(0),
+        }
+    }
+
+    pub fn reset_counters(&self) {
+        self.hit_counter.set(0);
+        self.miss_counter.set(0);
+    }
+
+    pub fn get_hit_counter(&self) -> u64 {
+        self.hit_counter.get()
+    }
+
+    pub fn get_miss_counter(&self) -> u64 {
+        self.miss_counter.get()
     }
 
     pub fn get_block(
@@ -50,8 +80,10 @@ impl FullStateReader {
         block_number: BlockNumber,
     ) -> Result<BlockWithTxHashes, FullStateReaderError> {
         if let Some(result) = self.cache.borrow().blocks.get(&block_number) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
@@ -65,8 +97,10 @@ impl FullStateReader {
 
     pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
         if let Some(result) = self.cache.borrow().transactions.get(&tx_hash) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self.remote_reader.get_tx(&tx_hash)?;
 
@@ -83,8 +117,10 @@ impl FullStateReader {
         tx_hash: TransactionHash,
     ) -> Result<RpcTransactionReceipt, FullStateReaderError> {
         if let Some(result) = self.cache.borrow().transaction_receipts.get(&tx_hash) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
         self.cache
@@ -108,8 +144,10 @@ impl FullStateReader {
                 .storage
                 .get(&(block_number, contract_address, key))
         {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(*result);
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self
             .remote_reader
@@ -134,8 +172,10 @@ impl FullStateReader {
             .nonces
             .get(&(block_number, contract_address))
         {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(*result);
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self
             .remote_reader
@@ -160,8 +200,10 @@ impl FullStateReader {
             .class_hashes
             .get(&(block_number, contract_address))
         {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(*result);
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self
             .remote_reader
@@ -181,8 +223,10 @@ impl FullStateReader {
         class_hash: ClassHash,
     ) -> Result<ContractClass, FullStateReaderError> {
         if let Some(result) = self.cache.borrow().contract_classes.get(&class_hash) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let result = self
             .remote_reader
@@ -202,8 +246,10 @@ impl FullStateReader {
         class_hash: ClassHash,
     ) -> Result<RunnableCompiledClass, FullStateReaderError> {
         if let Some(result) = self.class_manager.borrow().get_runnable_class(&class_hash) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let contract_class = self.get_contract_class(block_number, class_hash)?;
 
@@ -231,8 +277,10 @@ impl FullStateReader {
 
     pub fn get_chain_id(&self) -> Result<ChainId, FullStateReaderError> {
         if let Some(result) = &self.cache.borrow().chain_id {
+            self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
         }
+        self.miss_counter.set(self.miss_counter.get() + 1);
 
         let chain_id = self.remote_reader.get_chain_id()?;
 
@@ -273,14 +321,15 @@ mod tests {
             )
             .unwrap();
 
-        // TODO: Assert that we don't miss
-
         state
             .get_compiled_class(
                 BlockNumber(1500000),
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
+
+        assert_eq!(state.get_hit_counter(), 1);
+        assert_eq!(state.get_miss_counter(), 2);
     }
 
     #[test]
@@ -297,14 +346,15 @@ mod tests {
             )
             .unwrap();
 
-        // TODO: Assert that we don't miss
-
         state
             .get_compiled_class(
                 BlockNumber(1500000),
                 class_hash!("0x010455c752b86932ce552f2b0fe81a880746649b9aee7e0d842bf3f52378f9f8"),
             )
             .unwrap();
+
+        assert_eq!(state.get_hit_counter(), 1);
+        assert_eq!(state.get_miss_counter(), 2);
     }
 
     #[test]
@@ -312,7 +362,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::load(remote_reader);
 
         state
             .get_class_info(
@@ -327,7 +377,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::load(remote_reader);
 
         state
             .get_class_info(
@@ -359,8 +409,6 @@ mod tests {
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
 
-        // TODO: Assert that we don't miss
-
         let value = state
             .get_storage_at(
                 BlockNumber(1500000),
@@ -375,6 +423,9 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+
+        assert_eq!(state.get_hit_counter(), 1);
+        assert_eq!(state.get_miss_counter(), 1);
     }
 
     #[test]
@@ -382,7 +433,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
+        let state = FullStateReader::load(remote_reader);
 
         let value = state
             .get_storage_at(
@@ -402,9 +453,7 @@ mod tests {
         let url = url_from_env(ChainId::Mainnet);
         let remote_reader = RemoteStateReader::new(url);
 
-        let state = FullStateReader::new(remote_reader);
-
-        // TODO: Assert that we don't miss
+        let state = FullStateReader::load(remote_reader);
 
         let value = state
             .get_storage_at(

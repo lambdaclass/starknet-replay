@@ -45,6 +45,19 @@ pub struct StateCache {
 }
 
 impl StateCache {
+    pub fn new() -> Self {
+        Self {
+            blocks: Default::default(),
+            transactions: Default::default(),
+            transaction_receipts: Default::default(),
+            contract_classes: Default::default(),
+            nonces: Default::default(),
+            class_hashes: Default::default(),
+            storage: Default::default(),
+            chain_id: Default::default(),
+        }
+    }
+
     pub fn load() -> Self {
         let cache_path = "cache/rpc.json".to_string();
         let lockfile_path = format!("{}.lock", cache_path);

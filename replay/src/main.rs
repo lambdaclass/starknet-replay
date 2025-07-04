@@ -146,7 +146,7 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx_hash.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -167,7 +167,7 @@ fn main() {
             let block_number = BlockNumber(block_number);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -193,7 +193,7 @@ fn main() {
             let block_number = BlockNumber(block_number);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -213,7 +213,7 @@ fn main() {
             let url = url_from_env(chain);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -242,7 +242,7 @@ fn main() {
             let url = url_from_env(chain);
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -260,6 +260,8 @@ fn main() {
                 .expect("failed to execute block");
             }
 
+            full_reader.reset_counters();
+
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
             #[cfg(feature = "profiling")]
@@ -275,6 +277,12 @@ fn main() {
                         execution_flags.clone(),
                     )
                     .expect("failed to execute block");
+
+                    assert_eq!(
+                        full_reader.get_miss_counter(),
+                        0,
+                        "cache miss during a benchmark"
+                    );
 
                     block_executions.push((BlockNumber(block_number), executions));
                 }
@@ -299,7 +307,7 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -316,6 +324,8 @@ fn main() {
             )
             .expect("failed to execute transaction");
 
+            full_reader.reset_counters();
+
             // We pause the main thread to differentiate
             // caching from benchmarking from within a profiler
             #[cfg(feature = "profiling")]
@@ -331,6 +341,12 @@ fn main() {
                     execution_flags.clone(),
                 )
                 .expect("failed to execute transaction");
+
+                assert_eq!(
+                    full_reader.get_miss_counter(),
+                    0,
+                    "cache miss during a benchmark"
+                );
 
                 block_executions.push((block_number, executions));
             }
@@ -349,7 +365,7 @@ fn main() {
             let chain = parse_network(&chain);
             let url = url_from_env(chain.clone());
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -402,7 +418,7 @@ fn main() {
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
             let remote_reader = RemoteStateReader::new(url);
-            let full_reader = FullStateReader::new(remote_reader);
+            let full_reader = FullStateReader::load(remote_reader);
 
             let block_reader = BlockStateReader::new(
                 block_number
