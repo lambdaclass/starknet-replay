@@ -26,6 +26,7 @@ pub enum FullStateReaderError {
     ClassManagerError(#[from] ClassManagerError),
 }
 
+// TODO: Add statistics for cache miss/hit ratio.
 pub struct FullStateReader {
     remote_reader: RemoteStateReader,
     cache: RefCell<StateCache>,
