@@ -6,9 +6,12 @@
 //! - Caching data both in memory and on disk.
 //! - Compiling contracts into both CASM and Native.
 //!
-//! A fully cached reader will show no additional overhead, and is safe to
-//! use for benchmarking. To ensure that the reader is fully cached, the
-//! transaction can be executed twice.
+//! A fully cached reader will show no significant overhead over using
+//! blockifier's `CachedState` directly, and is safe to use for benchmarking.
+//! To ensure that the reader is fully cached, the transaction can be executed twice.
+//!
+//! TODO: Consider offering a way to preload the cache without the need of doing
+//! a pre-execution.
 //!
 //! The cache is saved to the relative directory `./cache/`:
 //! - `./cache/rpc.json`: Contains raw rpc data.
