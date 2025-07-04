@@ -91,7 +91,11 @@ impl ClassManager {
                         )
                         .map_err(StarknetSierraCompilationError::from)?;
 
-                        let program = Arc::new(contract_class.extract_sierra_program().unwrap());
+                        let program = Arc::new(
+                            contract_class
+                                .extract_sierra_program()
+                                .map_err(StarknetSierraCompilationError::from)?,
+                        );
 
                         ContractExecutor::Emu((
                             program,
