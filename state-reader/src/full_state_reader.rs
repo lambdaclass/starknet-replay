@@ -26,6 +26,9 @@ pub enum FullStateReaderError {
     ClassManagerError(#[from] ClassManagerError),
 }
 
+/// Reader and cache for a Starknet node's state.
+///
+/// Creating/Dropping this reader may take a while, as it has to load/save data to disk.
 // TODO: Add statistics for cache miss/hit ratio.
 pub struct FullStateReader {
     remote_reader: RemoteStateReader,

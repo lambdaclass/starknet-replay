@@ -46,6 +46,7 @@ pub enum RemoteStateReaderError {
     FromUtf8Error(#[from] FromUtf8Error),
 }
 
+/// Reads a Starknet node's state through RPC.
 pub struct RemoteStateReader {
     client: Client,
     url: String,

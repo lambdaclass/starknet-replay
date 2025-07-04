@@ -55,6 +55,9 @@ pub enum ClassManagerError {
     LegacyContractWithoutAbi,
 }
 
+/// A compiled class cache for both CASM and Native.
+///
+/// Contains logic for both caching classes, and compiling them.
 #[derive(Default)]
 pub struct ClassManager {
     runnable_classes: HashMap<ClassHash, RunnableCompiledClass>,
