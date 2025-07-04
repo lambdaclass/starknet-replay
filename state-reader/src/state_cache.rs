@@ -39,8 +39,8 @@ pub enum StateCacheError {
 /// big fast (2GB for 400k transactions). Although the size cannot be reduced
 /// easily, we can increase the loading times by separating them into different
 /// files:
-/// - 1 file for each block
-/// - 1 file for each contract class
+/// - one file for each block
+/// - one file for each contract class
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct StateCache {
