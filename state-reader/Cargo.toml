@@ -5,6 +5,11 @@ edition = "2021"
 
 [features]
 with-comp-stats = []
+# The following features modify how the class is compiled.
+# TODO: Move this functionality to runtime.
+with-sierra-emu = []
+with-libfunc-profiling = []
+with-trace-dump = []
 only-casm = []
 
 [dependencies]
