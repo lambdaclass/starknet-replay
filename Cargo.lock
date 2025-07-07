@@ -6128,6 +6128,7 @@ dependencies = [
  "blockifier",
  "cairo-lang-sierra",
  "cairo-native",
+ "cairo-vm",
  "chrono",
  "clap",
  "dotenvy",

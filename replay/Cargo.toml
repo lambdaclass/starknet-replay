@@ -42,3 +42,4 @@ serde_with = { workspace = true, optional = true }
 dotenvy = "0.15.7"
 anyhow.workspace = true
 chrono = "0.4.39"
+cairo-vm = "2.0.1"

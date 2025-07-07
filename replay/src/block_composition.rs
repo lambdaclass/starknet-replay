@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fs::{self, File},
     path::Path,
@@ -8,6 +9,7 @@ use blockifier::{
     execution::call_info::CallInfo,
     transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
+use cairo_vm::types::builtin_name::BuiltinName;
 use serde::Serialize;
 use starknet_api::core::{ClassHash, EntryPointSelector};
 
@@ -41,6 +43,7 @@ struct TxEntryPoint {
 struct EntryPointExecution {
     class_hash: ClassHash,
     selector: EntryPointSelector,
+    builtin_instance_counter: HashMap<BuiltinName, usize>,
 }
 
 /// Saves to a json the resulting list of `BlockEntryPoints`
@@ -97,16 +100,30 @@ fn get_inner_class_executions(call: CallInfo) -> CallTree {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
-    let top_class = EntryPointExecution {
+    let mut top_class = EntryPointExecution {
         class_hash,
         selector: call.call.entry_point_selector,
+        builtin_instance_counter: call.resources.builtin_instance_counter,
     };
 
-    let inner = call
+    let inner: Vec<_> = call
         .inner_calls
         .into_iter()
         .map(get_inner_class_executions)
-        .collect();
+        .collect::<Vec<CallTree>>();
+
+    let rg_top_class = top_class
+        .builtin_instance_counter
+        .get_mut(&BuiltinName::range_check)
+        .unwrap();
+    for call_info in inner.iter() {
+        let rg_count = call_info
+            .root
+            .builtin_instance_counter
+            .get(&BuiltinName::range_check)
+            .unwrap();
+        *rg_top_class -= rg_count;
+    }
 
     CallTree {
         root: top_class,
