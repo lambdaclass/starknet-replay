@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     fs::{self, File},
     path::Path,
 };
@@ -227,6 +227,8 @@ struct SerializableCallInfo {
     pub inner_calls: Vec<SerializableCallInfo>,
     pub storage_read_values: Vec<Felt>,
 
+    pub resources: SerializableExecutionResources,
+
     // Convert HashSet to vector to avoid random order
     pub accessed_storage_keys: Vec<StorageKey>,
     pub read_class_hash_values: Vec<ClassHash>,
@@ -245,7 +247,7 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values,
             accessed_contract_addresses,
-            resources: _resources,
+            resources,
             tracked_resource: _tracked_resource,
             time: _time,
             call_counter,
@@ -258,6 +260,17 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_contract_addresses.into_iter().collect::<Vec<_>>();
         accessed_contract_addresses.sort();
 
+        ////////////////////////////////////////////////////////////////////////////////////////
+        let mut new_builtin_counter = HashMap::new();
+        for (builtin, count) in resources.builtin_instance_counter {
+            new_builtin_counter.insert(builtin.to_str().to_string(), count);
+        }
+
+        let resources = SerializableExecutionResources {
+            builtin_instance_counter: new_builtin_counter,
+        };
+        ////////////////////////////////////////////////////////////////////////////////////////
+
         Self {
             call: SerializableCallEntryPoint::from(call),
             execution,
@@ -269,6 +282,7 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values,
             accessed_contract_addresses,
+            resources,
             call_counter,
         }
     }
@@ -329,10 +343,16 @@ pub struct SerializableTransactionResources {
 }
 
 #[derive(Serialize)]
+pub struct SerializableExecutionResources {
+    pub builtin_instance_counter: HashMap<String, usize>,
+}
+
+#[derive(Serialize)]
 pub struct SerializableComputationResources {
     pub n_reverted_steps: usize,
     pub sierra_gas: GasAmount,
     pub reverted_sierra_gas: GasAmount,
+    pub vm_resources: SerializableExecutionResources,
 }
 
 impl From<TransactionReceipt> for SerializableTransactionReceipt {
@@ -346,13 +366,22 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
                     starknet_resources,
                     computation:
                         ComputationResources {
-                            vm_resources: _vm_resources,
+                            vm_resources,
                             n_reverted_steps,
                             sierra_gas,
                             reverted_sierra_gas,
                         },
                 },
         } = value;
+
+        let mut new_builtin_counter = HashMap::new();
+        for (builtin, count) in vm_resources.builtin_instance_counter {
+            new_builtin_counter.insert(builtin.to_str().to_string(), count);
+        }
+        let vm_resources = SerializableExecutionResources {
+            builtin_instance_counter: new_builtin_counter,
+        };
+
         Self {
             fee,
             gas,
@@ -360,6 +389,7 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
             resources: SerializableTransactionResources {
                 starknet_resources,
                 computation: SerializableComputationResources {
+                    vm_resources,
                     n_reverted_steps,
                     sierra_gas,
                     reverted_sierra_gas,
