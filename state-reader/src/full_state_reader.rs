@@ -429,6 +429,7 @@ mod tests {
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
 
+        drop(state);
         let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
 
         let value = state
