@@ -23,7 +23,7 @@ test:
 
 clean:
 	cargo clean
-	rm -rf compiled_programs/
+	rm -rf ./cache/native/
 
 deps:
 ifeq ($(UNAME), Darwin)
