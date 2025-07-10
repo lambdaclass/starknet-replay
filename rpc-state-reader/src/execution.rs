@@ -153,8 +153,8 @@ pub fn get_block_info(header: BlockHeader) -> BlockInfo {
             parse_gas_price(header.l1_gas_price.price_in_fri),
             parse_gas_price(header.l1_data_gas_price.price_in_wei),
             parse_gas_price(header.l1_data_gas_price.price_in_fri),
-            NonzeroGasPrice::MIN,
-            NonzeroGasPrice::MIN,
+            parse_gas_price(header.l2_gas_price.price_in_wei),
+            parse_gas_price(header.l2_gas_price.price_in_fri),
         ),
         use_kzg_da: true,
     }

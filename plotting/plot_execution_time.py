@@ -253,6 +253,7 @@ def load_data(path):
         },
         inplace=True,
     )
+    info["Minimum sierra version for sierra gas"] = "0.0.0"
 
     return df_txs, df_calls, info
 
@@ -368,7 +369,7 @@ def plot_tx_speedup(df_txs: DataFrame):
 
     save_figure(
         "Tx Speedup Distribution",
-        "Calculates the distribution of speedup by transactions.",
+        "Calculates the distribution of speedup by transactions. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
     )
 
 
@@ -501,7 +502,7 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     save_figure(
         "Execution Time by Gas Usage",
-        "Correlates call execution time with gas usage. The scale is in log-log.",
+        "Compares call execution time with gas usage. The scale is in log-log.",
     )
 
 
@@ -512,12 +513,12 @@ def plot_call_throughput(df_calls):
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
     sns.boxplot(ax=ax1, data=df_native, x="throughput", showfliers=False, width=0.5)
-    ax1.set_title("Native Throughput (gas/ns)")
-    ax1.set_xlabel("Throughput (gas/ns)")
+    ax1.set_title("Native Throughput (gigagas/s)")
+    ax1.set_xlabel("Throughput (gigagas/s)")
 
     sns.boxplot(ax=ax2, data=df_vm, x="throughput", showfliers=False, width=0.5)
-    ax2.set_title("VM Throughput (gas/ns)")
-    ax2.set_xlabel("Throughput (gas/ns)")
+    ax2.set_title("VM Throughput (gigagas/s)")
+    ax2.set_xlabel("Throughput (gigagas/s)")
 
     native_total_throughput = (
         df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
@@ -665,7 +666,7 @@ def plot_block_speedup(df_txs: DataFrame):
 
     sns.boxplot(ax=ax, data=df_blocks, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Blocks Speedup Ratio")
-    ax.set_title("Speedup Distribution")
+    ax.set_title("Block Speedup Distribution")
 
     total_speedup = df_blocks["time_ns_vm"].sum() / df_blocks["time_ns_native"].sum()
     mean_speedup = df_blocks["speedup"].mean()
@@ -691,7 +692,7 @@ def plot_block_speedup(df_txs: DataFrame):
     save_csv(df_blocks, "Blocks")
     save_figure(
         "Block Speedup Distribution",
-        "Calculates the distribution of speedup by blocks.",
+        "Calculates the distribution of speedup by blocks. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
     )
 
 

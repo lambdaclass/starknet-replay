@@ -103,19 +103,15 @@ To compare Native execution with the VM, you can use the `state_dump` feature. I
 - If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/block{block_number}/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
-- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ.
+- `cmp_state_dumps.py`. Prints which transactions match with the VM and which differ.
    ```bash
-   > ./scripts/cmp_state_dumps.sh
-   diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
-   match: 0x6902da2a7ef7f7ab2e984c0cdfa94c535dedd7cc081c91f04b9f87a9805411b.json
-   diff:  0x75ae71b0aaba9454965d2077d53f056ffd426481bad709831e8d76d50f32dbe.json
-   match: 0x7895207d7d46df77f5b0de6b647cd393b9fc7bb18c52b6333c6ea852cf767e.json
-   match: 0x2335142d7b7938eeb4512fbf59be7ec2f2284e6533c14baf51460c8de427dc7.json
-   match: 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
-
+   > python3 ./scripts/cmp_state_dumps.py
+   Starting comparison with 16 workers
+   DIFF 1478358 0xde8db1dc28c7ab48192d9aad1d5c8b08e732738f12b9945f591caa48e4dfa0
    Finished comparison
-   - Matching: 4
-   - Diffing:  16
+
+   MATCH 9
+   DIFF 1
    ```
 - `delta_state_dumps.sh`. It opens delta to review the differences between VM and Native with each transaction.
    ```bash
@@ -154,18 +150,8 @@ The `state_dump` feature can be used to save the execution result to either
 
 ### Benchmarking
 
-To run benchmarks manually, you must compile with release and the benchmark feature:
-
+First, build the benchmarking binaries.
 ```bash
-cargo run --release --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1000
-cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1000
-```
-
-However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
-
-First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
-```bash
-rm -rf compiled_programs
 make deps-bench
 ```
 
@@ -202,6 +188,43 @@ will be saved in a json file inside the floder `block_composition` as a vector o
 
 To generate the need information run this command:
 `cargo run --release -F block-composition block-compose <block_start> <block_end> <chain>`
+
+## Libfunc Profiling
+You can gather information about each libfunc execution in a transaction. To do so, run this command:
+`cargo run --release -F with-libfunc-profiling block-range <block_start> <block_end> <chain>`
+
+This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every transaction executed, containing a list of entrypoints executed. Every entrypoint of that list contains a `profile_summary`, which contains information about the execution of every libfunc. An example of a profile would be:
+
+```json
+{
+   "block_number": 641561,
+   "tx": "0x2e0abd9a260095622f71ff8869aaee0267af1199be78ad5ad91a3c83df0ad08",
+   "entrypoints": [
+      {
+         "class_hash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+         "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+         "profile_summary": [
+            {
+               "libfunc_name": "struct_construct",
+               "samples": 1,
+               "total_time": 1,
+               "average_time": 1.0,
+               "std_deviation": 0.0,
+               "quartiles": [
+                  1,
+                  1,
+                  1,
+                  1,
+                  1
+               ]
+            },
+            ...
+         ]
+      },
+      ...
+   ]
+}
+```
 
 ## Plotting
 
