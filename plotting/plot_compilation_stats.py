@@ -1,80 +1,146 @@
-import itertools
+from yattag import Doc
+import re
+import json
 import pathlib
 import argparse
+import inflection
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+import matplotlib.ticker as mticker
 import pandas as pd
 import seaborn as sns
 
-sns.set_theme()
+from typing import NamedTuple
+
+sns.set_palette("deep")
+sns.set_color_codes("deep")
+mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
+
+
+class Args(NamedTuple):
+    compilation_data: pathlib.Path
+    output_dir: pathlib.Path
+    display: bool
+
 
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument("input", nargs="*")
+arg_parser.add_argument("compilation_data")
+arg_parser.add_argument("--output-dir", type=pathlib.Path)
 arg_parser.add_argument(
-    "--c1",
-    help="class hash for the first sample contract to use, defaults to first contract",
+    "--display",
+    action=argparse.BooleanOptionalAction,
+    default=True,
 )
-arg_parser.add_argument(
-    "--c2",
-    help="class hash for the second sample contract to use, defaults to second contract",
-)
-args = arg_parser.parse_args()
+args: Args = arg_parser.parse_args()  # type: ignore
 
 #############
 # UTILITIES #
 #############
 
+# A list of all the figures generated. Used to generate a final report.
+OUTPUT_FIGURES = []
 
-# Some plots compare only two different contracts. By default, it uses the first
-# and second contract, although It can be customized with the `--c1` and `--c2`
-# flags.
-def get_sample_contracts(df: pd.DataFrame):
-    if args.c1 is None:
-        c1 = df.iloc[0]
-    else:
-        c1 = df.loc[args.c1]
-    if args.c2 is None:
-        c2 = df.iloc[1]
-    else:
-        c2 = df.loc[args.c2]
 
-    return c1, c2
+# Saves the current figure to the output directory, deriving the file name from
+# the given title. Adds the figure data to `OUTPUT_FIGURES`, which can then be
+# used to generate a report with all the figures.
+def save_figure(title, description=""):
+    if args.output_dir:
+        stem = inflection.parameterize(title)
+        name = f"{stem}.svg"
+        OUTPUT_FIGURES.append(
+            {
+                title: title,
+                name: name,
+                description: description,
+            }
+        )
+        plt.savefig(args.output_dir.joinpath(name))
+
+
+# Given an info series, and the name of the field containing a Rust version,
+# it parses the version string and shortens it. From example, converts from the
+# full git url, to just the commit hash.
+def parse_version(info: pd.Series, name: str):
+    version_string: str = info[name]  # type: ignore
+    match = re.search("rev=([a-z0-9]+)", version_string)
+    if match:
+        info[name] = match.group(1)
 
 
 ##############
 # PROCESSING #
 ##############
 
+raw_json = json.load(open(args.compilation_data))
 
-stats = []
-for stat_file in args.input:
-    hash = pathlib.Path(stat_file).name.split(".", maxsplit=1)[0]
-    stat = pd.read_json(stat_file, typ="series")
-    stat["hash"] = hash
-    stats.append(stat)
-df = pd.DataFrame(stats).set_index("hash")
+info = pd.Series(raw_json["info"])
+parse_version(info, "cairo_native_version")
+info["memory"] = round(int(info["memory"]) / 2**30, 2)
+info.rename(
+    {
+        "date": "Date",
+        "block_start": "Block Start",
+        "block_end": "Block End",
+        "net": "Net",
+        "native_profile": "Native Profile",
+        "rust_profile": "Rust Profile",
+        "cairo_native_version": "Cairo Native Version",
+        "os": "OS",
+        "arch": "Arch",
+        "cpu": "CPU",
+        "memory": "Memory (GiB)",
+    },
+    inplace=True,
+)
 
+
+def class_entry_to_series(entry):
+    return pd.Series(
+        {
+            "class_hash": entry["class_hash"],
+        }
+        | entry["statistics"]
+    )
+
+
+df = pd.DataFrame(map(class_entry_to_series, raw_json["classes"]))
 
 ############
 # PLOTTING #
 ############
 
-sns.set_theme()
-
 
 def plot_correlations_matrix(df: pd.DataFrame):
     fig, ax = plt.subplots()
-    fig.subplots_adjust(left=0.2, right=1, bottom=0.35)
-    fig.suptitle("Correlations Matrix")
+    fig.subplots_adjust(left=0.2, right=1, top=0.9, bottom=0.3)
+    fig.set_figheight(10)
+
+    def transform_column_label(label: str):
+        label = label.removesuffix("_ms")
+        label = label.removesuffix("_bytes")
+        label = inflection.titleize(label)
+        label = label.replace("Mlir", "MLIR")
+        label = label.replace("Llvmir", "LLVMIR")
+        label = label.replace("Llvm", "LLVM")
+        return label
+
+    df = df.rename(columns=transform_column_label)
 
     df_corr = df.corr(numeric_only=True)
     sns.heatmap(df_corr, ax=ax)
 
+    ax.set_title("Correlation Matrix")
 
-def plot_compilation_stages(df: pd.DataFrame):
-    fig, ax = plt.subplots()
-    fig.suptitle("Compilation Stages")
-    fig.subplots_adjust(left=0.2)
+    save_figure(
+        "Compilation Correlations",
+        "Calculates a correlation matrix with different compilation statistics.",
+    )
+
+
+def plot_stages(df: pd.DataFrame):
+    _, ax = plt.subplots()
 
     time_variables = [
         "compilation_total_time_ms",
@@ -87,96 +153,205 @@ def plot_compilation_stages(df: pd.DataFrame):
     ]
 
     df = df[time_variables].sum().sort_values(ascending=False)
-    df = df / df["compilation_total_time_ms"]
+    df = df / df["compilation_total_time_ms"] * 100
     df = df.drop("compilation_total_time_ms")
+
+    df.rename(
+        {
+            "compilation_sierra_to_mlir_time_ms": "Sierra to MLIR",
+            "compilation_mlir_passes_time_ms": "MLIR passes",
+            "compilation_mlir_to_llvm_time_ms": "MLIR to LLVM",
+            "compilation_llvm_passes_time_ms": "LLVM passes",
+            "compilation_llvm_to_object_time_ms": "LLVM to object",
+            "compilation_linking_time_ms": "Linking",
+        },
+        inplace=True,
+    )
 
     sns.barplot(df, ax=ax, orient="h")
 
+    ax.set_title("Compilation Stages")
+    ax.xaxis.set_major_formatter(mticker.PercentFormatter())
 
-def plot_time_distribution(df: pd.DataFrame):
+    save_figure(
+        "Contract Compilation Time by Stage",
+        "Calculates the total time percentage for each compilation stage.",
+    )
+
+
+def plot_time(df: pd.DataFrame):
+    _, ax = plt.subplots()
+
+    time = df["compilation_total_time_ms"] / 1000
+
+    sns.boxplot(df, x=time, ax=ax, showfliers=False, width=0.5)
+    ax.set_title("Compilation Time Distribution")
+    ax.set_xlabel("Compilation Time (s)")
+
+    count = time.count()
+    mean_time = time.mean()
+    median_time = time.quantile(0.5)
+    stddev_time = time.std()
+
+    ax.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Count: {count}",
+                f"Mean: {mean_time:.2f} s",
+                f"Median: {median_time:.2f} s",
+                f"Std Dev: {stddev_time:.2f}",
+            ]
+        ),
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    save_figure(
+        "Contract Compilation Time Distribution",
+        "Calculates the distribution of contract compilation time.",
+    )
+
+
+def plot_size(df: pd.DataFrame):
+    _, ax = plt.subplots()
+
+    size = df["object_size_bytes"] / 2**10
+
+    sns.boxplot(df, x=size, ax=ax, showfliers=False, width=0.5)
+    ax.set_title("Compiled Contract Size Distribution")
+    ax.set_xlabel("Compiled Contract Size (KiB)")
+
+    count = size.count()
+    mean_time = size.mean()
+    median_time = size.quantile(0.5)
+    stddev_time = size.std()
+
+    ax.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Count: {count}",
+                f"Mean: {mean_time:.2f} KiB",
+                f"Median: {median_time:.2f} KiB",
+                f"Std Dev: {stddev_time:.2f}",
+            ]
+        ),
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    save_figure(
+        "Compiled Contract Size Distribution",
+        "Calculates the distribution of compiled contract size.",
+    )
+
+
+def plot_size_to_time(df: pd.DataFrame):
     fig, ax = plt.subplots()
-    fig.suptitle("Compilation Time Histogram")
-
-    sns.boxplot(df, x="compilation_total_time_ms", ax=ax, log_scale=True)
-
-
-def plot_size_to_time_correlations(df: pd.DataFrame):
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    fig.suptitle("Size to Time Correlation")
     fig.subplots_adjust(hspace=0.3)
 
-    outliers: pd.DataFrame = df[df["compilation_total_time_ms"] > 10 * 60 * 1000]  # type: ignore
-    df = df.drop(outliers.index)  # type: ignore
+    sierra_statement_count: pd.Series = df["sierra_statement_count"]  # type: ignore
+    compilation_total_time: pd.Series = df["compilation_total_time_ms"] / 1e3  # type: ignore
 
-    sns.regplot(df, ax=ax1, x="sierra_statement_count", y="compilation_total_time_ms")
-    ax1.set_title("Sierra Size vs. Compilation Time (w/o outliers)")
-    sns.regplot(df, ax=ax2, x="sierra_statement_count", y="compilation_total_time_ms")
-    sns.scatterplot(
-        outliers,
-        ax=ax2,
-        x="sierra_statement_count",
-        y="compilation_total_time_ms",
-        color="orange",
+    sns.regplot(df, ax=ax, x=sierra_statement_count, y=compilation_total_time)
+    ax.set_title("Sierra Size vs. Compilation Time")
+    ax.set_xlabel("Sierra Statement Count")
+    ax.set_ylabel("Compilation Time (s)")
+
+    save_figure(
+        "Sierra Size vs. Compilation Time",
+        "Correlates the Sierra size with the total compilation time.",
     )
-    ax2.set_title("Sierra Size vs. Compilation Time (w/ outliers)")
 
 
-def plot_pie(c1, c2, attribute):
-    def group_small_entries(entries, cutoff):
-        new_entries = {}
-        for key, group in itertools.groupby(
-            entries, lambda k: "others" if (entries[k] < cutoff) else k
-        ):
-            new_entries[key] = sum([entries[k] for k in list(group)])
-        return new_entries
+def plot_size_to_size(df: pd.DataFrame):
+    fig, ax = plt.subplots()
+    fig.subplots_adjust(hspace=0.3)
 
-    sns.set_style("whitegrid")
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    fig.suptitle(attribute)
+    sierra_statement_count: pd.Series = df["sierra_statement_count"]  # type: ignore
+    object_size: pd.Series = df["object_size_bytes"] / 2**10  # type: ignore
 
-    c1_data = c1[attribute]
-    c2_data = c2[attribute]
+    sns.regplot(df, ax=ax, x=sierra_statement_count, y=object_size)
+    ax.set_title("Sierra Size vs. Compiled Contract Size")
+    ax.set_xlabel("Sierra Statement Count")
+    ax.set_ylabel("Compiled Contract Size (KiB)")
 
-    cutoff = sum(c1_data.values()) * 0.01
-    c1_data = group_small_entries(c1_data, cutoff)
-    ax1.pie(
-        c1_data.values(),
-        labels=c1_data.keys(),
+    save_figure(
+        "Sierra Size vs. Compiled Contract Size",
+        "Correlates the Sierra size with the compiled contract size.",
     )
-    ax1.set_title(c1.name)
-
-    cutoff = sum(c2_data.values()) * 0.01
-    c2_data = group_small_entries(c2_data, cutoff)
-    ax2.pie(
-        c2_data.values(),
-        labels=c2_data.keys(),
-    )
-    ax2.set_title(c2.name)
-
-    sns.set_theme()
 
 
-def plot_sierra_libfunc_pie(df: pd.DataFrame):
-    c1, c2 = get_sample_contracts(df)
-    plot_pie(c1, c2, "sierra_libfunc_frequency")
+if args.output_dir:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+
+plot_size_to_size(df)
+plot_size_to_time(df)
+# plot_correlations_matrix(df)
+plot_stages(df)
+plot_size(df)
+plot_time(df)
+
+if args.output_dir:
+    doc, tag, text = Doc().tagtext()
+
+    def generate_info(doc, info):
+        with tag("ul"):
+            for k, v in info.items():
+                with tag("li"):
+                    doc.line("b", str(k))
+                    text(": ", v)
+
+    def generate_body(doc):
+        doc, tag, text = doc.tagtext()
+
+        doc.line("h1", "Execution Benchmark Report")
+
+        doc.line("h2", "Execution Info")
+        generate_info(doc, info)
+
+        # Force line break after info
+        with tag("div", style="page-break-after: always"):
+            pass
+
+        doc.line("h2", "Figures")
+        OUTPUT_FIGURES.reverse()
+        for title, name, description in OUTPUT_FIGURES:
+            doc.line("h3", title)
+            text(description)
+            doc.stag("img", src=name)
+
+    with tag("html"):
+        with tag("head"):
+            # Add minimal styling
+            with tag("style"):
+                doc.asis("""
+                   body {
+                        margin: 40px auto;
+                        max-width: 21cm;
+                        line-height: 1.6;
+                        font-family: sans-serif;
+                        padding: 0 10px;
+                    }
+
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                    }
+                """)
+
+            with tag("body"):
+                generate_body(doc)
+
+    args.output_dir.joinpath("report.html").write_text(doc.getvalue())
 
 
-def plot_llvm_instruction_pie(df: pd.DataFrame):
-    c1, c2 = get_sample_contracts(df)
-    plot_pie(c1, c2, "llvmir_opcode_frequency")
-
-
-def plot_mlir_by_libfunc_pie(df: pd.DataFrame):
-    c1, c2 = get_sample_contracts(df)
-    plot_pie(c1, c2, "mlir_operations_by_libfunc")
-
-
-plot_mlir_by_libfunc_pie(df)
-plot_llvm_instruction_pie(df)
-plot_sierra_libfunc_pie(df)
-plot_size_to_time_correlations(df)
-plot_correlations_matrix(df)
-plot_compilation_stages(df)
-plot_time_distribution(df)
-
-plt.show()
+if args.display:
+    plt.show()
