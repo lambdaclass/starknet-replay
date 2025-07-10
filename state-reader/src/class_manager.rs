@@ -92,17 +92,17 @@ impl ClassManager {
                 } else {
                     let contract_class = processed_class_to_contract_class(&sierra_class)?;
 
+                    let program = contract_class
+                        .extract_sierra_program()
+                        .map_err(StarknetSierraCompilationError::from)?;
+
                     let executor = if cfg!(feature = "with-sierra-emu") {
                         let (sierra_version, _) = version_id_from_serialized_sierra_program(
                             &contract_class.sierra_program,
                         )
                         .map_err(StarknetSierraCompilationError::from)?;
 
-                        let program = Arc::new(
-                            contract_class
-                                .extract_sierra_program()
-                                .map_err(StarknetSierraCompilationError::from)?,
-                        );
+                        let program = Arc::new(program);
 
                         ContractExecutor::Emu((
                             program,
@@ -118,12 +118,7 @@ impl ClassManager {
                             feature = "with-libfunc-profiling"
                         ))]
                         {
-                            ContractExecutor::AotWithProgram((
-                                native_executor,
-                                contract_class
-                                    .extract_sierra_program()
-                                    .map_err(StarknetSierraCompilationError::from)?,
-                            ))
+                            ContractExecutor::AotWithProgram((native_executor, program))
                         }
                         #[cfg(not(any(
                             feature = "with-trace-dump",
@@ -161,6 +156,7 @@ impl ClassManager {
         let cache_path = format!("cache/casm/{}.json", class_hash.to_hex_string());
         let lockfile_path = format!("{}.lock", cache_path);
 
+        // Wait until we get the file lock for the cache.
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
         while let Err(lockfile::Error::LockTaken) = lockfile {
             thread::sleep(Duration::from_secs(1));
@@ -168,12 +164,15 @@ impl ClassManager {
         }
         let lockfile = lockfile?;
 
+        // If the cache already exists, load it.
         let versioned_casm_class = match File::open(&cache_path)
             .map_err(ClassManagerError::from)
             .and_then(|file| serde_json::from_reader(file).map_err(ClassManagerError::from))
         {
             Ok(versioned_casm_class) => versioned_casm_class,
             Err(_) => {
+                // If there is no cached value, we compile it.
+
                 let sierra_program_values = contract_class
                     .sierra_program
                     .iter()

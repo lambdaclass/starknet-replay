@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     pub fn get_contract_class_info() {
-        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         state
             .get_class_info(
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     pub fn get_legacy_contract_class_info() {
-        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         state
             .get_class_info(
@@ -412,7 +412,7 @@ mod tests {
 
     #[test]
     pub fn get_disk_cached_storage() {
-        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         let value = state
             .get_storage_at(
@@ -445,11 +445,13 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
+
+        assert_eq!(state.get_miss_counter(), 0)
     }
 
     #[test]
     pub fn get_block() {
-        let state = FullStateReader::load(ChainId::Sepolia).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Sepolia);
 
         let block = state.get_block(BlockNumber(750000)).unwrap();
 
@@ -458,7 +460,7 @@ mod tests {
 
     #[test]
     pub fn get_tx() {
-        let state = FullStateReader::load(ChainId::Sepolia).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Sepolia);
 
         let tx = state
             .get_tx(TransactionHash(felt!(

@@ -41,6 +41,9 @@ pub enum StateCacheError {
 /// files:
 /// - one file for each block
 /// - one file for each contract class
+///
+/// TODO: To reduce disk usage, we can compress the data before writing it or
+/// use a format different from JSON.
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct StateCache {
@@ -79,6 +82,7 @@ impl StateCache {
         let cache_path = format!("cache/rpc-{}.json", chain_id);
         let lockfile_path = format!("{}.lock", cache_path);
 
+        // Wait until we get the file lock for the cache.
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
         while let Err(lockfile::Error::LockTaken) = lockfile {
             thread::sleep(Duration::from_secs(1));
@@ -86,12 +90,14 @@ impl StateCache {
         }
         let lockfile = lockfile?;
 
+        // If the cache already exists, load it.
         let cache = match File::open(cache_path)
             .map_err(StateCacheError::from)
             .and_then(|file| {
                 serde_json::from_reader::<_, StateCache>(file).map_err(StateCacheError::from)
             }) {
             Ok(cache) => {
+                // The disk file chain id must match our chain id.
                 if cache.chain_id != chain_id {
                     return Err(StateCacheError::InvalidChainId);
                 }
@@ -164,6 +170,7 @@ impl StateCache {
         let tmp_path = format!("{}.tmp", cache_path);
         let lockfile_path = format!("{}.lock", cache_path);
 
+        // Wait until we get the file lock for the cache.
         let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
         while let Err(lockfile::Error::LockTaken) = lockfile {
             thread::sleep(Duration::from_secs(1));
@@ -171,8 +178,13 @@ impl StateCache {
         }
         let lockfile = lockfile?;
 
+        // If there is a cache file, we load it and merge it with the current data.
         if let Ok(file) = File::open(&cache_path) {
-            if let Ok(existing_cache) = serde_json::from_reader(file) {
+            if let Ok(existing_cache) = serde_json::from_reader::<_, StateCache>(file) {
+                // The disk file chain id must match our chain id.
+                if existing_cache.chain_id != self.chain_id {
+                    return Err(StateCacheError::InvalidChainId);
+                }
                 self.merge(existing_cache);
             }
         }
