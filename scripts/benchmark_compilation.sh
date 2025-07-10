@@ -53,9 +53,9 @@ arch=$(uname -m)
 shift
 jq \
 	--arg date "$(date)" \
-  --arg block_start "$START" \
-  --arg block_end "$END" \
-  --arg net "$NET" \
+	--arg block_start "$START" \
+	--arg block_end "$END" \
+	--arg net "$NET" \
 	--arg native_profile "aggressive" \
 	--arg rust_profile "release" \
 	--arg cairo_native_version "$cairo_native_version" \
@@ -66,9 +66,9 @@ jq \
 	'{
 		"info": {
 	    "date": $date,
-      "block_start": $block_start,
-      "block_end": $block_end,
-      "net": $net,
+	    "block_start": $block_start,
+	    "block_end": $block_end,
+	    "net": $net,
 	    "native_profile": $native_profile,
 	    "rust_profile": $rust_profile,
 	    "cairo_native_version": $cairo_native_version,
