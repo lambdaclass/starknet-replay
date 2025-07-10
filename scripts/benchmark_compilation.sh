@@ -64,7 +64,7 @@ jq \
 	--arg memory "$memory" \
 	--arg cpu "$cpu" \
 	'{
-		"info": {
+	  "info": {
 	    "date": $date,
 	    "block_start": $block_start,
 	    "block_end": $block_end,
@@ -76,6 +76,6 @@ jq \
 	    "arch": $arch,
 	    "memory": $memory,
 	    "cpu": $cpu,
-		},
-		"classes": .
+	  },
+	  "classes": .
 	}' --slurp ./compiled_programs/*.stats.json > "$OUTPUT_PATH" 
