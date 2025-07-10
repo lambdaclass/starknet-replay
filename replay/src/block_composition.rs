@@ -66,13 +66,14 @@ pub fn save_entry_point_execution(
                 };
 
                 if let Some(call) = execution.validate_call_info {
-                    block_entry_point.validate_call_info = Some(get_inner_calls(call));
+                    block_entry_point.validate_call_info = Some(get_inner_class_executions(call));
                 }
                 if let Some(call) = execution.execute_call_info {
-                    block_entry_point.execute_call_info = Some(get_inner_calls(call));
+                    block_entry_point.execute_call_info = Some(get_inner_class_executions(call));
                 }
                 if let Some(call) = execution.fee_transfer_call_info {
-                    block_entry_point.fee_transfer_call_info = Some(get_inner_calls(call));
+                    block_entry_point.fee_transfer_call_info =
+                        Some(get_inner_class_executions(call));
                 }
 
                 block_entry_point
@@ -92,7 +93,7 @@ pub fn save_entry_point_execution(
     Ok(())
 }
 
-fn get_inner_calls(call: CallInfo) -> CallTree {
+fn get_inner_class_executions(call: CallInfo) -> CallTree {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
@@ -101,7 +102,11 @@ fn get_inner_calls(call: CallInfo) -> CallTree {
         selector: call.call.entry_point_selector,
     };
 
-    let inner = call.inner_calls.into_iter().map(get_inner_calls).collect();
+    let inner = call
+        .inner_calls
+        .into_iter()
+        .map(get_inner_class_executions)
+        .collect();
 
     CallTree {
         root: top_class,

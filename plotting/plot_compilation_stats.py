@@ -10,8 +10,14 @@ sns.set_theme()
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("input", nargs="*")
-arg_parser.add_argument("--c1", help="sample contract, defaults to first contract")
-arg_parser.add_argument("--c2", help="sample contract, defaults to second contract")
+arg_parser.add_argument(
+    "--c1",
+    help="class hash for the first sample contract to use, defaults to first contract",
+)
+arg_parser.add_argument(
+    "--c2",
+    help="class hash for the second sample contract to use, defaults to second contract",
+)
 args = arg_parser.parse_args()
 
 #############
@@ -19,6 +25,9 @@ args = arg_parser.parse_args()
 #############
 
 
+# Some plots compare only two different contracts. By default, it uses the first
+# and second contract, although It can be customized with the `--c1` and `--c2`
+# flags.
 def get_sample_contracts(df: pd.DataFrame):
     if args.c1 is None:
         c1 = df.iloc[0]

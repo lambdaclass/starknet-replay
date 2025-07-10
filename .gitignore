@@ -1,13 +1,19 @@
 debug/
 target/
 **.pyc
+.DS_Store
 
 .env
 .envrc
 
 compiled_programs/
 state_dumps/
+libfunc_profiles/
+traces/
 rpc_cache
 bench_data
 block_composition/
+cairo2
+corelib
+cairo-*.tar
 call_state_dumps
