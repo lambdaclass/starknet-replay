@@ -182,6 +182,26 @@ python plotting/plot_execution_time.py native-data vm-data --output-dir out
 
 The report will be generated on `out/report.html`
 
+### Benchmarking Native Compilation
+
+First, remove the cached contract classes:
+```bash
+rm -rf ./compiled_programs
+```
+
+Then, you can benchmark the compilation of a block range by running:
+```bash
+./scripts/benchmark_compilation.sh <block-start> <block-end> <net>
+```
+
+At the end of the run, you can generate a report by executing:
+
+``` bash
+python plotting/plot_compilation_stats.py compilation-data --output-dir out
+```
+
+The report will be generated on `out/report.html`
+
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
 will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
