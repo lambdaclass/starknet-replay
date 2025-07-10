@@ -72,7 +72,7 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 ```
 
 > [!IMPORTANT]
-> Compiled contracts are cached to disk at `compiled_programs` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
+> Compiled contracts are cached to disk at `./cache/native/` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
 >
 > Make sure to remove the directory every time you update the Cairo Native version. Running `make clean` will automatically remove it.
 
@@ -159,9 +159,9 @@ cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1
 
 However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
 
-First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
+First, make sure to remove the `./cache/native/` directory and build the benchmarking binaries.
 ```bash
-rm -rf compiled_programs
+rm -rf ./cache/native/
 make deps-bench
 ```
 
