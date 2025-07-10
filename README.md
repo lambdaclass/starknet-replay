@@ -150,18 +150,8 @@ The `state_dump` feature can be used to save the execution result to either
 
 ### Benchmarking
 
-To run benchmarks manually, you must compile with release and the benchmark feature:
-
+First, build the benchmarking binaries.
 ```bash
-cargo run --release --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1000
-cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1000
-```
-
-However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
-
-First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
-```bash
-rm -rf compiled_programs
 make deps-bench
 ```
 
