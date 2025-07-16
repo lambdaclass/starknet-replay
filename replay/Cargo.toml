@@ -29,6 +29,7 @@ rpc-state-reader = { path = "../rpc-state-reader" }
 starknet_api = { workspace = true }
 starknet-types-core = { workspace = true, optional = true }
 cairo-native = { workspace = true }
+cairo-vm.workspace = true
 cairo-lang-sierra = { workspace = true, optional = true }
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }
