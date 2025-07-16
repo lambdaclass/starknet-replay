@@ -19,6 +19,7 @@ use blockifier::{
     },
     transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
+use cairo_vm::types::builtin_name::BuiltinName;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
@@ -233,6 +234,7 @@ struct SerializableCallInfo {
     // Convert HashSet to vector to avoid random order
     pub accessed_contract_addresses: Vec<ContractAddress>,
     pub call_counter: usize,
+    pub builtin_stats: Vec<(BuiltinName, usize)>,
 }
 
 impl From<CallInfo> for SerializableCallInfo {
@@ -248,6 +250,7 @@ impl From<CallInfo> for SerializableCallInfo {
             resources: _resources,
             tracked_resource: _tracked_resource,
             time: _time,
+            builtin_stats,
             call_counter,
         } = value;
 
@@ -257,6 +260,9 @@ impl From<CallInfo> for SerializableCallInfo {
         let mut accessed_contract_addresses =
             accessed_contract_addresses.into_iter().collect::<Vec<_>>();
         accessed_contract_addresses.sort();
+
+        let mut builtin_stats = builtin_stats.into_iter().collect::<Vec<_>>();
+        builtin_stats.sort_by_key(|(k, _)| k.to_str());
 
         Self {
             call: SerializableCallEntryPoint::from(call),
@@ -269,6 +275,7 @@ impl From<CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values,
             accessed_contract_addresses,
+            builtin_stats,
             call_counter,
         }
     }
