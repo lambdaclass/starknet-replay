@@ -420,7 +420,7 @@ mod tests {
         );
 
         drop(state);
-        let state = FullStateReader::load(ChainId::Mainnet).expect("failed to load reader");
+        let state = FullStateReader::new(ChainId::Mainnet);
 
         let value = state
             .get_storage_at(
