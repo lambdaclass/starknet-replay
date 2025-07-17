@@ -36,6 +36,7 @@ pub enum FullStateReaderError {
 /// `RefCell`/`Cell` allow method signatures to receive inmutable references. As there
 /// is no recursion, a runtime panic is impossible.
 pub struct FullStateReader {
+    chain_id: ChainId,
     hit_counter: Cell<u64>,
     miss_counter: Cell<u64>,
     remote_reader: RemoteStateReader,
@@ -44,27 +45,16 @@ pub struct FullStateReader {
 }
 
 impl FullStateReader {
-    pub fn load(chain_id: ChainId) -> Result<Self, FullStateReaderError> {
-        let remote_url = url_from_env(&chain_id);
-        let remote_reader = RemoteStateReader::new(remote_url);
-        Ok(Self {
-            remote_reader,
-            cache: RefCell::new(StateCache::load(chain_id)?),
-            class_manager: RefCell::new(ClassManager::new()),
-            hit_counter: Cell::new(0),
-            miss_counter: Cell::new(0),
-        })
-    }
-
     pub fn new(chain_id: ChainId) -> Self {
         let remote_url = url_from_env(&chain_id);
         let remote_reader = RemoteStateReader::new(remote_url);
         Self {
             remote_reader,
-            cache: RefCell::new(StateCache::new(chain_id)),
+            cache: RefCell::new(StateCache::new(chain_id.clone())),
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
+            chain_id,
         }
     }
 

@@ -143,7 +143,7 @@ fn main() {
             let block_number = BlockNumber(block_number);
             let tx_hash = TransactionHash(felt!(tx_hash.as_str()));
 
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -162,7 +162,7 @@ fn main() {
             let chain = parse_network(&chain);
             let block_number = BlockNumber(block_number);
 
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -186,7 +186,7 @@ fn main() {
             let chain = parse_network(&chain);
             let block_number = BlockNumber(block_number);
 
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -203,7 +203,7 @@ fn main() {
             charge_fee,
         } => {
             let chain = parse_network(&chain);
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -229,7 +229,7 @@ fn main() {
             output,
         } => {
             let chain = parse_network(&chain);
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -292,7 +292,7 @@ fn main() {
             let block_number = BlockNumber(block);
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -348,8 +348,7 @@ fn main() {
             chain,
         } => {
             let chain = parse_network(&chain);
-            let full_reader =
-                FullStateReader::load(chain.clone()).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain.clone());
 
             let execution_flags = ExecutionFlags {
                 only_query: false,
@@ -400,7 +399,7 @@ fn main() {
             let block_number = BlockNumber(block_number);
             let tx_hash = TransactionHash(felt!(tx.as_str()));
 
-            let full_reader = FullStateReader::load(chain).expect("failed to load state reader");
+            let full_reader = FullStateReader::new(chain);
 
             let block_reader = BlockStateReader::new(
                 block_number
