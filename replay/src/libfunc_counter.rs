@@ -25,7 +25,7 @@ struct CountersByEntrypoint {
     entrypoint_counters: CounterByLibfunc,
 }
 
-pub fn create_libfunc_counter(tx_hash_str: String) {
+pub fn create_libfunc_counts(tx_hash_str: String) {
     let mut counter = LIBFUNC_COUNTERS_MAP.lock().unwrap();
     let tx_counter = counter
         .remove(&tx_hash_str)
