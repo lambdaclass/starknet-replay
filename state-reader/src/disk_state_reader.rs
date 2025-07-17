@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap};
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
@@ -189,12 +189,10 @@ impl DiskStateReader {
         &mut self,
         block_number: BlockNumber,
     ) -> Result<&mut BlockStateCache, StateReaderError> {
-        if !self.block_state_caches.contains_key(&block_number) {
+        if let Entry::Vacant(entry) = self.block_state_caches.entry(block_number) {
             let cache_path = format!("cache/state/{}-{}.json", self.chain_id, block_number);
             let block_state_cache = read_atomically(cache_path).unwrap_or_default();
-            let _ = self
-                .block_state_caches
-                .insert(block_number, block_state_cache);
+            entry.insert(block_state_cache);
         }
 
         Ok(self

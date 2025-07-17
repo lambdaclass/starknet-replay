@@ -222,10 +222,9 @@ impl FullStateReader {
 
         let contract_class = self.get_contract_class(block_number, class_hash)?;
 
-        Ok(self
-            .class_manager
+        self.class_manager
             .borrow_mut()
-            .compile_runnable_class(&class_hash, contract_class)?)
+            .compile_runnable_class(&class_hash, contract_class)
     }
 
     pub fn get_class_info(
@@ -238,10 +237,9 @@ impl FullStateReader {
         // This value is not cached in memory as its only used before executing
         // a transaction. This means that it won't affect a transaction
         // performance.
-        Ok(self
-            .class_manager
+        self.class_manager
             .borrow()
-            .get_class_info(&class_hash, contract_class)?)
+            .get_class_info(&class_hash, contract_class)
     }
 
     pub fn get_chain_id(&self) -> Result<ChainId, StateReaderError> {

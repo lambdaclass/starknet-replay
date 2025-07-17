@@ -4,7 +4,7 @@ use std::{
     io::{self, Read},
     path::PathBuf,
     sync::Arc,
-    thread::{self, sleep},
+    thread::sleep,
     time::Duration,
 };
 
@@ -13,7 +13,6 @@ use blockifier::execution::{
     native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
 };
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
-use lockfile::Lockfile;
 use starknet_api::{
     contract_class::{
         ClassInfo, ContractClass as CompiledContractClass, EntryPointType, SierraVersion,
