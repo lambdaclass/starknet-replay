@@ -22,7 +22,7 @@ with-libfunc-profiling = [
 with-libfunc-counter = [
   "rpc-state-reader/with-libfunc-counter",
   "dep:starknet-types-core",
-  "dep:starknet-types-core"
+  "dep:cairo-lang-sierra",
 ]
 with-comp-stats = ["rpc-state-reader/with-comp-stats"]
 profiling = []
