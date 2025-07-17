@@ -39,8 +39,8 @@ pub struct FullStateReader {
     chain_id: ChainId,
     hit_counter: Cell<u64>,
     miss_counter: Cell<u64>,
-    remote_reader: RemoteStateReader,
     cache: RefCell<StateCache>,
+    remote_reader: RemoteStateReader,
     class_manager: RefCell<ClassManager>,
 }
 
