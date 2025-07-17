@@ -30,7 +30,7 @@ pub enum FullStateReaderError {
 
 /// Reader and cache for a Starknet node's state.
 ///
-/// Creating/Dropping this reader may take a while, as it has to load/save data to disk.
+/// Dropping this reader may take a while, as it has to save data to disk.
 ///
 /// As the blockifier state reader expectes an inmutable reference, we need a
 /// `RefCell`/`Cell` allow method signatures to receive inmutable references. As there
