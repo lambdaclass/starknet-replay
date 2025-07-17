@@ -1,4 +1,4 @@
-use crate::full_state_reader::{FullStateReader, FullStateReaderError};
+use crate::{error::StateReaderError, full_state_reader::FullStateReader};
 use starknet_api::{
     block::BlockNumber,
     core::{ClassHash, CompiledClassHash, ContractAddress, Nonce},
@@ -67,8 +67,8 @@ impl StateReader for BlockStateReader<'_> {
     }
 }
 
-impl From<FullStateReaderError> for StateError {
-    fn from(value: FullStateReaderError) -> Self {
+impl From<StateReaderError> for StateError {
+    fn from(value: StateReaderError) -> Self {
         StateError::StateReadError(value.to_string())
     }
 }

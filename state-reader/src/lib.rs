@@ -14,7 +14,11 @@
 //! a pre-execution.
 //!
 //! The cache is saved to the relative directory `./cache/`:
-//! - `./cache/rpc.json`: Contains raw rpc data.
+//! - `./cache/block/`: Contains raw block data.
+//! - `./cache/state/`: Contains block state data.
+//! - `./cache/contract_class/`: Contains raw contract classes.
+//! - `./cache/tx/`: Contains raw transactions.
+//! - `./cache/tx_receipt/`: Contains raw transaction receipts.
 //! - `./cache/native/`: Contains compiled Native classes.
 //! - `./cache/casm/`: Contains compiled CASM classes.
 //!
@@ -24,7 +28,9 @@
 
 pub mod block_state_reader;
 pub mod class_manager;
+pub mod disk_state_reader;
+pub mod error;
 pub mod full_state_reader;
 pub mod objects;
 pub mod remote_state_reader;
-pub mod state_cache;
+pub mod utils;

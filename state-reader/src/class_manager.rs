@@ -13,7 +13,6 @@ use blockifier::execution::{
     native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
 };
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
-use cairo_vm::types::errors::program_errors::ProgramError;
 use lockfile::Lockfile;
 use starknet_api::{
     contract_class::{
@@ -30,34 +29,13 @@ use starknet_core::types::{
     CompressedLegacyContractClass, ContractClass as ApiContractClass, FlattenedSierraClass,
     LegacyContractEntryPoint, LegacyEntryPointsByType,
 };
-use thiserror::Error;
 
 use cairo_lang_starknet_classes::{
     casm_contract_class::{CasmContractClass, StarknetSierraCompilationError},
     contract_class::{version_id_from_serialized_sierra_program, ContractClass},
 };
 
-#[derive(Error, Debug)]
-pub enum ClassManagerError {
-    #[error(transparent)]
-    CairoNativeError(#[from] cairo_native::error::Error),
-    #[error(transparent)]
-    IoError(#[from] io::Error),
-    #[error(transparent)]
-    LockfileError(#[from] lockfile::Error),
-    #[error(transparent)]
-    ProgramError(#[from] ProgramError),
-    #[error(transparent)]
-    SerdeJsonError(#[from] serde_json::Error),
-    #[error(transparent)]
-    StarknetApiError(#[from] starknet_api::StarknetApiError),
-    #[error(transparent)]
-    StarknetSierraCompilationError(#[from] StarknetSierraCompilationError),
-    #[error("a legacy contract should always have an ABI")]
-    LegacyContractWithoutAbi,
-    #[error("the received sierra class was invalid")]
-    InvalidSierraClass,
-}
+use crate::error::StateReaderError;
 
 /// A compiled class cache for both CASM and Native.
 ///
@@ -80,7 +58,7 @@ impl ClassManager {
         &mut self,
         class_hash: &ClassHash,
         contract_class: ApiContractClass,
-    ) -> Result<RunnableCompiledClass, ClassManagerError> {
+    ) -> Result<RunnableCompiledClass, StateReaderError> {
         let runnable_compiled_class = match contract_class {
             ApiContractClass::Sierra(sierra_class) => {
                 let casm_class = CompiledClassV1::try_from(
@@ -150,7 +128,7 @@ impl ClassManager {
         &self,
         class_hash: &ClassHash,
         sierra_class: &FlattenedSierraClass,
-    ) -> Result<VersionedCasm, ClassManagerError> {
+    ) -> Result<VersionedCasm, StateReaderError> {
         let contract_class = processed_class_to_contract_class(sierra_class)?;
 
         let cache_path = format!("cache/casm/{}.json", class_hash.to_hex_string());
@@ -166,8 +144,8 @@ impl ClassManager {
 
         // If the cache already exists, load it.
         let versioned_casm_class = match File::open(&cache_path)
-            .map_err(ClassManagerError::from)
-            .and_then(|file| serde_json::from_reader(file).map_err(ClassManagerError::from))
+            .map_err(StateReaderError::from)
+            .and_then(|file| serde_json::from_reader(file).map_err(StateReaderError::from))
         {
             Ok(versioned_casm_class) => versioned_casm_class,
             Err(_) => {
@@ -203,7 +181,7 @@ impl ClassManager {
         &self,
         class_hash: &ClassHash,
         sierra_class: &FlattenedSierraClass,
-    ) -> Result<AotContractExecutor, ClassManagerError> {
+    ) -> Result<AotContractExecutor, StateReaderError> {
         let contract_class = processed_class_to_contract_class(sierra_class)?;
 
         let cache_path =
@@ -275,13 +253,13 @@ impl ClassManager {
         &self,
         class_hash: &ClassHash,
         contract_class: ApiContractClass,
-    ) -> Result<ClassInfo, ClassManagerError> {
+    ) -> Result<ClassInfo, StateReaderError> {
         Ok(match contract_class {
             ApiContractClass::Legacy(legacy_class) => {
                 let abi_length = legacy_class
                     .abi
                     .as_ref()
-                    .ok_or(ClassManagerError::LegacyContractWithoutAbi)?
+                    .ok_or(StateReaderError::LegacyContractWithoutAbi)?
                     .len();
 
                 let casm_class = decompress_v0_class(legacy_class)?;
@@ -313,7 +291,7 @@ impl ClassManager {
 
 pub fn decompress_v0_class(
     class: CompressedLegacyContractClass,
-) -> Result<DeprecatedContractClass, ClassManagerError> {
+) -> Result<DeprecatedContractClass, StateReaderError> {
     let program_as_string = gz_decode_bytes_into_string(&class.program)?;
     let program = serde_json::from_str(&program_as_string)?;
     let entry_points_by_type = map_legacy_entrypoints_by_type(class.entry_points_by_type);
@@ -325,7 +303,7 @@ pub fn decompress_v0_class(
     })
 }
 
-pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, ClassManagerError> {
+pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, StateReaderError> {
     let sierra_program_values = class
         .sierra_program
         .iter()
@@ -348,11 +326,11 @@ pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, ClassMana
 /// Converts the processed class format into the compiler class format.
 pub fn processed_class_to_contract_class(
     sierra_class: &FlattenedSierraClass,
-) -> Result<ContractClass, ClassManagerError> {
+) -> Result<ContractClass, StateReaderError> {
     let mut value = serde_json::to_value(sierra_class)?;
     value
         .as_object_mut()
-        .ok_or(ClassManagerError::InvalidSierraClass)?
+        .ok_or(StateReaderError::InvalidSierraClass)?
         .remove("abi");
     Ok(serde_json::from_value(value)?)
 }

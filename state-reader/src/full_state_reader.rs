@@ -1,8 +1,9 @@
 use std::cell::{Cell, RefCell};
 
-use crate::class_manager::{ClassManager, ClassManagerError};
+use crate::class_manager::ClassManager;
+use crate::error::StateReaderError;
 use crate::objects::RpcTransactionReceipt;
-use crate::remote_state_reader::{url_from_env, RemoteStateReader, RemoteStateReaderError};
+use crate::remote_state_reader::{url_from_env, RemoteStateReader};
 use starknet_api::{
     block::BlockNumber,
     contract_class::ClassInfo,
@@ -14,19 +15,8 @@ use starknet_api::{
 use starknet_core::types::{BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
-use crate::state_cache::{StateCache, StateCacheError};
+use crate::disk_state_reader::DiskStateReader;
 use blockifier::execution::contract_class::RunnableCompiledClass;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum FullStateReaderError {
-    #[error(transparent)]
-    RemoteReaderError(#[from] RemoteStateReaderError),
-    #[error(transparent)]
-    ClassManagerError(#[from] ClassManagerError),
-    #[error(transparent)]
-    StateCacheError(#[from] StateCacheError),
-}
 
 /// Reader and cache for a Starknet node's state.
 ///
@@ -39,7 +29,7 @@ pub struct FullStateReader {
     chain_id: ChainId,
     hit_counter: Cell<u64>,
     miss_counter: Cell<u64>,
-    cache: RefCell<StateCache>,
+    disk_reader: RefCell<DiskStateReader>,
     remote_reader: RemoteStateReader,
     class_manager: RefCell<ClassManager>,
 }
@@ -50,7 +40,7 @@ impl FullStateReader {
         let remote_reader = RemoteStateReader::new(remote_url);
         Self {
             remote_reader,
-            cache: RefCell::new(StateCache::new(chain_id.clone())),
+            disk_reader: RefCell::new(DiskStateReader::new(chain_id.clone())),
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
@@ -74,57 +64,58 @@ impl FullStateReader {
     pub fn get_block(
         &self,
         block_number: BlockNumber,
-    ) -> Result<BlockWithTxHashes, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().blocks.get(&block_number) {
+    ) -> Result<BlockWithTxHashes, StateReaderError> {
+        if let Ok(block) = self.disk_reader.borrow_mut().get_block(block_number) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(result.clone());
+            return Ok(block.clone());
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
-        let result = self.remote_reader.get_block_with_tx_hashes(block_number)?;
+        let block = self.remote_reader.get_block_with_tx_hashes(block_number)?;
 
-        self.cache
+        self.disk_reader
             .borrow_mut()
-            .blocks
-            .insert(block_number, result.clone());
+            .set_block(block_number, block.clone())?;
 
-        Ok(result)
+        Ok(block)
     }
 
-    pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().transactions.get(&tx_hash) {
+    pub fn get_tx(&self, tx_hash: TransactionHash) -> Result<Transaction, StateReaderError> {
+        if let Ok(tx) = self.disk_reader.borrow_mut().get_transaction(tx_hash) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(result.clone());
+            return Ok(tx.clone());
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
-        let result = self.remote_reader.get_tx(&tx_hash)?;
+        let tx = self.remote_reader.get_tx(&tx_hash)?;
 
-        self.cache
+        self.disk_reader
             .borrow_mut()
-            .transactions
-            .insert(tx_hash, result.clone());
+            .set_transaction(tx_hash, tx.clone())?;
 
-        Ok(result)
+        Ok(tx)
     }
 
     pub fn get_tx_receipt(
         &self,
         tx_hash: TransactionHash,
-    ) -> Result<RpcTransactionReceipt, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().transaction_receipts.get(&tx_hash) {
+    ) -> Result<RpcTransactionReceipt, StateReaderError> {
+        if let Ok(receipt) = self
+            .disk_reader
+            .borrow_mut()
+            .get_transaction_receipt(tx_hash)
+        {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(result.clone());
+            return Ok(receipt.clone());
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
-        let result = self.remote_reader.get_tx_receipt(&tx_hash)?;
-        self.cache
+        let receipt = self.remote_reader.get_tx_receipt(&tx_hash)?;
+        self.disk_reader
             .borrow_mut()
-            .transaction_receipts
-            .insert(tx_hash, result.clone());
+            .set_transaction_receipt(tx_hash, receipt.clone())?;
 
-        Ok(result)
+        Ok(receipt)
     }
 
     pub fn get_storage_at(
@@ -133,114 +124,96 @@ impl FullStateReader {
 
         contract_address: ContractAddress,
         key: StorageKey,
-    ) -> Result<Felt, FullStateReaderError> {
-        if let Some(result) =
-            self.cache
-                .borrow()
-                .storage
-                .get(&(block_number, contract_address, key))
-        {
-            self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(*result);
-        }
-        self.miss_counter.set(self.miss_counter.get() + 1);
+    ) -> Result<Felt, StateReaderError> {
+        let mut cache = self.disk_reader.borrow_mut();
+        let block_cache = cache.get_block_state_cache(block_number)?;
 
-        let result = self
+        if let Some(&value) = &block_cache.storage.get(&(contract_address, key)) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
+            return Ok(value);
+        }
+
+        self.miss_counter.set(self.miss_counter.get() + 1);
+        let value = self
             .remote_reader
             .get_storage_at(block_number, contract_address, key)?;
+        block_cache.storage.insert((contract_address, key), value);
 
-        self.cache
-            .borrow_mut()
-            .storage
-            .insert((block_number, contract_address, key), result);
-
-        Ok(result)
+        Ok(value)
     }
 
     pub fn get_nonce_at(
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<Nonce, FullStateReaderError> {
-        if let Some(result) = self
-            .cache
-            .borrow()
-            .nonces
-            .get(&(block_number, contract_address))
-        {
-            self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(*result);
-        }
-        self.miss_counter.set(self.miss_counter.get() + 1);
+    ) -> Result<Nonce, StateReaderError> {
+        let mut cache = self.disk_reader.borrow_mut();
+        let block_cache = cache.get_block_state_cache(block_number)?;
 
-        let result = self
+        if let Some(&nonce) = &block_cache.nonces.get(&contract_address) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
+            return Ok(nonce);
+        }
+
+        self.miss_counter.set(self.miss_counter.get() + 1);
+        let nonce = self
             .remote_reader
             .get_nonce_at(block_number, contract_address)?;
+        block_cache.nonces.insert(contract_address, nonce);
 
-        self.cache
-            .borrow_mut()
-            .nonces
-            .insert((block_number, contract_address), result);
-
-        Ok(result)
+        Ok(nonce)
     }
 
     pub fn get_class_hash_at(
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<ClassHash, FullStateReaderError> {
-        if let Some(result) = self
-            .cache
-            .borrow()
-            .class_hashes
-            .get(&(block_number, contract_address))
-        {
-            self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(*result);
-        }
-        self.miss_counter.set(self.miss_counter.get() + 1);
+    ) -> Result<ClassHash, StateReaderError> {
+        let mut cache = self.disk_reader.borrow_mut();
+        let block_cache = cache.get_block_state_cache(block_number)?;
 
-        let result = self
+        if let Some(&class_hash) = &block_cache.class_hashes.get(&contract_address) {
+            self.hit_counter.set(self.hit_counter.get() + 1);
+            return Ok(class_hash);
+        }
+
+        self.miss_counter.set(self.miss_counter.get() + 1);
+        let class_hash = self
             .remote_reader
             .get_class_hash_at(block_number, contract_address)?;
-
-        self.cache
-            .borrow_mut()
+        block_cache
             .class_hashes
-            .insert((block_number, contract_address), result);
+            .insert(contract_address, class_hash);
 
-        Ok(result)
+        Ok(class_hash)
     }
 
     pub fn get_contract_class(
         &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
-    ) -> Result<ContractClass, FullStateReaderError> {
-        if let Some(result) = self.cache.borrow().contract_classes.get(&class_hash) {
+    ) -> Result<ContractClass, StateReaderError> {
+        if let Ok(receipt) = self.disk_reader.borrow_mut().get_contract_class(class_hash) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(result.clone());
+            return Ok(receipt.clone());
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
-        let result = self
+        let contract_class = self
             .remote_reader
             .get_contract_class(block_number, &class_hash)?;
-
-        self.cache
+        self.disk_reader
             .borrow_mut()
-            .contract_classes
-            .insert(class_hash, result.clone());
+            .set_contract_class(class_hash, contract_class.clone())?;
 
-        Ok(result)
+        Ok(contract_class)
     }
 
     pub fn get_compiled_class(
         &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
-    ) -> Result<RunnableCompiledClass, FullStateReaderError> {
+    ) -> Result<RunnableCompiledClass, StateReaderError> {
         if let Some(result) = self.class_manager.borrow().get_runnable_class(&class_hash) {
             self.hit_counter.set(self.hit_counter.get() + 1);
             return Ok(result.clone());
@@ -259,7 +232,7 @@ impl FullStateReader {
         &self,
         block_number: BlockNumber,
         class_hash: ClassHash,
-    ) -> Result<ClassInfo, FullStateReaderError> {
+    ) -> Result<ClassInfo, StateReaderError> {
         let contract_class = self.get_contract_class(block_number, class_hash)?;
 
         // This value is not cached in memory as its only used before executing
@@ -271,14 +244,14 @@ impl FullStateReader {
             .get_class_info(&class_hash, contract_class)?)
     }
 
-    pub fn get_chain_id(&self) -> Result<ChainId, FullStateReaderError> {
-        Ok(self.cache.borrow().chain_id.clone())
+    pub fn get_chain_id(&self) -> Result<ChainId, StateReaderError> {
+        Ok(self.chain_id.clone())
     }
 }
 
 impl Drop for FullStateReader {
     fn drop(&mut self) {
-        let _ = self.cache.borrow_mut().save();
+        let _ = self.disk_reader.borrow_mut().save();
     }
 }
 
@@ -304,16 +277,12 @@ mod tests {
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
-
         state
             .get_compiled_class(
                 BlockNumber(1500000),
                 class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
-
-        assert_eq!(state.get_hit_counter(), 1);
-        assert_eq!(state.get_miss_counter(), 2);
     }
 
     #[test]
@@ -333,9 +302,6 @@ mod tests {
                 class_hash!("0x010455c752b86932ce552f2b0fe81a880746649b9aee7e0d842bf3f52378f9f8"),
             )
             .unwrap();
-
-        assert_eq!(state.get_hit_counter(), 1);
-        assert_eq!(state.get_miss_counter(), 2);
     }
 
     #[test]
@@ -395,9 +361,6 @@ mod tests {
             value,
             felt!("0x4088b3713e2753e7801f4ba098a8afd879ae5c7a167bbaefdc750e1040cfa48")
         );
-
-        assert_eq!(state.get_hit_counter(), 1);
-        assert_eq!(state.get_miss_counter(), 1);
     }
 
     #[test]

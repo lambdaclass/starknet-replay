@@ -2,10 +2,10 @@
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.
 
-use std::{env, string::FromUtf8Error};
+use std::env;
 
 use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
-use reqwest::{blocking::Client, StatusCode};
+use reqwest::blocking::Client;
 use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
@@ -15,36 +15,11 @@ use starknet_api::{
 };
 use starknet_core::types::{BlockWithTxHashes, ContractClass, Felt};
 use starknet_gateway::rpc_objects::{
-    RpcErrorCode, RpcErrorResponse, RpcResponse, RPC_CLASS_HASH_NOT_FOUND,
-    RPC_ERROR_BLOCK_NOT_FOUND, RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
+    RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
+    RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
 };
-use thiserror::Error;
 
-use crate::objects::RpcTransactionReceipt;
-
-#[derive(Debug, Error)]
-pub enum RemoteStateReaderError {
-    #[error("block not found")]
-    BlockNotFound,
-    #[error("class hash not found")]
-    ClassHashNotFound,
-    #[error("contract address not found")]
-    ContractAddressNotFound,
-    #[error("invalid params: {0:?}")]
-    InvalidParams(RpcErrorResponse),
-    #[error("bad status: {0}")]
-    BadStatus(StatusCode),
-    #[error("unexpected error code: {0}")]
-    UnexpectedErrorCode(RpcErrorCode),
-    #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
-    #[error(transparent)]
-    ParseError(#[from] serde_json::Error),
-    #[error(transparent)]
-    FromHexError(#[from] hex::FromHexError),
-    #[error(transparent)]
-    FromUtf8Error(#[from] FromUtf8Error),
-}
+use crate::{error::StateReaderError, objects::RpcTransactionReceipt};
 
 /// Reads a Starknet node's state through RPC.
 pub struct RemoteStateReader {
@@ -59,11 +34,7 @@ impl RemoteStateReader {
         Self { client, url }
     }
 
-    pub fn send_rpc_request(
-        &self,
-        method: &str,
-        params: Value,
-    ) -> Result<Value, RemoteStateReaderError> {
+    pub fn send_rpc_request(&self, method: &str, params: Value) -> Result<Value, StateReaderError> {
         let body = json!({
             "jsonrpc": "2.0",
             "id": 0,
@@ -79,7 +50,7 @@ impl RemoteStateReader {
             .send()?;
 
         if !response.status().is_success() {
-            return Err(RemoteStateReaderError::BadStatus(response.status()));
+            return Err(StateReaderError::BadHttpStatusCode(response.status()));
         };
 
         let response: RpcResponse = response.json()?;
@@ -87,15 +58,15 @@ impl RemoteStateReader {
         match response {
             RpcResponse::Success(rpc_success_response) => Ok(rpc_success_response.result),
             RpcResponse::Error(rpc_error_response) => match rpc_error_response.error.code {
-                RPC_ERROR_BLOCK_NOT_FOUND => Err(RemoteStateReaderError::BlockNotFound),
+                RPC_ERROR_BLOCK_NOT_FOUND => Err(StateReaderError::BlockNotFound),
                 RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND => {
-                    Err(RemoteStateReaderError::ContractAddressNotFound)
+                    Err(StateReaderError::ContractAddressNotFound)
                 }
-                RPC_CLASS_HASH_NOT_FOUND => Err(RemoteStateReaderError::ClassHashNotFound),
+                RPC_CLASS_HASH_NOT_FOUND => Err(StateReaderError::ClassHashNotFound),
                 RPC_ERROR_INVALID_PARAMS => {
-                    Err(RemoteStateReaderError::InvalidParams(rpc_error_response))
+                    Err(StateReaderError::InvalidRpcParams(rpc_error_response))
                 }
-                _ => Err(RemoteStateReaderError::UnexpectedErrorCode(
+                _ => Err(StateReaderError::UnexpectedRpcErrorCode(
                     rpc_error_response.error.code,
                 )),
             },
@@ -106,7 +77,7 @@ impl RemoteStateReader {
         &self,
         block_number: BlockNumber,
         class_hash: &ClassHash,
-    ) -> Result<ContractClass, RemoteStateReaderError> {
+    ) -> Result<ContractClass, StateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -123,7 +94,7 @@ impl RemoteStateReader {
     pub fn get_block_with_tx_hashes(
         &self,
         block_number: BlockNumber,
-    ) -> Result<BlockWithTxHashes, RemoteStateReaderError> {
+    ) -> Result<BlockWithTxHashes, StateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -135,7 +106,7 @@ impl RemoteStateReader {
         Ok(result)
     }
 
-    pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, RemoteStateReaderError> {
+    pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, StateReaderError> {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionByHash", params)?;
@@ -147,7 +118,7 @@ impl RemoteStateReader {
     pub fn get_tx_receipt(
         &self,
         hash: &TransactionHash,
-    ) -> Result<RpcTransactionReceipt, RemoteStateReaderError> {
+    ) -> Result<RpcTransactionReceipt, StateReaderError> {
         let params = json!([hash]);
 
         let response = self.send_rpc_request("starknet_getTransactionReceipt", params)?;
@@ -160,7 +131,7 @@ impl RemoteStateReader {
         block_number: BlockNumber,
         contract_address: ContractAddress,
         key: StorageKey,
-    ) -> Result<Felt, RemoteStateReaderError> {
+    ) -> Result<Felt, StateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -173,7 +144,7 @@ impl RemoteStateReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(Felt::default()),
+            Err(StateReaderError::ContractAddressNotFound) => Ok(Felt::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -182,7 +153,7 @@ impl RemoteStateReader {
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<Nonce, RemoteStateReaderError> {
+    ) -> Result<Nonce, StateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -194,7 +165,7 @@ impl RemoteStateReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(Nonce::default()),
+            Err(StateReaderError::ContractAddressNotFound) => Ok(Nonce::default()),
             Err(err) => Err(err)?,
         }
     }
@@ -203,7 +174,7 @@ impl RemoteStateReader {
         &self,
         block_number: BlockNumber,
         contract_address: ContractAddress,
-    ) -> Result<ClassHash, RemoteStateReaderError> {
+    ) -> Result<ClassHash, StateReaderError> {
         let params = json!({
             "block_id": {
                 "block_number": block_number,
@@ -215,12 +186,12 @@ impl RemoteStateReader {
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
-            Err(RemoteStateReaderError::ContractAddressNotFound) => Ok(ClassHash::default()),
+            Err(StateReaderError::ContractAddressNotFound) => Ok(ClassHash::default()),
             Err(err) => Err(err)?,
         }
     }
 
-    pub fn get_chain_id(&self) -> Result<ChainId, RemoteStateReaderError> {
+    pub fn get_chain_id(&self) -> Result<ChainId, StateReaderError> {
         let params = json!([]);
 
         let response = self.send_rpc_request("starknet_chainId", params)?;
