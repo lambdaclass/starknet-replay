@@ -10,6 +10,7 @@ only_casm = []
 with-sierra-emu = []
 with-trace-dump = ["blockifier/with-trace-dump"]
 with-libfunc-profiling = ["blockifier/with-libfunc-profiling"]
+with-libfunc-counter = ["blockifier/with-libfunc-counter"]
 with-comp-stats = []
 
 [dependencies]

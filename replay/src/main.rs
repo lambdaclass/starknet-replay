@@ -55,6 +55,9 @@ mod state_dump;
 #[cfg(feature = "with-libfunc-profiling")]
 mod libfunc_profile;
 
+#[cfg(feature = "with-libfunc-counter")]
+mod libfunc_counter;
+
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
 struct ReplayCLI {
