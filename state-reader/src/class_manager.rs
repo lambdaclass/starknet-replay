@@ -35,7 +35,10 @@ use cairo_lang_starknet_classes::{
     contract_class::{version_id_from_serialized_sierra_program, ContractClass},
 };
 
-use crate::error::StateReaderError;
+use crate::{
+    error::StateReaderError,
+    utils::{read_atomically, write_atomically},
+};
 
 /// A compiled class cache for both CASM and Native.
 ///
@@ -131,48 +134,26 @@ impl ClassManager {
     ) -> Result<VersionedCasm, StateReaderError> {
         let contract_class = processed_class_to_contract_class(sierra_class)?;
 
-        let cache_path = format!("cache/casm/{}.json", class_hash.to_hex_string());
-        let lockfile_path = format!("{}.lock", cache_path);
-
-        // Wait until we get the file lock for the cache.
-        let mut lockfile = Lockfile::create_with_parents(&lockfile_path);
-        while let Err(lockfile::Error::LockTaken) = lockfile {
-            thread::sleep(Duration::from_secs(1));
-            lockfile = Lockfile::create_with_parents(&lockfile_path);
-        }
-        let lockfile = lockfile?;
+        let cache_path = format!("cache/casm/{}.json", class_hash.to_fixed_hex_string());
 
         // If the cache already exists, load it.
-        let versioned_casm_class = match File::open(&cache_path)
-            .map_err(StateReaderError::from)
-            .and_then(|file| serde_json::from_reader(file).map_err(StateReaderError::from))
-        {
-            Ok(versioned_casm_class) => versioned_casm_class,
-            Err(_) => {
-                // If there is no cached value, we compile it.
+        if let Ok(versioned_casm_class) = read_atomically(&cache_path) {
+            return Ok(versioned_casm_class);
+        }
 
-                let sierra_program_values = contract_class
-                    .sierra_program
-                    .iter()
-                    .take(3)
-                    .map(|felt| felt.value.clone())
-                    .collect::<Vec<_>>();
+        // If there is no cached value, we compile it.
+        let sierra_program_values = contract_class
+            .sierra_program
+            .iter()
+            .take(3)
+            .map(|felt| felt.value.clone())
+            .collect::<Vec<_>>();
+        let sierra_version = SierraVersion::extract_from_program(&sierra_program_values)?;
+        let casm_class = CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+        let versioned_casm_class = (casm_class, sierra_version);
 
-                let sierra_version = SierraVersion::extract_from_program(&sierra_program_values)?;
-
-                let casm_class =
-                    CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
-
-                let versioned_casm_class = (casm_class, sierra_version);
-
-                let file = File::create(&cache_path)?;
-                serde_json::to_writer(file, &versioned_casm_class)?;
-
-                versioned_casm_class
-            }
-        };
-
-        lockfile.release()?;
+        // Cache it for the next time.
+        write_atomically(&cache_path, &versioned_casm_class)?;
 
         Ok(versioned_casm_class)
     }
@@ -184,14 +165,17 @@ impl ClassManager {
     ) -> Result<AotContractExecutor, StateReaderError> {
         let contract_class = processed_class_to_contract_class(sierra_class)?;
 
-        let cache_path =
-            PathBuf::from(format!("cache/native/{}.{}", class_hash.to_hex_string(), {
+        let cache_path = PathBuf::from(format!(
+            "cache/native/{}.{}",
+            class_hash.to_fixed_hex_string(),
+            {
                 if cfg!(target_os = "macos") {
                     "dylib"
                 } else {
                     "so"
                 }
-            }));
+            }
+        ));
 
         if let Some(p) = cache_path.parent() {
             fs::create_dir_all(p)?;
