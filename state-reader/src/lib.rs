@@ -27,6 +27,7 @@
 //! transaction.
 
 pub mod block_state_reader;
+pub mod cache;
 pub mod class_manager;
 pub mod disk_state_reader;
 pub mod error;
