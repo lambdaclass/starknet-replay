@@ -153,6 +153,7 @@ fn main() {
 
             execute_txs(&full_reader, block_number, vec![tx_hash], execution_flags)
                 .expect("failed to execute transaction");
+            log_cache_statistics(&full_reader);
         }
         ReplayExecute::Block {
             block_number,
@@ -171,6 +172,7 @@ fn main() {
             };
             execute_block(&full_reader, block_number, execution_flags)
                 .expect("failed to execute block");
+            log_cache_statistics(&full_reader);
         }
         ReplayExecute::BlockTxs {
             chain,
@@ -195,6 +197,7 @@ fn main() {
             };
             execute_txs(&full_reader, block_number, tx_hashes, execution_flags)
                 .expect("failed to execute block");
+            log_cache_statistics(&full_reader);
         }
         ReplayExecute::BlockRange {
             block_start,
@@ -219,6 +222,7 @@ fn main() {
                 )
                 .expect("failed to execute block");
             }
+            log_cache_statistics(&full_reader);
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchBlockRange {
@@ -247,6 +251,7 @@ fn main() {
                 .expect("failed to execute block");
             }
 
+            log_cache_statistics(&full_reader);
             full_reader.reset_counters();
 
             // We pause the main thread to differentiate
@@ -309,6 +314,7 @@ fn main() {
             )
             .expect("failed to execute transaction");
 
+            log_cache_statistics(&full_reader);
             full_reader.reset_counters();
 
             // We pause the main thread to differentiate
@@ -499,6 +505,14 @@ fn parse_network(network: &str) -> ChainId {
         "testnet" => ChainId::Sepolia,
         _ => panic!("Invalid network name, it should be one of: mainnet, testnet"),
     }
+}
+
+fn log_cache_statistics(full_state_reader: &FullStateReader) {
+    info!(
+        hits = full_state_reader.get_hit_counter(),
+        miss = full_state_reader.get_miss_counter(),
+        "cache statistics"
+    )
 }
 
 fn set_global_subscriber() {
