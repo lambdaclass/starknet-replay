@@ -9,6 +9,7 @@ target/
 compiled_programs/
 state_dumps/
 libfunc_profiles/
+libfunc_counts/
 traces/
 rpc_cache
 bench_data
