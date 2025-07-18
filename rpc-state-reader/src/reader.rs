@@ -279,14 +279,28 @@ fn compile_sierra_cc(
                 sierra_version,
             ))
         } else {
-            #[cfg(any(feature = "with-trace-dump", feature = "with-libfunc-profiling"))]
+            #[cfg(feature = "with-libfunc-counter")]
+            {
+                ContractExecutor::AotWithLibfuncCounter((
+                    get_native_executor(&sierra_cc, class_hash),
+                    sierra_cc.extract_sierra_program().unwrap(),
+                ))
+            }
+            #[cfg(all(
+                any(feature = "with-trace-dump", feature = "with-libfunc-profiling"),
+                not(feature = "with-libfunc-counter")
+            ))]
             {
                 ContractExecutor::AotWithProgram((
                     get_native_executor(&sierra_cc, class_hash),
                     sierra_cc.extract_sierra_program().unwrap(),
                 ))
             }
-            #[cfg(not(any(feature = "with-trace-dump", feature = "with-libfunc-profiling")))]
+            #[cfg(not(any(
+                feature = "with-trace-dump",
+                feature = "with-libfunc-profiling",
+                feature = "with-libfunc-counter"
+            )))]
             {
                 ContractExecutor::Aot(get_native_executor(&sierra_cc, class_hash))
             }

@@ -55,6 +55,9 @@ mod state_dump;
 #[cfg(feature = "with-libfunc-profiling")]
 mod libfunc_profile;
 
+#[cfg(feature = "with-libfunc-counter")]
+mod libfunc_counter;
+
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
 struct ReplayCLI {
@@ -589,6 +592,9 @@ fn show_execution_data(
 
     #[cfg(feature = "with-libfunc-profiling")]
     libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
+
+    #[cfg(feature = "with-libfunc-counter")]
+    libfunc_counter::create_libfunc_counts(tx_hash.to_hex_string());
 
     let execution_info = match execution_info_result {
         Ok(x) => x,
