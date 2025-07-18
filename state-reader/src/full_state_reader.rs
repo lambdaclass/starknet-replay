@@ -183,7 +183,7 @@ impl FullStateReader {
         // Check in memory cache.
         if let Some(value) = block_state.storage.get(&(contract_address, key)) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(value.clone());
+            return Ok(*value);
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
@@ -223,7 +223,7 @@ impl FullStateReader {
         // Check in memory cache.
         if let Some(nonce) = block_state.nonces.get(&contract_address) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(nonce.clone());
+            return Ok(*nonce);
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 
@@ -263,7 +263,7 @@ impl FullStateReader {
         // Check in memory cache.
         if let Some(class_hash) = block_state.class_hashes.get(&contract_address) {
             self.hit_counter.set(self.hit_counter.get() + 1);
-            return Ok(class_hash.clone());
+            return Ok(*class_hash);
         }
         self.miss_counter.set(self.miss_counter.get() + 1);
 

@@ -49,7 +49,7 @@ impl DiskStateReader {
             "cache/contract_class/{}.json",
             class_hash.to_fixed_hex_string()
         );
-        write_atomically(cache_path, &contract_class)?;
+        write_atomically(cache_path, contract_class)?;
         Ok(())
     }
 
@@ -67,7 +67,7 @@ impl DiskStateReader {
         receipt: &RpcTransactionReceipt,
     ) -> Result<(), StateReaderError> {
         let cache_path = format!("cache/tx_receipt/{}.json", tx_hash.to_fixed_hex_string());
-        write_atomically(cache_path, &receipt)?;
+        write_atomically(cache_path, receipt)?;
         Ok(())
     }
 
@@ -85,7 +85,7 @@ impl DiskStateReader {
         tx: &Transaction,
     ) -> Result<(), StateReaderError> {
         let cache_path = format!("cache/tx/{}.json", tx_hash.to_fixed_hex_string());
-        write_atomically(cache_path, &tx)?;
+        write_atomically(cache_path, tx)?;
         Ok(())
     }
 
@@ -103,7 +103,7 @@ impl DiskStateReader {
         block: &BlockWithTxHashes,
     ) -> Result<(), StateReaderError> {
         let cache_path = format!("cache/block/{}-{}.json", self.chain_id, block_number);
-        write_atomically(cache_path, &block)?;
+        write_atomically(cache_path, block)?;
         Ok(())
     }
 
