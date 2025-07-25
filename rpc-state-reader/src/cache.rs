@@ -12,12 +12,12 @@ use flate2::Compression;
 use fs2::FileExt;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use starknet::core::types::ContractClass;
 use starknet_api::{
     core::{ChainId, ClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
+use starknet_core::types::ContractClass;
 use tracing::warn;
 
 use crate::{

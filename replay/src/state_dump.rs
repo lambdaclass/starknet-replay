@@ -243,25 +243,22 @@ impl From<CallInfo> for SerializableCallInfo {
             call,
             execution,
             inner_calls,
-            storage_read_values,
-            accessed_storage_keys,
-            read_class_hash_values,
-            accessed_contract_addresses,
+            storage_access_tracker,
             resources: _resources,
             tracked_resource: _tracked_resource,
             time: _time,
-            builtin_stats,
+            builtin_counters,
             call_counter,
         } = value;
 
-        let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
+        let mut accessed_storage_keys = storage_access_tracker.accessed_storage_keys.into_iter().collect::<Vec<_>>();
         accessed_storage_keys.sort();
 
         let mut accessed_contract_addresses =
-            accessed_contract_addresses.into_iter().collect::<Vec<_>>();
+            storage_access_tracker.accessed_contract_addresses.into_iter().collect::<Vec<_>>();
         accessed_contract_addresses.sort();
 
-        let mut builtin_stats = builtin_stats.into_iter().collect::<Vec<_>>();
+        let mut builtin_stats = builtin_counters.into_iter().collect::<Vec<_>>();
         builtin_stats.sort_by_key(|(k, _)| k.to_str());
 
         Self {
@@ -353,7 +350,8 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
                     starknet_resources,
                     computation:
                         ComputationResources {
-                            vm_resources: _vm_resources,
+                            tx_vm_resources: _,
+                            os_vm_resources: _,
                             n_reverted_steps,
                             sierra_gas,
                             reverted_sierra_gas,
