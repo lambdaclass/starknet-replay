@@ -198,7 +198,9 @@ mod tests {
     };
 
     use blockifier::{
-        execution::call_info::{CallInfo, CallSummary, ChargedResources, EventSummary, ExecutionSummary},
+        execution::call_info::{
+            CallInfo, CallSummary, ChargedResources, EventSummary, ExecutionSummary,
+        },
         fee::resources::{StarknetResources, StateResources},
         state::cached_state::{StateChangesCount, StateChangesCountForFee},
         transaction::account_transaction::ExecutionFlags,
