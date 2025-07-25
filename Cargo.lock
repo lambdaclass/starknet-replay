@@ -768,7 +768,6 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 [[package]]
 name = "apollo_class_manager_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_compile_to_casm_types",
  "apollo_infra",
@@ -784,7 +783,6 @@ dependencies = [
 [[package]]
 name = "apollo_compilation_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra_utils",
  "cairo-lang-sierra",
@@ -803,7 +801,6 @@ dependencies = [
 [[package]]
 name = "apollo_compile_to_casm_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -817,7 +814,6 @@ dependencies = [
 [[package]]
 name = "apollo_compile_to_native"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_compilation_utils",
  "apollo_config",
@@ -832,7 +828,6 @@ dependencies = [
 [[package]]
 name = "apollo_config"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra_utils",
  "clap",
@@ -850,7 +845,6 @@ dependencies = [
 [[package]]
 name = "apollo_gateway"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_class_manager_types",
  "apollo_compilation_utils",
@@ -889,7 +883,6 @@ dependencies = [
 [[package]]
 name = "apollo_gateway_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra",
  "apollo_network_types",
@@ -909,7 +902,6 @@ dependencies = [
 [[package]]
 name = "apollo_infra"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_config",
  "apollo_infra_utils",
@@ -932,7 +924,6 @@ dependencies = [
 [[package]]
 name = "apollo_infra_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_proc_macros",
  "assert-json-diff",
@@ -950,7 +941,6 @@ dependencies = [
 [[package]]
 name = "apollo_l1_endpoint_monitor_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -964,7 +954,6 @@ dependencies = [
 [[package]]
 name = "apollo_mempool_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra",
  "apollo_network_types",
@@ -980,7 +969,6 @@ dependencies = [
 [[package]]
 name = "apollo_metrics"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "indexmap 2.10.0",
  "metrics",
@@ -992,7 +980,6 @@ dependencies = [
 [[package]]
 name = "apollo_network_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "lazy_static",
  "libp2p",
@@ -1002,7 +989,6 @@ dependencies = [
 [[package]]
 name = "apollo_proc_macros"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "lazy_static",
  "proc-macro2",
@@ -1013,7 +999,6 @@ dependencies = [
 [[package]]
 name = "apollo_rpc"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "anyhow",
  "apollo_class_manager_types",
@@ -1047,7 +1032,6 @@ dependencies = [
 [[package]]
 name = "apollo_rpc_execution"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "anyhow",
  "apollo_class_manager_types",
@@ -1072,7 +1056,6 @@ dependencies = [
 [[package]]
 name = "apollo_starknet_client"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_config",
  "async-trait",
@@ -1099,7 +1082,6 @@ dependencies = [
 [[package]]
 name = "apollo_state_sync_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -1116,7 +1098,6 @@ dependencies = [
 [[package]]
 name = "apollo_storage"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_config",
  "apollo_proc_macros",
@@ -1901,7 +1882,6 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "anyhow",
  "apollo_compilation_utils",
@@ -1949,7 +1929,6 @@ dependencies = [
 [[package]]
 name = "blockifier_reexecution"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_gateway",
  "apollo_rpc_execution",
@@ -1975,7 +1954,6 @@ dependencies = [
 [[package]]
 name = "blockifier_test_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra_utils",
  "cairo-lang-starknet-classes",
@@ -6286,7 +6264,6 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra_utils",
  "assert_matches",
@@ -6880,7 +6857,6 @@ dependencies = [
 [[package]]
 name = "papyrus_base_layer"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "alloy",
  "apollo_config",
@@ -6905,7 +6881,6 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "cairo-lang-starknet-classes",
  "indexmap 2.10.0",
@@ -8977,7 +8952,6 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8acf4d083982f8187d694d5e3b6a3c2609b6333f#8acf4d083982f8187d694d5e3b6a3c2609b6333f"
 dependencies = [
  "apollo_infra_utils",
  "base64 0.13.1",
