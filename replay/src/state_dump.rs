@@ -63,7 +63,7 @@ pub fn create_state_dump(
         Err(err) => {
             // If we have no execution info, we write the error
             // to a file so that it can be compared anyway
-            dump_error(&err, &path)
+            dump_error(err, &path)
                 .inspect_err(|err| error!("failed to dump state diff: {err}"))
                 .ok();
         }
