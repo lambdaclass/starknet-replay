@@ -251,11 +251,16 @@ impl From<CallInfo> for SerializableCallInfo {
             call_counter,
         } = value;
 
-        let mut accessed_storage_keys = storage_access_tracker.accessed_storage_keys.into_iter().collect::<Vec<_>>();
+        let mut accessed_storage_keys = storage_access_tracker
+            .accessed_storage_keys
+            .into_iter()
+            .collect::<Vec<_>>();
         accessed_storage_keys.sort();
 
-        let mut accessed_contract_addresses =
-            storage_access_tracker.accessed_contract_addresses.into_iter().collect::<Vec<_>>();
+        let mut accessed_contract_addresses = storage_access_tracker
+            .accessed_contract_addresses
+            .into_iter()
+            .collect::<Vec<_>>();
         accessed_contract_addresses.sort();
 
         let mut builtin_stats = builtin_counters.into_iter().collect::<Vec<_>>();
