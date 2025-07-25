@@ -308,10 +308,7 @@ impl From<&CallInfo> for SerializableCallInfo {
                 failed: execution.failed,
                 gas_consumed: execution.gas_consumed,
             },
-            inner_calls: inner_calls
-                .into_iter()
-                .map(From::<&CallInfo>::from)
-                .collect(),
+            inner_calls: inner_calls.iter().map(From::<&CallInfo>::from).collect(),
             storage_read_values: storage_access_tracker.storage_read_values.clone(),
             accessed_storage_keys,
             read_class_hash_values: storage_access_tracker.read_class_hash_values.clone(),
