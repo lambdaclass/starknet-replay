@@ -1,3 +1,9 @@
+//! This crate contains data types for keeping a node state in memory.
+//!
+//! The main structure is [StateCache](`StateCache`), which contains the whole
+//! node state. This includes static information, like transactions or contract
+//! classes, as well as the pre node state for each block.
+
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};

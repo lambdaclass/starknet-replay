@@ -1,3 +1,5 @@
+//! This crate contains logic for reading node state from a node, through RPC calls.
+
 // Some parts of the `RemoteReader` were inspired from Sequencer's
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.

@@ -1,3 +1,9 @@
+//! This crate contains the main state reader, which acts
+//! as an orchestrator for the other state readers.
+//!
+//! If the value is cached, it is retrieved directly. If not, it is fetched either
+//! from disk or from a starknet node.
+
 use std::cell::{Cell, RefCell};
 use std::collections::hash_map::Entry;
 

@@ -1,3 +1,12 @@
+//! This crate contains logic for caching a node state in disk.
+//!
+//! The cache is saved to the relative directory `./cache/`:
+//! - `./cache/block/`: Contains raw block data.
+//! - `./cache/state/`: Contains block state data.
+//! - `./cache/contract_class/`: Contains raw contract classes.
+//! - `./cache/tx/`: Contains raw transactions.
+//! - `./cache/tx_receipt/`: Contains raw transaction receipts.
+
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{

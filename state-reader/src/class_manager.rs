@@ -1,3 +1,10 @@
+//! This crate contains logic for compiling and caching contract classes, both
+//! for Cairo Native execution, and for Cairo VM execution.
+//!
+//! The cache is saved to the relative directory `./cache/`:
+//! - `./cache/native/`: Contains compiled Native classes.
+//! - `./cache/casm/`: Contains compiled CASM classes.
+
 use std::{
     collections::HashMap,
     fs::{self, File},

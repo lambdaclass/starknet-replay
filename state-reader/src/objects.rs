@@ -1,3 +1,6 @@
+//! This crate contains auxiliary starknet types, used for deserializing values
+//! from remote calls.
+
 use serde::{Deserialize, Serialize};
 use starknet_api::transaction::TransactionHash;
 use starknet_core::types::{Event, ExecutionResources, ExecutionResult, FeePayment, MsgToL1};

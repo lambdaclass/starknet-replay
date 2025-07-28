@@ -1,3 +1,6 @@
+//! This crate contains a state reader for a fixed block. It implements
+//! blockifier's `StateReader` crate, so it can be used for executing transactions.
+
 use crate::{error::StateReaderError, full_state_reader::FullStateReader};
 use starknet_api::{
     block::BlockNumber,
