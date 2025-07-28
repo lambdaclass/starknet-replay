@@ -163,7 +163,6 @@ impl FullStateReader {
     pub fn get_storage_at(
         &self,
         block_number: BlockNumber,
-
         contract_address: ContractAddress,
         key: StorageKey,
     ) -> Result<Felt, StateReaderError> {

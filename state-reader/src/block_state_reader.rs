@@ -21,7 +21,7 @@ use blockifier::{
 /// A wrapper of [FullStateReader](`crate::full_state_reader::FullStateReader`)
 /// for a particular block.
 ///
-/// Used for as the state reader for executing transactions.
+/// Used as a state reader for executing transactions.
 pub struct BlockStateReader<'s> {
     block_number: BlockNumber,
     reader: &'s FullStateReader,
