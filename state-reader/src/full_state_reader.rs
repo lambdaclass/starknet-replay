@@ -4,10 +4,10 @@
 //! If the value is cached, it is retrieved directly. If not, it is fetched either
 //! from disk or from a starknet node.
 
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, RefCell, RefMut};
 use std::collections::hash_map::Entry;
 
-use crate::cache::StateCache;
+use crate::cache::{BlockState, StateCache};
 use crate::class_manager::ClassManager;
 use crate::error::StateReaderError;
 use crate::objects::RpcTransactionReceipt;
@@ -169,21 +169,7 @@ impl FullStateReader {
         let mut cache = self.cache.borrow_mut();
 
         // Find the block state cache.
-        let block_state = match cache.block_states.entry(block_number) {
-            Entry::Occupied(occupied_entry) => {
-                self.hit_counter.set(self.hit_counter.get() + 1);
-                occupied_entry.into_mut()
-            }
-            Entry::Vacant(vacant_entry) => {
-                // If not found, read state cache from disk.
-                self.miss_counter.set(self.miss_counter.get() + 1);
-                let block_state = self
-                    .disk_reader
-                    .get_block_state(block_number)
-                    .unwrap_or_default();
-                vacant_entry.insert_entry(block_state).into_mut()
-            }
-        };
+        let block_state = self.get_block_state(&mut cache, block_number);
 
         // Check in memory cache.
         if let Some(value) = block_state.storage.get(&(contract_address, key)) {
@@ -209,21 +195,7 @@ impl FullStateReader {
         let mut cache = self.cache.borrow_mut();
 
         // Find the block state cache.
-        let block_state = match cache.block_states.entry(block_number) {
-            Entry::Occupied(occupied_entry) => {
-                self.hit_counter.set(self.hit_counter.get() + 1);
-                occupied_entry.into_mut()
-            }
-            Entry::Vacant(vacant_entry) => {
-                // If not found, read state cache from disk.
-                self.miss_counter.set(self.miss_counter.get() + 1);
-                let block_state = self
-                    .disk_reader
-                    .get_block_state(block_number)
-                    .unwrap_or_default();
-                vacant_entry.insert_entry(block_state).into_mut()
-            }
-        };
+        let block_state = self.get_block_state(&mut cache, block_number);
 
         // Check in memory cache.
         if let Some(nonce) = block_state.nonces.get(&contract_address) {
@@ -249,21 +221,7 @@ impl FullStateReader {
         let mut cache = self.cache.borrow_mut();
 
         // Find the block state cache.
-        let block_state = match cache.block_states.entry(block_number) {
-            Entry::Occupied(occupied_entry) => {
-                self.hit_counter.set(self.hit_counter.get() + 1);
-                occupied_entry.into_mut()
-            }
-            Entry::Vacant(vacant_entry) => {
-                // If not found, read state cache from disk.
-                self.miss_counter.set(self.miss_counter.get() + 1);
-                let block_state = self
-                    .disk_reader
-                    .get_block_state(block_number)
-                    .unwrap_or_default();
-                vacant_entry.insert_entry(block_state).into_mut()
-            }
-        };
+        let block_state = self.get_block_state(&mut cache, block_number);
 
         // Check in memory cache.
         if let Some(class_hash) = block_state.class_hashes.get(&contract_address) {
@@ -352,6 +310,28 @@ impl FullStateReader {
 
     pub fn get_chain_id(&self) -> Result<ChainId, StateReaderError> {
         Ok(self.chain_id.clone())
+    }
+
+    pub fn get_block_state<'c>(
+        &self,
+        cache: &'c mut RefMut<StateCache>,
+        block_number: BlockNumber,
+    ) -> &'c mut BlockState {
+        match cache.block_states.entry(block_number) {
+            Entry::Occupied(occupied_entry) => {
+                self.hit_counter.set(self.hit_counter.get() + 1);
+                occupied_entry.into_mut()
+            }
+            Entry::Vacant(vacant_entry) => {
+                // If not found, read state cache from disk.
+                self.miss_counter.set(self.miss_counter.get() + 1);
+                let block_state = self
+                    .disk_reader
+                    .get_block_state(block_number)
+                    .unwrap_or_default();
+                vacant_entry.insert_entry(block_state).into_mut()
+            }
+        }
     }
 }
 
