@@ -367,7 +367,7 @@ fn main() {
             for block_number in block_start..=block_end {
                 let block_context =
                     execution::get_block_context(&full_reader, BlockNumber(block_number))
-                        .expect("failed to feetch block context");
+                        .expect("failed to fetch block context");
 
                 let block_timestamp = DateTime::from_timestamp(
                     block_context.block_info().block_timestamp.0 as i64,
@@ -450,7 +450,7 @@ fn main() {
                     tx_hash,
                     execution_flags,
                 )
-                .expect("faield to get executable transaction");
+                .expect("failed to get executable transaction");
 
                 let tx_context = Arc::new(block_context.to_tx_context(&tx));
                 let mut context = EntryPointExecutionContext::new_invoke(
