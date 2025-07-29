@@ -192,11 +192,12 @@ impl ClassManager {
                 .map_err(StarknetSierraCompilationError::from)?;
 
         let native_executor = loop {
-            // it could be the case that the file was created after we've entered this branch
-            // so we should load it instead of compiling it again
+            // If the native compiled class already exists. Try to load it
             if cache_path.exists() {
                 match AotContractExecutor::from_path(&cache_path)? {
                     None => {
+                        // Native returns None if the lockfile is taken.
+                        // We wait a second to avoid a wasteful busy loop.
                         sleep(Duration::from_secs(1));
                         continue;
                     }
