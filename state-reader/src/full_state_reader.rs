@@ -31,7 +31,7 @@ use blockifier::execution::contract_class::RunnableCompiledClass;
 ///
 /// Dropping this reader may take a while, as it has to save data to disk.
 ///
-/// As the blockifier state reader expectes an inmutable reference, we need a
+/// As the blockifier state reader expects an inmutable reference, we need a
 /// `RefCell`/`Cell` to allow method signatures to receive inmutable references. As there
 /// is no recursion, a runtime panic is impossible.
 pub struct FullStateReader {
