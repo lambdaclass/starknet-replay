@@ -404,6 +404,7 @@ fn main() {
                 let reader = build_reader(&chain, block_number);
 
                 let flags = ExecutionFlags {
+                    strict_nonce_check: true,
                     only_query: false,
                     charge_fee: false,
                     validate: true,
@@ -478,6 +479,7 @@ fn main() {
             let mut context = {
                 let tx_hash = TransactionHash(felt!(tx.as_str()));
                 let flags = ExecutionFlags {
+                    strict_nonce_check: true,
                     only_query: false,
                     charge_fee: false,
                     validate: true,
@@ -570,6 +572,7 @@ fn show_execution_data(
 
     let tx_hash = TransactionHash(felt!(tx_hash_str.as_str()));
     let flags = ExecutionFlags {
+        strict_nonce_check: true,
         only_query: false,
         charge_fee,
         validate: true,

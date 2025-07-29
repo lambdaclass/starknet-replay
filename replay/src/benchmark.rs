@@ -60,6 +60,7 @@ pub fn fetch_block_range_data(
         let block_context = fetch_block_context(&reader).unwrap();
 
         let flags = ExecutionFlags {
+            strict_nonce_check: true,
             only_query: false,
             charge_fee: false,
             validate: true,
@@ -246,6 +247,7 @@ pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: ChainId) -> B
     let block_context = fetch_block_context(&reader).unwrap();
 
     let flags = ExecutionFlags {
+        strict_nonce_check: true,
         only_query: false,
         charge_fee: false,
         validate: true,
