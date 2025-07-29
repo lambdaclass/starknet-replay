@@ -15,13 +15,13 @@ use cairo_lang_starknet_classes::contract_class::{
 use cairo_lang_utils::bigint::BigUintAsHex;
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use serde::Deserialize;
-use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
     contract_class::{EntryPointType, SierraVersion},
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
 };
+use starknet_core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use tracing::info;
 
 #[derive(Debug, Deserialize)]

@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 
 use blockifier::{
     blockifier::block::validated_gas_prices,
+    blockifier_versioned_constants::VersionedConstants,
     bouncer::BouncerConfig,
     context::BlockContext,
     state::{cached_state::CachedState, state_api::StateReader},
@@ -11,7 +12,6 @@ use blockifier::{
         transaction_execution::Transaction as BlockifierTransaction,
         transactions::ExecutableTransaction,
     },
-    versioned_constants::VersionedConstants,
 };
 use blockifier_reexecution::state_reader::utils::get_chain_info;
 use serde::Serialize;

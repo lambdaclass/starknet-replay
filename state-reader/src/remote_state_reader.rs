@@ -6,6 +6,10 @@
 
 use std::env;
 
+use apollo_gateway::rpc_objects::{
+    RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
+    RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
+};
 use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
 use reqwest::blocking::Client;
 use serde_json::{json, Value};
@@ -16,10 +20,6 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 use starknet_core::types::{BlockWithTxHashes, ContractClass, Felt};
-use starknet_gateway::rpc_objects::{
-    RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
-    RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
-};
 
 use crate::{error::StateReaderError, objects::RpcTransactionReceipt};
 

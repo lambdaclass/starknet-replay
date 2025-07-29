@@ -149,6 +149,7 @@ fn main() {
                 only_query: false,
                 charge_fee,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             execute_txs(&full_reader, block_number, vec![tx_hash], execution_flags)
@@ -169,6 +170,7 @@ fn main() {
                 only_query: false,
                 charge_fee,
                 validate: true,
+                strict_nonce_check: false,
             };
             execute_block(&full_reader, block_number, execution_flags)
                 .expect("failed to execute block");
@@ -194,6 +196,7 @@ fn main() {
                 only_query: false,
                 charge_fee,
                 validate: true,
+                strict_nonce_check: false,
             };
             execute_txs(&full_reader, block_number, tx_hashes, execution_flags)
                 .expect("failed to execute block");
@@ -212,6 +215,7 @@ fn main() {
                 only_query: false,
                 charge_fee,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             for block_number in block_start..=block_end {
@@ -239,6 +243,7 @@ fn main() {
                 only_query: false,
                 charge_fee: true,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             // We execute the block range once, to ensure that everything is cached.
@@ -303,6 +308,7 @@ fn main() {
                 only_query: false,
                 charge_fee: true,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             // We execute the transaction once, to ensure that everything is cached.
@@ -360,6 +366,7 @@ fn main() {
                 only_query: false,
                 charge_fee: true,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             let mut block_executions = Vec::new();
@@ -419,6 +426,7 @@ fn main() {
                 only_query: false,
                 charge_fee: true,
                 validate: true,
+                strict_nonce_check: false,
             };
 
             let call_file = File::open(call_path).unwrap();

@@ -1,9 +1,9 @@
 use std::{io, string::FromUtf8Error};
 
+use apollo_gateway::rpc_objects::{RpcErrorCode, RpcErrorResponse};
 use cairo_lang_starknet_classes::casm_contract_class::StarknetSierraCompilationError;
 use cairo_vm::types::errors::program_errors::ProgramError;
 use reqwest::StatusCode;
-use starknet_gateway::rpc_objects::{RpcErrorCode, RpcErrorResponse};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
