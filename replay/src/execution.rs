@@ -159,32 +159,28 @@ fn validate_tx_with_receipt(
         messages: usize,
     }
 
-    let actual_execution_summary = {
-        TransactionSummary {
-            reverted: execution_info.is_reverted(),
-            events: execution_info
-                .receipt
-                .resources
-                .starknet_resources
-                .archival_data
-                .event_summary
-                .n_events
-                + 1,
-            messages: execution_info
-                .receipt
-                .resources
-                .starknet_resources
-                .messages
-                .l2_to_l1_payload_lengths
-                .len(),
-        }
+    let actual_execution_summary = TransactionSummary {
+        reverted: execution_info.is_reverted(),
+        events: execution_info
+            .receipt
+            .resources
+            .starknet_resources
+            .archival_data
+            .event_summary
+            .n_events
+            + 1,
+        messages: execution_info
+            .receipt
+            .resources
+            .starknet_resources
+            .messages
+            .l2_to_l1_payload_lengths
+            .len(),
     };
-    let expected_execution_summary = {
-        TransactionSummary {
-            reverted: receipt.execution_result.revert_reason().is_some(),
-            events: receipt.events.len(),
-            messages: receipt.messages_sent.len(),
-        }
+    let expected_execution_summary = TransactionSummary {
+        reverted: receipt.execution_result.revert_reason().is_some(),
+        events: receipt.events.len(),
+        messages: receipt.messages_sent.len(),
     };
 
     if actual_execution_summary == expected_execution_summary {
