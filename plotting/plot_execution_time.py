@@ -396,9 +396,9 @@ def plot_call_throughput(df_calls):
     native_total_throughput = (
         df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
     )
-    native_mean_speed = df_native["throughput"].mean()
-    native_median_speed = df_native["throughput"].quantile(0.5)
-    native_stddev_speed = df_native["throughput"].std()
+    native_mean_throughput = df_native["throughput"].mean()
+    native_median_throughput = df_native["throughput"].quantile(0.5)
+    native_stddev_throughput = df_native["throughput"].std()
 
     vm_total_throughput = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
     vm_mean_throughput = df_vm["throughput"].mean()
@@ -411,9 +411,9 @@ def plot_call_throughput(df_calls):
         "\n".join(
             [
                 f"Total Execution Speed: {native_total_throughput:.2f}",
-                f"Mean: {native_mean_speed:.2f}",
-                f"Median: {native_median_speed:.2f}",
-                f"Std Dev: {native_stddev_speed:.2f}",
+                f"Mean: {native_mean_throughput:.2f}",
+                f"Median: {native_median_throughput:.2f}",
+                f"Std Dev: {native_stddev_throughput:.2f}",
             ]
         ),
         transform=ax1.transAxes,
