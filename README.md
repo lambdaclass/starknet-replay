@@ -87,7 +87,6 @@ To run benchmarks with the replay crate, you can use either `bench-block-range` 
 
 These commands are like `tx` and `block-range` commands, but with the number of runs to execute as their last argument.
 
-
 ### Logging
 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
