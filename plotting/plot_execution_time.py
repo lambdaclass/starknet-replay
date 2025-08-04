@@ -1,30 +1,44 @@
+from yattag import Doc
 import json
 import pathlib
 import argparse
+import inflection
+import re
 from argparse import ArgumentParser
+from typing import NamedTuple
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pandas as pd
 import seaborn as sns
 import numpy as np
-
 from pandas import DataFrame
 
 sns.set_palette("deep")
 sns.set_color_codes("deep")
+mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
+
+
+class Args(NamedTuple):
+    native_data: pathlib.Path
+    vm_data: pathlib.Path
+    output_dir: pathlib.Path
+    display: bool
+
 
 arg_parser = ArgumentParser()
-arg_parser.add_argument("native_data")
-arg_parser.add_argument("vm_data")
-arg_parser.add_argument(
-    "--output",
-    type=pathlib.Path,
-)
+arg_parser.add_argument("native_data", type=pathlib.Path)
+arg_parser.add_argument("vm_data", type=pathlib.Path)
+arg_parser.add_argument("--output-dir", type=pathlib.Path)
 arg_parser.add_argument(
     "--display", action=argparse.BooleanOptionalAction, default=True
 )
-args = arg_parser.parse_args()
+
+
+args: Args = arg_parser.parse_args()  # type: ignore
+
+if args.output_dir:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
 #############
 # UTILITIES #
@@ -35,10 +49,44 @@ def format_hash(class_hash):
     return f"{class_hash[:6]}..."
 
 
-def save(name, ext="svg"):
-    if args.output:
-        figure_name = f"{args.output}-{name}.{ext}"
-        plt.savefig(figure_name)
+# A list of all the figures generated. Used to generate a final report.
+OUTPUT_FIGURES = []
+
+
+# Saves the current figure to the output directory, deriving the file name from
+# the given title. Adds the figure data to `OUTPUT_FIGURES`, which can then be
+# used to generate a report with all the figures.
+def save_figure(title, description=""):
+    if args.output_dir:
+        stem = inflection.parameterize(title)
+        name = f"{stem}.svg"
+        OUTPUT_FIGURES.append(
+            {
+                title: title,
+                name: name,
+                description: description,
+            }
+        )
+        plt.savefig(args.output_dir.joinpath(name))
+
+
+# Saves the current dataframe to the output directory, deriving the file name
+# from the given title.
+def save_csv(data, title, *to_csv_args, **to_csv_kwargs):
+    if args.output_dir:
+        stem = inflection.parameterize(title)
+        name = f"{stem}.csv"
+        data.to_csv(args.output_dir.joinpath(name), *to_csv_args, **to_csv_kwargs)
+
+
+# Given an info series, and the name of the field containing a Rust version,
+# it parses the version string and shortens it. From example, converts from the
+# full git url, to just the commit hash.
+def parse_version(info: pd.Series, name: str):
+    version_string: str = info[name]  # type: ignore
+    match = re.search("rev=([a-z0-9]+)", version_string)
+    if match:
+        info[name] = match.group(1)
 
 
 ##############
@@ -52,11 +100,38 @@ def load_data(path):
     df_txs = pd.DataFrame(raw_json["transactions"])
     df_calls = pd.DataFrame(raw_json["calls"])
 
-    return df_txs, df_calls
+    info = pd.Series(raw_json["info"])
+    parse_version(info, "cairo_native_version")
+    parse_version(info, "sequencer_version")
+    info["memory"] = round(int(info["memory"]) / 2**30, 2)
+    info.rename(
+        {
+            "date": "Date",
+            "block_start": "Block Start",
+            "block_end": "Block End",
+            "block": "Block",
+            "tx": "Tx",
+            "net": "Net",
+            "laps": "Laps",
+            "mode": "Mode",
+            "native_profile": "Native Profile",
+            "rust_profile": "Rust Profile",
+            "cairo_native_version": "Cairo Native Version",
+            "sequencer_version": "Sequencer Version",
+            "os": "OS",
+            "arch": "Arch",
+            "cpu": "CPU",
+            "memory": "Memory (GiB)",
+        },
+        inplace=True,
+    )
+    info["Minimum sierra version for sierra gas"] = "0.0.0"
+
+    return df_txs, df_calls, info
 
 
-df_txs_native, df_calls_native = load_data(args.native_data)
-df_txs_vm, df_calls_vm = load_data(args.vm_data)
+df_txs_native, df_calls_native, native_info = load_data(args.native_data)
+df_txs_vm, df_calls_vm, vm_info = load_data(args.vm_data)
 
 # Assert Native and VM tx execution coincide.
 assert (df_txs_native.index == df_txs_vm.index).all()
@@ -91,9 +166,6 @@ df_txs = pd.merge(
     right_index=True,
     suffixes=("_native", "_vm"),
 )
-# merge steps into gas_consumed
-df_txs["gas_consumed"] += df_txs["steps"] * 100
-df_txs = df_txs.drop("steps", axis=1)
 # calculate speedup
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
@@ -139,7 +211,7 @@ df_calls = df_calls.drop("cairo_native", axis=1)
 ############
 
 
-def plot_speedup(df_txs: DataFrame):
+def plot_tx_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
 
     sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False, width=0.5)
@@ -168,7 +240,10 @@ def plot_speedup(df_txs: DataFrame):
         horizontalalignment="left",
     )
 
-    save("speedup")
+    save_figure(
+        "Tx Speedup Distribution",
+        "Calculates the distribution of speedup by transactions. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
+    )
 
 
 def plot_time_by_class(df_calls: DataFrame):
@@ -231,7 +306,10 @@ def plot_time_by_class(df_calls: DataFrame):
     ax2.set_xscale("log", base=2)
     ax2.set_xlabel("Speedup Ratio")
 
-    save("time-by-class")
+    save_figure(
+        "Execution Time by Contract Class",
+        "Compares execution time of most common contract classes.",
+    )
 
 
 def plot_time_by_gas(df_calls: DataFrame):
@@ -295,10 +373,13 @@ def plot_time_by_gas(df_calls: DataFrame):
 
     ax.set_title("Execution Time by Gas Usage")
 
-    save("time-by-gas")
+    save_figure(
+        "Execution Time by Gas Usage",
+        "Compares call execution time with gas usage. The scale is in log-log.",
+    )
 
 
-def plot_throughput(df_calls):
+def plot_call_throughput(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
@@ -357,16 +438,73 @@ def plot_throughput(df_calls):
         horizontalalignment="left",
     )
 
-    fig.suptitle("Throughput by Contract Call")
-    save("throughput")
+    fig.suptitle("Call Throughput Distribution")
+
+    save_figure(
+        "Call Throughput Distribution",
+        "Calculates the distribution of Native and VM throughput by contract calls.",
+    )
 
 
-mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
-
-plot_throughput(df_calls)
+plot_call_throughput(df_calls)
 plot_time_by_gas(df_calls)
 plot_time_by_class(df_calls)
-plot_speedup(df_txs)
+plot_tx_speedup(df_txs)
+
+if args.output_dir:
+    doc, tag, text = Doc().tagtext()
+
+    def generate_info(doc, info):
+        with tag("ul"):
+            for k, v in info.items():
+                with tag("li"):
+                    doc.line("b", str(k))
+                    text(": ", v)
+
+    def generate_body(doc):
+        doc, tag, text = doc.tagtext()
+
+        doc.line("h1", "Execution Benchmark Report")
+
+        doc.line("h2", "Cairo Native Execution Info")
+        generate_info(doc, native_info)
+
+        doc.line("h2", "Cairo VM Execution Info")
+        generate_info(doc, vm_info)
+
+        # Force line break after info
+        with tag("div", style="page-break-after: always"):
+            pass
+
+        doc.line("h2", "Figures")
+        OUTPUT_FIGURES.reverse()
+        for title, name, description in OUTPUT_FIGURES:
+            doc.line("h3", title)
+            text(description)
+            doc.stag("img", src=name)
+
+    with tag("html"):
+        with tag("head"):
+            # Add minimal styling
+            with tag("style"):
+                doc.asis("""
+                   body {
+                        margin: 40px auto;
+                        max-width: 21cm;
+                        line-height: 1.6;
+                        font-family: sans-serif;
+                        padding: 0 10px;
+                    }
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                    }
+                """)
+
+        with tag("body"):
+            generate_body(doc)
+
+    args.output_dir.joinpath("report.html").write_text(doc.getvalue())
 
 if args.display:
     plt.show()
