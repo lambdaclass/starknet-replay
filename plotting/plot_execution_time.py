@@ -329,7 +329,7 @@ def plot_throughput(df_calls):
         0.99,
         "\n".join(
             [
-                f"Total Execution Speed: {native_total_throughput:.2f}",
+                f"Total Execution Throughput: {native_total_throughput:.2f}",
                 f"Mean: {native_mean_throughput:.2f}",
                 f"Median: {native_median_throughput:.2f}",
                 f"Std Dev: {native_stddev_throughput:.2f}",
