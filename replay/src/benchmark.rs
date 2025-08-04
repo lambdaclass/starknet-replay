@@ -11,17 +11,13 @@ use starknet_api::{
 use crate::execution::TransactionExecution;
 
 #[derive(Serialize, Deserialize)]
-pub struct TxData {
-    tx_hash: TransactionHash,
-    block_number: BlockNumber,
-    time_ns: u128,
-    gas_consumed: u64,
-    steps: u64,
-    failed: bool,
+pub struct BenchData {
+    pub txs: Vec<TxBenchData>,
+    pub calls: Vec<CallBenchData>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CallData {
+pub struct CallBenchData {
     tx_hash: TransactionHash,
     class_hash: ClassHash,
     selector: EntryPointSelector,
@@ -32,12 +28,16 @@ pub struct CallData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Data {
-    pub txs: Vec<TxData>,
-    pub calls: Vec<CallData>,
+pub struct TxBenchData {
+    tx_hash: TransactionHash,
+    block_number: BlockNumber,
+    time_ns: u128,
+    gas_consumed: u64,
+    steps: u64,
+    failed: bool,
 }
 
-impl Data {
+impl BenchData {
     pub fn aggregate(txs: &[TransactionExecution]) -> Self {
         // Group by transaction hash
         let mut grouped_txs = BTreeMap::new();
@@ -90,8 +90,8 @@ impl Data {
     }
 }
 
-pub fn summarize_tx(tx: &TransactionExecution) -> (TxData, Vec<CallData>) {
-    let mut tx_data = TxData {
+pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchData>) {
+    let mut tx_data = TxBenchData {
         tx_hash: tx.hash,
         block_number: tx.block_number,
         time_ns: tx.time.as_nanos(),
@@ -116,7 +116,7 @@ pub fn summarize_tx(tx: &TransactionExecution) -> (TxData, Vec<CallData>) {
     (tx_data, calls)
 }
 
-fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallData> {
+fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchData> {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
@@ -150,7 +150,7 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallData> {
         .checked_sub(inner_steps)
         .expect("gas cannot be negative");
 
-    let top_call = CallData {
+    let top_call = CallBenchData {
         tx_hash,
         class_hash,
         selector: call.call.entry_point_selector,

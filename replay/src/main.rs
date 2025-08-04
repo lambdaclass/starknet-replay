@@ -283,7 +283,7 @@ fn main() {
                 }
             }
 
-            let benchmarking_data = benchmark::Data::aggregate(&executions);
+            let benchmarking_data = benchmark::BenchData::aggregate(&executions);
 
             let file = std::fs::File::create(output).unwrap();
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
@@ -346,7 +346,7 @@ fn main() {
                 executions.append(&mut block_executions);
             }
 
-            let benchmarking_data = benchmark::Data::aggregate(&executions);
+            let benchmarking_data = benchmark::BenchData::aggregate(&executions);
 
             let file = std::fs::File::create(output).unwrap();
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
