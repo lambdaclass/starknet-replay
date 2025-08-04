@@ -87,6 +87,22 @@ To run benchmarks with the replay crate, you can use either `bench-block-range` 
 
 These commands are like `tx` and `block-range` commands, but with the number of runs to execute as their last argument.
 
+### Benchmarking Compilation
+
+
+You can benchmark the compilation of a block range by running:
+```bash
+./scripts/benchmark_compilation.sh <block-start> <block-end> <net>
+```
+This will save compilation data to `./bench_data/compilation-<block-start>-<block-end>-<net>.json`.
+
+At the end of the run, you can generate a report by running:
+``` bash
+python plotting/plot_compilation_stats.py <compilation-data> --output-dir <output-dir> --no-display
+```
+
+The report will be generated on `<output-dir>/report.html`
+
 ### Logging
 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
