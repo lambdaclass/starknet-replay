@@ -306,7 +306,7 @@ def plot_throughput(df_calls):
 
     sns.boxplot(ax=ax1, data=df_native, x="throughput", showfliers=False, width=0.5)
     ax1.set_title("Native Throughput (gigagas/s)")
-    ax1.set_xlabel("Throughput (gigagas/ns)")
+    ax1.set_xlabel("Throughput (gigagas/s)")
 
     sns.boxplot(ax=ax2, data=df_vm, x="throughput", showfliers=False, width=0.5)
     ax2.set_title("VM Throughput (gigagas/s)")
