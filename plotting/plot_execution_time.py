@@ -216,7 +216,7 @@ def plot_tx_speedup(df_txs: DataFrame):
 
     sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Tx Speedup Ratio")
-    ax.set_title("Speedup Distribution")
+    ax.set_title("Tx Speedup Distribution")
 
     total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
     mean_speedup = df_txs["speedup"].mean()
