@@ -150,18 +150,8 @@ The `state_dump` feature can be used to save the execution result to either
 
 ### Benchmarking
 
-To run benchmarks manually, you must compile with release and the benchmark feature:
-
+First, build the benchmarking binaries.
 ```bash
-cargo run --release --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1000
-cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1000
-```
-
-However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
-
-First, make sure to remove the `./cache/native/` directory and build the benchmarking binaries.
-```bash
-rm -rf ./cache/native/
 make deps-bench
 ```
 
@@ -183,6 +173,14 @@ If you just want to benchmarks a few different sample transactions, run:
 This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
 - `{native,vm}-logs-*.json` - stdout from running the benchmark.
+
+At the end of the run, you can generate a report by executing:
+
+``` bash
+python plotting/plot_execution_time.py native-data vm-data --output-dir out
+```
+
+The report will be generated on `out/report.html`
 
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
