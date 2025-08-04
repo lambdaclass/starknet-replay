@@ -60,14 +60,15 @@ df_txs_vm, df_calls_vm = load_data(args.vm_data)
 
 # Assert Native and VM tx execution coincide.
 assert (df_txs_native.index == df_txs_vm.index).all()
-assert (df_txs_native["hash"] == df_txs_vm["hash"]).all()
-assert (df_txs_native["first_call"] == df_txs_vm["first_call"]).all()
+assert (df_txs_native["tx_hash"] == df_txs_vm["tx_hash"]).all()
+assert (df_txs_native["block_number"] == df_txs_vm["block_number"]).all()
 assert (df_txs_native["gas_consumed"] == df_txs_vm["gas_consumed"]).all()
 assert (df_txs_native["steps"] == df_txs_vm["steps"]).all()
-assert (df_txs_native["block_number"] == df_txs_vm["block_number"]).all()
+assert (df_txs_native["failed"] == df_txs_vm["failed"]).all()
 
 # Assert Native and VM call execution coincide.
 assert (df_calls_native.index == df_calls_vm.index).all()
+assert (df_calls_native["tx_hash"] == df_calls_vm["tx_hash"]).all()
 assert (df_calls_native["class_hash"] == df_calls_vm["class_hash"]).all()
 assert (df_calls_native["selector"] == df_calls_vm["selector"]).all()
 assert (df_calls_native["gas_consumed"] == df_calls_vm["gas_consumed"]).all()
@@ -77,7 +78,14 @@ assert (df_calls_native["steps"] == df_calls_vm["steps"]).all()
 df_txs = pd.merge(
     df_txs_native,
     df_txs_vm.drop(
-        ["hash", "first_call", "gas_consumed", "steps", "block_number"], axis=1
+        [
+            "tx_hash",
+            "block_number",
+            "gas_consumed",
+            "steps",
+            "failed",
+        ],
+        axis=1,
     ),
     left_index=True,
     right_index=True,
@@ -93,20 +101,14 @@ df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 # -------------------------
 # Column              Dtype
 # -------------------------
-# hash                object
-# gas_consumed        int64
-# first_call          int64
+# tx_hash             object
 # block_number        int64
+# gas_consumed        int64
+# failed              bool
 # time_ns_native      int64
 # time_ns_vm          int64
 # speedup             float64
 
-# use resource to determine executor
-df_calls_native.replace("SierraGas", "native", inplace=True)
-df_calls_native.replace("CairoSteps", "vm", inplace=True)
-df_calls_native.rename(columns={"resource": "executor"}, inplace=True)
-df_calls_vm.rename(columns={"resource": "executor"}, inplace=True)
-df_calls_vm["executor"] = "vm"
 # merge calls into single dataframe
 df_calls: DataFrame = pd.concat([df_calls_native, df_calls_vm])
 # drop calls with no time
@@ -114,18 +116,23 @@ df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
-df_calls["speed"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+# calculate throughput
+df_calls["throughput"] = df_calls["gas_consumed"] / df_calls["time_ns"]
+# derive executor from cairo native flag
+df_calls["executor"] = df_calls["cairo_native"].replace({True: "native", False: "vm"})
+df_calls = df_calls.drop("cairo_native", axis=1)
 
 # print(df_calls.info())
 # -------------------
 # Column        Dtype
 # -------------------
+# tx_hash       object
 # class_hash    object
 # selector      object
 # time_ns       int64
 # gas_consumed  int64
 # executor      object
-# speed         float64
+# throughput    float64
 
 ############
 # PLOTTING #
@@ -291,36 +298,38 @@ def plot_time_by_gas(df_calls: DataFrame):
     save("time-by-gas")
 
 
-def plot_speed(df_calls):
+def plot_throughput(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
     df_vm = df_calls.loc[df_calls["executor"] == "vm"]
 
-    sns.boxplot(ax=ax1, data=df_native, x="speed", showfliers=False, width=0.5)
-    ax1.set_title("Native Speed (gas/ns)")
-    ax1.set_xlabel("Speed (gas/ns)")
+    sns.boxplot(ax=ax1, data=df_native, x="throughput", showfliers=False, width=0.5)
+    ax1.set_title("Native Throughput (gigagas/s)")
+    ax1.set_xlabel("Throughput (gigagas/ns)")
 
-    sns.boxplot(ax=ax2, data=df_vm, x="speed", showfliers=False, width=0.5)
-    ax2.set_title("VM Speed (gas/ns)")
-    ax2.set_xlabel("Speed (gas/ns)")
+    sns.boxplot(ax=ax2, data=df_vm, x="throughput", showfliers=False, width=0.5)
+    ax2.set_title("VM Throughput (gigagas/s)")
+    ax2.set_xlabel("Throughput (gigagas/s)")
 
-    native_total_speed = df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
-    native_mean_speed = df_native["speed"].mean()
-    native_median_speed = df_native["speed"].quantile(0.5)
-    native_stddev_speed = df_native["speed"].std()
+    native_total_throughput = (
+        df_native["gas_consumed"].sum() / df_native["time_ns"].sum()
+    )
+    native_mean_speed = df_native["throughput"].mean()
+    native_median_speed = df_native["throughput"].quantile(0.5)
+    native_stddev_speed = df_native["throughput"].std()
 
-    vm_total_speed = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
-    vm_mean_speed = df_vm["speed"].mean()
-    vm_median_speed = df_vm["speed"].quantile(0.5)
-    vm_stddev_speed = df_vm["speed"].std()
+    vm_total_throughput = df_vm["gas_consumed"].sum() / df_vm["time_ns"].sum()
+    vm_mean_throughput = df_vm["throughput"].mean()
+    vm_median_throughput = df_vm["throughput"].quantile(0.5)
+    vm_stddev_throughput = df_vm["throughput"].std()
 
     ax1.text(
         0.01,
         0.99,
         "\n".join(
             [
-                f"Total Execution Speed: {native_total_speed:.2f}",
+                f"Total Execution Speed: {native_total_throughput:.2f}",
                 f"Mean: {native_mean_speed:.2f}",
                 f"Median: {native_median_speed:.2f}",
                 f"Std Dev: {native_stddev_speed:.2f}",
@@ -336,10 +345,10 @@ def plot_speed(df_calls):
         0.99,
         "\n".join(
             [
-                f"Total Execution Speed: {vm_total_speed:.2f}",
-                f"Mean: {vm_mean_speed:.2f}",
-                f"Median: {vm_median_speed:.2f}",
-                f"Std Dev: {vm_stddev_speed:.2f}",
+                f"Total Execution Throughput: {vm_total_throughput:.2f}",
+                f"Mean: {vm_mean_throughput:.2f}",
+                f"Median: {vm_median_throughput:.2f}",
+                f"Std Dev: {vm_stddev_throughput:.2f}",
             ]
         ),
         transform=ax2.transAxes,
@@ -348,13 +357,13 @@ def plot_speed(df_calls):
         horizontalalignment="left",
     )
 
-    fig.suptitle("Speed by Contract Call")
-    save("speed")
+    fig.suptitle("Throughput by Contract Call")
+    save("throughput")
 
 
 mpl.rcParams["figure.figsize"] = [16 * 0.8, 9 * 0.8]
 
-plot_speed(df_calls)
+plot_throughput(df_calls)
 plot_time_by_gas(df_calls)
 plot_time_by_class(df_calls)
 plot_speedup(df_txs)
