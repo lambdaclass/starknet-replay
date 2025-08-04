@@ -12,7 +12,7 @@ use crate::execution::TransactionExecution;
 
 #[derive(Serialize, Deserialize)]
 pub struct BenchData {
-    pub txs: Vec<TxBenchData>,
+    pub transactions: Vec<TxBenchData>,
     pub calls: Vec<CallBenchData>,
 }
 
@@ -84,7 +84,7 @@ impl BenchData {
         }
 
         Self {
-            txs: aggregated_txs,
+            transactions: aggregated_txs,
             calls: aggregated_calls,
         }
     }
