@@ -4,7 +4,7 @@
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.
 
-use std::env;
+use std::{env, time::Duration};
 
 use apollo_gateway::rpc_objects::{
     RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
@@ -31,7 +31,10 @@ pub struct RemoteStateReader {
 
 impl RemoteStateReader {
     pub fn new(url: String) -> Self {
-        let client = Client::new();
+        let client =  {
+            let timeout = Duration::from_secs(90);
+            Client::builder().timeout(timeout).build().unwrap()
+        };
 
         Self { client, url }
     }
