@@ -116,7 +116,7 @@ df_calls = df_calls[df_calls["time_ns"] != 0]  # type: ignore
 # merge steps into gas_consumed
 df_calls["gas_consumed"] += df_calls["steps"] * 100
 df_calls = df_calls.drop("steps", axis=1)
-# calculate throughput
+# calculate throughput - note that gigagas/s and gas/ns are equivalent units.
 df_calls["throughput"] = df_calls["gas_consumed"] / df_calls["time_ns"]
 # derive executor from cairo native flag
 df_calls["executor"] = df_calls["cairo_native"].replace({True: "native", False: "vm"})
