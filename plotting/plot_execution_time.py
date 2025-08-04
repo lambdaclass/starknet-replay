@@ -446,10 +446,55 @@ def plot_call_throughput(df_calls):
     )
 
 
+def plot_block_speedup(df_txs: DataFrame):
+    fig, ax = plt.subplots()
+
+    df_blocks: DataFrame = df_txs.groupby("block_number").aggregate(
+        **{
+            "time_ns_native": ("time_ns_native", "sum"),
+            "time_ns_vm": ("time_ns_vm", "sum"),
+            "gas_consumed": ("gas_consumed", "sum"),
+        }
+    )  # type: ignore
+    df_blocks["speedup"] = df_blocks["time_ns_vm"] / df_blocks["time_ns_native"]
+
+    sns.boxplot(ax=ax, data=df_blocks, x="speedup", showfliers=False, width=0.5)
+    ax.set_xlabel("Blocks Speedup Ratio")
+    ax.set_title("Block Speedup Distribution")
+
+    total_speedup = df_blocks["time_ns_vm"].sum() / df_blocks["time_ns_native"].sum()
+    mean_speedup = df_blocks["speedup"].mean()
+    median_speedup = df_blocks["speedup"].quantile(0.5)
+    stddev_speedup = df_blocks["speedup"].std()
+    ax.text(
+        0.01,
+        0.99,
+        "\n".join(
+            [
+                f"Total Execution Speedup: {total_speedup:.2f}",
+                f"Mean: {mean_speedup:.2f}",
+                f"Median: {median_speedup:.2f}",
+                f"Std Dev: {stddev_speedup:.2f}",
+            ]
+        ),
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        horizontalalignment="left",
+    )
+
+    save_csv(df_blocks, "Blocks")
+    save_figure(
+        "Block Speedup Distribution",
+        "Calculates the distribution of speedup by blocks. The total execution speedup is calculated as the total Cairo VM time, divided by the total Cairo Native time.",
+    )
+
+
 plot_call_throughput(df_calls)
 plot_time_by_gas(df_calls)
 plot_time_by_class(df_calls)
 plot_tx_speedup(df_txs)
+plot_block_speedup(df_txs)
 
 if args.output_dir:
     doc, tag, text = Doc().tagtext()
