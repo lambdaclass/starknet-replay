@@ -34,11 +34,11 @@ LAPS=$4
 DATA_DIR="bench_data"
 mkdir -p $DATA_DIR
 
-log_output="logs-$START-$END-$NET.jsonl"
+log_output="logs-$START-$END-$NET-$LAPS.jsonl"
 native_log_output="$DATA_DIR/native-$log_output"
 vm_log_output="$DATA_DIR/vm-$log_output"
 
-data_output="data-$START-$END-$NET.json"
+data_output="data-$START-$END-$NET-$LAPS.json"
 native_data_output="$DATA_DIR/native-$data_output"
 vm_data_output="$DATA_DIR/vm-$data_output"
 
