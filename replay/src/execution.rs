@@ -35,6 +35,7 @@ pub struct TransactionExecution {
     pub result: TransactionExecutionResult<TransactionExecutionInfo>,
     pub time: Duration,
     pub hash: TransactionHash,
+    pub block_number: BlockNumber,
 }
 
 pub fn execute_block(
@@ -143,6 +144,7 @@ pub fn execute_tx(
         result: execution_result,
         time: execution_time,
         hash: tx_hash,
+        block_number: block_context.block_info().block_number,
     })
 }
 
