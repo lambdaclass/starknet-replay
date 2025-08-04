@@ -21,8 +21,6 @@ use state_reader::full_state_reader::FullStateReader;
 use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-#[cfg(feature = "benchmark")]
-use crate::benchmark::aggregate_executions;
 #[cfg(feature = "block-composition")]
 use {block_composition::save_entry_point_execution, chrono::DateTime};
 
@@ -264,11 +262,11 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut block_executions = Vec::new();
+            let mut executions = Vec::new();
 
             for _ in 0..number_of_runs {
                 for block_number in block_start..=block_end {
-                    let executions = execute_block(
+                    let mut block_executions = execute_block(
                         &full_reader,
                         BlockNumber(block_number),
                         execution_flags.clone(),
@@ -281,11 +279,11 @@ fn main() {
                         "cache miss during a benchmark"
                     );
 
-                    block_executions.push((BlockNumber(block_number), executions));
+                    executions.append(&mut block_executions);
                 }
             }
 
-            let benchmarking_data = aggregate_executions(block_executions);
+            let benchmarking_data = benchmark::Data::aggregate(&executions);
 
             let file = std::fs::File::create(output).unwrap();
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
@@ -328,10 +326,10 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut block_executions = Vec::new();
+            let mut executions = Vec::new();
 
             for _ in 0..number_of_runs {
-                let executions = execute_txs(
+                let mut block_executions = execute_txs(
                     &full_reader,
                     block_number,
                     vec![tx_hash],
@@ -345,10 +343,10 @@ fn main() {
                     "cache miss during a benchmark"
                 );
 
-                block_executions.push((block_number, executions));
+                executions.append(&mut block_executions);
             }
 
-            let benchmarking_data = aggregate_executions(block_executions);
+            let benchmarking_data = benchmark::Data::aggregate(&executions);
 
             let file = std::fs::File::create(output).unwrap();
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
