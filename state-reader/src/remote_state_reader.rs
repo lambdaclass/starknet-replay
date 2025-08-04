@@ -31,7 +31,7 @@ pub struct RemoteStateReader {
 
 impl RemoteStateReader {
     pub fn new(url: String) -> Self {
-        let client =  {
+        let client = {
             let timeout = Duration::from_secs(90);
             Client::builder().timeout(timeout).build().unwrap()
         };
