@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 set -e
 
 usage() {
@@ -27,12 +28,41 @@ rm -rf ./cache/native
 cargo run --release --bin replay --features with-comp-stats block-range "$START" "$END" "$NET"
 
 find_version() {
-    cargo metadata --no-deps --format-version 1 \
-    | jq '
-        .packages | map(select(.name=="rpc-state-reader"))[0] |
-        .dependencies | map(select(.name==$crate))[0] |
-        .source
-    ' --raw-output --arg crate "$1"
+    dependency=$(
+        cargo metadata --no-deps --format-version 1 |
+        jq '
+            .packages | map(select(.name=="state-reader"))[0] |
+            .dependencies | map(select(.name==$crate))[0]
+        ' --arg crate "$1"
+    )
+
+    path=$(
+        echo "$dependency" |
+        jq '.path' --raw-output
+    )
+    source=$(
+        echo "$dependency" |
+        jq '.source' --raw-output
+    )
+    req=$(
+        echo "$dependency" |
+        jq '.req' --raw-output
+    )
+
+    if [ "$path" != "null" ]; then
+        # If path is not null, it is a path dependency
+        # and we save the version by taking the current git revision
+        echo "$(cd "$path" ; git rev-parse HEAD)"
+    elif [ "$req" != "*" ]; then
+        # If req is not *, it is crate.io dependency and we just return the used version.
+        echo "$req"
+    elif [[ $source =~ rev=([a-z1-9]+) ]]; then
+        # If the source is a git URL, we find the pinned `rev` and return it.
+        echo "${BASH_REMATCH[1]}"
+    else
+        # In the worst case, we just return the entire source.
+        echo "$source"
+    fi
 }
 
 case $(uname) in

@@ -61,16 +61,6 @@ def save_figure(title, description=""):
         plt.savefig(args.output_dir.joinpath(name))
 
 
-# Given an info series, and the name of the field containing a Rust version,
-# it parses the version string and shortens it. From example, converts from the
-# full git url, to just the commit hash.
-def parse_version(info: pd.Series, name: str):
-    version_string: str = info[name]  # type: ignore
-    match = re.search("rev=([a-z0-9]+)", version_string)
-    if match:
-        info[name] = match.group(1)
-
-
 ##############
 # PROCESSING #
 ##############
@@ -88,7 +78,6 @@ def class_entry_to_series(entry):
 raw_json = json.load(open(args.compilation_data))
 
 info = pd.Series(raw_json["info"])
-parse_version(info, "cairo_native_version")
 info["memory"] = round(int(info["memory"]) / 2**30, 2)
 info.rename(
     {
@@ -310,9 +299,9 @@ if args.output_dir:
     def generate_body(doc):
         doc, tag, text = doc.tagtext()
 
-        doc.line("h1", "Execution Benchmark Report")
+        doc.line("h1", "Compilation Benchmark Report")
 
-        doc.line("h2", "Execution Info")
+        doc.line("h2", "Benchmark Info")
         generate_info(doc, info)
 
         # Force line break after info

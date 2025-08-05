@@ -3,7 +3,6 @@ import json
 import pathlib
 import argparse
 import inflection
-import re
 from argparse import ArgumentParser
 from typing import NamedTuple
 
@@ -79,16 +78,6 @@ def save_csv(data, title, *to_csv_args, **to_csv_kwargs):
         data.to_csv(args.output_dir.joinpath(name), *to_csv_args, **to_csv_kwargs)
 
 
-# Given an info series, and the name of the field containing a Rust version,
-# it parses the version string and shortens it. From example, converts from the
-# full git url, to just the commit hash.
-def parse_version(info: pd.Series, name: str):
-    version_string: str = info[name]  # type: ignore
-    match = re.search("rev=([a-z0-9]+)", version_string)
-    if match:
-        info[name] = match.group(1)
-
-
 ##############
 # PROCESSING #
 ##############
@@ -101,8 +90,6 @@ def load_data(path):
     df_calls = pd.DataFrame(raw_json["calls"])
 
     info = pd.Series(raw_json["info"])
-    parse_version(info, "cairo_native_version")
-    parse_version(info, "sequencer_version")
     info["memory"] = round(int(info["memory"]) / 2**30, 2)
     info.rename(
         {
@@ -166,6 +153,9 @@ df_txs = pd.merge(
     right_index=True,
     suffixes=("_native", "_vm"),
 )
+# merge steps into gas_consumed
+df_txs["gas_consumed"] += df_txs["steps"] * 100
+df_txs = df_txs.drop("steps", axis=1)
 # calculate speedup
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
 
