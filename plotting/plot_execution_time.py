@@ -168,6 +168,9 @@ df_txs = pd.merge(
 )
 # calculate speedup
 df_txs["speedup"] = df_txs["time_ns_vm"] / df_txs["time_ns_native"]
+# merge steps into gas_consumed
+df_txs["gas_consumed"] += df_txs["steps"] * 100
+df_txs = df_txs.drop("steps", axis=1)
 
 # print(df_txs.info())
 # -------------------------
