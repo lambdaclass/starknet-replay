@@ -214,12 +214,12 @@ df_calls = df_calls.drop("cairo_native", axis=1)
 ############
 
 
-def plot_tx_speedup(df_txs: DataFrame):
+def plot_speedup(df_txs: DataFrame):
     _, ax = plt.subplots()
 
     sns.boxplot(ax=ax, data=df_txs, x="speedup", showfliers=False, width=0.5)
     ax.set_xlabel("Tx Speedup Ratio")
-    ax.set_title("Tx Speedup Distribution")
+    ax.set_title("Speedup Distribution")
 
     total_speedup = df_txs["time_ns_vm"].sum() / df_txs["time_ns_native"].sum()
     mean_speedup = df_txs["speedup"].mean()
@@ -382,7 +382,7 @@ def plot_time_by_gas(df_calls: DataFrame):
     )
 
 
-def plot_call_throughput(df_calls):
+def plot_throughput(df_calls):
     fig, (ax1, ax2) = plt.subplots(1, 2)
 
     df_native = df_calls.loc[df_calls["executor"] == "native"]
@@ -449,10 +449,10 @@ def plot_call_throughput(df_calls):
     )
 
 
-plot_call_throughput(df_calls)
+plot_throughput(df_calls)
 plot_time_by_gas(df_calls)
 plot_time_by_class(df_calls)
-plot_tx_speedup(df_txs)
+plot_speedup(df_txs)
 
 if args.output_dir:
     doc, tag, text = Doc().tagtext()
