@@ -53,7 +53,7 @@ impl BenchData {
         for (_, txs) in grouped_txs {
             let summarized_txs = txs.into_iter().map(summarize_tx).collect::<Vec<_>>();
 
-            let tx_count = summarized_txs.len();
+            let execution_count = summarized_txs.len();
 
             let (mut tx_data, mut calls) = summarized_txs
                 .into_iter()
@@ -70,13 +70,13 @@ impl BenchData {
                 })
                 .expect("we should have at least one execution");
 
-            tx_data.time_ns = tx_data.time_ns.div_ceil(tx_count as u128);
-            tx_data.gas_consumed = tx_data.gas_consumed.div_ceil(tx_count as u64);
-            tx_data.steps = tx_data.steps.div_ceil(tx_count as u64);
+            tx_data.time_ns = tx_data.time_ns.div_ceil(execution_count as u128);
+            tx_data.gas_consumed = tx_data.gas_consumed.div_ceil(execution_count as u64);
+            tx_data.steps = tx_data.steps.div_ceil(execution_count as u64);
             for call in &mut calls {
-                call.time_ns = call.time_ns.div_ceil(tx_count as u128);
-                call.gas_consumed = call.gas_consumed.div_ceil(tx_count as u64);
-                call.steps = call.steps.div_ceil(tx_count as u64);
+                call.time_ns = call.time_ns.div_ceil(execution_count as u128);
+                call.gas_consumed = call.gas_consumed.div_ceil(execution_count as u64);
+                call.steps = call.steps.div_ceil(execution_count as u64);
             }
 
             aggregated_txs.push(tx_data);
