@@ -310,9 +310,9 @@ if args.output_dir:
     def generate_body(doc):
         doc, tag, text = doc.tagtext()
 
-        doc.line("h1", "Execution Benchmark Report")
+        doc.line("h1", "Compilation Benchmark Report")
 
-        doc.line("h2", "Execution Info")
+        doc.line("h2", "Benchmark Info")
         generate_info(doc, info)
 
         # Force line break after info
