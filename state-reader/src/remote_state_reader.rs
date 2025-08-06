@@ -99,7 +99,7 @@ impl RemoteStateReader {
             };
         }
 
-        let response = response.json()?;
+        let response: RpcResponse = response.json()?;
 
         match response {
             RpcResponse::Success(rpc_success_response) => Ok(rpc_success_response.result),
