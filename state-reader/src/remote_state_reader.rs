@@ -39,8 +39,8 @@ impl RemoteStateReader {
         Self { client, url }
     }
 
-    /// Sends an RPC request and retries if a timeout is returned. To distribute the retries,
-    /// an exponential backoff algorithm is used with a limit of 10 retries before failing.
+    /// Sends a RPC request and retries if a timeout is returned. By default,
+    /// the limit of retries is set to 10  before failing.
     fn send_rpc_request_with_retry(
         &self,
         method: &str,
