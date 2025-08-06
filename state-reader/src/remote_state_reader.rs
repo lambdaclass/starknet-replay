@@ -46,7 +46,7 @@ impl RemoteStateReader {
         method: &str,
         params: Value,
     ) -> Result<Value, StateReaderError> {
-        let retry_limit = std::env::var("RETRY_LIMIT")
+        let retry_limit = std::env::var("RPC_RETRY_LIMIT")
             .ok()
             .and_then(|v| v.parse::<u32>().ok())
             .unwrap_or(10);
@@ -69,7 +69,7 @@ impl RemoteStateReader {
                     continue;
                 }
                 // if there's actually an error, different from a timeout, it should be returned.
-                Err(err) => return Err(StateReaderError::from(err)),
+                err => return err,
             }
         }
         Err(StateReaderError::RpcRequestTimeout)
