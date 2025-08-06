@@ -38,6 +38,7 @@ pub struct FullStateReader {
     chain_id: ChainId,
     hit_counter: Cell<u64>,
     miss_counter: Cell<u64>,
+    timeout_counter: Cell<u64>,
     cache: RefCell<StateCache>,
     disk_reader: DiskStateReader,
     remote_reader: RemoteStateReader,
@@ -55,6 +56,7 @@ impl FullStateReader {
             class_manager: RefCell::new(ClassManager::new()),
             hit_counter: Cell::new(0),
             miss_counter: Cell::new(0),
+            timeout_counter: Cell::new(0),
             chain_id,
         }
     }
@@ -62,6 +64,7 @@ impl FullStateReader {
     pub fn reset_counters(&self) {
         self.hit_counter.set(0);
         self.miss_counter.set(0);
+        self.timeout_counter.set(0);
     }
 
     pub fn get_hit_counter(&self) -> u64 {
@@ -70,6 +73,10 @@ impl FullStateReader {
 
     pub fn get_miss_counter(&self) -> u64 {
         self.miss_counter.get()
+    }
+
+    pub fn get_timeout_counter(&self) -> u64 {
+        self.timeout_counter.get()
     }
 
     pub fn get_block(
@@ -88,7 +95,10 @@ impl FullStateReader {
             block
         } else {
             // If not found, read from remote and save to disk.
-            let block = self.remote_reader.get_block_with_tx_hashes(block_number)?;
+            let block = self
+                .remote_reader
+                .get_block_with_tx_hashes(block_number)
+                .inspect_err(|e| self.check_rpc_request_timeout(e))?;
             self.disk_reader.set_block(block_number, &block)?;
             block
         };
@@ -115,7 +125,10 @@ impl FullStateReader {
             tx
         } else {
             // If not found, read from remote and save to disk.
-            let tx = self.remote_reader.get_tx(&tx_hash)?;
+            let tx = self
+                .remote_reader
+                .get_tx(&tx_hash)
+                .inspect_err(|e| self.check_rpc_request_timeout(e))?;
             self.disk_reader.set_transaction(tx_hash, &tx)?;
             tx
         };
@@ -145,7 +158,10 @@ impl FullStateReader {
             receipt
         } else {
             // If not found, read from remote and save to disk.
-            let receipt = self.remote_reader.get_tx_receipt(&tx_hash)?;
+            let receipt = self
+                .remote_reader
+                .get_tx_receipt(&tx_hash)
+                .inspect_err(|e| self.check_rpc_request_timeout(e))?;
             self.disk_reader
                 .set_transaction_receipt(tx_hash, &receipt)?;
             receipt
@@ -181,7 +197,8 @@ impl FullStateReader {
         // If not found, read from remote and save to cache.
         let value = self
             .remote_reader
-            .get_storage_at(block_number, contract_address, key)?;
+            .get_storage_at(block_number, contract_address, key)
+            .inspect_err(|e| self.check_rpc_request_timeout(e))?;
         block_state.storage.insert((contract_address, key), value);
 
         Ok(value)
@@ -207,7 +224,8 @@ impl FullStateReader {
         // If not found, read from remote and save to cache.
         let nonce = self
             .remote_reader
-            .get_nonce_at(block_number, contract_address)?;
+            .get_nonce_at(block_number, contract_address)
+            .inspect_err(|e| self.check_rpc_request_timeout(e))?;
         block_state.nonces.insert(contract_address, nonce);
 
         Ok(nonce)
@@ -233,7 +251,8 @@ impl FullStateReader {
         // If not found, read from remote and save to cache.
         let class_hash = self
             .remote_reader
-            .get_class_hash_at(block_number, contract_address)?;
+            .get_class_hash_at(block_number, contract_address)
+            .inspect_err(|e| self.check_rpc_request_timeout(e))?;
         block_state
             .class_hashes
             .insert(contract_address, class_hash);
@@ -261,7 +280,9 @@ impl FullStateReader {
             let class = self
                 .remote_reader
                 .get_contract_class(block_number, &class_hash)?;
-            self.disk_reader.set_contract_class(class_hash, &class)?;
+            self.disk_reader
+                .set_contract_class(class_hash, &class)
+                .inspect_err(|e| self.check_rpc_request_timeout(e))?;
             class
         };
 
@@ -331,6 +352,12 @@ impl FullStateReader {
                     .unwrap_or_default();
                 vacant_entry.insert_entry(block_state).into_mut()
             }
+        }
+    }
+
+    fn check_rpc_request_timeout(&self, err: &StateReaderError) {
+        if let StateReaderError::RpcRequestTimeout = err {
+            self.timeout_counter.set(self.timeout_counter.get() + 1);
         }
     }
 }
