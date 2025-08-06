@@ -57,7 +57,10 @@ impl RemoteStateReader {
             match request_sender() {
                 Ok(response) => return Ok(response),
                 Err(StateReaderError::RpcRequestTimeout) => {
-                    tracing::info!("Retrying request, remaing tries: {}", retry_limit - retry_instance);
+                    tracing::warn!(
+                        "Retrying request, remaing tries: {}",
+                        retry_limit - retry_instance
+                    );
                     let backoff_timeout = {
                         let backoff_timeout = rand::random_range(0..2u64.pow(retry_instance));
                         Duration::from_secs(backoff_timeout)
