@@ -97,7 +97,7 @@ impl RemoteStateReader {
                 }
                 status => Err(StateReaderError::BadHttpStatusCode(status)),
             };
-        };
+        }
 
         let response = response.json()?;
 
