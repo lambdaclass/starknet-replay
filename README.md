@@ -71,13 +71,16 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 * cargo run block-txs mainnet 633538 0x021c594980fc2503b2e62a1bb9ce811e7ae22c1478fb0602146745edc9d03bb6 0x13e148692edfbbb4de5d983c6875780e2397e34a432a7355bf2172435ecec0e
 ```
 
-### RPC Timeout 
-By default, every RPC request it retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT`env var.
-
 > [!IMPORTANT]
 > Compiled contracts are cached to disk at `./cache/native/` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
 >
 > Make sure to remove the directory every time you update the Cairo Native version. Running `make clean` will automatically remove it.
+
+### RPC Timeout
+The RPC time out is handled in two different ways:
+
+- RPC request timeout: by default, the RPC timeout is set to 90 seconds. However, using the env var `RPC_TIMEOUT` this value can be customized.
+- RPC request retry: by default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
 
 ### Benchmarks
 

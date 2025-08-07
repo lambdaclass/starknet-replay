@@ -30,11 +30,20 @@ pub struct RemoteStateReader {
     timeout_counter: Cell<u64>,
 }
 
+const DEFAULT_RPC_RETRY_LIMIT: u32 = 10;
+const DEFAULT_RPC_TIMEOUT_SECS: u64 = 90;
+
 impl RemoteStateReader {
     pub fn new(url: String) -> Self {
         let client = {
-            let timeout = Duration::from_secs(90);
-            Client::builder().timeout(timeout).build().unwrap()
+            let timeout = std::env::var("RPC_TIMEOUT")
+                .ok()
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(DEFAULT_RPC_TIMEOUT_SECS);
+
+            let timeout_secs = Duration::from_secs(timeout);
+
+            Client::builder().timeout(timeout_secs).build().unwrap()
         };
 
         Self {
@@ -52,8 +61,8 @@ impl RemoteStateReader {
         self.timeout_counter.set(0);
     }
 
-    /// Sends a RPC request and retries if a timeout is returned. By default,
-    /// the limit of retries is set to 10  before failing.
+    /// Sends a RPC request and retries if a timeout is returned. By default, the limit of retries is set
+    /// to 10  before failing. The `RPC_RETRY_LIMIT` env var is to change the number of retries.
     fn send_rpc_request_with_retry(
         &self,
         method: &str,
@@ -62,12 +71,10 @@ impl RemoteStateReader {
         let retry_limit = std::env::var("RPC_RETRY_LIMIT")
             .ok()
             .and_then(|v| v.parse::<u32>().ok())
-            .unwrap_or(10);
-
-        let request_sender = || self.send_rpc_request(method, &params);
+            .unwrap_or(DEFAULT_RPC_RETRY_LIMIT);
 
         for retry_instance in 0..retry_limit {
-            match request_sender() {
+            match self.send_rpc_request(method, &params) {
                 Ok(response) => return Ok(response),
                 Err(StateReaderError::RpcRequestTimeout) => {
                     tracing::warn!(
