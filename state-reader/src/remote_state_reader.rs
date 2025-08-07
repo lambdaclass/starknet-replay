@@ -76,9 +76,14 @@ impl RemoteStateReader {
         for retry_instance in 0..retry_limit {
             match self.send_rpc_request(method, &params) {
                 Ok(response) => return Ok(response),
-                Err(StateReaderError::RpcRequestTimeout) => {
+                Err(StateReaderError::BadHttpStatusCode(status))
+                    if matches!(
+                        status,
+                        StatusCode::GATEWAY_TIMEOUT | StatusCode::REQUEST_TIMEOUT
+                    ) => 
+                {
                     tracing::warn!(
-                        "Retrying request, remaing tries: {}",
+                        "Retrying request, remaining tries: {}",
                         retry_limit - retry_instance
                     );
                     self.timeout_counter.set(self.timeout_counter.get() + 1);
@@ -114,12 +119,7 @@ impl RemoteStateReader {
             .send()?;
 
         if !response.status().is_success() {
-            return match response.status() {
-                StatusCode::REQUEST_TIMEOUT | StatusCode::GATEWAY_TIMEOUT => {
-                    Err(StateReaderError::RpcRequestTimeout)
-                }
-                status => Err(StateReaderError::BadHttpStatusCode(status)),
-            };
+            return Err(StateReaderError::BadHttpStatusCode(response.status()));
         }
 
         let response: RpcResponse = response.json()?;
