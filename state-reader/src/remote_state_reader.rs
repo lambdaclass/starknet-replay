@@ -80,7 +80,7 @@ impl RemoteStateReader {
                     if matches!(
                         status,
                         StatusCode::GATEWAY_TIMEOUT | StatusCode::REQUEST_TIMEOUT
-                    ) => 
+                    ) =>
                 {
                     tracing::warn!(
                         "Retrying request, remaining tries: {}",
