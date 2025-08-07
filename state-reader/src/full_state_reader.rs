@@ -73,6 +73,10 @@ impl FullStateReader {
         self.miss_counter.get()
     }
 
+    pub fn get_rpc_timeout_counter(&self) -> u64 {
+        self.remote_reader.get_timeout_counter()
+    }
+
     pub fn get_block(
         &self,
         block_number: BlockNumber,
