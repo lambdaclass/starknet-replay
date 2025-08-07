@@ -4,7 +4,7 @@
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.
 
-use std::{env, time::Duration};
+use std::{cell::Cell, env, time::Duration};
 
 use apollo_gateway::rpc_objects::{
     RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
@@ -27,6 +27,7 @@ use crate::{error::StateReaderError, objects::RpcTransactionReceipt};
 pub struct RemoteStateReader {
     client: Client,
     url: String,
+    timeout_counter: Cell<u64>,
 }
 
 impl RemoteStateReader {
@@ -36,7 +37,19 @@ impl RemoteStateReader {
             Client::builder().timeout(timeout).build().unwrap()
         };
 
-        Self { client, url }
+        Self {
+            client,
+            url,
+            timeout_counter: Cell::new(0),
+        }
+    }
+
+    pub fn get_timeout_counter(&self) -> u64 {
+        self.timeout_counter.get()
+    }
+
+    pub fn reset_counters(&self) {
+        self.timeout_counter.set(0);
     }
 
     /// Sends a RPC request and retries if a timeout is returned. By default,
@@ -61,11 +74,14 @@ impl RemoteStateReader {
                         "Retrying request, remaing tries: {}",
                         retry_limit - retry_instance
                     );
+                    self.timeout_counter.set(self.timeout_counter.get() + 1);
+
                     let backoff_timeout = {
                         let backoff_timeout = rand::random_range(0..2u64.pow(retry_instance));
                         Duration::from_secs(backoff_timeout)
                     };
                     std::thread::sleep(backoff_timeout);
+
                     continue;
                 }
                 // if there's actually an error, different from a timeout, it should be returned.
