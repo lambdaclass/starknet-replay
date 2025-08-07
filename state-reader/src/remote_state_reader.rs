@@ -76,12 +76,9 @@ impl RemoteStateReader {
         for retry_instance in 0..retry_limit {
             match self.send_rpc_request(method, &params) {
                 Ok(response) => return Ok(response),
-                Err(StateReaderError::BadHttpStatusCode(status))
-                    if matches!(
-                        status,
-                        StatusCode::GATEWAY_TIMEOUT | StatusCode::REQUEST_TIMEOUT
-                    ) =>
-                {
+                Err(StateReaderError::BadHttpStatusCode(
+                    StatusCode::GATEWAY_TIMEOUT | StatusCode::REQUEST_TIMEOUT,
+                )) => {
                     tracing::warn!(
                         "Retrying request, remaining tries: {}",
                         retry_limit - retry_instance
