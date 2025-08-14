@@ -1,3 +1,6 @@
+//! This crate is deprecated. The functionality has been moved to
+//! the `state-reader` crate
+
 pub mod cache;
 pub mod execution;
 pub mod objects;

@@ -1,5 +1,14 @@
 use std::{env, sync::Arc, thread, time::Duration};
 
+use apollo_gateway::{
+    config::RpcStateReaderConfig,
+    errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
+    rpc_objects::{
+        GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams, GetStorageAtParams,
+    },
+    rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
+};
+use blockifier::execution::native::executor::ContractExecutor;
 use blockifier::{
     execution::{
         contract_class::{CompiledClassV0, CompiledClassV0Inner, RunnableCompiledClass},
@@ -11,21 +20,13 @@ use cairo_lang_starknet_classes::contract_class::version_id_from_serialized_sier
 use cairo_vm::types::program::Program;
 use serde::Serialize;
 use serde_json::Value;
-use starknet::core::types::ContractClass as SNContractClass;
 use starknet_api::{
     block::BlockNumber,
     core::{ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce},
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
-use starknet_gateway::{
-    config::RpcStateReaderConfig,
-    errors::{serde_err_to_state_err, RPCStateReaderError, RPCStateReaderResult},
-    rpc_objects::{
-        GetBlockWithTxHashesParams, GetClassHashAtParams, GetNonceParams, GetStorageAtParams,
-    },
-    rpc_state_reader::RpcStateReader as GatewayRpcStateReader,
-};
+use starknet_core::types::ContractClass as SNContractClass;
 use tracing::{info_span, warn};
 use ureq::json;
 
@@ -241,7 +242,7 @@ pub fn compile_contract_class(class: SNContractClass, hash: ClassHash) -> Runnab
 }
 
 fn compile_sierra_cc(
-    flattened_sierra_cc: starknet::core::types::FlattenedSierraClass,
+    flattened_sierra_cc: starknet_core::types::FlattenedSierraClass,
     class_hash: ClassHash,
 ) -> RunnableCompiledClass {
     let middle_sierra: utils::MiddleSierraContractClass = {
@@ -271,14 +272,24 @@ fn compile_sierra_cc(
             let (sierra_version, _) =
                 version_id_from_serialized_sierra_program(&sierra_cc.sierra_program).unwrap();
             let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
-            (
+
+            ContractExecutor::Emu((
                 program,
                 sierra_cc.entry_points_by_type.clone(),
                 sierra_version,
-            )
-                .into()
+            ))
         } else {
-            get_native_executor(&sierra_cc, class_hash).into()
+            #[cfg(any(feature = "with-trace-dump", feature = "with-libfunc-profiling"))]
+            {
+                ContractExecutor::AotWithProgram((
+                    get_native_executor(&sierra_cc, class_hash),
+                    sierra_cc.extract_sierra_program().unwrap(),
+                ))
+            }
+            #[cfg(not(any(feature = "with-trace-dump", feature = "with-libfunc-profiling")))]
+            {
+                ContractExecutor::Aot(get_native_executor(&sierra_cc, class_hash))
+            }
         };
 
         let casm_compiled_class = get_casm_compiled_class(sierra_cc, class_hash);
@@ -288,7 +299,7 @@ fn compile_sierra_cc(
 }
 
 fn compile_legacy_cc(
-    compressed_legacy_cc: starknet::core::types::CompressedLegacyContractClass,
+    compressed_legacy_cc: starknet_core::types::CompressedLegacyContractClass,
 ) -> RunnableCompiledClass {
     let as_str = utils::decode_reader(compressed_legacy_cc.program).unwrap();
     let program = Program::from_bytes(as_str.as_bytes(), None).unwrap();

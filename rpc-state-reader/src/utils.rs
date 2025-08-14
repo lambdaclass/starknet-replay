@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    fs::{self},
+    fs::{self, File},
     io::{self, Read},
     path::PathBuf,
     sync::{OnceLock, RwLock},
@@ -13,15 +13,15 @@ use cairo_lang_starknet_classes::contract_class::{
     version_id_from_serialized_sierra_program, ContractClass, ContractEntryPoints,
 };
 use cairo_lang_utils::bigint::BigUintAsHex;
-use cairo_native::{executor::AotContractExecutor, OptLevel};
+use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use serde::Deserialize;
-use starknet::core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use starknet_api::{
     contract_class::{EntryPointType, SierraVersion},
     core::{ClassHash, EntryPointSelector},
     deprecated_contract_class::{EntryPointOffset, EntryPointV0},
     hash::StarkHash,
 };
+use starknet_core::types::{LegacyContractEntryPoint, LegacyEntryPointsByType};
 use tracing::info;
 
 #[derive(Debug, Deserialize)]
@@ -121,23 +121,38 @@ pub fn get_native_executor(contract: &ContractClass, class_hash: ClassHash) -> A
 
                 let pre_compilation_instant = Instant::now();
 
+                let mut statistics = if cfg!(feature = "with-comp-stats") {
+                    Some(Statistics::default())
+                } else {
+                    None
+                };
+
                 match AotContractExecutor::new_into(
                     &contract.extract_sierra_program().unwrap(),
                     &contract.entry_points_by_type,
                     sierra_version,
                     &path,
                     OptLevel::Aggressive,
+                    statistics.as_mut(),
                 )
                 .unwrap()
                 {
                     Some(e) => {
-                        let library_size = fs::metadata(path).unwrap().len();
+                        let library_size = fs::metadata(&path).unwrap().len();
 
                         info!(
                             time = pre_compilation_instant.elapsed().as_millis(),
                             size = library_size,
                             "native contract compilation finished"
                         );
+
+                        if let Some(statistics) = statistics {
+                            let stats_path = path.with_extension("stats.json");
+                            let stats_file =
+                                File::create(stats_path).expect("failed to open stats file");
+                            serde_json::to_writer_pretty(stats_file, &statistics)
+                                .expect("failed to write statistics");
+                        }
 
                         break e;
                     }

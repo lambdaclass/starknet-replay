@@ -1,0 +1,34 @@
+[package]
+name = "state-reader"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+with-comp-stats = []
+# The following features modify how the class is compiled.
+# TODO: Move this functionality to runtime.
+with-sierra-emu = []
+with-libfunc-profiling = []
+with-trace-dump = []
+only-casm = []
+
+[dependencies]
+
+blockifier.workspace = true
+starknet_api.workspace = true
+starknet-types-core.workspace = true
+reqwest = { version = "0.12.20", features = ["blocking", "json"] }
+serde_json.workspace = true
+serde_with.workspace = true
+serde.workspace = true
+thiserror = "2.0.12"
+starknet-core = "0.14.0"
+apollo_gateway.workspace = true
+flate2 = "1.0.25"
+cairo-vm = "2.0.1"
+hex = "0.4.3"
+cairo-native.workspace = true
+cairo-lang-starknet-classes.workspace = true
+blockifier_reexecution = { workspace = true }
+lockfile = "0.4.0"
+rayon = "1.10.0"

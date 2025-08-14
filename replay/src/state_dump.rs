@@ -6,7 +6,7 @@ use std::{
 
 use blockifier::{
     execution::{
-        call_info::{CallExecution, CallInfo},
+        call_info::{CallExecution, CallInfo, MessageToL1, OrderedEvent, OrderedL2ToL1Message},
         entry_point::{CallEntryPoint, CallType},
     },
     fee::{
@@ -19,6 +19,7 @@ use blockifier::{
     },
     transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
+use cairo_vm::types::builtin_name::BuiltinName;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
@@ -79,7 +80,12 @@ fn dump_state_diff(
     }
 
     let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
-    let execution_info = SerializableExecutionInfo::new(execution_info.clone());
+    let execution_info = SerializableExecutionInfo::new(execution_info);
+    #[derive(Serialize)]
+    struct Info {
+        execution_info: SerializableExecutionInfo,
+        state_maps: SerializableStateMaps,
+    }
     let info = Info {
         execution_info,
         state_maps,
@@ -106,6 +112,45 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
     Ok(())
 }
 
+pub fn create_call_state_dump(
+    state: &mut CachedState<impl StateReader>,
+    tx: &str,
+    call_info: &CallInfo,
+) -> anyhow::Result<()> {
+    use std::path::Path;
+
+    let root = if cfg!(feature = "only_cairo_vm") {
+        Path::new("call_state_dumps/vm")
+    } else if cfg!(feature = "with-sierra-emu") {
+        Path::new("call_state_dumps/emu")
+    } else {
+        Path::new("call_state_dumps/native")
+    };
+
+    std::fs::create_dir_all(root).ok();
+
+    let mut path = root.join(tx);
+    path.set_extension("json");
+
+    let state_maps = SerializableStateMaps::from(state.to_state_diff()?.state_maps);
+    let call_info = SerializableCallInfo::from(call_info);
+
+    #[derive(Serialize)]
+    struct Info {
+        call_info: SerializableCallInfo,
+        state_maps: SerializableStateMaps,
+    }
+    let info = Info {
+        call_info,
+        state_maps,
+    };
+
+    let file = File::create(path)?;
+    serde_json::to_writer_pretty(file, &info)?;
+
+    Ok(())
+}
+
 // The error messages is different between CairoVM and Cairo Native. That is way
 // we must ignore them while comparing the state dumps. To make ignoring them
 // easier, we name the field that contains the error message as "reverted" both
@@ -115,12 +160,6 @@ fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()
 #[derive(Serialize)]
 struct ErrorInfo {
     reverted: String,
-}
-
-#[derive(Serialize)]
-struct Info {
-    execution_info: SerializableExecutionInfo,
-    state_maps: SerializableStateMaps,
 }
 
 /// From `blockifier::state::cached_state::StateMaps`
@@ -157,12 +196,12 @@ struct SerializableExecutionInfo {
     validate_call_info: Option<SerializableCallInfo>,
     execute_call_info: Option<SerializableCallInfo>,
     fee_transfer_call_info: Option<SerializableCallInfo>,
-    revert_error: Option<String>,
+    reverted: Option<String>,
     receipt: SerializableTransactionReceipt,
 }
 
 impl SerializableExecutionInfo {
-    pub fn new(execution_info: TransactionExecutionInfo) -> Self {
+    pub fn new(execution_info: &TransactionExecutionInfo) -> Self {
         let TransactionExecutionInfo {
             validate_call_info,
             execute_call_info,
@@ -172,10 +211,10 @@ impl SerializableExecutionInfo {
         } = execution_info;
 
         Self {
-            validate_call_info: validate_call_info.clone().map(From::<CallInfo>::from),
-            execute_call_info: execute_call_info.clone().map(From::<CallInfo>::from),
-            fee_transfer_call_info: fee_transfer_call_info.clone().map(From::<CallInfo>::from),
-            revert_error: revert_error.map(|x| x.to_string()),
+            validate_call_info: validate_call_info.as_ref().map(From::<&CallInfo>::from),
+            execute_call_info: execute_call_info.as_ref().map(From::<&CallInfo>::from),
+            fee_transfer_call_info: fee_transfer_call_info.as_ref().map(From::<&CallInfo>::from),
+            reverted: revert_error.as_ref().map(|x| x.to_string()),
             receipt: SerializableTransactionReceipt::from(receipt),
         }
     }
@@ -194,41 +233,88 @@ struct SerializableCallInfo {
     pub read_class_hash_values: Vec<ClassHash>,
     // Convert HashSet to vector to avoid random order
     pub accessed_contract_addresses: Vec<ContractAddress>,
+    pub call_counter: usize,
+    pub builtin_stats: Vec<(BuiltinName, usize)>,
 }
 
-impl From<CallInfo> for SerializableCallInfo {
-    fn from(value: CallInfo) -> Self {
+impl From<&CallInfo> for SerializableCallInfo {
+    fn from(value: &CallInfo) -> Self {
         let CallInfo {
             call,
             execution,
             inner_calls,
-            storage_read_values,
-            accessed_storage_keys,
-            read_class_hash_values,
-            accessed_contract_addresses,
+            storage_access_tracker,
             resources: _resources,
             tracked_resource: _tracked_resource,
             time: _time,
+            builtin_counters,
+            call_counter,
         } = value;
 
-        let mut accessed_storage_keys = accessed_storage_keys.into_iter().collect::<Vec<_>>();
-        accessed_storage_keys.sort();
+        let accessed_storage_keys = {
+            let mut accessed_storage_keys = storage_access_tracker
+                .accessed_storage_keys
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>();
+            accessed_storage_keys.sort();
 
-        let mut accessed_contract_addresses =
-            accessed_contract_addresses.into_iter().collect::<Vec<_>>();
-        accessed_contract_addresses.sort();
+            accessed_storage_keys
+        };
+
+        let accessed_contract_addresses = {
+            let mut accessed_contract_addresses = storage_access_tracker
+                .accessed_contract_addresses
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>();
+            accessed_contract_addresses.sort();
+            accessed_contract_addresses
+        };
+
+        let mut builtin_stats = builtin_counters
+            .iter()
+            .map(|(b, c)| (*b, *c))
+            .collect::<Vec<_>>();
+        builtin_stats.sort_by_key(|(k, _)| k.to_str());
+
+        let events = execution
+            .events
+            .iter()
+            .map(|e| OrderedEvent {
+                order: e.order,
+                event: e.event.clone(),
+            })
+            .collect();
+        let l2_to_l1_messages = execution
+            .l2_to_l1_messages
+            .iter()
+            .map(|m| OrderedL2ToL1Message {
+                order: m.order,
+                message: MessageToL1 {
+                    to_address: m.message.to_address,
+                    payload: m.message.payload.clone(),
+                },
+            })
+            .collect();
 
         Self {
             call: SerializableCallEntryPoint::from(call),
-            execution,
-            inner_calls: inner_calls
-                .into_iter()
-                .map(From::<CallInfo>::from)
-                .collect(),
-            storage_read_values,
+            execution: CallExecution {
+                retdata: execution.retdata.clone(),
+                events,
+                l2_to_l1_messages,
+                cairo_native: execution.cairo_native,
+                failed: execution.failed,
+                gas_consumed: execution.gas_consumed,
+            },
+            inner_calls: inner_calls.iter().map(From::<&CallInfo>::from).collect(),
+            storage_read_values: storage_access_tracker.storage_read_values.clone(),
             accessed_storage_keys,
-            read_class_hash_values,
+            read_class_hash_values: storage_access_tracker.read_class_hash_values.clone(),
             accessed_contract_addresses,
+            builtin_stats,
+            call_counter: *call_counter,
         }
     }
 }
@@ -246,8 +332,8 @@ struct SerializableCallEntryPoint {
     pub call_type: CallType,
     pub initial_gas: u64,
 }
-impl From<CallEntryPoint> for SerializableCallEntryPoint {
-    fn from(value: CallEntryPoint) -> Self {
+impl From<&CallEntryPoint> for SerializableCallEntryPoint {
+    fn from(value: &CallEntryPoint) -> Self {
         let CallEntryPoint {
             class_hash,
             code_address,
@@ -258,7 +344,7 @@ impl From<CallEntryPoint> for SerializableCallEntryPoint {
             caller_address,
             call_type,
             initial_gas,
-        } = value;
+        } = value.to_owned();
         Self {
             class_hash,
             code_address,
@@ -294,8 +380,8 @@ pub struct SerializableComputationResources {
     pub reverted_sierra_gas: GasAmount,
 }
 
-impl From<TransactionReceipt> for SerializableTransactionReceipt {
-    fn from(value: TransactionReceipt) -> Self {
+impl From<&TransactionReceipt> for SerializableTransactionReceipt {
+    fn from(value: &TransactionReceipt) -> Self {
         let TransactionReceipt {
             fee,
             gas,
@@ -305,7 +391,8 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
                     starknet_resources,
                     computation:
                         ComputationResources {
-                            vm_resources: _vm_resources,
+                            tx_vm_resources: _,
+                            os_vm_resources: _,
                             n_reverted_steps,
                             sierra_gas,
                             reverted_sierra_gas,
@@ -313,15 +400,15 @@ impl From<TransactionReceipt> for SerializableTransactionReceipt {
                 },
         } = value;
         Self {
-            fee,
-            gas,
-            da_gas,
+            fee: *fee,
+            gas: *gas,
+            da_gas: *da_gas,
             resources: SerializableTransactionResources {
-                starknet_resources,
+                starknet_resources: starknet_resources.clone(),
                 computation: SerializableComputationResources {
-                    n_reverted_steps,
-                    sierra_gas,
-                    reverted_sierra_gas,
+                    n_reverted_steps: *n_reverted_steps,
+                    sierra_gas: *sierra_gas,
+                    reverted_sierra_gas: *reverted_sierra_gas,
                 },
             },
         }

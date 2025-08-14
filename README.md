@@ -26,10 +26,15 @@ Some environment variable are needed, you can automatically set them by sourcing
 export LLVM_SYS_191_PREFIX=/path/to/llvm-19
 export MLIR_SYS_190_PREFIX=/path/to/llvm-19
 export TABLEGEN_190_PREFIX=/path/to/llvm-19
-export CAIRO_NATIVE_RUNTIME_LIBRARY=/path/to/cairo_native/target/release/libcairo_native_runtime.a
 # RPC
 export RPC_ENDPOINT_MAINNET=rpc.endpoint.mainnet.com
 export RPC_ENDPOINT_TESTNET=rpc.endpoint.testnet.com
+```
+
+On macos, you may also need to set the following to avoid linking errors:
+
+```bash
+export LIBRARY_PATH=/opt/homebrew/lib
 ```
 
 Once you have installed dependencies and set the needed environment variables, you can build the project and run the tests:
@@ -56,14 +61,6 @@ Afterwards, compiling with the feature flag `cairo-native` will enable native ex
 
 #### Using ahead of time compilation with Native.
 
-Currently cairo-native with AOT needs a runtime library in a known place. For this you need to compile the [cairo-native-runtime](https://github.com/lambdaclass/cairo_native/tree/main/runtime) crate and point the following environment variable to a folder containing the dynamic library. The path **must** be an absolute path.
-
-```bash
-CAIRO_NATIVE_RUNTIME_LIBRARY=/absolute/path/to/cairo-native/target/release/libcairo_native_runtime.a
-```
-
-If you don't do this you will get a linker error when using AOT.
-
 ## replay
 You can use the replay crate to execute transactions or blocks via the CLI. For example:
 
@@ -75,7 +72,7 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 ```
 
 > [!IMPORTANT]
-> Compiled contracts are cached to disk at `compiled_programs` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
+> Compiled contracts are cached to disk at `./cache/native/` directory. This saves time when reexecuting transactions, but can also cause errors if you try to run a contract that was compiled with a different Cairo Native version.
 >
 > Make sure to remove the directory every time you update the Cairo Native version. Running `make clean` will automatically remove it.
 
@@ -106,24 +103,50 @@ To compare Native execution with the VM, you can use the `state_dump` feature. I
 - If paired with `only_cairo_vm` feature, the dumps will be saved at: `state_dumps/vm/block{block_number}/{tx_hash}.json`
 
 To compare the outputs, you can use the following scripts. Some of them required `delta` (modern diff).
-- `cmp_state_dumps.sh`. Prints which transactions match with the VM and which differ.
+- `cmp_state_dumps.py`. Prints which transactions match with the VM and which differ.
    ```bash
-   > ./scripts/cmp_state_dumps.sh
-   diff:  0x636326f93a16be14b36b7e62c546370d81d285d1f5398e13d5348fa03a00d05.json
-   match: 0x6902da2a7ef7f7ab2e984c0cdfa94c535dedd7cc081c91f04b9f87a9805411b.json
-   diff:  0x75ae71b0aaba9454965d2077d53f056ffd426481bad709831e8d76d50f32dbe.json
-   match: 0x7895207d7d46df77f5b0de6b647cd393b9fc7bb18c52b6333c6ea852cf767e.json
-   match: 0x2335142d7b7938eeb4512fbf59be7ec2f2284e6533c14baf51460c8de427dc7.json
-   match: 0x26f6d10918250f16cddaebb8b69c5cececf9387d4a152f4d9197e1c03c40626.json
-
+   > python3 ./scripts/cmp_state_dumps.py
+   Starting comparison with 16 workers
+   DIFF 1478358 0xde8db1dc28c7ab48192d9aad1d5c8b08e732738f12b9945f591caa48e4dfa0
    Finished comparison
-   - Matching: 4
-   - Diffing:  16
+
+   MATCH 9
+   DIFF 1
    ```
 - `delta_state_dumps.sh`. It opens delta to review the differences between VM and Native with each transaction.
    ```bash
    > ./scripts/delta_state_dumps.sh
    ```
+
+### Replaying isolated calls
+
+The replay crate supports executing isolated calls inside of a transaction, although it probably won't work in every scenario.
+
+First, obtain the full state dump of a transaction:
+
+```bash
+cargo run --features state_dump -- tx \
+   0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79 mainnet 1000000
+```
+
+Then, extract the desired call (by its call index). In this case, I will try to re-execute starting from the third call (that is, with index 2).
+
+```bash
+./scripts/extract_call.py \
+   state_dumps/native/block1000000/0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79.json \
+   2 > call.json 
+```
+
+Finally, re-execute it with the `call` command.
+
+```bash
+cargo run -- call call.json \
+   0x01368e23fc6ba5eaf064b9e64f5cddda0c6d565b6f64cb8f036e0d1928a99c79 1000000 mainnet
+```
+
+The `state_dump` feature can be used to save the execution result to either
+- `call_state_dumps/native/{tx_hash}.json`
+- `call_state_dumps/vm/{tx_hash}.json`
 
 ### Benchmarking
 
@@ -136,9 +159,9 @@ cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1
 
 However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
 
-First, make sure to remove the `compiled_programs` directory and build the benchmarking binaries.
+First, make sure to remove the `./cache/native/` directory and build the benchmarking binaries.
 ```bash
-rm -rf compiled_programs
+rm -rf ./cache/native/
 make deps-bench
 ```
 
@@ -159,12 +182,7 @@ If you just want to benchmarks a few different sample transactions, run:
 
 This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
-- `{native,vm}-data-*.json` - stdout from running the benchmark.
-
-Additionally, the benchmarking scripts also run `plot_execution_time.py`, generating execution plots in the `bench_data` directory:
-- `plot-*.svg` - bar plot for the execution time by contract class
-- `plot-*-speedup.svg` - violin plot for the speedup by contract class
-- `plot-*.csv` - raw csv preprocessed data
+- `{native,vm}-logs-*.json` - stdout from running the benchmark.
 
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
@@ -173,17 +191,50 @@ will be saved in a json file inside the floder `block_composition` as a vector o
 To generate the need information run this command:
 `cargo run --release -F block-composition block-compose <block_start> <block_end> <chain>`
 
+## Libfunc Profiling
+You can gather information about each libfunc execution in a transaction. To do so, run this command:
+`cargo run --release -F with-libfunc-profiling block-range <block_start> <block_end> <chain>`
+
+This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every transaction executed, containing a list of entrypoints executed. Every entrypoint of that list contains a `profile_summary`, which contains information about the execution of every libfunc. An example of a profile would be:
+
+```json
+{
+   "block_number": 641561,
+   "tx": "0x2e0abd9a260095622f71ff8869aaee0267af1199be78ad5ad91a3c83df0ad08",
+   "entrypoints": [
+      {
+         "class_hash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+         "selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+         "profile_summary": [
+            {
+               "libfunc_name": "struct_construct",
+               "samples": 1,
+               "total_time": 1,
+               "average_time": 1.0,
+               "std_deviation": 0.0,
+               "quartiles": [
+                  1,
+                  1,
+                  1,
+                  1,
+                  1
+               ]
+            },
+            ...
+         ]
+      },
+      ...
+   ]
+}
+```
+
 ## Plotting
 
 In the `plotting` directory, you can find python scripts to plot relevant information.
 
 To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
 
-- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the execution time of Native vs VM, by contract class.
-- `python ./plotting/plot_compilation_memory.py native-logs`: Size of the compiled native libraries, by contract class.
-- `python ./plotting/plot_compilation_memory_corr.py native-logs`: Size of the compiled native libraries, by the associated Casm contract size.
-- `python ./plotting/plot_compilation_memory_trend.py native-logs`: Size of the compiled native and casm contracts, by the sierra contract size.
-- `python ./plotting/plot_compilation_time.py native-logs`: Native compilation time, by contract class
-- `python ./plotting/plot_compilation_time_trend.py native-logs`: Native and Casm compilation time, by the sierra contract size.
-- `python ./plotting/plot_compilation_time_finer.py native-logs`: Native compilation time, with fine-grained stage separation, by contract class.
+- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the benchmark data of Native and VM.
+- `python ./plotting/plot_compilation_logs.py native-logs`: Plots the compilation logs for Native and VM.
+- `python ./plotting/plot_compilation_stats.py *.json`: Plots the compilation stats for Native.
 - `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.

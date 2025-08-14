@@ -1,258 +1,166 @@
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
-use blockifier::{
-    context::BlockContext,
-    execution::{call_info::CallInfo, contract_class::RunnableCompiledClass},
-    state::{
-        cached_state::CachedState, errors::StateError,
-        state_api::StateReader as BlockifierStateReader,
-    },
-    transaction::{
-        account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
-        transaction_execution::Transaction as BlockiTransaction,
-        transactions::ExecutableTransaction,
-    },
-};
-use rpc_state_reader::{
-    cache::RpcCachedStateReader,
-    execution::{fetch_block_context, fetch_blockifier_transaction},
-    reader::{RpcStateReader, StateReader},
-};
-use serde::Serialize;
+use blockifier::execution::call_info::CallInfo;
+use serde::{Deserialize, Serialize};
 use starknet_api::{
     block::BlockNumber,
-    core::{ChainId, ClassHash, EntryPointSelector},
-    felt,
-    hash::StarkHash,
+    core::{ClassHash, EntryPointSelector},
     transaction::TransactionHash,
 };
 
-pub type BlockCachedData = (
-    CachedState<OptionalStateReader<RpcCachedStateReader>>,
-    BlockContext,
-    Vec<BlockiTransaction>,
-);
+use crate::execution::TransactionExecution;
 
-/// Fetches context data to execute the given block range
-///
-/// It does not actually execute the block range, so not all data required
-/// by blockifier will be cached. To ensure that all rpc data is cached,
-/// the block range must be executed once.
-///
-/// See `execute_block_range` to execute the block range
-pub fn fetch_block_range_data(
-    block_start: BlockNumber,
-    block_end: BlockNumber,
-    chain: ChainId,
-) -> Vec<BlockCachedData> {
-    let mut block_caches = Vec::new();
-
-    for block_number in block_start.0..=block_end.0 {
-        // For each block
-        let block_number = BlockNumber(block_number);
-        let reader = RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), block_number));
-
-        // Fetch block context
-        let block_context = fetch_block_context(&reader).unwrap();
-
-        let flags = ExecutionFlags {
-            only_query: false,
-            charge_fee: false,
-            validate: true,
-        };
-
-        // Fetch transactions for the block
-        let transactions = reader
-            .get_block_with_tx_hashes()
-            .unwrap()
-            .transactions
-            .into_iter()
-            .map(|hash| fetch_blockifier_transaction(&reader, flags.clone(), hash).unwrap())
-            .collect::<Vec<_>>();
-
-        // Create cached state
-        let previous_block_number = block_number.prev().unwrap();
-        let previous_reader =
-            RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), previous_block_number));
-        let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
-
-        block_caches.push((cached_state, block_context, transactions));
-    }
-
-    block_caches
+#[derive(Serialize, Deserialize)]
+pub struct BenchData {
+    pub transactions: Vec<TxBenchData>,
+    pub calls: Vec<CallBenchData>,
 }
 
-/// Executes the given block range, discarding any state changes applied to it
-///
-/// Can also be used to fill up the cache
-pub fn execute_block_range(
-    block_range_data: &mut Vec<BlockCachedData>,
-) -> Vec<TransactionExecutionInfo> {
-    let mut executions = Vec::new();
-
-    for (state, block_context, transactions) in block_range_data {
-        // For each block
-
-        // The transactional state is used to execute a transaction while discarding state changes applied to it.
-        let mut transactional_state = CachedState::create_transactional(state);
-
-        for transaction in transactions {
-            // Execute each transaction
-            let execution = transaction.execute(&mut transactional_state, block_context);
-            let Ok(execution) = execution else { continue };
-
-            executions.push(execution);
-        }
-    }
-
-    executions
-}
-
-#[derive(Serialize)]
-pub struct BenchmarkingData {
-    pub average_time: Duration,
-    pub class_executions: Vec<ClassExecutionInfo>,
-}
-
-#[derive(Serialize)]
-pub struct ClassExecutionInfo {
+#[derive(Serialize, Deserialize)]
+pub struct CallBenchData {
+    tx_hash: TransactionHash,
     class_hash: ClassHash,
     selector: EntryPointSelector,
-    time: Duration,
+    time_ns: u128,
+    gas_consumed: u64,
+    steps: u64,
+    cairo_native: bool,
 }
 
-pub fn aggregate_executions(executions: Vec<TransactionExecutionInfo>) -> Vec<ClassExecutionInfo> {
-    executions
-        .into_iter()
-        .flat_map(|execution| {
-            let mut classes = Vec::new();
-
-            if let Some(call) = execution.validate_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.execute_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            if let Some(call) = execution.fee_transfer_call_info {
-                classes.append(&mut get_class_executions(call));
-            }
-            classes
-        })
-        .collect::<Vec<_>>()
+#[derive(Serialize, Deserialize)]
+pub struct TxBenchData {
+    tx_hash: TransactionHash,
+    block_number: BlockNumber,
+    time_ns: u128,
+    gas_consumed: u64,
+    steps: u64,
+    failed: bool,
 }
 
-fn get_class_executions(call: CallInfo) -> Vec<ClassExecutionInfo> {
+impl BenchData {
+    pub fn aggregate(txs: &[TransactionExecution]) -> Self {
+        // Group by transaction hash
+        let mut grouped_txs = BTreeMap::new();
+        for tx in txs {
+            grouped_txs.entry(tx.hash).or_insert_with(Vec::new).push(tx);
+        }
+
+        let mut aggregated_txs = Vec::new();
+        let mut aggregated_calls = Vec::new();
+
+        // Iterate each transaction group, and aggregate it into a single entry
+        // by dividing the resource usage by the number of executions.
+        for (_, txs) in grouped_txs {
+            let summarized_txs = txs.into_iter().map(summarize_tx).collect::<Vec<_>>();
+
+            let execution_count = summarized_txs.len();
+
+            let (mut tx_data, mut calls) = summarized_txs
+                .into_iter()
+                .reduce(|(mut tx_data, mut calls), (other_tx_data, other_calls)| {
+                    tx_data.time_ns += other_tx_data.time_ns;
+                    tx_data.steps += other_tx_data.steps;
+                    tx_data.gas_consumed += other_tx_data.gas_consumed;
+                    for (call, other_call) in calls.iter_mut().zip(other_calls.iter()) {
+                        call.time_ns += other_call.time_ns;
+                        call.steps += other_call.steps;
+                        call.gas_consumed += other_call.gas_consumed;
+                    }
+                    (tx_data, calls)
+                })
+                .expect("we should have at least one execution");
+
+            tx_data.time_ns = tx_data.time_ns.div_ceil(execution_count as u128);
+            tx_data.gas_consumed = tx_data.gas_consumed.div_ceil(execution_count as u64);
+            tx_data.steps = tx_data.steps.div_ceil(execution_count as u64);
+            for call in &mut calls {
+                call.time_ns = call.time_ns.div_ceil(execution_count as u128);
+                call.gas_consumed = call.gas_consumed.div_ceil(execution_count as u64);
+                call.steps = call.steps.div_ceil(execution_count as u64);
+            }
+
+            aggregated_txs.push(tx_data);
+            aggregated_calls.append(&mut calls);
+        }
+
+        Self {
+            transactions: aggregated_txs,
+            calls: aggregated_calls,
+        }
+    }
+}
+
+pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchData>) {
+    let mut tx_data = TxBenchData {
+        tx_hash: tx.hash,
+        block_number: tx.block_number,
+        time_ns: tx.time.as_nanos(),
+        gas_consumed: 0,
+        steps: 0,
+        failed: tx.result.is_err(),
+    };
+
+    let Ok(info) = &tx.result else {
+        return (tx_data, vec![]);
+    };
+
+    let mut calls = Vec::new();
+
+    for call_info in info.non_optional_call_infos() {
+        tx_data.gas_consumed += call_info.execution.gas_consumed;
+        tx_data.steps += call_info.resources.n_steps as u64;
+
+        calls.append(&mut summarize_calls(tx.hash, call_info));
+    }
+
+    (tx_data, calls)
+}
+
+fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchData> {
     // class hash can initially be None, but it is always added before execution
     let class_hash = call.call.class_hash.unwrap();
 
     let mut inner_time = Duration::ZERO;
+    let mut inner_steps = 0;
+    let mut inner_gas_consumed = 0;
 
     let mut classes = call
         .inner_calls
-        .into_iter()
+        .iter()
         .flat_map(|call| {
             inner_time += call.time;
-            get_class_executions(call)
+            inner_gas_consumed += call.execution.gas_consumed;
+            inner_steps += call.resources.n_steps as u64;
+            summarize_calls(tx_hash, call)
         })
         .collect::<Vec<_>>();
 
-    if call.time.is_zero() {
-        panic!("contract time should never be zero, there is a bug somewhere")
-    }
-    let time = call.time - inner_time;
+    let time = call
+        .time
+        .checked_sub(inner_time)
+        .expect("time cannot be negative");
 
-    let top_class = ClassExecutionInfo {
+    let gas_consumed = call
+        .execution
+        .gas_consumed
+        .checked_sub(inner_gas_consumed)
+        .expect("gas cannot be negative");
+
+    let steps = (call.resources.n_steps as u64)
+        .checked_sub(inner_steps)
+        .expect("gas cannot be negative");
+
+    let top_call = CallBenchData {
+        tx_hash,
         class_hash,
         selector: call.call.entry_point_selector,
-        time,
+        cairo_native: call.execution.cairo_native,
+        time_ns: time.as_nanos(),
+        gas_consumed,
+        steps,
     };
 
-    classes.push(top_class);
+    classes.push(top_call);
 
     classes
-}
-
-pub fn fetch_transaction_data(tx: &str, block: BlockNumber, chain: ChainId) -> BlockCachedData {
-    let reader = RpcCachedStateReader::new(RpcStateReader::new(chain.clone(), block));
-
-    // Fetch block context
-    let block_context = fetch_block_context(&reader).unwrap();
-
-    let flags = ExecutionFlags {
-        only_query: false,
-        charge_fee: false,
-        validate: true,
-    };
-
-    // Fetch transaction
-    let tx_hash = TransactionHash(felt!(tx));
-    let transaction = fetch_blockifier_transaction(&reader, flags.clone(), tx_hash).unwrap();
-    let transactions = vec![transaction];
-
-    // Create cached state
-    let previous_block_number = block.prev().unwrap();
-    let previous_reader =
-        RpcCachedStateReader::new(RpcStateReader::new(chain, previous_block_number));
-    let cached_state = CachedState::new(OptionalStateReader::new(previous_reader));
-
-    (cached_state, block_context, transactions)
-}
-
-/// An implementation of StateReader that can be disabled, panicking if atempted to be read from
-///
-/// Used to ensure that no requests are made after disabling it.
-pub struct OptionalStateReader<S: BlockifierStateReader>(pub Option<S>);
-
-impl<S: BlockifierStateReader> OptionalStateReader<S> {
-    pub fn new(state_reader: S) -> Self {
-        Self(Some(state_reader))
-    }
-
-    pub fn get_inner(&self) -> Result<&S, StateError> {
-        self.0.as_ref().ok_or(StateError::StateReadError(
-            "Atempted to read from a disabled state reader".to_string(),
-        ))
-    }
-
-    pub fn disable(&mut self) {
-        self.0 = None;
-    }
-}
-
-impl<S: BlockifierStateReader> BlockifierStateReader for OptionalStateReader<S> {
-    fn get_storage_at(
-        &self,
-        contract_address: starknet_api::core::ContractAddress,
-        key: starknet_api::state::StorageKey,
-    ) -> blockifier::state::state_api::StateResult<StarkHash> {
-        self.get_inner()?.get_storage_at(contract_address, key)
-    }
-
-    fn get_nonce_at(
-        &self,
-        contract_address: starknet_api::core::ContractAddress,
-    ) -> blockifier::state::state_api::StateResult<starknet_api::core::Nonce> {
-        self.get_inner()?.get_nonce_at(contract_address)
-    }
-
-    fn get_class_hash_at(
-        &self,
-        contract_address: starknet_api::core::ContractAddress,
-    ) -> blockifier::state::state_api::StateResult<starknet_api::core::ClassHash> {
-        self.get_inner()?.get_class_hash_at(contract_address)
-    }
-
-    fn get_compiled_class(
-        &self,
-        class_hash: starknet_api::core::ClassHash,
-    ) -> blockifier::state::state_api::StateResult<RunnableCompiledClass> {
-        self.get_inner()?.get_compiled_class(class_hash)
-    }
-
-    fn get_compiled_class_hash(
-        &self,
-        class_hash: starknet_api::core::ClassHash,
-    ) -> blockifier::state::state_api::StateResult<starknet_api::core::CompiledClassHash> {
-        self.get_inner()?.get_compiled_class_hash(class_hash)
-    }
 }

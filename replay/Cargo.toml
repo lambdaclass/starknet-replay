@@ -4,31 +4,44 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-block-composition = ["structured_logging", "dep:serde", "dep:serde_json"]
-benchmark = ["dep:serde", "dep:serde_json", "dep:serde_with"]
+block-composition = ["structured_logging"]
+benchmark = ["dep:serde_with"]
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
-only_cairo_vm = ["rpc-state-reader/only_casm"]
+only_cairo_vm = ["state-reader/only-casm"]
 # The only-native feature uses native exclusively, with every cairo 1 contract
 only-native = ["blockifier/only-native"]
 structured_logging = []
-state_dump = ["dep:serde", "dep:serde_json", "dep:serde_with", "dep:starknet-types-core"]
-with-sierra-emu = ["rpc-state-reader/with-sierra-emu"]
+state_dump = ["dep:serde_with", "dep:starknet-types-core"]
+with-sierra-emu = ["state-reader/with-sierra-emu"]
+with-trace-dump = ["blockifier/with-trace-dump", "state-reader/with-trace-dump"]
+with-libfunc-profiling = [
+  "state-reader/with-libfunc-profiling",
+  "blockifier/with-libfunc-profiling",
+  "dep:starknet-types-core",
+  "dep:cairo-lang-sierra",
+]
+with-comp-stats = ["state-reader/with-comp-stats"]
 profiling = []
 
 [dependencies]
 # starknet specific crates
 blockifier = { workspace = true }
-rpc-state-reader = { path = "../rpc-state-reader" }
+state-reader = { path = "../state-reader" }
+starknet-core = "0.14.0"
+blockifier_reexecution = { workspace = true }
 starknet_api = { workspace = true }
 starknet-types-core = { workspace = true, optional = true }
+cairo-native = { workspace = true }
+cairo-vm.workspace = true
+cairo-lang-sierra = { workspace = true, optional = true }
 # CLI specific crates
 clap = { version = "4.5.18", features = ["derive"] }
 # logs
 tracing = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 # serialization
-serde = { workspace = true, optional = true }
-serde_json = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
 serde_with = { workspace = true, optional = true }
 dotenvy = "0.15.7"
 anyhow.workspace = true

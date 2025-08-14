@@ -66,6 +66,9 @@ pub struct BlockHeader {
     pub timestamp: BlockTimestamp,
     pub l1_gas_price: ResourcePrice,
     pub l1_data_gas_price: ResourcePrice,
+    // This is done because some endpoints do not return this field and deserialization would panic
+    #[serde(default)]
+    pub l2_gas_price: ResourcePrice,
     pub l1_da_mode: L1DataAvailabilityMode,
     pub starknet_version: String,
 }
@@ -127,6 +130,13 @@ pub mod deser {
             if let Some(l1_gas) = resource_bounds.get_mut("l1_gas") {
                 resource_bounds["L1_GAS"] = l1_gas.clone();
                 resource_bounds.as_object_mut().unwrap().remove("l1_gas");
+            }
+            if let Some(l1_data_gas) = resource_bounds.get_mut("l1_data_gas") {
+                resource_bounds["L1_DATA_GAS"] = l1_data_gas.clone();
+                resource_bounds
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("l1_data_gas");
             }
             if let Some(l2_gas) = resource_bounds.get_mut("l2_gas") {
                 resource_bounds["L2_GAS"] = l2_gas.clone();

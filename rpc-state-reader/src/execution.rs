@@ -5,6 +5,7 @@ use crate::{
 use anyhow::Context;
 use blockifier::{
     blockifier::block::validated_gas_prices,
+    blockifier_versioned_constants::VersionedConstants,
     bouncer::BouncerConfig,
     context::{BlockContext, ChainInfo},
     state::cached_state::CachedState,
@@ -13,13 +14,11 @@ use blockifier::{
         transaction_execution::Transaction as BlockiTransaction,
         transactions::ExecutableTransaction,
     },
-    versioned_constants::VersionedConstants,
 };
 use blockifier_reexecution::state_reader::{
     compile::{legacy_to_contract_class_v0, sierra_to_versioned_contract_class_v1},
     utils::get_fee_token_addresses,
 };
-use starknet::core::types::ContractClass;
 use starknet_api::{
     block::{BlockInfo, BlockNumber, GasPrice, NonzeroGasPrice, StarknetVersion},
     contract_class::{ClassInfo, SierraVersion},
@@ -27,6 +26,7 @@ use starknet_api::{
     test_utils::MAX_FEE,
     transaction::{Transaction as SNTransaction, TransactionHash},
 };
+use starknet_core::types::ContractClass;
 
 pub fn fetch_block_context(reader: &impl StateReader) -> anyhow::Result<BlockContext> {
     let block = reader.get_block_with_tx_hashes()?;
@@ -153,8 +153,8 @@ pub fn get_block_info(header: BlockHeader) -> BlockInfo {
             parse_gas_price(header.l1_gas_price.price_in_fri),
             parse_gas_price(header.l1_data_gas_price.price_in_wei),
             parse_gas_price(header.l1_data_gas_price.price_in_fri),
-            NonzeroGasPrice::MIN,
-            NonzeroGasPrice::MIN,
+            parse_gas_price(header.l2_gas_price.price_in_wei),
+            parse_gas_price(header.l2_gas_price.price_in_fri),
         ),
         use_kzg_da: true,
     }
@@ -198,9 +198,11 @@ mod tests {
     };
 
     use blockifier::{
-        execution::call_info::{CallInfo, ChargedResources, EventSummary, ExecutionSummary},
+        execution::call_info::{
+            CallInfo, CallSummary, ChargedResources, EventSummary, ExecutionSummary,
+        },
         fee::resources::{StarknetResources, StateResources},
-        state::cached_state::StateChangesCount,
+        state::cached_state::{StateChangesCount, StateChangesCountForFee},
         transaction::account_transaction::ExecutionFlags,
     };
     use cairo_vm::{
@@ -236,6 +238,7 @@ mod tests {
         let hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
+            strict_nonce_check: true,
             only_query: false,
             charge_fee: false,
             validate: true,
@@ -415,6 +418,7 @@ mod tests {
         let hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
+            strict_nonce_check: true,
             only_query: false,
             charge_fee: false,
             validate: true,
@@ -460,6 +464,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3035,
@@ -575,6 +580,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3457,
@@ -681,6 +687,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3457,
@@ -787,6 +794,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3938,
@@ -880,6 +888,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3411,
@@ -967,6 +976,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 45076,
@@ -1283,6 +1293,7 @@ mod tests {
         false,
         2,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 7394,
@@ -1410,6 +1421,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 8422,
@@ -1528,6 +1540,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 2263,
@@ -1571,6 +1584,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 2430,
@@ -1624,6 +1638,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3086,
@@ -1725,6 +1740,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 39395,
@@ -1844,6 +1860,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 30042,
@@ -1990,6 +2007,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 8108,
@@ -2075,6 +2093,7 @@ mod tests {
         false,
         2,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 8068,
@@ -2186,6 +2205,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 8414,
@@ -2304,6 +2324,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 63180,
@@ -2593,6 +2614,7 @@ mod tests {
         false,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 3730,
@@ -2702,6 +2724,7 @@ mod tests {
         false,
         1,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 60919,
@@ -3103,6 +3126,7 @@ mod tests {
         true,
         0,
         ExecutionSummary {
+            call_summary: CallSummary::default(),
             charged_resources: ChargedResources {
                 vm_resources: ExecutionResources {
                     n_steps: 28,
@@ -3143,14 +3167,25 @@ mod tests {
         let hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
+            strict_nonce_check: true,
             only_query: false,
             charge_fee: false,
             validate: true,
         };
         let tx_info = execute_transaction(&hash, block_number, chain, flags).unwrap();
 
-        let starknet_resources = tx_info.clone().receipt.resources.starknet_resources;
-        let state_resources = StateResources::new_for_testing(starknet_chg, n_allocated_keys);
+        let starknet_resources = tx_info.receipt.resources.starknet_resources;
+        let state_resources = StateResources {
+            state_changes_for_fee: StateChangesCountForFee {
+                state_changes_count: StateChangesCount {
+                    n_storage_updates: starknet_chg.n_storage_updates,
+                    n_class_hash_updates: starknet_chg.n_class_hash_updates,
+                    n_compiled_class_hash_updates: starknet_chg.n_compiled_class_hash_updates,
+                    n_modified_contracts: starknet_chg.n_modified_contracts,
+                },
+                n_allocated_keys,
+            },
+        };
         let starknet_rsc = StarknetResources::new(
             calldata_length,
             signature_length,
@@ -3185,6 +3220,7 @@ mod tests {
         let hash = TransactionHash(felt!(tx_hash));
         let block_number = BlockNumber(block_number);
         let flags = ExecutionFlags {
+            strict_nonce_check: true,
             only_query: false,
             charge_fee: false,
             validate: true,

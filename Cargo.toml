@@ -1,5 +1,5 @@
 [workspace]
-members = ["rpc-state-reader", "replay"]
+members = ["rpc-state-reader", "replay", "tools", "profiler-sdk", "state-reader"]
 
 
 # Explicitly set the resolver to the default for edition >= 2021
@@ -13,13 +13,20 @@ serde_json = "1.0.135"
 serde_with = "3.12.0"
 serde = "1.0.217"
 fs2 = "0.4.3"
-# Remember to update CAIRO_NATIVE_REF env variable in the CI when updating this
-cairo-native = "0.3.4"
+cairo-native = "0.6.0-rc.1"
+cairo-vm = "2.0.1"
 anyhow = "1.0"
+
+# Cairo Dependencies
+cairo-lang-starknet-classes = "2.12.0-dev.1"
+cairo-lang-starknet = "2.12.0-dev.1"
+cairo-lang-compiler = "2.12.0-dev.1"
+cairo-lang-sierra = "2.12.0-dev.1"
+
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9a624f29c9436c6138b7b8afaf2ab0335d88144c" } # replay
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9a624f29c9436c6138b7b8afaf2ab0335d88144c", features = [
-    "cairo_native",
-] } # replay
-starknet_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9a624f29c9436c6138b7b8afaf2ab0335d88144c" } # replay
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "9a624f29c9436c6138b7b8afaf2ab0335d88144c" } # replay
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "0f69d1a56b949eccced10e3303109eb82ee92ec8" } # main-v0.14.0
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "0f69d1a56b949eccced10e3303109eb82ee92ec8", features = [
+  "cairo_native",
+] } # main-v0.14.0
+apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "0f69d1a56b949eccced10e3303109eb82ee92ec8" } # main-v0.14.0
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "0f69d1a56b949eccced10e3303109eb82ee92ec8" } # main-v0.14.0
