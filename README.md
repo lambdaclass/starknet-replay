@@ -79,8 +79,8 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 ### RPC Timeout
 The RPC time out is handled in two different ways:
 
-- RPC request timeout: by default, the RPC timeout is set to 90 seconds. However, using the env var `RPC_TIMEOUT` this value can be customized.
-- RPC request retry: by default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
+- RPC request timeout: using the env var `RPC_TIMEOUT` this value can be customized. By default, the RPC timeout is set to 90 seconds.
+- RPC request retry: this limit can be customized by setting the `RPC_RETRY_LIMIT` env var. By default, every RPC request is retried 10 times.
 
 ### Benchmarks
 
