@@ -83,8 +83,6 @@ The RPC time out is handled in two different ways:
 - RPC request retry: How many times the request is re-sent before failing due to timeout. By default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
 
 By setting both env vars, if any RPC request fails with a timeout, starknet-replay will retry sending the request with a limit of `RPC_RETRY_LIMIT` times, awaiting `RPC_TIMEOUT` seconds for the reponse before generating another timeout.
-- RPC request timeout: using the env var `RPC_TIMEOUT` this value can be customized. By default, the RPC timeout is set to 90 seconds.
-- RPC request retry: this limit can be customized by setting the `RPC_RETRY_LIMIT` env var. By default, every RPC request is retried 10 times.
 
 ### Benchmarks
 
