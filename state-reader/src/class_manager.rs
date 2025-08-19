@@ -20,6 +20,7 @@ use blockifier::execution::{
     native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
 };
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
+use serde::Serialize;
 use starknet_api::{
     contract_class::{
         ClassInfo, ContractClass as CompiledContractClass, EntryPointType, SierraVersion,
@@ -223,6 +224,16 @@ impl ClassManager {
             )? {
                 Some(e) => {
                     if let Some(statistics) = statistics {
+                        #[derive(Serialize)]
+                        struct StatisticsWithCtx {
+                            pub class_hash: ClassHash,
+                            pub statistics: Statistics,
+                        }
+
+                        let statistics = StatisticsWithCtx {
+                            class_hash: *class_hash,
+                            statistics,
+                        };
                         let stats_path = cache_path.with_extension("stats.json");
                         let stats_file = File::create(stats_path)?;
                         serde_json::to_writer_pretty(stats_file, &statistics)?;

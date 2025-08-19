@@ -83,6 +83,8 @@ The RPC time out is handled in two different ways:
 - RPC request retry: How many times the request is re-sent before failing due to timeout. By default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
 
 By setting both env vars, if any RPC request fails with a timeout, starknet-replay will retry sending the request with a limit of `RPC_RETRY_LIMIT` times, awaiting `RPC_TIMEOUT` seconds for the reponse before generating another timeout.
+- RPC request timeout: using the env var `RPC_TIMEOUT` this value can be customized. By default, the RPC timeout is set to 90 seconds.
+- RPC request retry: this limit can be customized by setting the `RPC_RETRY_LIMIT` env var. By default, every RPC request is retried 10 times.
 
 ### Benchmarks
 
@@ -158,18 +160,9 @@ The `state_dump` feature can be used to save the execution result to either
 
 ### Benchmarking
 
-To run benchmarks manually, you must compile with release and the benchmark feature:
+First, build the benchmarking binaries.
 
 ```bash
-cargo run --release --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1000
-cargo run --release --features benchmark bench-block-range 90000 90002 mainnet 1000
-```
-
-However, we recommend using the scripts defined `scripts/benchmark_*`, as they are easier to use.
-
-First, make sure to remove the `./cache/native/` directory and build the benchmarking binaries.
-```bash
-rm -rf ./cache/native/
 make deps-bench
 ```
 
@@ -191,6 +184,29 @@ If you just want to benchmarks a few different sample transactions, run:
 This generates the following files in the `bench_data` directory:
 - `{native,vm}-data-*.json` - execution time of each contract call.
 - `{native,vm}-logs-*.json` - stdout from running the benchmark.
+
+At the end of the run, you can generate a report by executing:
+
+``` bash
+python plotting/plot_execution_time.py native-data vm-data --output-dir <output-dir> --no-display
+```
+
+The report will be generated to `<output-dir>/report.html`
+
+### Benchmarking Compilation
+
+You can benchmark the compilation of a block range by running:
+```bash
+./scripts/benchmark_compilation.sh <block-start> <block-end> <net>
+```
+This will save compilation data to `./bench_data/compilation-<block-start>-<block-end>-<net>.json`.
+
+At the end of the run, you can generate a report by running:
+``` bash
+python plotting/plot_compilation_stats.py <compilation-data> --output-dir <output-dir> --no-display
+```
+
+The report will be generated to `<output-dir>/report.html`
 
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
