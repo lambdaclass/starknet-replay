@@ -241,7 +241,7 @@ def plot_time_by_class(df_calls: DataFrame):
         df_calls.groupby(["executor", "class_hash"])
         .aggregate(
             mean_time=("time_ns", "mean"),
-            total_time=("time_ns", "mean"),
+            total_time=("time_ns", "sum"),
         )
         .unstack("executor")
     )  # type: ignore
