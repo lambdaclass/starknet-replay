@@ -185,7 +185,6 @@ The report will be generated to `<output-dir>/report.html`
 
 ### Benchmarking Compilation
 
-
 You can benchmark the compilation of a block range by running:
 ```bash
 ./scripts/benchmark_compilation.sh <block-start> <block-end> <net>

@@ -241,7 +241,7 @@ def plot_time_by_class(df_calls: DataFrame):
         df_calls.groupby(["executor", "class_hash"])
         .aggregate(
             mean_time=("time_ns", "mean"),
-            total_time=("time_ns", "mean"),
+            total_time=("time_ns", "sum"),
         )
         .unstack("executor")
     )  # type: ignore
@@ -300,6 +300,7 @@ def plot_time_by_class(df_calls: DataFrame):
         "Execution Time by Contract Class",
         "Compares execution time of most common contract classes.",
     )
+    save_csv(df, "Execution Time By Contract Class")
 
 
 def plot_time_by_gas(df_calls: DataFrame):
@@ -506,6 +507,12 @@ if args.output_dir:
 
         doc.line("h2", "Cairo VM Execution Info")
         generate_info(doc, vm_info)
+
+        if native_info["Block Start"] == "":
+            doc.line("h2", "Transactions")
+            with tag("ul"):
+                for tx in df_txs["tx_hash"].unique():
+                    doc.line("li", tx)
 
         # Force line break after info
         with tag("div", style="page-break-after: always"):
