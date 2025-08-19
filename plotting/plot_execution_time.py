@@ -463,6 +463,12 @@ if args.output_dir:
         doc.line("h2", "Cairo VM Execution Info")
         generate_info(doc, vm_info)
 
+        if native_info["Block Start"] == "":
+            doc.line("h2", "Transactions")
+            with tag("ul"):
+                for tx in df_txs["tx_hash"].unique():
+                    doc.line("li", tx)
+
         # Force line break after info
         with tag("div", style="page-break-after: always"):
             pass
