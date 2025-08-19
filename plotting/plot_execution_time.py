@@ -300,6 +300,7 @@ def plot_time_by_class(df_calls: DataFrame):
         "Execution Time by Contract Class",
         "Compares execution time of most common contract classes.",
     )
+    save_csv(df, "Execution Time By Contract Class")
 
 
 def plot_time_by_gas(df_calls: DataFrame):
