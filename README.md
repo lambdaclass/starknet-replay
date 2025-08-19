@@ -79,8 +79,10 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 ### RPC Timeout
 The RPC time out is handled in two different ways:
 
-- RPC request timeout: by default, the RPC timeout is set to 90 seconds. However, using the env var `RPC_TIMEOUT` this value can be customized.
+- RPC request timeout (in seconds): by default, the RPC timeout is set to 90 seconds. However, using the env var `RPC_TIMEOUT` this value can be customized.
 - RPC request retry: by default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
+
+By setting both env vars, if any RPC request fails with a timeout, starknet-replay will retry sending the request with a limit of `RPC_RETRY_LIMIT` times, awaiting `RPC_TIMEOUT` seconds for the reponse before generating another timeout.
 
 ### Benchmarks
 
