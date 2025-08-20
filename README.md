@@ -84,7 +84,7 @@ The RPC time out is handled in two different ways:
 
 By setting both env vars, if any RPC request fails with a timeout, starknet-replay will retry sending the request with a limit of `RPC_RETRY_LIMIT` times awaiting `RPC_TIMEOUT` seconds for the response before generating another timeout.
 
-An exponential-backoff algorithm distributs the reties in time, reducing the amount of simultaneous RPC requests to avoid new timeouts. If the limit of retries is reached, a new request timeout will cease the retrail process and return an timeout error.
+An exponential-backoff algorithm distributes the retries in time, reducing the amount of simultaneous RPC requests to avoid new timeouts. If the limit of retries is reached, a new request timeout will cease the retrail process and return an timeout error.
 
 ### Benchmarks
 
