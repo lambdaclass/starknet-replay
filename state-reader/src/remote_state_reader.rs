@@ -4,14 +4,14 @@
 // `RpcStateReader`. Unlike `RpcStateReader`, this reader only focuses on
 // fetching logic. For example, there is no contract compilation.
 
-use std::{env, time::Duration};
+use std::{cell::Cell, env, time::Duration};
 
 use apollo_gateway::rpc_objects::{
     RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
     RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
 };
 use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
-use reqwest::blocking::Client;
+use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
 use starknet_api::{
     block::BlockNumber,
@@ -27,19 +27,80 @@ use crate::{error::StateReaderError, objects::RpcTransactionReceipt};
 pub struct RemoteStateReader {
     client: Client,
     url: String,
+    timeout_counter: Cell<u64>,
 }
+
+const DEFAULT_RPC_RETRY_LIMIT: u32 = 10;
+const DEFAULT_RPC_TIMEOUT_SECS: u64 = 90;
 
 impl RemoteStateReader {
     pub fn new(url: String) -> Self {
         let client = {
-            let timeout = Duration::from_secs(90);
-            Client::builder().timeout(timeout).build().unwrap()
+            let timeout = std::env::var("RPC_TIMEOUT")
+                .ok()
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(DEFAULT_RPC_TIMEOUT_SECS);
+
+            let timeout_secs = Duration::from_secs(timeout);
+
+            Client::builder().timeout(timeout_secs).build().unwrap()
         };
 
-        Self { client, url }
+        Self {
+            client,
+            url,
+            timeout_counter: Cell::new(0),
+        }
     }
 
-    pub fn send_rpc_request(&self, method: &str, params: Value) -> Result<Value, StateReaderError> {
+    pub fn get_timeout_counter(&self) -> u64 {
+        self.timeout_counter.get()
+    }
+
+    pub fn reset_counters(&self) {
+        self.timeout_counter.set(0);
+    }
+
+    /// Sends a RPC request and retries if a timeout is returned. By default, the limit of retries is set
+    /// to 10 before failing. The `RPC_RETRY_LIMIT` env var is used to change the number of retries.
+    fn send_rpc_request_with_retry(
+        &self,
+        method: &str,
+        params: Value,
+    ) -> Result<Value, StateReaderError> {
+        let retry_limit = std::env::var("RPC_RETRY_LIMIT")
+            .ok()
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(DEFAULT_RPC_RETRY_LIMIT);
+
+        for retry_instance in 0..retry_limit {
+            match self.send_rpc_request(method, &params) {
+                Ok(response) => return Ok(response),
+                Err(StateReaderError::BadHttpStatusCode(
+                    StatusCode::GATEWAY_TIMEOUT | StatusCode::REQUEST_TIMEOUT,
+                )) => {
+                    tracing::warn!(
+                        "Retrying request, remaining tries: {}",
+                        retry_limit - retry_instance
+                    );
+                    self.timeout_counter.set(self.timeout_counter.get() + 1);
+
+                    let backoff_timeout = {
+                        let backoff_timeout = rand::random_range(0..2u64.pow(retry_instance));
+                        Duration::from_secs(backoff_timeout)
+                    };
+                    std::thread::sleep(backoff_timeout);
+
+                    continue;
+                }
+                // if there's actually an error, different from a timeout, it should be returned.
+                err => return err,
+            }
+        }
+        Err(StateReaderError::RpcRequestTimeout)
+    }
+
+    fn send_rpc_request(&self, method: &str, params: &Value) -> Result<Value, StateReaderError> {
         let body = json!({
             "jsonrpc": "2.0",
             "id": 0,
@@ -56,7 +117,7 @@ impl RemoteStateReader {
 
         if !response.status().is_success() {
             return Err(StateReaderError::BadHttpStatusCode(response.status()));
-        };
+        }
 
         let response: RpcResponse = response.json()?;
 
@@ -90,7 +151,7 @@ impl RemoteStateReader {
             "class_hash": class_hash.to_hex_string(),
         });
 
-        let response = self.send_rpc_request("starknet_getClass", params)?;
+        let response = self.send_rpc_request_with_retry("starknet_getClass", params)?;
         let result = serde_json::from_value(response)?;
 
         Ok(result)
@@ -106,7 +167,7 @@ impl RemoteStateReader {
             },
         });
 
-        let response = self.send_rpc_request("starknet_getBlockWithTxHashes", params)?;
+        let response = self.send_rpc_request_with_retry("starknet_getBlockWithTxHashes", params)?;
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
@@ -114,7 +175,7 @@ impl RemoteStateReader {
     pub fn get_tx(&self, hash: &TransactionHash) -> Result<Transaction, StateReaderError> {
         let params = json!([hash]);
 
-        let response = self.send_rpc_request("starknet_getTransactionByHash", params)?;
+        let response = self.send_rpc_request_with_retry("starknet_getTransactionByHash", params)?;
         let tx = deserialize_transaction_json_to_starknet_api_tx(response)?;
 
         Ok(tx)
@@ -126,7 +187,8 @@ impl RemoteStateReader {
     ) -> Result<RpcTransactionReceipt, StateReaderError> {
         let params = json!([hash]);
 
-        let response = self.send_rpc_request("starknet_getTransactionReceipt", params)?;
+        let response =
+            self.send_rpc_request_with_retry("starknet_getTransactionReceipt", params)?;
         let result = serde_json::from_value(response)?;
         Ok(result)
     }
@@ -145,7 +207,7 @@ impl RemoteStateReader {
             "key": key,
         });
 
-        let response = self.send_rpc_request("starknet_getStorageAt", params);
+        let response = self.send_rpc_request_with_retry("starknet_getStorageAt", params);
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
@@ -166,7 +228,7 @@ impl RemoteStateReader {
             "contract_address": contract_address,
         });
 
-        let response = self.send_rpc_request("starknet_getNonce", params);
+        let response = self.send_rpc_request_with_retry("starknet_getNonce", params);
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
@@ -187,7 +249,7 @@ impl RemoteStateReader {
             "contract_address": contract_address,
         });
 
-        let response = self.send_rpc_request("starknet_getClassHashAt", params);
+        let response = self.send_rpc_request_with_retry("starknet_getClassHashAt", params);
 
         match response {
             Ok(response) => Ok(serde_json::from_value(response)?),
@@ -199,7 +261,7 @@ impl RemoteStateReader {
     pub fn get_chain_id(&self) -> Result<ChainId, StateReaderError> {
         let params = json!([]);
 
-        let response = self.send_rpc_request("starknet_chainId", params)?;
+        let response = self.send_rpc_request_with_retry("starknet_chainId", params)?;
 
         let chain_id_hex: String = serde_json::from_value(response)?;
         let chain_id_hex = chain_id_hex.strip_prefix("0x").unwrap_or(&chain_id_hex);
