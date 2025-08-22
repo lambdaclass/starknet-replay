@@ -121,7 +121,7 @@ impl<'p> Stack<'p> {
         frames
     }
 
-    pub fn symbol_stack(&self) -> Vec<NativeSymbol> {
+    pub fn symbol_stack(&'_ self) -> Vec<NativeSymbol<'_>> {
         self.frame_stack()
             .into_iter()
             .filter_map(|frame| frame.native_symbol())
