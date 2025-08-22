@@ -517,6 +517,7 @@ fn log_cache_statistics(full_state_reader: &FullStateReader) {
     info!(
         hits = full_state_reader.get_hit_counter(),
         miss = full_state_reader.get_miss_counter(),
+        timeout_retries = full_state_reader.get_rpc_timeout_counter(),
         "cache statistics"
     )
 }

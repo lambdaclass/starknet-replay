@@ -76,6 +76,16 @@ You can use the replay crate to execute transactions or blocks via the CLI. For 
 >
 > Make sure to remove the directory every time you update the Cairo Native version. Running `make clean` will automatically remove it.
 
+### RPC Timeout
+The RPC time out is handled in two different ways:
+
+- RPC request timeout (in seconds): How many seconds to wait before generating a timeout. By default, the RPC timeout is set to 90 seconds. However, using the env var `RPC_TIMEOUT` this value can be customized.
+- RPC request retry: How many times the request is re-sent before failing due to timeout. By default, every RPC request is retried 10 times. However, this limit can be customized by setting the `RPC_RETRY_LIMIT` env var.
+
+By setting both env vars, if any RPC request fails with a timeout, starknet-replay will retry sending the request with a limit of `RPC_RETRY_LIMIT` times awaiting `RPC_TIMEOUT` seconds for the response before generating another timeout.
+
+An exponential-backoff algorithm distributes the retries in time, reducing the amount of simultaneous RPC requests to avoid new timeouts. If the limit of retries is reached, a new request timeout will cease the retrail process and return an timeout error.
+
 ### Benchmarks
 
 To run benchmarks with the replay crate, you can use either `bench-block-range` or `bench-tx` commands. These make sure to cache all needed information (including cairo native compilation) before the actual execution. To use it you must compile the binary under the benchmark flag.
