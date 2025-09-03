@@ -62,6 +62,7 @@ impl FullStateReader {
     pub fn reset_counters(&self) {
         self.hit_counter.set(0);
         self.miss_counter.set(0);
+        self.remote_reader.reset_counters();
     }
 
     pub fn get_hit_counter(&self) -> u64 {
@@ -70,6 +71,10 @@ impl FullStateReader {
 
     pub fn get_miss_counter(&self) -> u64 {
         self.miss_counter.get()
+    }
+
+    pub fn get_rpc_timeout_counter(&self) -> u64 {
+        self.remote_reader.get_timeout_counter()
     }
 
     pub fn get_block(

@@ -44,4 +44,6 @@ pub enum StateReaderError {
     LegacyContractWithoutAbi,
     #[error("the received sierra class was invalid")]
     InvalidSierraClass,
+    #[error("reached the limit of retries for the RPC request")]
+    RpcRequestTimeout,
 }
