@@ -197,7 +197,7 @@ The report will be generated to `<output-dir>/report.html`
 
 You can benchmark the compilation of a single transaction range by running:
 ```bash
-./scripts/benchmark_compilation_tx.sh <tx> <net> <block> <laps>
+./scripts/benchmark_compilation_tx.sh <tx> <net> <block>
 ```
 This will save compilation data to `./bench_data/compilation-<tx>-<net>-<laps>.json`.
 

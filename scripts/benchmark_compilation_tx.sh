@@ -19,14 +19,13 @@ fi
 TX=$1
 NET=$2
 BLOCK=$3
-LAPS=$4
 
 DATA_DIR="bench_data"
 OUTPUT_PATH="$DATA_DIR/compilation-$TX-$NET-$LAPS.json"
 mkdir -p $DATA_DIR
 
 rm -rf ./cache/native
-cargo run --release --bin replay --features with-comp-stats tx "$TX" "$NET" "$BLOCK" "$LAPS"
+cargo run --release --bin replay --features with-comp-stats tx "$TX" "$NET" "$BLOCK"
 
 find_version() {
     dependency=$(
