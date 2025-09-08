@@ -32,7 +32,7 @@ endif
 deps: corelib
 
 deps-macos: 
-	-brew install llvm@19 --quiet
+	-brew install llvm@20 --quiet
 
 deps-bench:
 	cargo build --release --features benchmark,profiling,structured_logging

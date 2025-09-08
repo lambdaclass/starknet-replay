@@ -19,9 +19,9 @@ jobs:
     name: clippy
     runs-on: ubuntu-latest
     env:
-      MLIR_SYS_190_PREFIX: /usr/lib/llvm-19/
-      LLVM_SYS_191_PREFIX: /usr/lib/llvm-19/
-      TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
+      MLIR_SYS_200_PREFIX: /usr/lib/llvm-20/
+      LLVM_SYS_201_PREFIX: /usr/lib/llvm-20/
+      TABLEGEN_200_PREFIX: /usr/lib/llvm-20/
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.84.0
@@ -31,11 +31,11 @@ jobs:
       - name: Add LLVM Debian repository
         uses: myci-actions/add-deb-repo@10
         with:
-          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main
+          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main
           repo-name: llvm-repo
           keys-asc: https://apt.llvm.org/llvm-snapshot.gpg.key
       - name: Install LLVM
-        run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
+        run: sudo apt-get install llvm-20 llvm-20-dev llvm-20-runtime clang-20 clang-tools-20 lld-20 libpolly-20-dev libmlir-20-dev mlir-20-tools
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
@@ -86,9 +86,9 @@ jobs:
   udeps:
     runs-on: ubuntu-24.04
     env:
-      MLIR_SYS_190_PREFIX: /usr/lib/llvm-19/
-      LLVM_SYS_191_PREFIX: /usr/lib/llvm-19/
-      TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
+      MLIR_SYS_200_PREFIX: /usr/lib/llvm-20/
+      LLVM_SYS_201_PREFIX: /usr/lib/llvm-20/
+      TABLEGEN_200_PREFIX: /usr/lib/llvm-20/
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
@@ -99,11 +99,11 @@ jobs:
       - name: add llvm deb repository
         uses: myci-actions/add-deb-repo@11
         with:
-          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main
+          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main
           repo-name: llvm-repo
           keys-asc: https://apt.llvm.org/llvm-snapshot.gpg.key
       - name: Install LLVM
-        run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
+        run: sudo apt-get install llvm-20 llvm-20-dev llvm-20-runtime clang-20 clang-tools-20 lld-20 libpolly-20-dev libmlir-20-dev mlir-20-tools
       - name: Machete
         uses: bnjbvr/cargo-machete@v0.9.1
 
@@ -111,9 +111,9 @@ jobs:
     name: test (linux, amd64)
     runs-on: ubuntu-latest
     env:
-      MLIR_SYS_190_PREFIX: /usr/lib/llvm-19/
-      LLVM_SYS_191_PREFIX: /usr/lib/llvm-19/
-      TABLEGEN_190_PREFIX: /usr/lib/llvm-19/
+      MLIR_SYS_200_PREFIX: /usr/lib/llvm-20/
+      LLVM_SYS_201_PREFIX: /usr/lib/llvm-20/
+      TABLEGEN_200_PREFIX: /usr/lib/llvm-20/
       RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
       RUST_LOG: debug,replay=trace,rpc-state-reader=trace
@@ -145,12 +145,12 @@ jobs:
       - name: Add LLVM Debian repository
         uses: myci-actions/add-deb-repo@11
         with:
-          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-19 main
+          repo: deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main
           repo-name: llvm-repo
           keys-asc: https://apt.llvm.org/llvm-snapshot.gpg.key
       - run: sudo apt-get update && sudo apt-get upgrade -y
       - name: Install LLVM
-        run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
+        run: sudo apt-get install llvm-20 llvm-20-dev llvm-20-runtime clang-20 clang-tools-20 lld-20 libpolly-20-dev libmlir-20-dev mlir-20-tools
       - name: Checkout cairo_native
         uses: actions/checkout@v4
         with:
@@ -171,9 +171,9 @@ jobs:
     runs-on: macos-14
     env:
       LIBRARY_PATH: /opt/homebrew/lib
-      MLIR_SYS_190_PREFIX: /opt/homebrew/opt/llvm@19
-      LLVM_SYS_191_PREFIX: /opt/homebrew/opt/llvm@19
-      TABLEGEN_190_PREFIX: /opt/homebrew/opt/llvm@19
+      MLIR_SYS_200_PREFIX: /opt/homebrew/opt/llvm@20
+      LLVM_SYS_201_PREFIX: /opt/homebrew/opt/llvm@20
+      TABLEGEN_200_PREFIX: /opt/homebrew/opt/llvm@20
       RPC_ENDPOINT_TESTNET: ${{ secrets.RPC_ENDPOINT_TESTNET }}
       RPC_ENDPOINT_MAINNET: ${{ secrets.RPC_ENDPOINT_MAINNET }}
       RUST_LOG: debug,replay=trace,rpc-state-reader=trace
@@ -187,7 +187,7 @@ jobs:
       - name: Retreive cached dependecies
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
-        run: brew install llvm@19 --quiet
+        run: brew install llvm@20 --quiet
       - name: Checkout cairo_native
         uses: actions/checkout@v4
         with:
