@@ -7778,6 +7778,7 @@ dependencies = [
  "starknet-types-core",
  "starknet_api",
  "state-reader",
+ "test-case",
  "tracing",
  "tracing-subscriber",
 ]

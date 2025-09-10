@@ -46,3 +46,6 @@ serde_with = { workspace = true, optional = true }
 dotenvy = "0.15.7"
 anyhow.workspace = true
 chrono = "0.4.39"
+
+[dev-dependencies]
+test-case = "3.1.0"
