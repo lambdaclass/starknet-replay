@@ -7,7 +7,7 @@ members = ["rpc-state-reader", "replay", "tools", "profiler-sdk", "state-reader"
 resolver = "2"
 
 [workspace.dependencies]
-starknet-types-core = "0.1.6"
+starknet-types-core = "0.2.0"
 tracing = "0.1"
 serde_json = "1.0.135"
 serde_with = "3.12.0"
@@ -24,9 +24,9 @@ cairo-lang-compiler = "2.12.2"
 cairo-lang-sierra = "2.12.2"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "31ee045201a4a9e6282f5fc68b47154aad3a0e4c" } # main-v0.14.0
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "31ee045201a4a9e6282f5fc68b47154aad3a0e4c", features = [
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "55e459d6dd81471d9f2d10dfab38d9cf1beca7e5" } # main-v0.14.0
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "55e459d6dd81471d9f2d10dfab38d9cf1beca7e5", features = [
   "cairo_native",
 ] } # main-v0.14.0
-apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "31ee045201a4a9e6282f5fc68b47154aad3a0e4c" } # main-v0.14.0
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "31ee045201a4a9e6282f5fc68b47154aad3a0e4c" } # main-v0.14.0
+apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "55e459d6dd81471d9f2d10dfab38d9cf1beca7e5" } # main-v0.14.0
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "55e459d6dd81471d9f2d10dfab38d9cf1beca7e5" } # main-v0.14.0
