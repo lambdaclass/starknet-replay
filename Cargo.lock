@@ -768,7 +768,7 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 [[package]]
 name = "apollo_class_manager_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_compile_to_casm_types",
  "apollo_infra",
@@ -784,7 +784,7 @@ dependencies = [
 [[package]]
 name = "apollo_compilation_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra_utils",
  "cairo-lang-sierra",
@@ -802,7 +802,7 @@ dependencies = [
 [[package]]
 name = "apollo_compile_to_casm_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -816,7 +816,7 @@ dependencies = [
 [[package]]
 name = "apollo_compile_to_native"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_compilation_utils",
  "apollo_compile_to_native_types",
@@ -829,7 +829,7 @@ dependencies = [
 [[package]]
 name = "apollo_compile_to_native_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_config",
  "serde",
@@ -839,7 +839,7 @@ dependencies = [
 [[package]]
 name = "apollo_config"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra_utils",
  "clap",
@@ -857,7 +857,7 @@ dependencies = [
 [[package]]
 name = "apollo_gateway"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_class_manager_types",
  "apollo_compilation_utils",
@@ -896,7 +896,7 @@ dependencies = [
 [[package]]
 name = "apollo_gateway_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra",
  "apollo_network_types",
@@ -916,7 +916,7 @@ dependencies = [
 [[package]]
 name = "apollo_infra"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_config",
  "apollo_infra_utils",
@@ -939,7 +939,7 @@ dependencies = [
 [[package]]
 name = "apollo_infra_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_proc_macros",
  "assert-json-diff",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "apollo_l1_endpoint_monitor_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -971,7 +971,7 @@ dependencies = [
 [[package]]
 name = "apollo_mempool_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra",
  "apollo_network_types",
@@ -987,7 +987,7 @@ dependencies = [
 [[package]]
 name = "apollo_metrics"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "indexmap 2.9.0",
  "metrics",
@@ -999,7 +999,7 @@ dependencies = [
 [[package]]
 name = "apollo_network_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "lazy_static",
  "libp2p",
@@ -1009,7 +1009,7 @@ dependencies = [
 [[package]]
 name = "apollo_proc_macros"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "lazy_static",
  "proc-macro2",
@@ -1020,7 +1020,7 @@ dependencies = [
 [[package]]
 name = "apollo_rpc"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "anyhow",
  "apollo_class_manager_types",
@@ -1054,7 +1054,7 @@ dependencies = [
 [[package]]
 name = "apollo_rpc_execution"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "anyhow",
  "apollo_class_manager_types",
@@ -1079,7 +1079,7 @@ dependencies = [
 [[package]]
 name = "apollo_starknet_client"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_config",
  "async-trait",
@@ -1106,7 +1106,7 @@ dependencies = [
 [[package]]
 name = "apollo_state_sync_types"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra",
  "apollo_proc_macros",
@@ -1123,7 +1123,7 @@ dependencies = [
 [[package]]
 name = "apollo_storage"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_config",
  "apollo_proc_macros",
@@ -1906,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "blockifier"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "anyhow",
  "apollo_compilation_utils",
@@ -1944,7 +1944,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "sierra-emu",
+ "sierra-emu 0.6.0 (git+https://github.com/lambdaclass/cairo_native.git?rev=80e6b125d2d99d1301833292bf97c8ea9f82ead4)",
  "starknet-types-core",
  "starknet_api",
  "strum 0.25.0",
@@ -1955,7 +1955,7 @@ dependencies = [
 [[package]]
 name = "blockifier_reexecution"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_gateway",
  "apollo_rpc_execution",
@@ -1981,7 +1981,7 @@ dependencies = [
 [[package]]
 name = "blockifier_test_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra_utils",
  "cairo-lang-starknet-classes",
@@ -2695,7 +2695,7 @@ dependencies = [
 [[package]]
 name = "cairo-native"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=d7f8352657a4c1228b227807b90aea10f97f746d#d7f8352657a4c1228b227807b90aea10f97f746d"
+source = "git+https://github.com/lambdaclass/cairo_native.git?rev=a0730a8d64d43836ac8812b4eb212706f5aae14b#a0730a8d64d43836ac8812b4eb212706f5aae14b"
 dependencies = [
  "anyhow",
  "aquamarine",
@@ -2737,7 +2737,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "sierra-emu",
+ "sierra-emu 0.6.0 (git+https://github.com/lambdaclass/cairo_native.git?rev=a0730a8d64d43836ac8812b4eb212706f5aae14b)",
  "starknet-curve",
  "starknet-types-core",
  "stats_alloc",
@@ -3008,9 +3008,9 @@ dependencies = [
 
 [[package]]
 name = "comrak"
-version = "0.33.0"
+version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39bff2cbb80102771ca62bd2375bc6f6611dc1493373440b23aa08a155538708"
+checksum = "2a4f05e73ca9a30af27bebc13600f91fd1651b2ec7d139ca82a89df7ca583af1"
 dependencies = [
  "caseless",
  "entities",
@@ -3085,15 +3085,6 @@ name = "convert_case"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
-
-[[package]]
-name = "convert_case"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
-dependencies = [
- "unicode-segmentation",
-]
 
 [[package]]
 name = "convert_case"
@@ -6160,9 +6151,9 @@ checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 
 [[package]]
 name = "llvm-sys"
-version = "191.0.0"
+version = "201.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "893cddf1adf0354b93411e413553dd4daf5c43195d73f1acfa1e394bdd371456"
+checksum = "9bb947e8b79254ca10d496d0798a9ba1287dcf68e50a92b016fec1cc45bef447"
 dependencies = [
  "anyhow",
  "cc",
@@ -6286,9 +6277,9 @@ dependencies = [
 
 [[package]]
 name = "melior"
-version = "0.21.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2af6454b7bcd7edc8c2060a3726a18ceaed60e25c34d9f8de9c6b44e82eb647"
+checksum = "8a965d90213b0759491eeff1a94a3daf3c87918b13d2411227c1be8c26df6293"
 dependencies = [
  "melior-macro",
  "mlir-sys",
@@ -6296,12 +6287,12 @@ dependencies = [
 
 [[package]]
 name = "melior-macro"
-version = "0.14.0"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a99671327250df8e24e56d8304474a970e7a2c6bb8f6dc71382d188136fe4d1b"
+checksum = "49d9020b35c25d0f40d125e660386b6a374a9f79285d58f67eb8301b9509e6ef"
 dependencies = [
  "comrak",
- "convert_case 0.7.1",
+ "convert_case 0.8.0",
  "proc-macro2",
  "quote",
  "regex",
@@ -6328,7 +6319,7 @@ dependencies = [
 [[package]]
 name = "mempool_test_utils"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra_utils",
  "assert_matches",
@@ -6403,9 +6394,9 @@ dependencies = [
 
 [[package]]
 name = "mlir-sys"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cee4047ffefa7e9853412025a98b38a66968584543918cf084a6e4df9144b71b"
+checksum = "8e9348dd263d2680d657635d9dd084cdcd785d7486a41332ffa4c926d5882b54"
 dependencies = [
  "bindgen 0.71.1",
 ]
@@ -6921,7 +6912,7 @@ dependencies = [
 [[package]]
 name = "papyrus_base_layer"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "alloy",
  "apollo_config",
@@ -6946,7 +6937,7 @@ dependencies = [
 [[package]]
 name = "papyrus_common"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "cairo-lang-starknet-classes",
  "indexmap 2.9.0",
@@ -8708,7 +8699,46 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sierra-emu"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/cairo_native.git?rev=d7f8352657a4c1228b227807b90aea10f97f746d#d7f8352657a4c1228b227807b90aea10f97f746d"
+source = "git+https://github.com/lambdaclass/cairo_native.git?rev=80e6b125d2d99d1301833292bf97c8ea9f82ead4#80e6b125d2d99d1301833292bf97c8ea9f82ead4"
+dependencies = [
+ "cairo-lang-compiler",
+ "cairo-lang-filesystem",
+ "cairo-lang-runner",
+ "cairo-lang-sierra",
+ "cairo-lang-sierra-ap-change",
+ "cairo-lang-sierra-gas",
+ "cairo-lang-sierra-generator",
+ "cairo-lang-sierra-to-casm",
+ "cairo-lang-starknet-classes",
+ "cairo-lang-test-plugin",
+ "cairo-lang-utils",
+ "clap",
+ "k256",
+ "keccak",
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "p256",
+ "rand 0.8.5",
+ "rayon",
+ "sec1",
+ "serde",
+ "serde_json",
+ "sha2",
+ "smallvec",
+ "starknet-crypto",
+ "starknet-curve",
+ "starknet-types-core",
+ "tempfile",
+ "thiserror 2.0.12",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "sierra-emu"
+version = "0.6.0"
+source = "git+https://github.com/lambdaclass/cairo_native.git?rev=a0730a8d64d43836ac8812b4eb212706f5aae14b#a0730a8d64d43836ac8812b4eb212706f5aae14b"
 dependencies = [
  "cairo-lang-compiler",
  "cairo-lang-filesystem",
@@ -9021,7 +9051,7 @@ dependencies = [
 [[package]]
 name = "starknet_api"
 version = "0.15.0-rc.2"
-source = "git+https://github.com/lambdaclass/sequencer.git?rev=8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff#8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff"
+source = "git+https://github.com/lambdaclass/sequencer.git?rev=957df08047360693cdfb9762c58f70ad2ac36def#957df08047360693cdfb9762c58f70ad2ac36def"
 dependencies = [
  "apollo_infra_utils",
  "base64 0.13.1",
@@ -9327,9 +9357,9 @@ dependencies = [
 
 [[package]]
 name = "tblgen"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c155c9310c9e11e6f642b4c8a30ae572ea0cad013d5c9e28bb264b52fa8163bb"
+checksum = "836472eafcc544aa0167f880c0998d4a77b422d22100186e67fc6daf35cab94c"
 dependencies = [
  "bindgen 0.71.1",
  "cc",

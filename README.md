@@ -6,7 +6,7 @@ Provides a way of reading a real Starknet State, so you can re-execute an existi
 ### Prerequisites
 
 - Linux or macOS (aarch64 included) only for now
-- LLVM 19 with MLIR
+- LLVM 20 with MLIR
 - Rust 1.78.0 or later, since cairo-native makes use of the u128 abi change.
 - Git
 
@@ -16,16 +16,16 @@ Run the following make target to install dependencies:
 ```bash
 make deps
 ```
-It will automatically install LLVM 19 with MLIR on macos, if you are using linux you must do it manually. On debian, you can use `apt.llvm.org`, or build it from source.
+It will automatically install LLVM 20 with MLIR on macos, if you are using linux you must do it manually. On debian, you can use `apt.llvm.org`, or build it from source.
 
 This project is integrated with Cairo Native, see [Cairo Native Setup](#cairo-native-setup) to set it up correctly
 
 Some environment variable are needed, you can automatically set them by sourcing `env.sh`. If the script doesn't adjust to your specific environment you can `cp` it into `.env` or `.envrc` and modify it.
 ```bash
 # Cairo Native
-export LLVM_SYS_191_PREFIX=/path/to/llvm-19
-export MLIR_SYS_190_PREFIX=/path/to/llvm-19
-export TABLEGEN_190_PREFIX=/path/to/llvm-19
+export LLVM_SYS_201_PREFIX=/path/to/llvm-20
+export MLIR_SYS_200_PREFIX=/path/to/llvm-20
+export TABLEGEN_200_PREFIX=/path/to/llvm-20
 # RPC
 export RPC_ENDPOINT_MAINNET=rpc.endpoint.mainnet.com
 export RPC_ENDPOINT_TESTNET=rpc.endpoint.testnet.com
@@ -47,13 +47,13 @@ make test
 
 Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/lambdaclass/cairo_native), which makes the execution of sierra programs possible through native machine code. To use it, the following needs to be setup:
 
-- On mac with brew, running `make deps` should have installed LLVM 19 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
+- On mac with brew, running `make deps` should have installed LLVM 20 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
 
-- The `LLVM_SYS_191_PREFIX`, `MLIR_SYS_190_PREFIX` and `TABLEGEN_190_PREFIX` environment variable needs to point to said installation. In macOS, run:
+- The `LLVM_SYS_200_PREFIX`, `MLIR_SYS_201_PREFIX` and `TABLEGEN_200_PREFIX` environment variable needs to point to said installation. In macOS, run:
   ```
-  export LLVM_SYS_190_PREFIX=/opt/homebrew/opt/llvm@19
-  export MLIR_SYS_191_PREFIX=/opt/homebrew/opt/llvm@19
-  export TABLEGEN_190_PREFIX=/opt/homebrew/opt/llvm@19
+  export LLVM_SYS_200_PREFIX=/opt/homebrew/opt/llvm@20
+  export MLIR_SYS_201_PREFIX=/opt/homebrew/opt/llvm@20
+  export TABLEGEN_200_PREFIX=/opt/homebrew/opt/llvm@20
   ```
   and you're set.
 
