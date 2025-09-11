@@ -280,3 +280,56 @@ pub fn get_block_info(block: &BlockWithTxHashes) -> anyhow::Result<BlockInfo> {
         use_kzg_da: true,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use blockifier::{
+        state::cached_state::CachedState, transaction::account_transaction::ExecutionFlags,
+    };
+    use starknet_api::{block::BlockNumber, core::ChainId, felt, transaction::TransactionHash};
+    use state_reader::{block_state_reader::BlockStateReader, full_state_reader::FullStateReader};
+    use test_case::test_case;
+
+    use crate::execution::{execute_tx, get_block_context};
+
+    #[test_case(
+        "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
+        648462,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
+        650558,
+        ChainId::Mainnet
+    )]
+    fn execute_transaction(hash: &str, block_number: u64, chain: ChainId) {
+        let tx_hash = TransactionHash(felt!(hash));
+        let block_number = BlockNumber(block_number);
+
+        let full_reader = FullStateReader::new(chain);
+        let block_reader = BlockStateReader::new(
+            block_number
+                .prev()
+                .expect("block number should not be zero"),
+            &full_reader,
+        );
+        let mut state = CachedState::new(block_reader);
+        let block_context =
+            get_block_context(&full_reader, block_number).expect("failed to get block context");
+
+        let flags = ExecutionFlags {
+            only_query: false,
+            charge_fee: false,
+            validate: false,
+            strict_nonce_check: true,
+        };
+        let execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
+            .expect("failed to execute transaction")
+            .result
+            .expect("transaction execution failed");
+
+        // TODO: We should execute with both Cairo Native and Cairo VM, and
+        // compare the execution result and state diffs.
+        assert!(!execution.is_reverted())
+    }
+}
