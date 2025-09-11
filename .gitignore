@@ -18,3 +18,14 @@ corelib
 cairo-*.tar
 call_state_dumps
 cache
+
+# Contracts
+
+# Avoid Scarb.lock
+contracts/*/*.lock
+contracts/*/target
+contracts/*/.snfoundry_cache
+contracts/*/snfoundry_trace
+contracts/*/coverage
+contracts/*/profile 
+
