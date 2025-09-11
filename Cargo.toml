@@ -7,26 +7,26 @@ members = ["rpc-state-reader", "replay", "tools", "profiler-sdk", "state-reader"
 resolver = "2"
 
 [workspace.dependencies]
-starknet-types-core = "0.1.6"
+starknet-types-core = "0.2.0"
 tracing = "0.1"
 serde_json = "1.0.135"
 serde_with = "3.12.0"
 serde = "1.0.217"
 fs2 = "0.4.3"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", rev = "d7f8352657a4c1228b227807b90aea10f97f746d" }
-cairo-vm = "2.0.1"
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", rev = "dd8d0159f588ca207f35fdf45360820ffcbc9691" }
+cairo-vm = "2.4.1"
 anyhow = "1.0"
 
 # Cairo Dependencies
-cairo-lang-starknet-classes = "2.12.0"
-cairo-lang-starknet = "2.12.0"
-cairo-lang-compiler = "2.12.0"
-cairo-lang-sierra = "2.12.0"
+cairo-lang-starknet-classes = "2.12.2"
+cairo-lang-starknet = "2.12.2"
+cairo-lang-compiler = "2.12.2"
+cairo-lang-sierra = "2.12.2"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff" } # main-v0.14.0
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff", features = [
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3669b7ff0c37d84de1c70cdff06046783d4db123" } # main-v0.14.0
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3669b7ff0c37d84de1c70cdff06046783d4db123", features = [
   "cairo_native",
 ] } # main-v0.14.0
-apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff" } # main-v0.14.0
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "8515ff17eaf125cc48e8fb3c85ea8c9dc6cee4ff" } # main-v0.14.0
+apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3669b7ff0c37d84de1c70cdff06046783d4db123" } # main-v0.14.0
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "3669b7ff0c37d84de1c70cdff06046783d4db123" } # main-v0.14.0
