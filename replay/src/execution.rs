@@ -517,11 +517,12 @@ mod tests {
             .expect("transaction execution failed");
 
         normalize_execution_info(&mut execution);
+        let summary = execution.summarize(block_context.versioned_constants());
 
-        let expected_execution_file =
-            File::open(format!("../test_data/execution_info/{}.json", hash)).unwrap();
-        let expected_execution = serde_json::from_reader(expected_execution_file).unwrap();
-        assert_eq_sorted!(execution, expected_execution);
+        let expected_summary_file =
+            File::open(format!("../test_data/execution_summary/{}.json", hash)).unwrap();
+        let expected_summary = serde_json::from_reader(expected_summary_file).unwrap();
+        assert_eq_sorted!(summary, expected_summary);
 
         assert!(
             !execution.is_reverted(),
