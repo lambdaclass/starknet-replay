@@ -332,4 +332,43 @@ mod tests {
         // compare the execution result and state diffs.
         assert!(!execution.is_reverted())
     }
+
+    #[test_case(
+        "0x01fa98bed3aff8d9bb109fff1215b15b60dd2ca75045a5c5362655a0c380ef98",
+        500000,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x02b28b4846a756e0cec6385d6d13f811e745a88c7e75a3ebc5fead5b4af152a3",
+        200303,
+        ChainId::Mainnet
+    )]
+    fn execute_reverted_transaction(hash: &str, block_number: u64, chain: ChainId) {
+        let tx_hash = TransactionHash(felt!(hash));
+        let block_number = BlockNumber(block_number);
+
+        let full_reader = FullStateReader::new(chain);
+        let block_reader = BlockStateReader::new(
+            block_number
+                .prev()
+                .expect("block number should not be zero"),
+            &full_reader,
+        );
+        let mut state = CachedState::new(block_reader);
+        let block_context =
+            get_block_context(&full_reader, block_number).expect("failed to get block context");
+
+        let flags = ExecutionFlags {
+            only_query: false,
+            charge_fee: false,
+            validate: false,
+            strict_nonce_check: true,
+        };
+        let execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
+            .expect("failed to execute transaction")
+            .result
+            .expect("transaction execution failed");
+
+        assert!(execution.is_reverted())
+    }
 }
