@@ -389,6 +389,16 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
+        "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
+        653001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
+        281514,
+        ChainId::Mainnet
+    )]
+    #[test_case(
         "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
         654001,
         ChainId::Mainnet
@@ -406,6 +416,11 @@ mod tests {
     #[test_case(
         "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
         654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
+        641976,
         ChainId::Mainnet
     )]
     fn execute_transaction(hash: &str, block_number: u64, chain: ChainId) {
