@@ -293,13 +293,13 @@ mod tests {
     use crate::execution::{execute_tx, get_block_context};
 
     #[test_case(
-        "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
-        648462,
+        "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
+        197001,
         ChainId::Mainnet
     )]
     #[test_case(
-        "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
-        650558,
+        "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
+        186552,
         ChainId::Mainnet
     )]
     #[test_case(
@@ -313,58 +313,18 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
-        "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
-        197001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
-        169929,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
-        169929,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
-        169929,
-        ChainId::Mainnet
-    )]
-    #[test_case(
         "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
         169929,
         ChainId::Mainnet
     )]
     #[test_case(
-        "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
-        186549,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
-        186552,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
-        317093,
+        "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
+        648462,
         ChainId::Mainnet
     )]
     #[test_case(
         "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
         398052,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
-        351269,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
-        351226,
         ChainId::Mainnet
     )]
     // OpenZeppelin (v0.7.0)
@@ -374,8 +334,68 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
+        "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
+        186549,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
+        650558,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
+        317093,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
+        351269,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
+        653001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
         "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
         638867,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
+        351226,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
+        654001,
         ChainId::Mainnet
     )]
     #[test_case(
@@ -386,26 +406,6 @@ mod tests {
     #[test_case(
         "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
         654001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
-        654001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
-        654001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
-        654001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
-        "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
-        653001,
         ChainId::Mainnet
     )]
     fn execute_transaction(hash: &str, block_number: u64, chain: ChainId) {
