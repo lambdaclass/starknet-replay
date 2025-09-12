@@ -303,6 +303,11 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
+        "0x00f390691fd9e865f5aef9c7cc99889fb6c2038bc9b7e270e8a4fe224ccd404d",
+        662251,
+        ChainId::Mainnet
+    )]
+    #[test_case(
         "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
         90007,
         ChainId::Mainnet
@@ -318,6 +323,26 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
+        "0x026e04e96ba1b75bfd066c8e138e17717ecb654909e6ac24007b644ac23e4b47",
+        536893,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4",
+        662249,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0355059efee7a38ba1fd5aef13d261914608dce7bdfacad92a71e396f0ad7a77",
+        661815,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x04756d898323a8f884f5a6aabd6834677f4bbaeecc2522f18b3ae45b3f99cd1e",
+        662250,
+        ChainId::Mainnet
+    )]
+    #[test_case(
         "0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a",
         648462,
         ChainId::Mainnet
@@ -327,7 +352,6 @@ mod tests {
         398052,
         ChainId::Mainnet
     )]
-    // OpenZeppelin (v0.7.0)
     #[test_case(
         "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
         422882,
@@ -339,8 +363,28 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
+        "0x05324bac55fb9fb53e738195c2dcc1e7fed1334b6db824665e3e984293bec95e",
+        662246,
+        ChainId::Mainnet
+    )]
+    #[test_case(
         "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
         169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x066e1f01420d8e433f6ef64309adb1a830e5af0ea67e3d935de273ca57b3ae5e",
+        662252,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x06962f11a96849ebf05cd222313858a93a8c5f300493ed6c5859dd44f5f2b4e3",
+        654770,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x06a09ffbf996178ac6e90101047e42fe29cb7108573b2ecf4b0ebd2cba544cb4",
+        662248,
         ChainId::Mainnet
     )]
     #[test_case(
@@ -356,6 +400,11 @@ mod tests {
     #[test_case(
         "0x0780e3a498b4fd91ab458673891d3e8ee1453f9161f4bfcb93dd1e2c91c52e10",
         650558,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x078b81326882ecd2dc6c5f844527c3f33e0cdb52701ded7b1aa4d220c5264f72",
+        653019,
         ChainId::Mainnet
     )]
     #[test_case(
