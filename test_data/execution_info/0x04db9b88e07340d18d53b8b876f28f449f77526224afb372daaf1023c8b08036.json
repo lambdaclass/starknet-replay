@@ -1,0 +1,129 @@
+{
+  "validate_call_info": null,
+  "execute_call_info": {
+    "call": {
+      "class_hash": "0x4c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755",
+      "code_address": null,
+      "entry_point_type": "CONSTRUCTOR",
+      "entry_point_selector": "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194",
+      "calldata": [
+        "0x1e547445b25bfd96c06059c80c711b55570456cb17e7c7e1436fb88d5f2c63"
+      ],
+      "storage_address": "0x4c7fca7533ded66e2b8de774c9e08228f5e1aafb3ae8c86de87e1a6d7b03b50",
+      "caller_address": "0x0",
+      "call_type": "Call",
+      "initial_gas": 100000000
+    },
+    "execution": {
+      "retdata": [],
+      "events": [
+        {
+          "order": 0,
+          "event": {
+            "keys": [
+              "0x38f6a5b87c23cee6e7294bcc3302e95019f70f81586ff3cac38581f5ca96381"
+            ],
+            "data": [
+              "0x1e547445b25bfd96c06059c80c711b55570456cb17e7c7e1436fb88d5f2c63"
+            ]
+          }
+        }
+      ],
+      "l2_to_l1_messages": [],
+      "cairo_native": false,
+      "failed": false,
+      "gas_consumed": 62000
+    },
+    "inner_calls": [],
+    "resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "tracked_resource": "SierraGas",
+    "time": {
+      "secs": 0,
+      "nanos": 0
+    },
+    "call_counter": 0,
+    "storage_access_tracker": {
+      "storage_read_values": [],
+      "accessed_storage_keys": [
+        "0x1379ac0624b939ceb9dede92211d7db5ee174fe28be72245b0a1a2abd81c98f",
+        "0x7e79bbb6be5d418acd50c88b675e697f6f7094e203c9d7e29c6ad6731f931dd"
+      ],
+      "read_class_hash_values": [],
+      "accessed_contract_addresses": [],
+      "read_block_hash_values": [],
+      "accessed_blocks": []
+    },
+    "builtin_counters": {
+      "range_check": 8,
+      "pedersen": 1
+    }
+  },
+  "fee_transfer_call_info": null,
+  "revert_error": null,
+  "receipt": {
+    "fee": "0x82b9234677",
+    "gas": {
+      "l1_gas": 17,
+      "l1_data_gas": 352,
+      "l2_gas": 0
+    },
+    "da_gas": {
+      "l1_gas": 0,
+      "l1_data_gas": 288,
+      "l2_gas": 0
+    },
+    "resources": {
+      "starknet_resources": {
+        "archival_data": {
+          "event_summary": {
+            "n_events": 1,
+            "total_event_keys": 1,
+            "total_event_data_size": 1
+          },
+          "calldata_length": 1,
+          "signature_length": 2,
+          "code_size": 0
+        },
+        "messages": {
+          "l2_to_l1_payload_lengths": [],
+          "message_segment_length": 0,
+          "l1_handler_payload_size": null
+        },
+        "state": {
+          "state_changes_for_fee": {
+            "state_changes_count": {
+              "n_storage_updates": 3,
+              "n_class_hash_updates": 1,
+              "n_compiled_class_hash_updates": 0,
+              "n_modified_contracts": 1
+            },
+            "n_allocated_keys": 2
+          }
+        }
+      },
+      "computation": {
+        "tx_vm_resources": {
+          "n_steps": 0,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {}
+        },
+        "os_vm_resources": {
+          "n_steps": 5715,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {
+            "poseidon_builtin": 17,
+            "pedersen_builtin": 12,
+            "range_check_builtin": 246
+          }
+        },
+        "n_reverted_steps": 0,
+        "sierra_gas": 62000,
+        "reverted_sierra_gas": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,2141 @@
+{
+  "validate_call_info": null,
+  "execute_call_info": {
+    "call": {
+      "class_hash": "0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b",
+      "code_address": null,
+      "entry_point_type": "EXTERNAL",
+      "entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+      "calldata": [
+        "0x3",
+        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+        "0x3",
+        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+        "0xd8d726b7177a8000",
+        "0x0",
+        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+        "0x33076126f032617037f0b2fe939518f69cc8b9e9689b6ab065bb612662c53fc",
+        "0x15",
+        "0x1",
+        "0x2",
+        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+        "0x68db8bac710cb4000000000000000",
+        "0xc8",
+        "0x0",
+        "0xbcc2caabc14f5b6b512232c8411",
+        "0x0",
+        "0x0",
+        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+        "0xc49ba5e353f7d00000000000000000",
+        "0x56a4c",
+        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+        "0x28d674021afe2194f265c13faa484ba9",
+        "0x1893b095a236",
+        "0x0",
+        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0xd8d726b7177a8000",
+        "0x0",
+        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+        "0x2e1d93dafae32660a4a76a0fd6f31550f3ddfd6a51c29ef2e055b80afbbd011",
+        "0x3",
+        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+        "0xd8d726b7177a8000",
+        "0x0"
+      ],
+      "storage_address": "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+      "caller_address": "0x0",
+      "call_type": "Call",
+      "initial_gas": 10000000000
+    },
+    "execution": {
+      "retdata": [
+        "0x3",
+        "0x1",
+        "0x1",
+        "0xa",
+        "0x1",
+        "0x2",
+        "0xd8d726b7177a8000",
+        "0x0",
+        "0x7c0b05",
+        "0x1",
+        "0xdb3d82f62f83a1f4",
+        "0x1",
+        "0x7c0b05",
+        "0x0",
+        "0x2",
+        "0xdb3d82f62f83a1f4",
+        "0x0"
+      ],
+      "events": [
+        {
+          "order": 12,
+          "event": {
+            "keys": [
+              "0x1dcde06aabdbca2f80aa51392b345d7549d7757aa855f7e37f5d335ac8243b1",
+              "0x310c46edc795c82c71f600159fa9e6c6540cb294df9d156f685bfe62b31a5f4"
+            ],
+            "data": [
+              "0x3",
+              "0x1",
+              "0x1",
+              "0xa",
+              "0x1",
+              "0x2",
+              "0xd8d726b7177a8000",
+              "0x0",
+              "0x7c0b05",
+              "0x1",
+              "0xdb3d82f62f83a1f4",
+              "0x1",
+              "0x7c0b05",
+              "0x0",
+              "0x2",
+              "0xdb3d82f62f83a1f4",
+              "0x0"
+            ]
+          }
+        }
+      ],
+      "l2_to_l1_messages": [],
+      "cairo_native": false,
+      "failed": false,
+      "gas_consumed": 21498770
+    },
+    "inner_calls": [
+      {
+        "call": {
+          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          "entry_point_type": "EXTERNAL",
+          "entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+          "calldata": [
+            "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+            "0xd8d726b7177a8000",
+            "0x0"
+          ],
+          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          "caller_address": "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+          "call_type": "Call",
+          "initial_gas": 9999644650
+        },
+        "execution": {
+          "retdata": [
+            "0x1"
+          ],
+          "events": [
+            {
+              "order": 0,
+              "event": {
+                "keys": [
+                  "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+                ],
+                "data": [
+                  "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+                  "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                  "0xd8d726b7177a8000",
+                  "0x0"
+                ]
+              }
+            }
+          ],
+          "l2_to_l1_messages": [],
+          "cairo_native": false,
+          "failed": false,
+          "gas_consumed": 186720
+        },
+        "inner_calls": [],
+        "resources": {
+          "n_steps": 0,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {}
+        },
+        "tracked_resource": "SierraGas",
+        "time": {
+          "secs": 0,
+          "nanos": 0
+        },
+        "call_counter": 1,
+        "storage_access_tracker": {
+          "storage_read_values": [
+            "0x5ad25d7c3737430a85",
+            "0x0",
+            "0x0",
+            "0x0"
+          ],
+          "accessed_storage_keys": [
+            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f",
+            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e",
+            "0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007235",
+            "0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007236"
+          ],
+          "read_class_hash_values": [],
+          "accessed_contract_addresses": [],
+          "read_block_hash_values": [],
+          "accessed_blocks": []
+        },
+        "builtin_counters": {
+          "pedersen": 4,
+          "range_check": 37
+        }
+      },
+      {
+        "call": {
+          "class_hash": "0x5fdb47de4edfd5983f6a82a1beeb1aab2b69d3674b90730aa1693d94d73f0d3",
+          "code_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+          "entry_point_type": "EXTERNAL",
+          "entry_point_selector": "0x33076126f032617037f0b2fe939518f69cc8b9e9689b6ab065bb612662c53fc",
+          "calldata": [
+            "0x1",
+            "0x2",
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+            "0x68db8bac710cb4000000000000000",
+            "0xc8",
+            "0x0",
+            "0xbcc2caabc14f5b6b512232c8411",
+            "0x0",
+            "0x0",
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+            "0xc49ba5e353f7d00000000000000000",
+            "0x56a4c",
+            "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+            "0x28d674021afe2194f265c13faa484ba9",
+            "0x1893b095a236",
+            "0x0",
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "0xd8d726b7177a8000",
+            "0x0"
+          ],
+          "storage_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+          "caller_address": "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+          "call_type": "Call",
+          "initial_gas": 9999391050
+        },
+        "execution": {
+          "retdata": [
+            "0x1",
+            "0x2",
+            "0xd8d726b7177a8000",
+            "0x0",
+            "0x7c0b05",
+            "0x1",
+            "0xdb3d82f62f83a1f4",
+            "0x1",
+            "0x7c0b05",
+            "0x0"
+          ],
+          "events": [],
+          "l2_to_l1_messages": [],
+          "cairo_native": false,
+          "failed": false,
+          "gas_consumed": 20204080
+        },
+        "inner_calls": [
+          {
+            "call": {
+              "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+              "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+              "entry_point_type": "EXTERNAL",
+              "entry_point_selector": "0x168652c307c1e813ca11cfb3a601f1cf3b22452021a5052d8b05f1f1f8a3e92",
+              "calldata": [
+                "0x17",
+                "0x0",
+                "0x1",
+                "0x2",
+                "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                "0x68db8bac710cb4000000000000000",
+                "0xc8",
+                "0x0",
+                "0xbcc2caabc14f5b6b512232c8411",
+                "0x0",
+                "0x0",
+                "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                "0xc49ba5e353f7d00000000000000000",
+                "0x56a4c",
+                "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                "0x28d674021afe2194f265c13faa484ba9",
+                "0x1893b095a236",
+                "0x0",
+                "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                "0xd8d726b7177a8000",
+                "0x0",
+                "0x0"
+              ],
+              "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+              "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+              "call_type": "Call",
+              "initial_gas": 9999108160
+            },
+            "execution": {
+              "retdata": [
+                "0xa",
+                "0x1",
+                "0x2",
+                "0xd8d726b7177a8000",
+                "0x0",
+                "0x7c0b05",
+                "0x1",
+                "0xdb3d82f62f83a1f4",
+                "0x1",
+                "0x7c0b05",
+                "0x0"
+              ],
+              "events": [],
+              "l2_to_l1_messages": [],
+              "cairo_native": false,
+              "failed": false,
+              "gas_consumed": 19856190
+            },
+            "inner_calls": [
+              {
+                "call": {
+                  "class_hash": "0x5fdb47de4edfd5983f6a82a1beeb1aab2b69d3674b90730aa1693d94d73f0d3",
+                  "code_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                  "entry_point_type": "EXTERNAL",
+                  "entry_point_selector": "0x399c6d7581cbb37d2e578d3097bfdd3323e05447f1fd7670b6c3a3fb9d9ff79",
+                  "calldata": [
+                    "0x0",
+                    "0x17",
+                    "0x0",
+                    "0x1",
+                    "0x2",
+                    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                    "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                    "0x68db8bac710cb4000000000000000",
+                    "0xc8",
+                    "0x0",
+                    "0xbcc2caabc14f5b6b512232c8411",
+                    "0x0",
+                    "0x0",
+                    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                    "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                    "0xc49ba5e353f7d00000000000000000",
+                    "0x56a4c",
+                    "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                    "0x28d674021afe2194f265c13faa484ba9",
+                    "0x1893b095a236",
+                    "0x0",
+                    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                    "0xd8d726b7177a8000",
+                    "0x0",
+                    "0x0"
+                  ],
+                  "storage_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                  "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                  "call_type": "Call",
+                  "initial_gas": 9998869920
+                },
+                "execution": {
+                  "retdata": [
+                    "0xa",
+                    "0x1",
+                    "0x2",
+                    "0xd8d726b7177a8000",
+                    "0x0",
+                    "0x7c0b05",
+                    "0x1",
+                    "0xdb3d82f62f83a1f4",
+                    "0x1",
+                    "0x7c0b05",
+                    "0x0"
+                  ],
+                  "events": [],
+                  "l2_to_l1_messages": [],
+                  "cairo_native": false,
+                  "failed": false,
+                  "gas_consumed": 19577980
+                },
+                "inner_calls": [
+                  {
+                    "call": {
+                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "entry_point_type": "EXTERNAL",
+                      "entry_point_selector": "0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29",
+                      "calldata": [
+                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                        "0x68db8bac710cb4000000000000000",
+                        "0xc8",
+                        "0x0",
+                        "0xd8d726b7177a8000",
+                        "0x0",
+                        "0x0",
+                        "0xbcc2caabc14f5b6b512232c8411",
+                        "0x0",
+                        "0x0"
+                      ],
+                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "call_type": "Call",
+                      "initial_gas": 9997378780
+                    },
+                    "execution": {
+                      "retdata": [
+                        "0xd8d726b7177a8000",
+                        "0x0",
+                        "0x7c0b05",
+                        "0x1"
+                      ],
+                      "events": [
+                        {
+                          "order": 1,
+                          "event": {
+                            "keys": [
+                              "0x157717768aca88da4ac4279765f09f4d0151823d573537fbbeb950cdbd9a870"
+                            ],
+                            "data": [
+                              "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                              "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                              "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                              "0x68db8bac710cb4000000000000000",
+                              "0xc8",
+                              "0x0",
+                              "0xd8d726b7177a8000",
+                              "0x0",
+                              "0x0",
+                              "0xbcc2caabc14f5b6b512232c8411",
+                              "0x0",
+                              "0x0",
+                              "0xd8d726b7177a8000",
+                              "0x0",
+                              "0x7c0b05",
+                              "0x1",
+                              "0xc19de926daf40aa43e4ba62e069",
+                              "0x0",
+                              "0x1af964e",
+                              "0x1",
+                              "0xfae502ce7c0edb"
+                            ]
+                          }
+                        }
+                      ],
+                      "l2_to_l1_messages": [],
+                      "cairo_native": false,
+                      "failed": false,
+                      "gas_consumed": 3989280
+                    },
+                    "inner_calls": [],
+                    "resources": {
+                      "n_steps": 0,
+                      "n_memory_holes": 0,
+                      "builtin_instance_counter": {}
+                    },
+                    "tracked_resource": "SierraGas",
+                    "time": {
+                      "secs": 0,
+                      "nanos": 0
+                    },
+                    "call_counter": 5,
+                    "storage_access_tracker": {
+                      "storage_read_values": [
+                        "0x1",
+                        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                        "0x101af950f00000000000000000000000c1a5d23a1707b74b49b5bc92942",
+                        "0xfae502ce7c0edb",
+                        "0x1695d8682559cde9ee4827eee79c43617e69",
+                        "0x1bbccb733cad5b41c61e66e6d6",
+                        "0x10000000000000000000000000000000000000000000000000000",
+                        "0x0",
+                        "0x0",
+                        "0x0",
+                        "0x1"
+                      ],
+                      "accessed_storage_keys": [
+                        "0x0",
+                        "0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f",
+                        "0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d44",
+                        "0x6267108c93bc853ce42efb890b0793116c50e5a98b13e024640da0d272115a8",
+                        "0x6aff514d3c14935bb84bfc2f5e443daa68c6b9af02150bce2904dc5cee89fb4",
+                        "0x4428af60ea017cd8ac5a041f3777f8b2d7450f8474e471bcbae608cca7975ae",
+                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                        "0x73ffd08441115d89e71906f927d21e18c97a612c56116b40280b8ee6ae5e1f6",
+                        "0x45fb8ffc8b8d0d2521fdc1b3558fea0c43ed03911387994698ae9e504026d43",
+                        "0x100000000"
+                      ],
+                      "read_class_hash_values": [],
+                      "accessed_contract_addresses": [],
+                      "read_block_hash_values": [],
+                      "accessed_blocks": []
+                    },
+                    "builtin_counters": {
+                      "pedersen": 23,
+                      "bitwise": 56,
+                      "range_check": 2152
+                    }
+                  },
+                  {
+                    "call": {
+                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "entry_point_type": "EXTERNAL",
+                      "entry_point_selector": "0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29",
+                      "calldata": [
+                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                        "0xc49ba5e353f7d00000000000000000",
+                        "0x56a4c",
+                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                        "0x7c0b05",
+                        "0x0",
+                        "0x1",
+                        "0x28d674021afe2194f265c13faa484ba9",
+                        "0x1893b095a236",
+                        "0x0"
+                      ],
+                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "call_type": "Call",
+                      "initial_gas": 9993305390
+                    },
+                    "execution": {
+                      "retdata": [
+                        "0xdb3d82f62f83a1f4",
+                        "0x1",
+                        "0x7c0b05",
+                        "0x0"
+                      ],
+                      "events": [
+                        {
+                          "order": 6,
+                          "event": {
+                            "keys": [
+                              "0x157717768aca88da4ac4279765f09f4d0151823d573537fbbeb950cdbd9a870"
+                            ],
+                            "data": [
+                              "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                              "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                              "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                              "0xc49ba5e353f7d00000000000000000",
+                              "0x56a4c",
+                              "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                              "0x7c0b05",
+                              "0x0",
+                              "0x1",
+                              "0x28d674021afe2194f265c13faa484ba9",
+                              "0x1893b095a236",
+                              "0x0",
+                              "0xdb3d82f62f83a1f4",
+                              "0x1",
+                              "0x7c0b05",
+                              "0x0",
+                              "0xc04d7c36396b0394636b0ee8596",
+                              "0x0",
+                              "0x1afcb84",
+                              "0x1",
+                              "0x79a92a91ce340a"
+                            ]
+                          }
+                        }
+                      ],
+                      "l2_to_l1_messages": [],
+                      "cairo_native": false,
+                      "failed": false,
+                      "gas_consumed": 12394840
+                    },
+                    "inner_calls": [
+                      {
+                        "call": {
+                          "class_hash": "0x27067191f94e301b528b1624e7998d51606412522aab9621fb2c1899b983eeb",
+                          "code_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x3e4197049aa0cc49170c700024e2daeae0a266bb500b4c4a916a397b64ac970",
+                          "calldata": [
+                            "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                            "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                            "0xc49ba5e353f7d00000000000000000",
+                            "0x56a4c",
+                            "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                            "0x7c0b05",
+                            "0x0",
+                            "0x1",
+                            "0x28d674021afe2194f265c13faa484ba9",
+                            "0x1893b095a236",
+                            "0x0"
+                          ],
+                          "storage_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9992785040
+                        },
+                        "execution": {
+                          "retdata": [],
+                          "events": [],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 8365600
+                        },
+                        "inner_calls": [
+                          {
+                            "call": {
+                              "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                              "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                              "entry_point_type": "EXTERNAL",
+                              "entry_point_selector": "0x168652c307c1e813ca11cfb3a601f1cf3b22452021a5052d8b05f1f1f8a3e92",
+                              "calldata": [
+                                "0x4",
+                                "0x0",
+                                "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                "0xc49ba5e353f7d00000000000000000"
+                              ],
+                              "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                              "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                              "call_type": "Call",
+                              "initial_gas": 9992651380
+                            },
+                            "execution": {
+                              "retdata": [
+                                "0x0"
+                              ],
+                              "events": [],
+                              "l2_to_l1_messages": [],
+                              "cairo_native": false,
+                              "failed": false,
+                              "gas_consumed": 8231940
+                            },
+                            "inner_calls": [
+                              {
+                                "call": {
+                                  "class_hash": "0x27067191f94e301b528b1624e7998d51606412522aab9621fb2c1899b983eeb",
+                                  "code_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                  "entry_point_type": "EXTERNAL",
+                                  "entry_point_selector": "0x399c6d7581cbb37d2e578d3097bfdd3323e05447f1fd7670b6c3a3fb9d9ff79",
+                                  "calldata": [
+                                    "0x1",
+                                    "0x4",
+                                    "0x0",
+                                    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                    "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                    "0xc49ba5e353f7d00000000000000000"
+                                  ],
+                                  "storage_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                  "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                  "call_type": "Call",
+                                  "initial_gas": 9992456270
+                                },
+                                "execution": {
+                                  "retdata": [
+                                    "0x0"
+                                  ],
+                                  "events": [
+                                    {
+                                      "order": 3,
+                                      "event": {
+                                        "keys": [
+                                          "0x29416aa69fb4a5270dd3c2b3e6d05f457dc0dbf96f423db1f86c5b7b2e6840f"
+                                        ],
+                                        "data": [
+                                          "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                          "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                          "0xc49ba5e353f7d00000000000000000",
+                                          "0xbb563d8a63798be36372ad7",
+                                          "0x135d92b5e5",
+                                          "0x297e09a5ffe6de",
+                                          "0x1",
+                                          "0x80a78d4",
+                                          "0x1"
+                                        ]
+                                      }
+                                    }
+                                  ],
+                                  "l2_to_l1_messages": [],
+                                  "cairo_native": false,
+                                  "failed": false,
+                                  "gas_consumed": 8019560
+                                },
+                                "inner_calls": [
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x63ecb4395e589622a41a66715a0eac930abc9f0b92c0b1dcda630adfb2bf2d",
+                                      "calldata": [
+                                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                        "0xc49ba5e353f7d00000000000000000",
+                                        "0x56a4c",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9991351050
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0xc14beccacd5ca02276c59c218c4",
+                                        "0x0",
+                                        "0x1afa33d",
+                                        "0x1"
+                                      ],
+                                      "events": [],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 45000
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 10,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x101afa33d00000000000000000000000c14beccacd5ca02276c59c218c4"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "pedersen": 5,
+                                      "range_check": 41
+                                    }
+                                  },
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x63ecb4395e589622a41a66715a0eac930abc9f0b92c0b1dcda630adfb2bf2d",
+                                      "calldata": [
+                                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                        "0xc49ba5e353f7d00000000000000000",
+                                        "0x56a4c",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9990663850
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0xc14beccacd5ca02276c59c218c4",
+                                        "0x0",
+                                        "0x1afa33d",
+                                        "0x1"
+                                      ],
+                                      "events": [],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 45000
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 11,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x101afa33d00000000000000000000000c14beccacd5ca02276c59c218c4"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "range_check": 41,
+                                      "pedersen": 5
+                                    }
+                                  },
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x3a1bb059a1ec5a5739fae648f89fe357ae5de36566eddc39727591e28a06dea",
+                                      "calldata": [
+                                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                        "0xc49ba5e353f7d00000000000000000",
+                                        "0x56a4c",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                        "0x54463ec",
+                                        "0x1"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9990567850
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0x79a92a91ce340a"
+                                      ],
+                                      "events": [],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 39800
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 12,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x79a92a91ce340a"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0x6aa4a857b78d88a5d254600447ff64481c6ee0790cf37715b95c0444aeea527"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "range_check": 19,
+                                      "pedersen": 6
+                                    }
+                                  },
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x15543c3708653cda9d418b4ccd3be11368e40636c10c44b18cfe756b6d88b29",
+                                      "calldata": [
+                                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                        "0xc49ba5e353f7d00000000000000000",
+                                        "0x56a4c",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                        "0xe395c4c31ed8a8f13",
+                                        "0x0",
+                                        "0x0",
+                                        "0xc03d388968eadc58050f54ad167",
+                                        "0x0",
+                                        "0x0"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9989463200
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0xe3932ce28478aa835",
+                                        "0x0",
+                                        "0x80a614e",
+                                        "0x1"
+                                      ],
+                                      "events": [
+                                        {
+                                          "order": 2,
+                                          "event": {
+                                            "keys": [
+                                              "0x157717768aca88da4ac4279765f09f4d0151823d573537fbbeb950cdbd9a870"
+                                            ],
+                                            "data": [
+                                              "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                              "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                              "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                              "0xc49ba5e353f7d00000000000000000",
+                                              "0x56a4c",
+                                              "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                              "0xe395c4c31ed8a8f13",
+                                              "0x0",
+                                              "0x0",
+                                              "0xc03d388968eadc58050f54ad167",
+                                              "0x0",
+                                              "0x0",
+                                              "0xe3932ce28478aa835",
+                                              "0x0",
+                                              "0x80a614e",
+                                              "0x1",
+                                              "0xc03d388968eadc58050f54ad167",
+                                              "0x0",
+                                              "0x1afce18",
+                                              "0x1",
+                                              "0x79a92a91ce340a"
+                                            ]
+                                          }
+                                        }
+                                      ],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 3989280
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 13,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x2",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                        "0x101afa33d00000000000000000000000c14beccacd5ca02276c59c218c4",
+                                        "0x79a92a91ce340a",
+                                        "0x185212a10281d127a94b255e79f1568983b16",
+                                        "0x2061fb6dbcdc863ce7f1719941a",
+                                        "0x100000000000000000000000000000000000000000000000000000000000000",
+                                        "0x0",
+                                        "0x0",
+                                        "0x0",
+                                        "0x1"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0x55db02b291627b4e72b4bb83d0bcde91e3155ecfb7c8fa68983dda497a2713",
+                                        "0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901",
+                                        "0x1",
+                                        "0x3110bae189a1cca17a6da4ee778f0076e1ea99cefa11a9b532fe7c064deb948",
+                                        "0x658e13b42ffe8f2336434834686a30e9b09fe5f46fb203726f4cc174ea27f5e",
+                                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                                        "0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed6",
+                                        "0x100000001",
+                                        "0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed7",
+                                        "0x356fd6aa989033f329e6a5aceb143ba7d0667fd7f74fbbf9457080dd9352c0b"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "range_check": 2309,
+                                      "bitwise": 56,
+                                      "pedersen": 23
+                                    }
+                                  },
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x231669a6373b644ceefec60da6db3aab0c9dbc21e1bec031f84280478e3fa6c",
+                                      "calldata": [
+                                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                        "0x0",
+                                        "0xe3932ce28478aa835"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9984888940
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0x19f12620bf249b6e9ec2d"
+                                      ],
+                                      "events": [
+                                        {
+                                          "order": 4,
+                                          "event": {
+                                            "keys": [
+                                              "0x305c746d1cf87085ae1abfe05967daa50048146e50e03fa41f7e41a91ee323d"
+                                            ],
+                                            "data": [
+                                              "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                              "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                                              "0x0",
+                                              "0xe3932ce28478aa835"
+                                            ]
+                                          }
+                                        }
+                                      ],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 187500
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 14,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x2",
+                                        "0x19f209b3ec071fe749462",
+                                        "0xe3932ce28478aa835",
+                                        "0x2"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                                        "0x100000001",
+                                        "0x55db02b291627b4e72b4bb83d0bcde91e3155ecfb7c8fa68983dda497a2713",
+                                        "0x5af35c5e4fcabd060e8498ede27a80eb336e7dfc0a11ef24620c1f456c88539"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "pedersen": 7,
+                                      "range_check": 47
+                                    }
+                                  },
+                                  {
+                                    "call": {
+                                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "entry_point_type": "EXTERNAL",
+                                      "entry_point_selector": "0x21e5870659b8f6e1f564a8285f0100a493c88401e7e9085160bf924d41a4a1e",
+                                      "calldata": [
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                        "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                        "0x0",
+                                        "0x80a614e"
+                                      ],
+                                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                      "caller_address": "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                      "call_type": "Call",
+                                      "initial_gas": 9984649440
+                                    },
+                                    "execution": {
+                                      "retdata": [
+                                        "0xa08ad2592e"
+                                      ],
+                                      "events": [
+                                        {
+                                          "order": 5,
+                                          "event": {
+                                            "keys": [
+                                              "0x48796a25e5ceac9caf95a4618ebfd1516b51e5d994a49d28e22f09c64ad2ee"
+                                            ],
+                                            "data": [
+                                              "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                              "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                                              "0x0",
+                                              "0x80a614e"
+                                            ]
+                                          }
+                                        }
+                                      ],
+                                      "l2_to_l1_messages": [],
+                                      "cairo_native": false,
+                                      "failed": false,
+                                      "gas_consumed": 210460
+                                    },
+                                    "inner_calls": [],
+                                    "resources": {
+                                      "n_steps": 0,
+                                      "n_memory_holes": 0,
+                                      "builtin_instance_counter": {}
+                                    },
+                                    "tracked_resource": "SierraGas",
+                                    "time": {
+                                      "secs": 0,
+                                      "nanos": 0
+                                    },
+                                    "call_counter": 15,
+                                    "storage_access_tracker": {
+                                      "storage_read_values": [
+                                        "0x2",
+                                        "0x43e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc",
+                                        "0xa082c7f7e0",
+                                        "0x800000000000010fffffffffffffffffffffffffffffffffffffffff7f59eb3",
+                                        "0x1"
+                                      ],
+                                      "accessed_storage_keys": [
+                                        "0xc439c053296d5764948bfdfa5c465665d234736f071a361e10681d632ad758",
+                                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                                        "0x100000001",
+                                        "0x658e13b42ffe8f2336434834686a30e9b09fe5f46fb203726f4cc174ea27f5e",
+                                        "0x1"
+                                      ],
+                                      "read_class_hash_values": [],
+                                      "accessed_contract_addresses": [],
+                                      "read_block_hash_values": [],
+                                      "accessed_blocks": []
+                                    },
+                                    "builtin_counters": {
+                                      "range_check": 57,
+                                      "pedersen": 7
+                                    }
+                                  }
+                                ],
+                                "resources": {
+                                  "n_steps": 0,
+                                  "n_memory_holes": 0,
+                                  "builtin_instance_counter": {}
+                                },
+                                "tracked_resource": "SierraGas",
+                                "time": {
+                                  "secs": 0,
+                                  "nanos": 0
+                                },
+                                "call_counter": 9,
+                                "storage_access_tracker": {
+                                  "storage_read_values": [
+                                    "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                    "0x66a273e5000000000bb563d8a63798be36372ad7",
+                                    "0x135d92b5e5",
+                                    "0x88a064c4bf0cc64a0d9a2e26cd74a3edc07d56f4",
+                                    "0x750f5649a20d3565d1bc",
+                                    "0x0"
+                                  ],
+                                  "accessed_storage_keys": [
+                                    "0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f5",
+                                    "0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8",
+                                    "0x10a6ed498cea50ab8a2e3f49b3c639966d9a1327b6b2eef421203b5b359894c",
+                                    "0x60648f61481391ac1803a92eaa5009bc1438ef6e8d10598d265bf5829d312f4",
+                                    "0x10a6ed498cea50ab8a2e3f49b3c639966d9a1327b6b2eef421203b5b359894d",
+                                    "0x13b74eed748a6a7f866c9ec0589d8d21c5d04d87b7521d33db47b76dc9c3254"
+                                  ],
+                                  "read_class_hash_values": [],
+                                  "accessed_contract_addresses": [],
+                                  "read_block_hash_values": [],
+                                  "accessed_blocks": []
+                                },
+                                "builtin_counters": {
+                                  "range_check": 1486,
+                                  "bitwise": 65,
+                                  "pedersen": 8
+                                }
+                              }
+                            ],
+                            "resources": {
+                              "n_steps": 0,
+                              "n_memory_holes": 0,
+                              "builtin_instance_counter": {}
+                            },
+                            "tracked_resource": "SierraGas",
+                            "time": {
+                              "secs": 0,
+                              "nanos": 0
+                            },
+                            "call_counter": 8,
+                            "storage_access_tracker": {
+                              "storage_read_values": [
+                                "0x1",
+                                "0x0"
+                              ],
+                              "accessed_storage_keys": [
+                                "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                                "0x100000001",
+                                "0x1"
+                              ],
+                              "read_class_hash_values": [],
+                              "accessed_contract_addresses": [],
+                              "read_block_hash_values": [],
+                              "accessed_blocks": []
+                            },
+                            "builtin_counters": {
+                              "range_check": 59
+                            }
+                          }
+                        ],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 7,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "range_check": 54
+                        }
+                      }
+                    ],
+                    "resources": {
+                      "n_steps": 0,
+                      "n_memory_holes": 0,
+                      "builtin_instance_counter": {}
+                    },
+                    "tracked_resource": "SierraGas",
+                    "time": {
+                      "secs": 0,
+                      "nanos": 0
+                    },
+                    "call_counter": 6,
+                    "storage_access_tracker": {
+                      "storage_read_values": [
+                        "0x1",
+                        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                        "0xd5",
+                        "0x101afce1800000000000000000000000c03d388968eadc58050f54ad167",
+                        "0x79a92a91ce340a",
+                        "0x18538265d18ebf0bce192cf48c6d886fd5b62",
+                        "0x2061fb6dbcdc863ce7f1719941a",
+                        "0x100000000000000000000000000000000000000000000000000000000000000",
+                        "0xd8d726b7177a8000",
+                        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffff83f4fc",
+                        "0x2"
+                      ],
+                      "accessed_storage_keys": [
+                        "0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed6",
+                        "0x3251cfd36c995a7f163e76498e247f8b2d61aeda83a746bd61d4e7da5fe5699",
+                        "0x100000000",
+                        "0x40dff85b22ceb4de5477d6577f334c914f8efefed9f5c892934c0f6e966ed7",
+                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                        "0x174ca4d40ded1b191eeaafb8c222368024fdf0ac894af16ecb51b7ec8477901",
+                        "0x0",
+                        "0x4428af60ea017cd8ac5a041f3777f8b2d7450f8474e471bcbae608cca7975ae",
+                        "0x356fd6aa989033f329e6a5aceb143ba7d0667fd7f74fbbf9457080dd9352c0b",
+                        "0x3110bae189a1cca17a6da4ee778f0076e1ea99cefa11a9b532fe7c064deb948",
+                        "0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f"
+                      ],
+                      "read_class_hash_values": [],
+                      "accessed_contract_addresses": [],
+                      "read_block_hash_values": [],
+                      "accessed_blocks": []
+                    },
+                    "builtin_counters": {
+                      "range_check": 2132,
+                      "pedersen": 24,
+                      "bitwise": 55
+                    }
+                  },
+                  {
+                    "call": {
+                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "entry_point_type": "EXTERNAL",
+                      "entry_point_selector": "0x15511cc3694f64379908437d6d64458dc76d02482052bfb8a5b33a72c054c77",
+                      "calldata": [
+                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                        "0xdb3d82f62f83a1f4"
+                      ],
+                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "call_type": "Call",
+                      "initial_gas": 9980825440
+                    },
+                    "execution": {
+                      "retdata": [],
+                      "events": [],
+                      "l2_to_l1_messages": [],
+                      "cairo_native": false,
+                      "failed": false,
+                      "gas_consumed": 388730
+                    },
+                    "inner_calls": [
+                      {
+                        "call": {
+                          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+                          "calldata": [
+                            "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                            "0xdb3d82f62f83a1f4",
+                            "0x0"
+                          ],
+                          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9980623430
+                        },
+                        "execution": {
+                          "retdata": [
+                            "0x1"
+                          ],
+                          "events": [
+                            {
+                              "order": 7,
+                              "event": {
+                                "keys": [
+                                  "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+                                ],
+                                "data": [
+                                  "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                  "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                                  "0xdb3d82f62f83a1f4",
+                                  "0x0"
+                                ]
+                              }
+                            }
+                          ],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 186720
+                        },
+                        "inner_calls": [],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 17,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0x9f7193eb94d4d67ef9681",
+                            "0x0",
+                            "0xd8d726b7177a8000",
+                            "0x0"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369",
+                            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "range_check": 37,
+                          "pedersen": 4
+                        }
+                      }
+                    ],
+                    "resources": {
+                      "n_steps": 0,
+                      "n_memory_holes": 0,
+                      "builtin_instance_counter": {}
+                    },
+                    "tracked_resource": "SierraGas",
+                    "time": {
+                      "secs": 0,
+                      "nanos": 0
+                    },
+                    "call_counter": 16,
+                    "storage_access_tracker": {
+                      "storage_read_values": [
+                        "0x1",
+                        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                        "0x800000000000010fffffffffffffffffffffffffffffffffd99a3c0e7f6de0d"
+                      ],
+                      "accessed_storage_keys": [
+                        "0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f",
+                        "0x0",
+                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7"
+                      ],
+                      "read_class_hash_values": [],
+                      "accessed_contract_addresses": [],
+                      "read_block_hash_values": [],
+                      "accessed_blocks": []
+                    },
+                    "builtin_counters": {
+                      "range_check": 55,
+                      "pedersen": 1
+                    }
+                  },
+                  {
+                    "call": {
+                      "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                      "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                      "entry_point_type": "EXTERNAL",
+                      "entry_point_selector": "0x219209e083275171774dab1df80982e9df2096516f06319c5c6d71ae0a8480c",
+                      "calldata": [
+                        "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                        "0xd8d726b7177a8000",
+                        "0x0"
+                      ],
+                      "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                      "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "call_type": "Call",
+                      "initial_gas": 9980385710
+                    },
+                    "execution": {
+                      "retdata": [
+                        "0x1"
+                      ],
+                      "events": [
+                        {
+                          "order": 8,
+                          "event": {
+                            "keys": [
+                              "0x134692b230b9e1ffa39098904722134159652b09c5bc41d88d6698779d228ff"
+                            ],
+                            "data": [
+                              "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                              "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                              "0xd8d726b7177a8000",
+                              "0x0"
+                            ]
+                          }
+                        }
+                      ],
+                      "l2_to_l1_messages": [],
+                      "cairo_native": false,
+                      "failed": false,
+                      "gas_consumed": 78350
+                    },
+                    "inner_calls": [],
+                    "resources": {
+                      "n_steps": 0,
+                      "n_memory_holes": 0,
+                      "builtin_instance_counter": {}
+                    },
+                    "tracked_resource": "SierraGas",
+                    "time": {
+                      "secs": 0,
+                      "nanos": 0
+                    },
+                    "call_counter": 18,
+                    "storage_access_tracker": {
+                      "storage_read_values": [],
+                      "accessed_storage_keys": [
+                        "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba3",
+                        "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba4"
+                      ],
+                      "read_class_hash_values": [],
+                      "accessed_contract_addresses": [],
+                      "read_block_hash_values": [],
+                      "accessed_blocks": []
+                    },
+                    "builtin_counters": {
+                      "pedersen": 2,
+                      "range_check": 14
+                    }
+                  },
+                  {
+                    "call": {
+                      "class_hash": "0x3e8d67c8817de7a2185d418e88d321c89772a9722b752c6fe097192114621be",
+                      "code_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "entry_point_type": "EXTERNAL",
+                      "entry_point_selector": "0x1c756803e4eb4ccfb136b73d5f72e3dc0d452d30ae1f4bc82af394c73ce7115",
+                      "calldata": [
+                        "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+                      ],
+                      "storage_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                      "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "call_type": "Call",
+                      "initial_gas": 9980256360
+                    },
+                    "execution": {
+                      "retdata": [],
+                      "events": [],
+                      "l2_to_l1_messages": [],
+                      "cairo_native": false,
+                      "failed": false,
+                      "gas_consumed": 842900
+                    },
+                    "inner_calls": [
+                      {
+                        "call": {
+                          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x1e888a1026b19c8c0b57c72d63ed1737106aa10034105b980ba117bd0c29fe1",
+                          "calldata": [
+                            "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+                          ],
+                          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9980002760
+                        },
+                        "execution": {
+                          "retdata": [
+                            "0xd8d726b7177a8000",
+                            "0x0"
+                          ],
+                          "events": [],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 45050
+                        },
+                        "inner_calls": [],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 20,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0xd8d726b7177a8000",
+                            "0x0"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba3",
+                            "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba4"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "range_check": 15,
+                          "pedersen": 2
+                        }
+                      },
+                      {
+                        "call": {
+                          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
+                          "calldata": [
+                            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+                          ],
+                          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9979906710
+                        },
+                        "execution": {
+                          "retdata": [
+                            "0x9f718637bca57386bf48d",
+                            "0x0"
+                          ],
+                          "events": [],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 41040
+                        },
+                        "inner_calls": [],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 21,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0x9f718637bca57386bf48d",
+                            "0x0"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "pedersen": 1,
+                          "range_check": 12
+                        }
+                      },
+                      {
+                        "call": {
+                          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x41b033f4a31df8067c24d1e9b550a2ce75fd4a29e1147af9752174f0e6cb20",
+                          "calldata": [
+                            "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                            "0xd8d726b7177a8000",
+                            "0x0"
+                          ],
+                          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9979814670
+                        },
+                        "execution": {
+                          "retdata": [
+                            "0x1"
+                          ],
+                          "events": [
+                            {
+                              "order": 9,
+                              "event": {
+                                "keys": [
+                                  "0x134692b230b9e1ffa39098904722134159652b09c5bc41d88d6698779d228ff"
+                                ],
+                                "data": [
+                                  "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                                  "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                  "0x0",
+                                  "0x0"
+                                ]
+                              }
+                            },
+                            {
+                              "order": 10,
+                              "event": {
+                                "keys": [
+                                  "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+                                ],
+                                "data": [
+                                  "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                                  "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                                  "0xd8d726b7177a8000",
+                                  "0x0"
+                                ]
+                              }
+                            }
+                          ],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 289170
+                        },
+                        "inner_calls": [],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 22,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0xd8d726b7177a8000",
+                            "0x0",
+                            "0x1b414a9ad46fe21f4",
+                            "0x0",
+                            "0x9f718637bca57386bf48d",
+                            "0x0"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba3",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a",
+                            "0x586729208869bc7ed12aa50c7a1834a1eef579d05efcc17ee1217a1722f9ba4",
+                            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f",
+                            "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "pedersen": 8,
+                          "range_check": 55
+                        }
+                      },
+                      {
+                        "call": {
+                          "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+                          "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "entry_point_type": "EXTERNAL",
+                          "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
+                          "calldata": [
+                            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+                          ],
+                          "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                          "caller_address": "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b",
+                          "call_type": "Call",
+                          "initial_gas": 9979474500
+                        },
+                        "execution": {
+                          "retdata": [
+                            "0x9f7193c52f10e4fe6748d",
+                            "0x0"
+                          ],
+                          "events": [],
+                          "l2_to_l1_messages": [],
+                          "cairo_native": false,
+                          "failed": false,
+                          "gas_consumed": 41040
+                        },
+                        "inner_calls": [],
+                        "resources": {
+                          "n_steps": 0,
+                          "n_memory_holes": 0,
+                          "builtin_instance_counter": {}
+                        },
+                        "tracked_resource": "SierraGas",
+                        "time": {
+                          "secs": 0,
+                          "nanos": 0
+                        },
+                        "call_counter": 23,
+                        "storage_access_tracker": {
+                          "storage_read_values": [
+                            "0x9f7193c52f10e4fe6748d",
+                            "0x0"
+                          ],
+                          "accessed_storage_keys": [
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca369",
+                            "0x43e1ef374bc5f9e49c6c9764a9aac6e36bc8e3df0ca3bffb3cde5a0990ca36a"
+                          ],
+                          "read_class_hash_values": [],
+                          "accessed_contract_addresses": [],
+                          "read_block_hash_values": [],
+                          "accessed_blocks": []
+                        },
+                        "builtin_counters": {
+                          "range_check": 12,
+                          "pedersen": 1
+                        }
+                      }
+                    ],
+                    "resources": {
+                      "n_steps": 0,
+                      "n_memory_holes": 0,
+                      "builtin_instance_counter": {}
+                    },
+                    "tracked_resource": "SierraGas",
+                    "time": {
+                      "secs": 0,
+                      "nanos": 0
+                    },
+                    "call_counter": 19,
+                    "storage_access_tracker": {
+                      "storage_read_values": [
+                        "0x1",
+                        "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                        "0xd8d726b7177a8000",
+                        "0x1"
+                      ],
+                      "accessed_storage_keys": [
+                        "0x0",
+                        "0x100000000",
+                        "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                        "0x68153282240797844a90a332ec1b2eabf7d15c42ba228e0c249720e6914176f"
+                      ],
+                      "read_class_hash_values": [],
+                      "accessed_contract_addresses": [],
+                      "read_block_hash_values": [],
+                      "accessed_blocks": []
+                    },
+                    "builtin_counters": {
+                      "range_check": 130,
+                      "pedersen": 1
+                    }
+                  }
+                ],
+                "resources": {
+                  "n_steps": 0,
+                  "n_memory_holes": 0,
+                  "builtin_instance_counter": {}
+                },
+                "tracked_resource": "SierraGas",
+                "time": {
+                  "secs": 0,
+                  "nanos": 0
+                },
+                "call_counter": 4,
+                "storage_access_tracker": {
+                  "storage_read_values": [
+                    "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+                  ],
+                  "accessed_storage_keys": [
+                    "0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8"
+                  ],
+                  "read_class_hash_values": [],
+                  "accessed_contract_addresses": [],
+                  "read_block_hash_values": [],
+                  "accessed_blocks": []
+                },
+                "builtin_counters": {
+                  "range_check": 177
+                }
+              }
+            ],
+            "resources": {
+              "n_steps": 0,
+              "n_memory_holes": 0,
+              "builtin_instance_counter": {}
+            },
+            "tracked_resource": "SierraGas",
+            "time": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "call_counter": 3,
+            "storage_access_tracker": {
+              "storage_read_values": [
+                "0x0",
+                "0x0"
+              ],
+              "accessed_storage_keys": [
+                "0xd5ee72ce4ea000d334dd7d37bd432beb488d5ceae18a4a955e14901a851ec7",
+                "0x0",
+                "0x100000000"
+              ],
+              "read_class_hash_values": [],
+              "accessed_contract_addresses": [],
+              "read_block_hash_values": [],
+              "accessed_blocks": []
+            },
+            "builtin_counters": {
+              "range_check": 88
+            }
+          }
+        ],
+        "resources": {
+          "n_steps": 0,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {}
+        },
+        "tracked_resource": "SierraGas",
+        "time": {
+          "secs": 0,
+          "nanos": 0
+        },
+        "call_counter": 2,
+        "storage_access_tracker": {
+          "storage_read_values": [
+            "0x5dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b"
+          ],
+          "accessed_storage_keys": [
+            "0x281a85306374a5ab27f0bbc385296a54bcd314a1948b6cf61c4ea1bc44bb9f8"
+          ],
+          "read_class_hash_values": [],
+          "accessed_contract_addresses": [],
+          "read_block_hash_values": [],
+          "accessed_blocks": []
+        },
+        "builtin_counters": {
+          "range_check": 111
+        }
+      },
+      {
+        "call": {
+          "class_hash": "0x5fdb47de4edfd5983f6a82a1beeb1aab2b69d3674b90730aa1693d94d73f0d3",
+          "code_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+          "entry_point_type": "EXTERNAL",
+          "entry_point_selector": "0x2e1d93dafae32660a4a76a0fd6f31550f3ddfd6a51c29ef2e055b80afbbd011",
+          "calldata": [
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            "0xd8d726b7177a8000",
+            "0x0"
+          ],
+          "storage_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+          "caller_address": "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+          "call_type": "Call",
+          "initial_gas": 9979120090
+        },
+        "execution": {
+          "retdata": [
+            "0xdb3d82f62f83a1f4",
+            "0x0"
+          ],
+          "events": [],
+          "l2_to_l1_messages": [],
+          "cairo_native": false,
+          "failed": false,
+          "gas_consumed": 397020
+        },
+        "inner_calls": [
+          {
+            "call": {
+              "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+              "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+              "entry_point_type": "EXTERNAL",
+              "entry_point_selector": "0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e",
+              "calldata": [
+                "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066"
+              ],
+              "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+              "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+              "call_type": "Call",
+              "initial_gas": 9979001830
+            },
+            "execution": {
+              "retdata": [
+                "0xdb3d82f62f83a1f4",
+                "0x0"
+              ],
+              "events": [],
+              "l2_to_l1_messages": [],
+              "cairo_native": false,
+              "failed": false,
+              "gas_consumed": 41040
+            },
+            "inner_calls": [],
+            "resources": {
+              "n_steps": 0,
+              "n_memory_holes": 0,
+              "builtin_instance_counter": {}
+            },
+            "tracked_resource": "SierraGas",
+            "time": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "call_counter": 25,
+            "storage_access_tracker": {
+              "storage_read_values": [
+                "0xdb3d82f62f83a1f4",
+                "0x0"
+              ],
+              "accessed_storage_keys": [
+                "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e",
+                "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f"
+              ],
+              "read_class_hash_values": [],
+              "accessed_contract_addresses": [],
+              "read_block_hash_values": [],
+              "accessed_blocks": []
+            },
+            "builtin_counters": {
+              "pedersen": 1,
+              "range_check": 12
+            }
+          },
+          {
+            "call": {
+              "class_hash": "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
+              "code_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+              "entry_point_type": "EXTERNAL",
+              "entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+              "calldata": [
+                "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+                "0xdb3d82f62f83a1f4",
+                "0x0"
+              ],
+              "storage_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+              "caller_address": "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+              "call_type": "Call",
+              "initial_gas": 9978909790
+            },
+            "execution": {
+              "retdata": [
+                "0x1"
+              ],
+              "events": [
+                {
+                  "order": 11,
+                  "event": {
+                    "keys": [
+                      "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+                    ],
+                    "data": [
+                      "0x4505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066",
+                      "0x332825a42ccbec3e2ceb6c242f4dff4682e7d16b8559104b5df8fd925ddda09",
+                      "0xdb3d82f62f83a1f4",
+                      "0x0"
+                    ]
+                  }
+                }
+              ],
+              "l2_to_l1_messages": [],
+              "cairo_native": false,
+              "failed": false,
+              "gas_consumed": 186720
+            },
+            "inner_calls": [],
+            "resources": {
+              "n_steps": 0,
+              "n_memory_holes": 0,
+              "builtin_instance_counter": {}
+            },
+            "tracked_resource": "SierraGas",
+            "time": {
+              "secs": 0,
+              "nanos": 0
+            },
+            "call_counter": 26,
+            "storage_access_tracker": {
+              "storage_read_values": [
+                "0xdb3d82f62f83a1f4",
+                "0x0",
+                "0x59f98655801fc88a85",
+                "0x0"
+              ],
+              "accessed_storage_keys": [
+                "0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007235",
+                "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8e",
+                "0x3a8d0fa789f88e7211b601b97145655c736104895afee9fba450449b3abed8f",
+                "0x4dbfe544ed63377b3d819a142e245f56921729b4c3e205f87e66b64af007236"
+              ],
+              "read_class_hash_values": [],
+              "accessed_contract_addresses": [],
+              "read_block_hash_values": [],
+              "accessed_blocks": []
+            },
+            "builtin_counters": {
+              "range_check": 37,
+              "pedersen": 4
+            }
+          }
+        ],
+        "resources": {
+          "n_steps": 0,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {}
+        },
+        "tracked_resource": "SierraGas",
+        "time": {
+          "secs": 0,
+          "nanos": 0
+        },
+        "call_counter": 24,
+        "storage_access_tracker": {
+          "storage_read_values": [],
+          "accessed_storage_keys": [],
+          "read_class_hash_values": [],
+          "accessed_contract_addresses": [],
+          "read_block_hash_values": [],
+          "accessed_blocks": []
+        },
+        "builtin_counters": {
+          "range_check": 53
+        }
+      }
+    ],
+    "resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "tracked_resource": "SierraGas",
+    "time": {
+      "secs": 0,
+      "nanos": 0
+    },
+    "call_counter": 0,
+    "storage_access_tracker": {
+      "storage_read_values": [],
+      "accessed_storage_keys": [],
+      "read_class_hash_values": [],
+      "accessed_contract_addresses": [],
+      "read_block_hash_values": [],
+      "accessed_blocks": []
+    },
+    "builtin_counters": {
+      "range_check": 152
+    }
+  },
+  "fee_transfer_call_info": null,
+  "revert_error": null,
+  "receipt": {
+    "fee": "0x52fa4891483",
+    "gas": {
+      "l1_gas": 571,
+      "l1_data_gas": 1088,
+      "l2_gas": 0
+    },
+    "da_gas": {
+      "l1_gas": 0,
+      "l1_data_gas": 1088,
+      "l2_gas": 0
+    },
+    "resources": {
+      "starknet_resources": {
+        "archival_data": {
+          "event_summary": {
+            "n_events": 13,
+            "total_event_keys": 14,
+            "total_event_data_size": 121
+          },
+          "calldata_length": 37,
+          "signature_length": 2,
+          "code_size": 0
+        },
+        "messages": {
+          "l2_to_l1_payload_lengths": [],
+          "message_segment_length": 0,
+          "l1_handler_payload_size": null
+        },
+        "state": {
+          "state_changes_for_fee": {
+            "state_changes_count": {
+              "n_storage_updates": 13,
+              "n_class_hash_updates": 0,
+              "n_compiled_class_hash_updates": 0,
+              "n_modified_contracts": 4
+            },
+            "n_allocated_keys": 0
+          }
+        }
+      },
+      "computation": {
+        "tx_vm_resources": {
+          "n_steps": 0,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {}
+        },
+        "os_vm_resources": {
+          "n_steps": 3842,
+          "n_memory_holes": 0,
+          "builtin_instance_counter": {
+            "pedersen_builtin": 51,
+            "range_check_builtin": 80
+          }
+        },
+        "n_reverted_steps": 0,
+        "sierra_gas": 21498770,
+        "reverted_sierra_gas": 0
+      }
+    }
+  }
+}

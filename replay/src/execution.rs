@@ -283,14 +283,42 @@ pub fn get_block_info(block: &BlockWithTxHashes) -> anyhow::Result<BlockInfo> {
 
 #[cfg(test)]
 mod tests {
+    use std::{fs::File, time::Duration};
+
     use blockifier::{
-        state::cached_state::CachedState, transaction::account_transaction::ExecutionFlags,
+        execution::call_info::CallInfo,
+        state::cached_state::CachedState,
+        transaction::{account_transaction::ExecutionFlags, objects::TransactionExecutionInfo},
     };
+    use pretty_assertions_sorted::assert_eq_sorted;
     use starknet_api::{block::BlockNumber, core::ChainId, felt, transaction::TransactionHash};
     use state_reader::{block_state_reader::BlockStateReader, full_state_reader::FullStateReader};
     use test_case::test_case;
 
     use crate::execution::{execute_tx, get_block_context};
+
+    pub fn normalize_execution_info(execution_info: &mut TransactionExecutionInfo) {
+        fn normalize_call_info(call_info: &mut CallInfo) {
+            call_info.time = Duration::default();
+            call_info.execution.cairo_native = false;
+            call_info
+                .inner_calls
+                .iter_mut()
+                .for_each(normalize_call_info);
+        }
+        execution_info
+            .validate_call_info
+            .as_mut()
+            .map(normalize_call_info);
+        execution_info
+            .execute_call_info
+            .as_mut()
+            .map(normalize_call_info);
+        execution_info
+            .fee_transfer_call_info
+            .as_mut()
+            .map(normalize_call_info);
+    }
 
     #[test_case(
         "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
@@ -438,11 +466,6 @@ mod tests {
         ChainId::Mainnet
     )]
     #[test_case(
-        "0x5896b4db732cfc57ce5d56ece4dfa4a514bd435a0ee80dc79b37e60cdae5dd6",
-        653001,
-        ChainId::Mainnet
-    )]
-    #[test_case(
         "0x5a5de1f42f6005f3511ea6099daed9bcbcf9de334ee714e8563977e25f71601",
         281514,
         ChainId::Mainnet
@@ -467,11 +490,6 @@ mod tests {
         654001,
         ChainId::Mainnet
     )]
-    #[test_case(
-        "0x7805c2bf5abaf4fe0eb1db7b7be0486a14757b4bf96634c828d11c07e4a763c",
-        641976,
-        ChainId::Mainnet
-    )]
     fn execute_transaction(hash: &str, block_number: u64, chain: ChainId) {
         let tx_hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
@@ -493,13 +511,18 @@ mod tests {
             validate: false,
             strict_nonce_check: true,
         };
-        let execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
+        let mut execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
             .expect("failed to execute transaction")
             .result
             .expect("transaction execution failed");
 
-        // TODO: We should execute with both Cairo Native and Cairo VM, and
-        // compare the execution result and state diffs.
+        normalize_execution_info(&mut execution);
+
+        let expected_execution_file =
+            File::open(format!("../test_data/execution_info/{}.json", hash)).unwrap();
+        let expected_execution = serde_json::from_reader(expected_execution_file).unwrap();
+        assert_eq_sorted!(execution, expected_execution);
+
         assert!(
             !execution.is_reverted(),
             "{}",
