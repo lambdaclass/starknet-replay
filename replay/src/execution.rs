@@ -302,6 +302,112 @@ mod tests {
         650558,
         ChainId::Mainnet
     )]
+    #[test_case(
+        "0x014640564509873cf9d24a311e1207040c8b60efd38d96caef79855f0b0075d5",
+        90007,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x025844447697eb7d5df4d8268b23aef6c11de4087936048278c2559fc35549eb",
+        197001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x00164bfc80755f62de97ae7c98c9d67c1767259427bcf4ccfcc9683d44d54676",
+        197001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x05d200ef175ba15d676a68b36f7a7b72c17c17604eda4c1efc2ed5e4973e2c91",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0528ec457cf8757f3eefdf3f0728ed09feeecc50fd97b1e4c5da94e27e9aa1d6",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0737677385a30ec4cbf9f6d23e74479926975b74db3d55dc5e46f4f8efee41cf",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x026c17728b9cd08a061b1f17f08034eb70df58c1a96421e73ee6738ad258a94c",
+        169929,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x0743092843086fa6d7f4a296a226ee23766b8acf16728aef7195ce5414dc4d84",
+        186549,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x00724fc4a84f489ed032ebccebfc9541eb8dc64b0e76b933ed6fc30cd6000bd1",
+        186552,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x176a92e8df0128d47f24eebc17174363457a956fa233cc6a7f8561bfbd5023a",
+        317093,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x04db9b88e07340d18d53b8b876f28f449f77526224afb372daaf1023c8b08036",
+        398052,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x26be3e906db66973de1ca5eec1ddb4f30e3087dbdce9560778937071c3d3a83",
+        351269,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x4f552c9430bd21ad300db56c8f4cae45d554a18fac20bf1703f180fac587d7e",
+        351226,
+        ChainId::Mainnet
+    )]
+    // OpenZeppelin (v0.7.0)
+    #[test_case(
+        "0x04df8a364233d995c33c7f4666a776bf458631bec2633e932b433a783db410f8",
+        422882,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x41497e62fb6798ff66e4ad736121c0164cdb74005aa5dab025be3d90ad4ba06",
+        638867,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x73ef9cde09f005ff6f411de510ecad4cdcf6c4d0dfc59137cff34a4fc74dfd",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x75d7ef42a815e4d9442efcb509baa2035c78ea6a6272ae29e87885788d4c85e",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x1ecb4b825f629eeb9816ddfd6905a85f6d2c89995907eacaf6dc64e27a2c917",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x70d83cb9e25f1e9f7be2608f72c7000796e4a222c1ed79a0ea81abe5172557b",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x670321c71835004fcab639e871ef402bb807351d126ccc4d93075ff2c31519d",
+        654001,
+        ChainId::Mainnet
+    )]
+    #[test_case(
+        "0x2d2bed435d0b43a820443aad2bc9e3d4fa110c428e65e422101dfa100ba5664",
+        653001,
+        ChainId::Mainnet
+    )]
     fn execute_transaction(hash: &str, block_number: u64, chain: ChainId) {
         let tx_hash = TransactionHash(felt!(hash));
         let block_number = BlockNumber(block_number);
@@ -330,7 +436,11 @@ mod tests {
 
         // TODO: We should execute with both Cairo Native and Cairo VM, and
         // compare the execution result and state diffs.
-        assert!(!execution.is_reverted())
+        assert!(
+            !execution.is_reverted(),
+            "{}",
+            execution.revert_error.unwrap()
+        )
     }
 
     #[test_case(
