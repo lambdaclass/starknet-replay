@@ -1,0 +1,54 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "gas_consumed": 392200
+  },
+  "executed_class_hashes": [
+    "0x358663e6ed9d37efd33d4661e20b2bad143e0f92076b0c91fe65f31ccf55046",
+    "0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420"
+  ],
+  "visited_storage_entries": [
+    [
+      "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      "0x1390569bb0a3a722eb4228e8700301347da081211d5c2ded2db22ef389551ab"
+    ],
+    [
+      "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a"
+    ],
+    [
+      "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
+      "0x290e00617050a68193b715654df85cc41c3b79f263373d66459c8a3d5780b46"
+    ],
+    [
+      "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      "0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d8"
+    ],
+    [
+      "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      "0x77e2b393d935021c9cd33f5a6869ff1742f4e87bc38cc5ed18f10c9eb7fe8d9"
+    ],
+    [
+      "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+      "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"
+    ],
+    [
+      "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
+      "0xc88ee7a00e0b95f1138ef53d396c4327eeed7f9677bbd02ce82a663537b1cf"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 2,
+    "total_event_keys": 4,
+    "total_event_data_size": 6
+  },
+  "call_summary": {
+    "n_calls": 2,
+    "n_calls_running_native": 0
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 2690,
+      "n_memory_holes": 3,
+      "builtin_instance_counter": {
+        "range_check_builtin": 48
+      }
+    },
+    "gas_consumed": 0
+  },
+  "executed_class_hashes": [
+    "0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
+    "0x2d49ae8a5475e2185e6044592f034e85011d53e29b527b4ea35aed4063d9e44",
+    "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+  ],
+  "visited_storage_entries": [
+    [
+      "0x68826cd135a7ae273d26bf0b93de662db2e7dd0a6f765327b77c98a5d3b600d",
+      "0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 2,
+    "total_event_keys": 2,
+    "total_event_data_size": 5
+  },
+  "call_summary": {
+    "n_calls": 3,
+    "n_calls_running_native": 0
+  }
+}
