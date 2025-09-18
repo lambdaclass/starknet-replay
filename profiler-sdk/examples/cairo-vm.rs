@@ -62,7 +62,8 @@ fn main() {
             .iter()
             .positions(|&name_idx| {
                 let name = &profile.shared.string_array[name_idx];
-                name == "<blockifier::execution::deprecated_syscalls::hint_processor::DeprecatedSyscallHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint" ||
+                name == "blockifier::execution::deprecated_syscalls::deprecated_syscall_executor::execute_next_deprecated_syscall" ||
+                name == "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint" ||
                 name == "blockifier::execution::deprecated_entry_point_execution::finalize_execution" || 
                 name == "blockifier::execution::deprecated_entry_point_execution::initialize_execution_context" || 
                 name == "blockifier::execution::deprecated_entry_point_execution::prepare_call_arguments" || 
@@ -101,6 +102,8 @@ fn main() {
                     name == "cairo_vm::vm::vm_core::VirtualMachine::verify_auto_deductions" ||
                     name == "cairo_vm::vm::vm_memory::memory_segments::MemorySegmentManager::gen_cairo_arg" ||
                     name == "starknet_types_core::felt::primitive_conversions::<impl core::convert::From<u128> for starknet_types_core::felt::Felt>::from" ||
+                    name == "phf::map::Map<K,V>::get_entry" ||
+                    name == "core::ptr::drop_in_place<cairo_vm::vm::errors::hint_errors::HintError>" ||
                     name == "libsystem_c.dylib" ||
                     name == "libsystem_kernel.dylib" ||
                     name == "libsystem_malloc.dylib" ||
@@ -124,6 +127,14 @@ fn main() {
             (
                 "<blockifier::execution::deprecated_syscalls::hint_processor::DeprecatedSyscallHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
                 "blockifier::execute_hint",
+            ),
+            (
+                "blockifier::execution::deprecated_syscalls::deprecated_syscall_executor::execute_next_deprecated_syscall",
+                "blockifier::execute_next_deprecated_syscall",
+            ),
+            (
+                "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
+                "cairo_vm::execute_hint",
             ),
             (
                 "blockifier::execution::deprecated_entry_point_execution::finalize_execution",
