@@ -61,6 +61,7 @@ impl BenchData {
                     tx_data.time_ns += other_tx_data.time_ns;
                     tx_data.steps += other_tx_data.steps;
                     tx_data.gas_consumed += other_tx_data.gas_consumed;
+                    // TODO: We should assert that all executions are identical.
                     for (call, other_call) in calls.iter_mut().zip(other_calls.iter()) {
                         call.time_ns += other_call.time_ns;
                         call.steps += other_call.steps;
