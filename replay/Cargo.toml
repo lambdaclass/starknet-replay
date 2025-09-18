@@ -5,13 +5,12 @@ edition = "2021"
 
 [features]
 block-composition = ["structured_logging"]
-benchmark = ["dep:serde_with"]
 # The only_cairo_vm feature is designed to avoid executing transitions with cairo_native and instead use cairo_vm exclusively
 only_cairo_vm = ["state-reader/only-casm"]
 # The only-native feature uses native exclusively, with every cairo 1 contract
 only-native = ["blockifier/only-native"]
 structured_logging = []
-state_dump = ["dep:serde_with", "dep:starknet-types-core"]
+state_dump = ["dep:starknet-types-core"]
 with-sierra-emu = ["state-reader/with-sierra-emu"]
 with-trace-dump = ["blockifier/with-trace-dump", "state-reader/with-trace-dump"]
 with-libfunc-profiling = [
@@ -42,7 +41,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 # serialization
 serde.workspace = true
 serde_json.workspace = true
-serde_with = { workspace = true, optional = true }
+serde_with.workspace = true
 dotenvy = "0.15.7"
 anyhow.workspace = true
 chrono = "0.4.39"
