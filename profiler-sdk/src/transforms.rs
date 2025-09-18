@@ -356,3 +356,13 @@ pub fn merge_function(
     thread.stack_table = new_stack_table;
     thread.samples = new_sample_table;
 }
+
+pub fn rename_function(
+    profile: &mut Profile,
+    thread_idx: usize,
+    function_to_rename: IndexIntoFuncTable,
+    new_name: String,
+) {
+    let name_idx = profile.threads[thread_idx].func_table.name[function_to_rename];
+    profile.shared.string_array[name_idx] = new_name;
+}
