@@ -62,19 +62,15 @@ fn main() {
             .iter()
             .positions(|&name_idx| {
                 let name = &profile.shared.string_array[name_idx];
-                name == "blockifier::execution::deprecated_syscalls::deprecated_syscall_executor::execute_next_deprecated_syscall" ||
-                name == "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint" ||
-                name == "blockifier::execution::deprecated_entry_point_execution::finalize_execution" || 
-                name == "blockifier::execution::deprecated_entry_point_execution::initialize_execution_context" || 
-                name == "blockifier::execution::deprecated_entry_point_execution::prepare_call_arguments" || 
-                name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::get_hint_data" ||
-                name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::initialize_function_entrypoint" ||
-                name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::initialize_vm" ||
-                name == "cairo_vm::vm::security::verify_secure_runner" ||
-                name == "cairo_vm::vm::vm_core::VirtualMachine::step_instruction" ||
-                name == "cairo_vm::vm::vm_core::VirtualMachine::verify_auto_deductions" ||
-                name == "cairo_vm::vm::vm_memory::memory_segments::MemorySegmentManager::gen_cairo_arg" ||
-                name == "core::ptr::drop_in_place<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::HintProcessorData>"
+                name == "cairo_vm::vm::vm_core::VirtualMachine::deduce_memory_cell"
+                    || name == "cairo_vm::vm::vm_core::VirtualMachine::insert_deduced_operands"
+                    || name == "blockifier::execution::deprecated_syscalls::deprecated_syscall_executor::execute_next_deprecated_syscall"
+                    || name == "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint"
+                    || name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::get_hint_data"
+                    || name == "core::ptr::drop_in_place<alloc::vec::Vec<alloc::boxed::Box<dyn core::any::Any>>>"
+                    || name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::initialize_function_entrypoint"
+                    || name == "core::ptr::drop_in_place<cairo_vm::vm::runners::cairo_runner::CairoRunner>"
+                    || name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::new_v2"
             })
             .collect_vec();
 
@@ -91,29 +87,9 @@ fn main() {
             .iter()
             .positions(|&name_idx| {
                 let name = &profile.shared.string_array[name_idx];
-                name == "blockifier::execution::execution_utils::execute_entry_point_call" ||
-                    name == "blockifier::execution::deprecated_entry_point_execution::execute_entry_point_call" ||
-                    name == "blockifier::execution::deprecated_entry_point_execution::run_entry_point" ||
-                    name == "<blockifier::execution::deprecated_syscalls::hint_processor::DeprecatedSyscallHintProcessor as cairo_vm::vm::runners::cairo_runner::ResourceTracker>::consume_step" ||
-                    name == "<blockifier::execution::deprecated_syscalls::hint_processor::DeprecatedSyscallHintProcessor as cairo_vm::vm::runners::cairo_runner::ResourceTracker>::consumed" ||
-                    name == "<cairo_vm::vm::runners::cairo_runner::RunResources as cairo_vm::vm::runners::cairo_runner::ResourceTracker>::consume_step" ||
-                    name == "cairo_vm::vm::runners::cairo_runner::CairoRunner::initialize_vm" ||
-                    name == "cairo_vm::vm::security::verify_secure_runner" ||
-                    name == "cairo_vm::vm::vm_core::VirtualMachine::verify_auto_deductions" ||
-                    name == "cairo_vm::vm::vm_memory::memory_segments::MemorySegmentManager::gen_cairo_arg" ||
-                    name == "starknet_types_core::felt::primitive_conversions::<impl core::convert::From<u128> for starknet_types_core::felt::Felt>::from" ||
-                    name == "phf::map::Map<K,V>::get_entry" ||
-                    name == "core::ptr::drop_in_place<cairo_vm::vm::errors::hint_errors::HintError>" ||
-                    name == "libsystem_c.dylib" ||
-                    name == "libsystem_kernel.dylib" ||
-                    name == "libsystem_malloc.dylib" ||
-                    name == "libsystem_platform.dylib" ||
-                    name == "std::sys::pal::unix::time::Timespec::now" ||
-                    name == "std::time::Instant::elapsed" ||
-                    name.starts_with("__rustc") || 
-                    name.starts_with("<alloc") ||
-                    name.starts_with("<unknown") ||
-                    name.starts_with("alloc") 
+                name == "blockifier::execution::execution_utils::execute_entry_point_call"
+                    || name == "blockifier::execution::deprecated_entry_point_execution::execute_entry_point_call"
+                    || name == "blockifier::execution::deprecated_entry_point_execution::run_entry_point"
             })
             .collect_vec();
         for func in funcs {
@@ -126,7 +102,7 @@ fn main() {
         let renames = HashMap::from([
             (
                 "<blockifier::execution::deprecated_syscalls::hint_processor::DeprecatedSyscallHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
-                "blockifier::execute_hint",
+                "blockifier::DeprecatedSyscallHintProcessor::execute_hint",
             ),
             (
                 "blockifier::execution::deprecated_syscalls::deprecated_syscall_executor::execute_next_deprecated_syscall",
@@ -134,51 +110,7 @@ fn main() {
             ),
             (
                 "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
-                "cairo_vm::execute_hint",
-            ),
-            (
-                "blockifier::execution::deprecated_entry_point_execution::finalize_execution",
-                "blockifier::finalize_execution",
-            ),
-            (
-                "blockifier::execution::deprecated_entry_point_execution::initialize_execution_context",
-                "blockifier::initialize_execution_context",
-            ),
-            (
-                "blockifier::execution::deprecated_entry_point_execution::prepare_call_arguments",
-                "blockifier::prepare_call_arguments",
-            ),
-            (
-                "blockifier::execution::execution_utils::execute_entry_point_call_wrapper",
-                "blockifier::execute_entry_point_call_wrapper",
-            ),
-            (
-                "cairo_vm::vm::runners::cairo_runner::CairoRunner::get_hint_data",
-                "cairo_vm::get_hint_data",
-            ),
-            (
-                "cairo_vm::vm::runners::cairo_runner::CairoRunner::initialize_function_entrypoint",
-                "cairo_vm::initialize_function_entrypoint",
-            ),
-            (
-                "cairo_vm::vm::runners::cairo_runner::CairoRunner::run_from_entrypoint",
-                "cairo_vm::run_from_entrypoint",
-            ),
-            (
-                "cairo_vm::vm::runners::cairo_runner::CairoRunner::run_until_pc",
-                "cairo_vm::un_until_pc",
-            ),
-            (
-                "cairo_vm::vm::vm_core::VirtualMachine::step",
-                "cairo_vm::step",
-            ),
-            (
-                "cairo_vm::vm::vm_core::VirtualMachine::step_instruction",
-                "cairo_vm::step_instruction",
-            ),
-            (
-                "core::ptr::drop_in_place<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::HintProcessorData>",
-                "drop_in_place<cairo_vm::HintProcessorData>",
+                "cairo_vm::BuiltinHintProcessor::execute_hint",
             ),
         ]);
         let funcs_and_names = profile.threads[0]
@@ -198,5 +130,7 @@ fn main() {
         }
     }
 
-    println!("{}", Tree::from_profile(&profile, 0));
+    let mut tree = Tree::from_profile(&profile, 0);
+    tree.prune(0.01);
+    println!("{}", tree);
 }
