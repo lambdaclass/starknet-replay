@@ -1,0 +1,67 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "gas_consumed": 2574560
+  },
+  "executed_class_hashes": [
+    "0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed",
+    "0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253",
+    "0x6312b8cc5222001e694fedc019c1160ff478ad6ae0fb066dc354b75bf9b5454"
+  ],
+  "visited_storage_entries": [
+    [
+      "0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007",
+      "0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8ef"
+    ],
+    [
+      "0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007",
+      "0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a1a"
+    ],
+    [
+      "0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c",
+      "0x3779d024ee75b674955ff5025ec51faffd55610d2f586d2f7a4ce7b6b5d2463"
+    ],
+    [
+      "0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180",
+      "0x1a22f545ba9d916b44403905200f55b36377a2e761b2184577679b0d7f7bc94"
+    ],
+    [
+      "0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007",
+      "0x3e4e1993901faad3dd005be17839130abdccb4c36ab73f74dd3f05333e2b8f0"
+    ],
+    [
+      "0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180",
+      "0xb59f37c0f9d09ea41ec01867728e0af61d0339b945f7d193fd07f4f96cfee8"
+    ],
+    [
+      "0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180",
+      "0x75f128ea43bc75b11cb0532e6873df6e9398b11d788ffbdd600a4546e83c10d"
+    ],
+    [
+      "0xc530f2c0aa4c16a0806365b0898499fba372e5df7a7172dc6fe9ba777e8007",
+      "0x6e568983c06797c6e39843d87ff5e9ae88dc8bec182bbbe3936a32647fc9a19"
+    ],
+    [
+      "0x6e05b85d84a254faa07938b867b76aca1f1d95ebeb6bb44894c1d1912ec3180",
+      "0x6bd3a5ce5dcb97eaa770a5a3c9e4f5c752d99c61823a1d3d086688ee21a1247"
+    ],
+    [
+      "0x784cdb1e85de7d857e859b4ad93b0cf2e354f9612e74fc19a1c4d0f4cfc5c3c",
+      "0x282372af1ee63ce325edc788cde17330918ef2f8b9a33039b5bd8dcf192ec76"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 2,
+    "total_event_keys": 2,
+    "total_event_data_size": 6
+  },
+  "call_summary": {
+    "n_calls": 3,
+    "n_calls_running_native": 0
+  }
+}

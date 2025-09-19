@@ -49,3 +49,4 @@ chrono = "0.4.39"
 
 [dev-dependencies]
 test-case = "3.1.0"
+pretty_assertions_sorted = "1.2.3"

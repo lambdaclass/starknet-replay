@@ -1,0 +1,42 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "gas_consumed": 527590
+  },
+  "executed_class_hashes": [
+    "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
+    "0x5ffbcfeb50d200a0677c48a129a11245a3fc519d1d98d76882d1c9a1b19c6ed"
+  ],
+  "visited_storage_entries": [
+    [
+      "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+      "0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ee"
+    ],
+    [
+      "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+      "0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2692"
+    ],
+    [
+      "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+      "0x547f8114927592559689f3723f98f995af7f74cbda36db122195f71cf3c2693"
+    ],
+    [
+      "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+      "0x6e73f308bbb7e97d64ea61262979f73ade2cad94f7d2a8b9c4a9d6debbf27ef"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 2,
+    "total_event_keys": 3,
+    "total_event_data_size": 7
+  },
+  "call_summary": {
+    "n_calls": 2,
+    "n_calls_running_native": 0
+  }
+}
