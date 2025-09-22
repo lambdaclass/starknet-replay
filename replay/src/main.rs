@@ -290,6 +290,7 @@ fn main() {
                     executions.append(&mut block_executions);
                 }
             }
+            log_cache_statistics(&full_reader);
 
             // Aggregate the data from all the laps into a single one.
             let bench_data = BenchData::aggregate(&executions);
@@ -368,6 +369,7 @@ fn main() {
                     "cache miss during a benchmark"
                 );
             }
+            log_cache_statistics(&full_reader);
 
             // Aggregate the data from all the laps into a single one.
             let bench_data = BenchData::aggregate(&executions);
