@@ -16,6 +16,7 @@ use starknet_api::felt;
 use starknet_api::transaction::TransactionHash;
 use state_reader::block_state_reader::BlockStateReader;
 use state_reader::full_state_reader::FullStateReader;
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -31,7 +32,7 @@ mod libfunc_profile;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
-use benchmark::BenchData;
+use crate::benchmark::{add_transaction_to_benchmark, aggregate_benchmark};
 
 #[cfg(feature = "block-composition")]
 use {block_composition::save_entry_point_execution, chrono::DateTime};
@@ -93,9 +94,6 @@ enum ReplayExecute {
         /// Output file name for transaction data, in CSV format.
         #[clap(long)]
         tx_data: Option<PathBuf>,
-        /// Output file name for call data, in CSV format.
-        #[clap(long)]
-        call_data: Option<PathBuf>,
     },
     /// Benchmarks a block range multiple times.
     BenchBlocks {
@@ -111,9 +109,6 @@ enum ReplayExecute {
         /// Output file name for transaction data, in CSV format.
         #[clap(long)]
         tx_data: Option<PathBuf>,
-        /// Output file name for call data, in CSV format.
-        #[clap(long)]
-        call_data: Option<PathBuf>,
     },
     #[cfg(feature = "block-composition")]
     #[clap(
@@ -239,7 +234,6 @@ fn main() {
             block_end,
             runs,
             tx_data,
-            call_data,
         } => {
             let chain = parse_network(&chain);
 
@@ -270,46 +264,38 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut executions = Vec::new();
+            let mut benchmark = HashMap::new();
 
             for _ in 0..runs {
                 for block_number in block_start..=block_end {
-                    let mut block_executions = execute_block(
+                    let block_executions = execute_block(
                         &full_reader,
                         BlockNumber(block_number),
                         execution_flags.clone(),
                     )
                     .expect("failed to execute block");
 
+                    for tx in block_executions {
+                        add_transaction_to_benchmark(&mut benchmark, tx);
+                    }
+
                     assert_eq!(
                         full_reader.get_miss_counter(),
                         0,
                         "cache miss during a benchmark"
                     );
-
-                    executions.append(&mut block_executions);
                 }
             }
             log_cache_statistics(&full_reader);
 
-            // Aggregate the data from all the laps into a single one.
-            let bench_data = BenchData::aggregate(&executions);
+            let bench_data = aggregate_benchmark(benchmark);
 
             if let Some(tx_data) = tx_data {
                 let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
-                for tx_data in &bench_data.transactions {
+                for tx_data in &bench_data {
                     writer
                         .serialize(tx_data)
                         .expect("failed to serialize tx bench data");
-                }
-            }
-            if let Some(call_data) = call_data {
-                let mut writer =
-                    csv::Writer::from_path(call_data).expect("failed to create writer");
-                for call_data in &bench_data.calls {
-                    writer
-                        .serialize(call_data)
-                        .expect("failed to serialize call bench data");
                 }
             }
         }
@@ -319,7 +305,6 @@ fn main() {
             tx_hash,
             runs,
             tx_data,
-            call_data,
         } => {
             let chain = parse_network(&chain);
             let block_number = BlockNumber(block_number);
@@ -350,10 +335,10 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut executions = Vec::new();
+            let mut benchmark = HashMap::new();
 
             for _ in 0..runs {
-                let mut tx_executions = execute_txs(
+                let tx_executions = execute_txs(
                     &full_reader,
                     block_number,
                     vec![tx_hash],
@@ -361,7 +346,9 @@ fn main() {
                 )
                 .expect("failed to execute transaction");
 
-                executions.append(&mut tx_executions);
+                for tx in tx_executions {
+                    add_transaction_to_benchmark(&mut benchmark, tx);
+                }
 
                 assert_eq!(
                     full_reader.get_miss_counter(),
@@ -371,24 +358,14 @@ fn main() {
             }
             log_cache_statistics(&full_reader);
 
-            // Aggregate the data from all the laps into a single one.
-            let bench_data = BenchData::aggregate(&executions);
+            let bench_data = aggregate_benchmark(benchmark);
 
             if let Some(tx_data) = tx_data {
                 let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
-                for tx_data in &bench_data.transactions {
+                for tx_data in &bench_data {
                     writer
                         .serialize(tx_data)
                         .expect("failed to serialize tx bench data");
-                }
-            }
-            if let Some(call_data) = call_data {
-                let mut writer =
-                    csv::Writer::from_path(call_data).expect("failed to create writer");
-                for call_data in &bench_data.calls {
-                    writer
-                        .serialize(call_data)
-                        .expect("failed to serialize call bench data");
                 }
             }
         }
