@@ -271,6 +271,13 @@ impl RemoteStateReader {
 
         Ok(ChainId::from(chain_id_string))
     }
+
+    pub fn get_block_number(&self) -> Result<BlockNumber, StateReaderError> {
+        let params = json!([]);
+        let response = self.send_rpc_request_with_retry("starknet_blockNumber", params)?;
+        let block_number: BlockNumber = serde_json::from_value(response)?;
+        Ok(block_number)
+    }
 }
 
 pub fn url_from_env(chain: &ChainId) -> String {
