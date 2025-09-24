@@ -322,7 +322,7 @@ mod tests {
 
         let contract_class = reader
             .get_contract_class(
-                BlockNumber(20000),
+                BlockId::Number(20000),
                 &class_hash!("0x02ff47f317134a53148b30d56ec98194d210e58cd6a0a9ae719b6a119d252c2f"),
             )
             .unwrap();
