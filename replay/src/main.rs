@@ -366,40 +366,21 @@ fn main() {
             classes_path,
             output,
         } => {
-            // TODO: Some of this functionality should be able to be moved to the benchmark module.
-            //
-            // TODO: We should be able to run multiple laps to remove noise.
-
-            use cairo_lang_starknet_classes::casm_contract_class::CasmContractClass;
-            use cairo_lang_starknet_classes::contract_class::version_id_from_serialized_sierra_program;
-            use cairo_native::statistics::Statistics;
-            use cairo_native::{executor::AotContractExecutor, OptLevel};
-            use serde::{Deserialize, Serialize};
+            use crate::benchmark::benchmark_compilation;
+            use serde::Deserialize;
             use starknet_api::core::ClassHash;
             use starknet_core::types::ContractClass;
+            use starknet_core::types::{BlockId, BlockTag};
             use state_reader::class_manager::processed_class_to_contract_class;
             use std::collections::HashMap;
-            use std::time::Instant;
+
+            // TODO: We should be able to run multiple laps to remove noise.
 
             // TODO: Is using serde required? Maybe not.
             #[derive(Debug, Deserialize)]
             pub struct ClassRecord {
                 pub network: String,
                 pub hash: ClassHash,
-            }
-
-            // TODO: Some of these fields are present in the compilation
-            // statistics. Is it worth duplicating them? Also, consider a way to
-            // save the statistics as well as the data.
-            #[derive(Debug, Serialize)]
-            pub struct ClassBenchmarkSummary {
-                pub network: String,
-                pub hash: ClassHash,
-                pub native_time_ns: u128,
-                pub casm_time_ns: u128,
-                pub sierra_statement_count: usize,
-                pub object_size_bytes: usize,
-                pub bytecode_length: usize,
             }
 
             let mut benchmark = Vec::new();
@@ -416,15 +397,10 @@ fn main() {
                     .entry(chain_id.clone())
                     .or_insert_with(|| FullStateReader::new(chain_id.clone()));
 
-                // TODO: We should not need to fetch the latest block number each
-                // time. Ideally, we should be able to specify 'latest' as the block ID.
-                let latest_block_number = state_reader
-                    .get_block_number()
-                    .expect("failed to get block number");
-
                 let contract_class = state_reader
-                    .get_contract_class(latest_block_number, hash)
+                    .get_contract_class(BlockId::Tag(BlockTag::Latest), hash)
                     .expect("failed to get contract class");
+
                 let ContractClass::Sierra(sierra_class) = contract_class else {
                     // TODO: Warn the user if a class is deprecated (Cairo 0).
                     continue;
@@ -432,48 +408,10 @@ fn main() {
 
                 let contract_class = processed_class_to_contract_class(&sierra_class)
                     .expect("failed to get contract class");
-                let (sierra_version, _) =
-                    version_id_from_serialized_sierra_program(&contract_class.sierra_program)
-                        .expect("failed to extract version id");
 
-                // TODO: There should be a way to gather all sierra related
-                // statistics, and have `AotContractExecutor` fill only the
-                // compilation related statistics.
-                let mut statistics = Statistics::default();
-
-                // TODO: We should find a way to reuse the compilation logic from the state-reader.
-                let pre_native_compilation_instant = Instant::now();
-                let _ = AotContractExecutor::new(
-                    &contract_class
-                        .extract_sierra_program()
-                        .expect("failed to extract sierra program"),
-                    &contract_class.entry_points_by_type,
-                    sierra_version,
-                    OptLevel::Default,
-                    Some(&mut statistics),
-                )
-                .expect("failed to compile contract class to Native");
-                let native_time_ns = pre_native_compilation_instant.elapsed().as_nanos();
-
-                let pre_casm_compilation_instant = Instant::now();
-                let casm_contract_class =
-                    CasmContractClass::from_contract_class(contract_class, false, usize::MAX)
-                        .expect("failed to compile contract class to CASM");
-                let casm_time_ns = pre_casm_compilation_instant.elapsed().as_nanos();
-
-                benchmark.push(ClassBenchmarkSummary {
-                    network,
-                    hash,
-                    native_time_ns,
-                    casm_time_ns,
-                    sierra_statement_count: statistics
-                        .sierra_statement_count
-                        .expect("sierra statement count statistic is missing"),
-                    object_size_bytes: statistics
-                        .object_size_bytes
-                        .expect("sierra statement count statistic is missing"),
-                    bytecode_length: casm_contract_class.bytecode.len(),
-                });
+                benchmark.push(
+                    benchmark_compilation(hash, contract_class).expect("failed to compile class"),
+                );
             }
 
             if let Some(output) = output {

@@ -1,6 +1,15 @@
-use std::{collections::BTreeMap, time::Duration};
+use std::{
+    collections::BTreeMap,
+    time::{Duration, Instant},
+};
 
+use anyhow::Context;
 use blockifier::execution::call_info::CallInfo;
+use cairo_lang_starknet_classes::{
+    casm_contract_class::CasmContractClass,
+    contract_class::{version_id_from_serialized_sierra_program, ContractClass},
+};
+use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use serde::{Deserialize, Serialize};
 use starknet_api::{
     block::BlockNumber,
@@ -163,4 +172,55 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchDa
     classes.push(top_call);
 
     classes
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClassBenchmarkSummary {
+    pub class_hash: ClassHash,
+    pub native_time_ns: u128,
+    pub casm_time_ns: u128,
+    pub sierra_size: usize,
+    pub object_size: usize,
+    pub casm_size: usize,
+}
+
+pub fn benchmark_compilation(
+    class_hash: ClassHash,
+    contract_class: ContractClass,
+) -> anyhow::Result<ClassBenchmarkSummary> {
+    let (sierra_version, _) =
+        version_id_from_serialized_sierra_program(&contract_class.sierra_program)?;
+
+    let mut statistics = Statistics::default();
+
+    let pre_native_compilation_instant = Instant::now();
+    let _ = AotContractExecutor::new(
+        &contract_class.extract_sierra_program()?,
+        &contract_class.entry_points_by_type,
+        sierra_version,
+        OptLevel::Default,
+        Some(&mut statistics),
+    )?;
+    let native_time_ns = pre_native_compilation_instant.elapsed().as_nanos();
+
+    let pre_casm_compilation_instant = Instant::now();
+    let casm_contract_class =
+        CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+    let casm_time_ns = pre_casm_compilation_instant.elapsed().as_nanos();
+
+    let sierra_statement_count = statistics
+        .sierra_statement_count
+        .context("missing sierra_statement_count statistic")?;
+    let object_size_bytes = statistics
+        .object_size_bytes
+        .context("missing object_size_bytes statistic")?;
+
+    Ok(ClassBenchmarkSummary {
+        class_hash,
+        native_time_ns,
+        casm_time_ns,
+        sierra_size: sierra_statement_count,
+        object_size: object_size_bytes,
+        casm_size: casm_contract_class.bytecode.len(),
+    })
 }

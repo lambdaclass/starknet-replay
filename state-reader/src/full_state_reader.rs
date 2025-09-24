@@ -21,7 +21,7 @@ use starknet_api::{
     transaction::{Transaction, TransactionHash},
 };
 
-use starknet_core::types::{BlockWithTxHashes, ContractClass};
+use starknet_core::types::{BlockId, BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
 
 use crate::disk_state_reader::DiskStateReader;
@@ -248,7 +248,7 @@ impl FullStateReader {
 
     pub fn get_contract_class(
         &self,
-        block_number: BlockNumber,
+        block_number: BlockId,
         class_hash: ClassHash,
     ) -> Result<ContractClass, StateReaderError> {
         // Check in memory cache.
@@ -292,7 +292,8 @@ impl FullStateReader {
         self.miss_counter.set(self.miss_counter.get() + 1);
 
         // If not found, compile and cache it.
-        let contract_class = self.get_contract_class(block_number, class_hash)?;
+        let contract_class =
+            self.get_contract_class(BlockId::Number(block_number.0), class_hash)?;
         self.class_manager
             .borrow_mut()
             .compile_runnable_class(&class_hash, contract_class)
@@ -303,7 +304,8 @@ impl FullStateReader {
         block_number: BlockNumber,
         class_hash: ClassHash,
     ) -> Result<ClassInfo, StateReaderError> {
-        let contract_class = self.get_contract_class(block_number, class_hash)?;
+        let contract_class =
+            self.get_contract_class(BlockId::Number(block_number.0), class_hash)?;
 
         // This value is not cached in memory as its only used before executing
         // a transaction. This means that it won't affect a transaction
