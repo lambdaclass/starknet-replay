@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::path::PathBuf;
+use std::sync::Arc;
+
 use blockifier::execution::contract_class::TrackedResource;
 use blockifier::execution::entry_point::{
     EntryPointExecutionContext, EntryPointRevertInfo, ExecutableCallEntryPoint,
@@ -8,12 +12,10 @@ use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use clap::{Parser, Subcommand};
-
 use execution::{execute_block, execute_txs, get_block_context, get_blockifier_transaction};
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
-
 use starknet_api::felt;
 use starknet_api::transaction::TransactionHash;
 use state_reader::block_state_reader::BlockStateReader;
@@ -24,9 +26,17 @@ use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 #[cfg(feature = "block-composition")]
 use {block_composition::save_entry_point_execution, chrono::DateTime};
 
-use std::fs::File;
-use std::path::PathBuf;
-use std::sync::Arc;
+#[cfg(feature = "benchmark")]
+use {
+    crate::benchmark::benchmark_compilation,
+    cairo_lang_starknet_classes::contract_class::ContractClass,
+    starknet_api::{core::ClassHash, hash::StarkHash},
+    starknet_core::types::ContractClass as ProcessedContractClass,
+    starknet_core::types::{BlockId, BlockTag},
+    state_reader::class_manager::processed_class_to_contract_class,
+    std::collections::HashMap,
+    std::io::{BufRead, BufReader},
+};
 
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
@@ -366,51 +376,14 @@ fn main() {
             classes_path,
             output,
         } => {
-            use crate::benchmark::benchmark_compilation;
-            use serde::Deserialize;
-            use starknet_api::core::ClassHash;
-            use starknet_core::types::ContractClass;
-            use starknet_core::types::{BlockId, BlockTag};
-            use state_reader::class_manager::processed_class_to_contract_class;
-            use std::collections::HashMap;
-
-            // TODO: We should be able to run multiple laps to remove noise.
-
-            // TODO: Is using serde required? Maybe not.
-            #[derive(Debug, Deserialize)]
-            pub struct ClassRecord {
-                pub network: String,
-                pub hash: ClassHash,
-            }
+            let class_hashes = read_class_hashes_to_compile(classes_path);
+            let classes = fetch_classes_to_compile(class_hashes);
 
             let mut benchmark = Vec::new();
-            let mut state_readers = HashMap::new();
-
-            for record in csv::Reader::from_path(classes_path)
-                .expect("failed to open file")
-                .deserialize()
-            {
-                let ClassRecord { network, hash } = record.expect("found invalid record");
-
-                let chain_id = parse_network(&network);
-                let state_reader = state_readers
-                    .entry(chain_id.clone())
-                    .or_insert_with(|| FullStateReader::new(chain_id.clone()));
-
-                let contract_class = state_reader
-                    .get_contract_class(BlockId::Tag(BlockTag::Latest), hash)
-                    .expect("failed to get contract class");
-
-                let ContractClass::Sierra(sierra_class) = contract_class else {
-                    // TODO: Warn the user if a class is deprecated (Cairo 0).
-                    continue;
-                };
-
-                let contract_class = processed_class_to_contract_class(&sierra_class)
-                    .expect("failed to get contract class");
-
+            for (class_hash, contract_class) in classes {
                 benchmark.push(
-                    benchmark_compilation(hash, contract_class).expect("failed to compile class"),
+                    benchmark_compilation(class_hash, contract_class)
+                        .expect("failed to compile class"),
                 );
             }
 
@@ -419,7 +392,7 @@ fn main() {
                 for tx_data in &benchmark {
                     writer
                         .serialize(tx_data)
-                        .expect("failed to serialize  benchmark bench data");
+                        .expect("failed to serialize benchmark data");
                 }
             }
         }
@@ -575,6 +548,55 @@ fn main() {
             }
         }
     }
+}
+
+#[cfg(feature = "benchmark")]
+fn fetch_classes_to_compile(
+    class_hashes: Vec<(ChainId, ClassHash)>,
+) -> Vec<(ClassHash, ContractClass)> {
+    let mut classes = Vec::new();
+    let mut state_readers = HashMap::new();
+    for (chain_id, class_hash) in class_hashes {
+        let state_reader = state_readers
+            .entry(chain_id.clone())
+            .or_insert_with(|| FullStateReader::new(chain_id.clone()));
+
+        let contract_class = state_reader
+            .get_contract_class(BlockId::Tag(BlockTag::Latest), class_hash)
+            .expect("failed to get contract class");
+
+        let ProcessedContractClass::Sierra(sierra_class) = contract_class else {
+            panic!("cannot compile a deprecated contract class")
+        };
+
+        let contract_class =
+            processed_class_to_contract_class(&sierra_class).expect("failed to get contract class");
+
+        classes.push((class_hash, contract_class));
+    }
+    classes
+}
+
+#[cfg(feature = "benchmark")]
+fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
+    let mut class_hashes = Vec::new();
+    let input_reader = BufReader::new(File::open(path).expect("failed to open file"));
+    for line in input_reader.lines() {
+        let [network_str, class_hash_str] = line
+            .as_ref()
+            .expect("failed to read line")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("expected 2 arguments per line");
+
+        let class_hash =
+            ClassHash(StarkHash::from_hex(class_hash_str).expect("failed to parse class hash"));
+        let network = parse_network(network_str);
+
+        class_hashes.push((network, class_hash));
+    }
+    class_hashes
 }
 
 fn parse_network(network: &str) -> ChainId {
