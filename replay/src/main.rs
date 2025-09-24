@@ -123,8 +123,8 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     BenchCompilation {
         /// Path to read input classes from.
         ///
-        /// Each line contains two whitespace separated values:
-        /// - Network, either mainnet or testnet;
+        /// Each line should contain two whitespace separated values:
+        /// - Network, either mainnet or testnet.
         /// - Class Hash, in hexadecimal form.
         #[clap(verbatim_doc_comment)]
         input: PathBuf,
@@ -551,6 +551,11 @@ fn main() {
     }
 }
 
+/// Reads class hashes to compile from a file.
+///
+/// Each line should contain two whitespace separated values:
+/// - Network, either mainnet or testnet.
+/// - Class Hash, in hexadecimal form.
 #[cfg(feature = "benchmark")]
 fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
     let mut class_hashes = Vec::new();
@@ -573,6 +578,9 @@ fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
     class_hashes
 }
 
+/// Fetches the contract class for all the given classes.
+///
+/// This function panics if encounters a deprecated contract class, as it cannot be compiled.
 #[cfg(feature = "benchmark")]
 fn fetch_classes_to_compile(
     class_hashes: Vec<(ChainId, ClassHash)>,
