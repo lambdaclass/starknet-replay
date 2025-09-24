@@ -340,10 +340,6 @@ impl FullStateReader {
             }
         }
     }
-
-    pub fn get_block_number(&self) -> Result<BlockNumber, StateReaderError> {
-        self.remote_reader.get_block_number()
-    }
 }
 
 /// Before dropping the full state reader,
