@@ -29,6 +29,7 @@ use {block_composition::save_entry_point_execution, chrono::DateTime};
 #[cfg(feature = "benchmark")]
 use {
     crate::benchmark::benchmark_compilation,
+    crate::benchmark::ClassBenchmarkSummary,
     cairo_lang_starknet_classes::contract_class::ContractClass,
     starknet_api::{core::ClassHash, hash::StarkHash},
     starknet_core::types::ContractClass as ProcessedContractClass,
@@ -131,6 +132,9 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         /// Output file name for benchmark summary.
         #[clap(long)]
         output: Option<PathBuf>,
+        /// Number of times to compile each class.
+        #[clap(long, default_value_t = 1)]
+        runs: usize,
     },
     #[cfg(feature = "block-composition")]
     #[clap(
@@ -376,23 +380,34 @@ fn main() {
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
         }
         #[cfg(feature = "benchmark")]
-        ReplayExecute::BenchCompilation { input, output } => {
+        ReplayExecute::BenchCompilation {
+            input,
+            output,
+            runs,
+        } => {
             let class_hashes = read_class_hashes_to_compile(input);
             let classes = fetch_classes_to_compile(class_hashes);
 
             let mut benchmark = Vec::new();
             for (class_hash, contract_class) in classes {
+                let summaries = (0..runs)
+                    .map(|_| {
+                        benchmark_compilation(class_hash, contract_class.clone())
+                            .expect("failed to compile class")
+                    })
+                    .collect::<Vec<_>>();
+
                 benchmark.push(
-                    benchmark_compilation(class_hash, contract_class)
-                        .expect("failed to compile class"),
+                    ClassBenchmarkSummary::aggregate(summaries)
+                        .expect("failed to aggregate summaries"),
                 );
             }
 
             if let Some(output) = output {
                 let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
-                for tx_data in &benchmark {
+                for summary in &benchmark {
                     writer
-                        .serialize(tx_data)
+                        .serialize(summary)
                         .expect("failed to serialize benchmark data");
                 }
             }
@@ -591,6 +606,11 @@ fn fetch_classes_to_compile(
         let state_reader = state_readers
             .entry(chain_id.clone())
             .or_insert_with(|| FullStateReader::new(chain_id.clone()));
+
+        info!(
+            "fetching contract class {}",
+            class_hash.to_fixed_hex_string()
+        );
 
         let contract_class = state_reader
             .get_contract_class(BlockId::Tag(BlockTag::Latest), class_hash)

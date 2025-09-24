@@ -16,6 +16,7 @@ use starknet_api::{
     core::{ClassHash, EntryPointSelector},
     transaction::TransactionHash,
 };
+use tracing::info;
 
 use crate::execution::TransactionExecution;
 
@@ -184,6 +185,32 @@ pub struct ClassBenchmarkSummary {
     pub casm_size: usize,
 }
 
+impl ClassBenchmarkSummary {
+    pub fn aggregate(summaries: Vec<Self>) -> anyhow::Result<Self> {
+        let samples = summaries.len() as u128;
+
+        let mut summary = summaries
+            .into_iter()
+            .reduce(|mut summary1, summary2| {
+                assert_eq!(summary1.class_hash, summary2.class_hash);
+                assert_eq!(summary1.sierra_size, summary2.sierra_size);
+                assert_eq!(summary1.object_size, summary2.object_size);
+                assert_eq!(summary1.casm_size, summary2.casm_size);
+
+                summary1.native_time_ns += summary2.native_time_ns;
+                summary1.casm_time_ns += summary2.native_time_ns;
+
+                summary1
+            })
+            .context("we should have at least one summary")?;
+
+        summary.native_time_ns /= samples;
+        summary.casm_time_ns /= samples;
+
+        Ok(summary)
+    }
+}
+
 pub fn benchmark_compilation(
     class_hash: ClassHash,
     contract_class: ContractClass,
@@ -192,6 +219,11 @@ pub fn benchmark_compilation(
         version_id_from_serialized_sierra_program(&contract_class.sierra_program)?;
 
     let mut statistics = Statistics::default();
+
+    info!(
+        "compiling native contract class {}",
+        class_hash.to_fixed_hex_string()
+    );
 
     let pre_native_compilation_instant = Instant::now();
     let _ = AotContractExecutor::new(
@@ -202,6 +234,11 @@ pub fn benchmark_compilation(
         Some(&mut statistics),
     )?;
     let native_time_ns = pre_native_compilation_instant.elapsed().as_nanos();
+
+    info!(
+        "compiling casm contract class {}",
+        class_hash.to_fixed_hex_string()
+    );
 
     let pre_casm_compilation_instant = Instant::now();
     let casm_contract_class =
