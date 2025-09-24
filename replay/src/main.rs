@@ -24,7 +24,7 @@ use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
-use crate::benchmark::{add_transaction_to_benchmark, aggregate_benchmark};
+use crate::benchmark::{add_transaction_to_execution_benchmark, aggregate_execution_benchmark};
 
 #[cfg(feature = "block-composition")]
 use {block_composition::save_entry_point_execution, chrono::DateTime};
@@ -288,7 +288,7 @@ fn main() {
                     .expect("failed to execute block");
 
                     for tx in block_executions {
-                        add_transaction_to_benchmark(&mut benchmark, tx);
+                        add_transaction_to_execution_benchmark(&mut benchmark, tx);
                     }
 
                     assert_eq!(
@@ -301,7 +301,7 @@ fn main() {
             log_cache_statistics(&full_reader);
 
             // Aggregate each run into a single one to reduce noise.
-            let bench_data = aggregate_benchmark(benchmark);
+            let bench_data = aggregate_execution_benchmark(benchmark);
 
             if let Some(output) = output {
                 let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
@@ -361,7 +361,7 @@ fn main() {
                 .expect("failed to execute transaction");
 
                 for tx in tx_executions {
-                    add_transaction_to_benchmark(&mut benchmark, tx);
+                    add_transaction_to_execution_benchmark(&mut benchmark, tx);
                 }
 
                 assert_eq!(
@@ -373,7 +373,7 @@ fn main() {
             log_cache_statistics(&full_reader);
 
             // Aggregate each run into a single one to reduce noise.
-            let bench_data = aggregate_benchmark(benchmark);
+            let bench_data = aggregate_execution_benchmark(benchmark);
 
             if let Some(output) = output {
                 let mut writer = csv::Writer::from_path(output).expect("failed to create writer");

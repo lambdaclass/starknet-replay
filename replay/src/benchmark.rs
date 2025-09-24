@@ -75,7 +75,7 @@ impl TxBenchmarkSummary {
     }
 }
 
-pub fn add_transaction_to_benchmark(
+pub fn add_transaction_to_execution_benchmark(
     benchmark: &mut HashMap<TransactionHash, Vec<TxBenchmarkSummary>>,
     tx: TransactionExecution,
 ) {
@@ -85,7 +85,7 @@ pub fn add_transaction_to_benchmark(
         .push(TxBenchmarkSummary::summarize_tx(tx));
 }
 
-pub fn aggregate_benchmark(
+pub fn aggregate_execution_benchmark(
     benchmark: HashMap<TransactionHash, Vec<TxBenchmarkSummary>>,
 ) -> Vec<TxBenchmarkSummary> {
     benchmark
