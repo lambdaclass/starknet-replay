@@ -297,7 +297,7 @@ mod tests {
 
     use crate::execution::{execute_tx, get_block_context};
 
-    pub fn normalize_execution_info(execution_info: &mut TransactionExecutionInfo) {
+    fn normalize_execution_info(execution_info: &mut TransactionExecutionInfo) {
         fn normalize_call_info(call_info: &mut CallInfo) {
             call_info.time = Duration::default();
             call_info.execution.cairo_native = false;
