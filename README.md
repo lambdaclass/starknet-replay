@@ -208,6 +208,26 @@ python plotting/plot_compilation_stats.py <compilation-data> --output-dir <outpu
 
 The report will be generated to `<output-dir>/report.html`
 
+### Benchmarking Compilation for Specific Classes
+
+To benchmark compilation of specific classes, you can use the `bench-compilation` replay command:
+
+```bash
+cargo run --bin replay --features benchmark -- bench-compilation classes.txt --output classes.csv
+```
+
+The input file has the following format:
+```
+mainnet 0x00009e6d3abd4b649e6de59bf412ab99bc9609414bbe7ba86b83e09e96dcb120
+mainnet 0x0002a2838ed37071ced0a289a9bf87926c76b9da1973b5a2ecb5e487bef48b2b
+...
+testnet 0x05c8f84d8a349fa68ea7ad46a3a6f62915750aa330fdaf326758636deee4a252
+...
+mainnet 0x00147eabaed02793e71cd7dc79da8bb6578e043abb38fd4e4790be813d10f06e
+```
+
+The output file is in CSV format, and contains a summary for both Cairo Native and CASM compilation.
+
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
 will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
