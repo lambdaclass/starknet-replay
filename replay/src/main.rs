@@ -121,10 +121,14 @@ Caches all rpc data before the benchmark runs to provide accurate results"
     #[cfg(feature = "benchmark")]
     /// Benchmarks the compilation of contract classes
     BenchCompilation {
-        /// Path to read input classes from. The format should be a CSV with
-        /// columns "network", and "hash".
-        classes_path: PathBuf,
-        /// Output file name for benchmark data, in CSV format.
+        /// Path to read input classes from.
+        ///
+        /// Each line contains two whitespace separated values:
+        /// - Network, either mainnet or testnet;
+        /// - Class Hash, in hexadecimal form.
+        #[clap(verbatim_doc_comment)]
+        input: PathBuf,
+        /// Output file name for benchmark summary.
         #[clap(long)]
         output: Option<PathBuf>,
     },
@@ -372,11 +376,8 @@ fn main() {
             serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
         }
         #[cfg(feature = "benchmark")]
-        ReplayExecute::BenchCompilation {
-            classes_path,
-            output,
-        } => {
-            let class_hashes = read_class_hashes_to_compile(classes_path);
+        ReplayExecute::BenchCompilation { input, output } => {
+            let class_hashes = read_class_hashes_to_compile(input);
             let classes = fetch_classes_to_compile(class_hashes);
 
             let mut benchmark = Vec::new();
