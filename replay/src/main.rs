@@ -83,36 +83,43 @@ enum ReplayExecute {
         charge_fee: bool,
     },
     #[cfg(feature = "benchmark")]
-    /// Benchmarks a block range multiple times.
+    /// Benchmarks all transactions in the given block range.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
     BenchBlockRange {
-        /// Network [mainnet, sepolia].
-        chain: String,
         /// Start block number.
         block_start: u64,
         /// End block number (inclusive).
         block_end: u64,
-        /// Number of benchmark runs to execute.
-        /// Data from all runs is averaged into a single one.
+        /// Network, either mainnet or sepolia.
+        chain: String,
+        /// Number of benchmark runs to execute. All laps are aggregated into a
+        /// single one to reduce noise.
         runs: u32,
         /// Output file name for transaction data, in CSV format.
         #[clap(long)]
-        tx_data: Option<PathBuf>,
+        output: Option<PathBuf>,
     },
     #[cfg(feature = "benchmark")]
-    /// Benchmarks a single transaction multiple times.
+    /// Benchmarks a single transaction.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
+    ///
+    /// If the transaction depends on a previous transaction of the same block,
+    /// the transaction execution will fail.
     BenchTx {
-        /// Network [mainnet, sepolia].
+        /// Transaction hash.
+        tx_hash: String,
+        /// Network, either mainnet or sepolia.
         chain: String,
         /// Transaction block number.
         block_number: u64,
-        /// Transaction hash.
-        tx_hash: String,
         /// Number of benchmark runs to execute.
         /// Data from all runs is averaged into a single one.
         runs: u32,
         /// Output file name for transaction data, in CSV format.
         #[clap(long)]
-        tx_data: Option<PathBuf>,
+        output: Option<PathBuf>,
     },
     #[cfg(feature = "block-composition")]
     #[clap(
@@ -234,11 +241,11 @@ fn main() {
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchBlockRange {
-            chain,
             block_start,
             block_end,
+            chain,
             runs,
-            tx_data,
+            output,
         } => {
             let chain = parse_network(&chain);
 
@@ -293,24 +300,25 @@ fn main() {
             }
             log_cache_statistics(&full_reader);
 
+            // Aggregate each run into a single one to reduce noise.
             let bench_data = aggregate_benchmark(benchmark);
 
-            if let Some(tx_data) = tx_data {
-                let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
-                for tx_data in &bench_data {
+            if let Some(output) = output {
+                let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
+                for summary in &bench_data {
                     writer
-                        .serialize(tx_data)
-                        .expect("failed to serialize tx bench data");
+                        .serialize(summary)
+                        .expect("failed to serialize bench summary");
                 }
             }
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchTx {
-            chain,
-            block_number,
             tx_hash,
+            block_number,
+            chain,
             runs,
-            tx_data,
+            output,
         } => {
             let chain = parse_network(&chain);
             let block_number = BlockNumber(block_number);
@@ -364,14 +372,15 @@ fn main() {
             }
             log_cache_statistics(&full_reader);
 
+            // Aggregate each run into a single one to reduce noise.
             let bench_data = aggregate_benchmark(benchmark);
 
-            if let Some(tx_data) = tx_data {
-                let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
-                for tx_data in &bench_data {
+            if let Some(output) = output {
+                let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
+                for summary in &bench_data {
                     writer
-                        .serialize(tx_data)
-                        .expect("failed to serialize tx bench data");
+                        .serialize(summary)
+                        .expect("failed to serialize bench summary");
                 }
             }
         }
