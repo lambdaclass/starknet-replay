@@ -552,6 +552,28 @@ fn main() {
 }
 
 #[cfg(feature = "benchmark")]
+fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
+    let mut class_hashes = Vec::new();
+    let input_reader = BufReader::new(File::open(path).expect("failed to open file"));
+    for line in input_reader.lines() {
+        let [network_str, class_hash_str] = line
+            .as_ref()
+            .expect("failed to read line")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("expected 2 arguments per line");
+
+        let class_hash =
+            ClassHash(StarkHash::from_hex(class_hash_str).expect("failed to parse class hash"));
+        let network = parse_network(network_str);
+
+        class_hashes.push((network, class_hash));
+    }
+    class_hashes
+}
+
+#[cfg(feature = "benchmark")]
 fn fetch_classes_to_compile(
     class_hashes: Vec<(ChainId, ClassHash)>,
 ) -> Vec<(ClassHash, ContractClass)> {
@@ -576,28 +598,6 @@ fn fetch_classes_to_compile(
         classes.push((class_hash, contract_class));
     }
     classes
-}
-
-#[cfg(feature = "benchmark")]
-fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
-    let mut class_hashes = Vec::new();
-    let input_reader = BufReader::new(File::open(path).expect("failed to open file"));
-    for line in input_reader.lines() {
-        let [network_str, class_hash_str] = line
-            .as_ref()
-            .expect("failed to read line")
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .try_into()
-            .expect("expected 2 arguments per line");
-
-        let class_hash =
-            ClassHash(StarkHash::from_hex(class_hash_str).expect("failed to parse class hash"));
-        let network = parse_network(network_str);
-
-        class_hashes.push((network, class_hash));
-    }
-    class_hashes
 }
 
 fn parse_network(network: &str) -> ChainId {
