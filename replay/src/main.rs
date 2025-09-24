@@ -23,6 +23,7 @@ use std::sync::Arc;
 use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
+#[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
 mod block_composition;
@@ -32,6 +33,7 @@ mod libfunc_profile;
 #[cfg(feature = "state_dump")]
 mod state_dump;
 
+#[cfg(feature = "benchmark")]
 use crate::benchmark::{add_transaction_to_benchmark, aggregate_benchmark};
 
 #[cfg(feature = "block-composition")]
@@ -80,6 +82,23 @@ enum ReplayExecute {
         #[arg(short, long)]
         charge_fee: bool,
     },
+    #[cfg(feature = "benchmark")]
+    /// Benchmarks a block range multiple times.
+    BenchBlockRange {
+        /// Network [mainnet, sepolia].
+        chain: String,
+        /// Start block number.
+        block_start: u64,
+        /// End block number (inclusive).
+        block_end: u64,
+        /// Number of benchmark runs to execute.
+        /// Data from all runs is averaged into a single one.
+        runs: u32,
+        /// Output file name for transaction data, in CSV format.
+        #[clap(long)]
+        tx_data: Option<PathBuf>,
+    },
+    #[cfg(feature = "benchmark")]
     /// Benchmarks a single transaction multiple times.
     BenchTx {
         /// Network [mainnet, sepolia].
@@ -88,21 +107,6 @@ enum ReplayExecute {
         block_number: u64,
         /// Transaction hash.
         tx_hash: String,
-        /// Number of benchmark runs to execute.
-        /// Data from all runs is averaged into a single one.
-        runs: u32,
-        /// Output file name for transaction data, in CSV format.
-        #[clap(long)]
-        tx_data: Option<PathBuf>,
-    },
-    /// Benchmarks a block range multiple times.
-    BenchBlocks {
-        /// Network [mainnet, sepolia].
-        chain: String,
-        /// Start block number.
-        block_start: u64,
-        /// End block number (inclusive).
-        block_end: u64,
         /// Number of benchmark runs to execute.
         /// Data from all runs is averaged into a single one.
         runs: u32,
@@ -228,7 +232,8 @@ fn main() {
             }
             log_cache_statistics(&full_reader);
         }
-        ReplayExecute::BenchBlocks {
+        #[cfg(feature = "benchmark")]
+        ReplayExecute::BenchBlockRange {
             chain,
             block_start,
             block_end,
@@ -299,6 +304,7 @@ fn main() {
                 }
             }
         }
+        #[cfg(feature = "benchmark")]
         ReplayExecute::BenchTx {
             chain,
             block_number,

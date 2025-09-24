@@ -28,7 +28,9 @@ use state_reader::{
 };
 use tracing::{error, info, info_span};
 
-#[derive(Debug)]
+// the fields are used by the benchmark feature
+// so we allow dead code to silence warnings.
+#[allow(dead_code)]
 pub struct TransactionExecution {
     pub result: TransactionExecutionResult<TransactionExecutionInfo>,
     pub time: Duration,
