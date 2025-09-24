@@ -24,6 +24,15 @@ use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[cfg(feature = "benchmark")]
+use crate::benchmark::{add_transaction_to_benchmark, aggregate_benchmark};
+
+#[cfg(feature = "block-composition")]
+use {block_composition::save_entry_point_execution, chrono::DateTime};
+
+#[cfg(feature = "profiling")]
+use {std::thread, std::time::Duration};
+
+#[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
 mod block_composition;
@@ -32,15 +41,6 @@ mod execution;
 mod libfunc_profile;
 #[cfg(feature = "state_dump")]
 mod state_dump;
-
-#[cfg(feature = "benchmark")]
-use crate::benchmark::{add_transaction_to_benchmark, aggregate_benchmark};
-
-#[cfg(feature = "block-composition")]
-use {block_composition::save_entry_point_execution, chrono::DateTime};
-
-#[cfg(feature = "profiling")]
-use {std::thread, std::time::Duration};
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
