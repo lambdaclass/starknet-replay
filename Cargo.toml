@@ -1,5 +1,5 @@
 [workspace]
-members = ["rpc-state-reader", "replay", "tools", "profiler-sdk", "state-reader"]
+members = ["replay", "tools", "profiler-sdk", "state-reader"]
 
 
 # Explicitly set the resolver to the default for edition >= 2021
@@ -24,9 +24,9 @@ cairo-lang-compiler = "~2.12.3"
 cairo-lang-sierra = "~2.12.3"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "37cbd21c138352602875fadd483b7014b2b30c11" } # main-v0.14.0
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "37cbd21c138352602875fadd483b7014b2b30c11", features = [
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "4f6b2b07285613cd2c3d9282fe41b9ca1354577d" } # main-v0.14.0
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "4f6b2b07285613cd2c3d9282fe41b9ca1354577d", features = [
   "cairo_native",
 ] } # main-v0.14.0
-apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "37cbd21c138352602875fadd483b7014b2b30c11" } # main-v0.14.0
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "37cbd21c138352602875fadd483b7014b2b30c11" } # main-v0.14.0
+apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "4f6b2b07285613cd2c3d9282fe41b9ca1354577d" } # main-v0.14.0
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "4f6b2b07285613cd2c3d9282fe41b9ca1354577d" } # main-v0.14.0

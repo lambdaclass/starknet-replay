@@ -1,0 +1,42 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "gas_consumed": 462630
+  },
+  "executed_class_hashes": [
+    "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
+    "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b"
+  ],
+  "visited_storage_entries": [
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34d00"
+    ],
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x21f2d3566861264d79a5fc7cca193273112adf9de2ce727d8804de773690e52"
+    ],
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34cff"
+    ],
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x21f2d3566861264d79a5fc7cca193273112adf9de2ce727d8804de773690e53"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 2,
+    "total_event_keys": 3,
+    "total_event_data_size": 7
+  },
+  "call_summary": {
+    "n_calls": 2,
+    "n_calls_running_native": 0
+  }
+}

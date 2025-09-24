@@ -316,6 +316,24 @@ mod tests {
     }
 
     #[test]
+    pub fn get_legacy_contract_class() {
+        let url = url_from_env(&ChainId::Mainnet);
+        let reader = RemoteStateReader::new(url);
+
+        let contract_class = reader
+            .get_contract_class(
+                BlockNumber(20000),
+                &class_hash!("0x02ff47f317134a53148b30d56ec98194d210e58cd6a0a9ae719b6a119d252c2f"),
+            )
+            .unwrap();
+
+        let ContractClass::Legacy(contract_class) = contract_class else {
+            panic!("expected legacy contract class");
+        };
+        assert_eq!(contract_class.program.len(), 66175);
+    }
+
+    #[test]
     pub fn get_block_with_tx_hashes() {
         let url = url_from_env(&ChainId::Mainnet);
         let reader = RemoteStateReader::new(url);
