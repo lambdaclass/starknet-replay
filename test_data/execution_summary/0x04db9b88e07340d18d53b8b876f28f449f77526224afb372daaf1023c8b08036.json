@@ -1,0 +1,33 @@
+{
+  "charged_resources": {
+    "vm_resources": {
+      "n_steps": 0,
+      "n_memory_holes": 0,
+      "builtin_instance_counter": {}
+    },
+    "gas_consumed": 62000
+  },
+  "executed_class_hashes": [
+    "0x4c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755"
+  ],
+  "visited_storage_entries": [
+    [
+      "0x4c7fca7533ded66e2b8de774c9e08228f5e1aafb3ae8c86de87e1a6d7b03b50",
+      "0x7e79bbb6be5d418acd50c88b675e697f6f7094e203c9d7e29c6ad6731f931dd"
+    ],
+    [
+      "0x4c7fca7533ded66e2b8de774c9e08228f5e1aafb3ae8c86de87e1a6d7b03b50",
+      "0x1379ac0624b939ceb9dede92211d7db5ee174fe28be72245b0a1a2abd81c98f"
+    ]
+  ],
+  "l2_to_l1_payload_lengths": [],
+  "event_summary": {
+    "n_events": 1,
+    "total_event_keys": 1,
+    "total_event_data_size": 1
+  },
+  "call_summary": {
+    "n_calls": 1,
+    "n_calls_running_native": 0
+  }
+}
