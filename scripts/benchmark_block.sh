@@ -7,7 +7,7 @@ cat <<EOF
 Usage: $0 <start> <end> <net> <laps>
 
 Benches a block range
-- Saves output to native-<start>-<end>-<net> and vm-<start>-<end>-<net>
+- Saves output to bench_data/<start>-<end>-<net> directory
 - Prints speedup
 EOF
 }
@@ -31,16 +31,14 @@ END=$2
 NET=$3
 LAPS=$4
 
-DATA_DIR="bench_data"
-mkdir -p $DATA_DIR
+DATA_DIR="bench_data/$START-$END-$NET"
+mkdir -p "$DATA_DIR"
 
-log_output="logs-$START-$END-$NET-$LAPS.jsonl"
-native_log_output="$DATA_DIR/native-$log_output"
-vm_log_output="$DATA_DIR/vm-$log_output"
-
-data_output="data-$START-$END-$NET-$LAPS.json"
-native_data_output="$DATA_DIR/native-$data_output"
-vm_data_output="$DATA_DIR/vm-$data_output"
+native_log_output="$DATA_DIR/native-logs.jsonl"
+vm_log_output="$DATA_DIR/vm-logs.jsonl"
+native_data_output="$DATA_DIR/native-data.csv"
+vm_data_output="$DATA_DIR/vm-data.csv"
+info_output="$DATA_DIR/info.json"
 
 find_version() {
     dependency=$(
@@ -80,10 +78,7 @@ find_version() {
     fi
 }
 
-inject_info() {
-    input=$1
-    mode=$2
-
+print_info() {
     cairo_native_version=$(find_version "cairo-native")
     sequencer_version=$(find_version "blockifier")
     os=$(uname -o)
@@ -100,16 +95,13 @@ inject_info() {
       ;;
     esac
 
-
-    tmp=$(mktemp)
-    jq \
+    jq -n \
         --arg date "$(date)" \
-        --arg tx "$TX" \
-        --arg block "$BLOCK" \
+        --arg block_start "$START" \
+        --arg block_end "$END" \
         --arg net "$NET" \
         --arg laps "$LAPS" \
-        --arg mode "$mode" \
-        --arg native_profile "aggressive" \
+        --arg native_profile "default" \
         --arg rust_profile "release" \
         --arg cairo_native_version "$cairo_native_version" \
         --arg sequencer_version "$sequencer_version" \
@@ -117,41 +109,35 @@ inject_info() {
         --arg arch "$arch" \
         --arg memory "$memory" \
         --arg cpu "$cpu" \
-        ' {
-            "info": {
-                "date": $date,
-                "tx": $tx,
-                "block": $block,
-                "net": $net,
-                "laps": $laps,
-                "mode": $mode,
-                "native_profile": $native_profile,
-                "rust_profile": $rust_profile,
-                "cairo_native_version": $cairo_native_version,
-                "sequencer_version": $sequencer_version,
-                "os": $os,
-                "arch": $arch,
-                "memory": $memory,
-                "cpu": $cpu,
-            }
-        } + .' "$input" > "$tmp"
-    mv "$tmp" "$input"
+        '{
+            "date": $date,
+            "block_start": $block_start,
+            "block_end": $block_end,
+            "net": $net,
+            "laps": $laps,
+            "native_profile": $native_profile,
+            "rust_profile": $rust_profile,
+            "cairo_native_version": $cairo_native_version,
+            "sequencer_version": $sequencer_version,
+            "os": $os,
+            "arch": $arch,
+            "memory": $memory,
+            "cpu": $cpu,
+        }'
 }
 
+print_info > "$info_output"
+
 echo "Executing with Native"
-$NATIVE_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$native_data_output" > "$native_log_output"
+$NATIVE_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" --output "$native_data_output" > "$native_log_output"
 
-inject_info "$native_data_output" "native"
-
-native_time=$(jq '.transactions | map(.time_ns) | add' "$native_data_output")
+native_time=$(datamash sum 3 --header-in --field-separator=, < "$native_data_output")
 echo "Average Native time: $native_time ns"
 
 echo "Executing with VM"
-$VM_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" -o "$vm_data_output" > "$vm_log_output"
+$VM_TARGET bench-block-range "$START" "$END" "$NET" "$LAPS" --output "$vm_data_output" > "$vm_log_output"
 
-inject_info "$vm_data_output" "vm"
-
-vm_time=$(jq '.transactions | map(.time_ns) | add' "$vm_data_output")
+vm_time=$(datamash sum 3 --header-in --field-separator=, < "$vm_data_output")
 echo "Average VM time: $vm_time ns"
 
 speedup=$(bc -l <<< "$vm_time/$native_time")

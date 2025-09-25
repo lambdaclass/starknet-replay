@@ -8,40 +8,39 @@ use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
 use clap::{Parser, Subcommand};
-
 use execution::{execute_block, execute_txs, get_block_context, get_blockifier_transaction};
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
-
 use starknet_api::felt;
 use starknet_api::transaction::TransactionHash;
 use state_reader::block_state_reader::BlockStateReader;
 use state_reader::full_state_reader::FullStateReader;
+use std::collections::HashMap;
+use std::fs::File;
+use std::path::PathBuf;
+use std::sync::Arc;
 use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
+
+#[cfg(feature = "benchmark")]
+use crate::benchmark::{add_transaction_to_execution_benchmark, aggregate_execution_benchmark};
 
 #[cfg(feature = "block-composition")]
 use {block_composition::save_entry_point_execution, chrono::DateTime};
 
-use std::fs::File;
-use std::path::PathBuf;
-use std::sync::Arc;
-
 #[cfg(feature = "profiling")]
 use {std::thread, std::time::Duration};
-
-mod execution;
 
 #[cfg(feature = "benchmark")]
 mod benchmark;
 #[cfg(feature = "block-composition")]
 mod block_composition;
-#[cfg(feature = "state_dump")]
-mod state_dump;
-
+mod execution;
 #[cfg(feature = "with-libfunc-profiling")]
 mod libfunc_profile;
+#[cfg(feature = "state_dump")]
+mod state_dump;
 
 #[derive(Debug, Parser)]
 #[command(about = "Replay is a tool for executing Starknet transactions.", long_about = None)]
@@ -84,29 +83,43 @@ enum ReplayExecute {
         charge_fee: bool,
     },
     #[cfg(feature = "benchmark")]
-    #[clap(
-        about = "Measures the time it takes to run all transactions in a given range of blocks.
-Caches all rpc data before the benchmark runs to provide accurate results"
-    )]
+    /// Benchmarks all transactions in the given block range.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
     BenchBlockRange {
+        /// Start block number.
         block_start: u64,
+        /// End block number (inclusive).
         block_end: u64,
+        /// Network, either mainnet or sepolia.
         chain: String,
-        number_of_runs: usize,
-        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
-        output: PathBuf,
+        /// Number of benchmark runs to execute. All laps are aggregated into a
+        /// single one to reduce noise.
+        runs: u32,
+        /// Output file name for transaction data, in CSV format.
+        #[clap(long)]
+        output: Option<PathBuf>,
     },
     #[cfg(feature = "benchmark")]
-    #[clap(about = "Measures the time it takes to run a single transaction.
-        Caches all rpc data before the benchmark runs to provide accurate results.
-        It only works if the transaction doesn't depend on another transaction in the same block")]
+    /// Benchmarks a single transaction.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
+    ///
+    /// If the transaction depends on a previous transaction of the same block,
+    /// the transaction execution will fail.
     BenchTx {
-        tx: String,
+        /// Transaction hash.
+        tx_hash: String,
+        /// Network, either mainnet or sepolia.
         chain: String,
-        block: u64,
-        number_of_runs: usize,
-        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
-        output: PathBuf,
+        /// Transaction block number.
+        block_number: u64,
+        /// Number of benchmark runs to execute.
+        /// Data from all runs is averaged into a single one.
+        runs: u32,
+        /// Output file name for transaction data, in CSV format.
+        #[clap(long)]
+        output: Option<PathBuf>,
     },
     #[cfg(feature = "block-composition")]
     #[clap(
@@ -231,10 +244,11 @@ fn main() {
             block_start,
             block_end,
             chain,
-            number_of_runs,
+            runs,
             output,
         } => {
             let chain = parse_network(&chain);
+
             let full_reader = FullStateReader::new(chain);
 
             let execution_flags = ExecutionFlags {
@@ -262,46 +276,55 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut executions = Vec::new();
+            let mut benchmark = HashMap::new();
 
-            for _ in 0..number_of_runs {
+            for _ in 0..runs {
                 for block_number in block_start..=block_end {
-                    let mut block_executions = execute_block(
+                    let block_executions = execute_block(
                         &full_reader,
                         BlockNumber(block_number),
                         execution_flags.clone(),
                     )
                     .expect("failed to execute block");
 
+                    for tx in block_executions {
+                        add_transaction_to_execution_benchmark(&mut benchmark, tx);
+                    }
+
                     assert_eq!(
                         full_reader.get_miss_counter(),
                         0,
                         "cache miss during a benchmark"
                     );
-
-                    executions.append(&mut block_executions);
                 }
             }
+            log_cache_statistics(&full_reader);
 
-            let benchmarking_data = benchmark::BenchData::aggregate(&executions);
+            // Aggregate each run into a single one to reduce noise.
+            let bench_data = aggregate_execution_benchmark(benchmark);
 
-            let file = std::fs::File::create(output).unwrap();
-            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+            if let Some(output) = output {
+                let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
+                for summary in &bench_data {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize bench summary");
+                }
+            }
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchTx {
-            tx,
-            block,
+            tx_hash,
+            block_number,
             chain,
-            number_of_runs,
+            runs,
             output,
         } => {
             let chain = parse_network(&chain);
-            let block_number = BlockNumber(block);
-            let tx_hash = TransactionHash(felt!(tx.as_str()));
+            let block_number = BlockNumber(block_number);
+            let tx_hash = TransactionHash(felt!(tx_hash.as_str()));
 
             let full_reader = FullStateReader::new(chain);
-
             let execution_flags = ExecutionFlags {
                 only_query: false,
                 charge_fee: true,
@@ -326,10 +349,10 @@ fn main() {
             #[cfg(feature = "profiling")]
             thread::sleep(Duration::from_secs(1));
 
-            let mut executions = Vec::new();
+            let mut benchmark = HashMap::new();
 
-            for _ in 0..number_of_runs {
-                let mut block_executions = execute_txs(
+            for _ in 0..runs {
+                let tx_executions = execute_txs(
                     &full_reader,
                     block_number,
                     vec![tx_hash],
@@ -337,19 +360,29 @@ fn main() {
                 )
                 .expect("failed to execute transaction");
 
+                for tx in tx_executions {
+                    add_transaction_to_execution_benchmark(&mut benchmark, tx);
+                }
+
                 assert_eq!(
                     full_reader.get_miss_counter(),
                     0,
                     "cache miss during a benchmark"
                 );
-
-                executions.append(&mut block_executions);
             }
+            log_cache_statistics(&full_reader);
 
-            let benchmarking_data = benchmark::BenchData::aggregate(&executions);
+            // Aggregate each run into a single one to reduce noise.
+            let bench_data = aggregate_execution_benchmark(benchmark);
 
-            let file = std::fs::File::create(output).unwrap();
-            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+            if let Some(output) = output {
+                let mut writer = csv::Writer::from_path(output).expect("failed to create writer");
+                for summary in &bench_data {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize bench summary");
+                }
+            }
         }
         #[cfg(feature = "block-composition")]
         ReplayExecute::BlockCompose {
