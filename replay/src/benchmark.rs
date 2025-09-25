@@ -113,8 +113,10 @@ pub fn add_transaction_to_execution_benchmark(
 pub fn aggregate_execution_benchmark(
     benchmark: HashMap<TransactionHash, Vec<TxBenchmarkSummary>>,
 ) -> Vec<TxBenchmarkSummary> {
-    benchmark
+    let mut data = benchmark
         .into_values()
         .map(TxBenchmarkSummary::aggregate)
-        .collect()
+        .collect::<Vec<_>>();
+    data.sort_by_key(|summary| summary.tx_hash);
+    data
 }
