@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use blockifier::execution::call_info::CallInfo;
 use serde::{Deserialize, Serialize};
 use starknet_api::{block::BlockNumber, transaction::TransactionHash};
 
@@ -50,7 +51,7 @@ impl TxBenchmarkSummary {
             tx_hash: tx.hash,
             block_number: tx.block_number,
             time_ns: tx.time.as_nanos(),
-            failed: tx.result.is_err(),
+            failed: !tx.result.as_ref().is_ok_and(|info| !info.is_reverted()),
             native_time_ns: 0,
             vm_time_ns: 0,
             native_gas: 0,
@@ -59,20 +60,44 @@ impl TxBenchmarkSummary {
 
         let Ok(info) = &tx.result else { return tx_data };
 
-        for call_info in info.non_optional_call_infos() {
+        for call_info in info
+            .non_optional_call_infos()
+            .flat_map(|call_info| call_info.iter())
+        {
+            let (self_time, self_gas) = obtain_top_level_stats(call_info);
             if call_info.execution.cairo_native {
-                tx_data.native_time_ns += call_info.time.as_nanos();
-                tx_data.native_gas +=
-                    call_info.execution.gas_consumed + call_info.resources.n_steps as u64 * 100;
+                tx_data.native_time_ns += self_time;
+                tx_data.native_gas += self_gas;
             } else {
-                tx_data.vm_time_ns += call_info.time.as_nanos();
-                tx_data.vm_gas +=
-                    call_info.execution.gas_consumed + call_info.resources.n_steps as u64 * 100;
+                tx_data.vm_time_ns += self_time;
+                tx_data.vm_gas += self_gas;
             }
         }
 
         tx_data
     }
+}
+
+/// Returns the statistics of the given call info,
+/// excluding the inner calls.
+///
+/// Returns a tuple with:
+/// - Call duration, in nanoseconds.
+/// - Gas consumed, accounting for steps.
+fn obtain_top_level_stats(call_info: &CallInfo) -> (u128, u64) {
+    let mut self_time = call_info.time.as_nanos();
+    let mut self_gas = call_info.execution.gas_consumed;
+    let mut self_steps = call_info.resources.n_steps;
+    for inner_call in &call_info.inner_calls {
+        self_time -= inner_call.time.as_nanos();
+        self_gas -= inner_call.execution.gas_consumed;
+        self_steps -= inner_call.resources.n_steps;
+    }
+
+    // A step is equivalent to 100 units of gas.
+    let total_self_gas = self_gas + self_steps as u64 * 100;
+
+    (self_time, total_self_gas)
 }
 
 pub fn add_transaction_to_execution_benchmark(
