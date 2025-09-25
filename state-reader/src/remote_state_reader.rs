@@ -19,7 +19,7 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
-use starknet_core::types::{BlockWithTxHashes, ContractClass, Felt};
+use starknet_core::types::{BlockId, BlockWithTxHashes, ContractClass, Felt};
 
 use crate::{error::StateReaderError, objects::RpcTransactionReceipt};
 
@@ -141,13 +141,11 @@ impl RemoteStateReader {
 
     pub fn get_contract_class(
         &self,
-        block_number: BlockNumber,
+        block_id: BlockId,
         class_hash: &ClassHash,
     ) -> Result<ContractClass, StateReaderError> {
         let params = json!({
-            "block_id": {
-                "block_number": block_number,
-            },
+            "block_id": block_id,
             "class_hash": class_hash.to_hex_string(),
         });
 
@@ -294,7 +292,7 @@ mod tests {
         felt, storage_key,
         transaction::{fields::Fee, InvokeTransaction, Transaction, TransactionHash},
     };
-    use starknet_core::types::{BlockStatus, ContractClass};
+    use starknet_core::types::{BlockId, BlockStatus, ContractClass};
 
     use super::{url_from_env, RemoteStateReader};
 
@@ -305,7 +303,7 @@ mod tests {
 
         let contract_class = reader
             .get_contract_class(
-                BlockNumber(1500000),
+                BlockId::Number(1500000),
                 &class_hash!("0x07f3331378862ed0a10f8c3d49f4650eb845af48f1c8120591a43da8f6f12679"),
             )
             .unwrap();
@@ -324,7 +322,7 @@ mod tests {
 
         let contract_class = reader
             .get_contract_class(
-                BlockNumber(20000),
+                BlockId::Number(20000),
                 &class_hash!("0x02ff47f317134a53148b30d56ec98194d210e58cd6a0a9ae719b6a119d252c2f"),
             )
             .unwrap();

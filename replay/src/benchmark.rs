@@ -1,12 +1,22 @@
-use std::{collections::BTreeMap, time::Duration};
+use std::{
+    collections::BTreeMap,
+    time::{Duration, Instant},
+};
 
+use anyhow::Context;
 use blockifier::execution::call_info::CallInfo;
+use cairo_lang_starknet_classes::{
+    casm_contract_class::CasmContractClass,
+    contract_class::{version_id_from_serialized_sierra_program, ContractClass},
+};
+use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use serde::{Deserialize, Serialize};
 use starknet_api::{
     block::BlockNumber,
     core::{ClassHash, EntryPointSelector},
     transaction::TransactionHash,
 };
+use tracing::info;
 
 use crate::execution::TransactionExecution;
 
@@ -163,4 +173,94 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchDa
     classes.push(top_call);
 
     classes
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClassBenchmarkSummary {
+    pub class_hash: ClassHash,
+    pub native_time_ns: u128,
+    pub casm_time_ns: u128,
+    pub sierra_statement_count: usize,
+    pub object_size_bytes: usize,
+    pub casm_bytecode_length: usize,
+}
+
+impl ClassBenchmarkSummary {
+    pub fn aggregate(summaries: Vec<Self>) -> anyhow::Result<Self> {
+        let samples = summaries.len() as u128;
+
+        let mut summary = summaries
+            .into_iter()
+            .reduce(|mut summary1, summary2| {
+                assert_eq!(summary1.class_hash, summary2.class_hash);
+                assert_eq!(
+                    summary1.sierra_statement_count,
+                    summary2.sierra_statement_count
+                );
+                assert_eq!(summary1.object_size_bytes, summary2.object_size_bytes);
+                assert_eq!(summary1.casm_bytecode_length, summary2.casm_bytecode_length);
+
+                summary1.native_time_ns += summary2.native_time_ns;
+                summary1.casm_time_ns += summary2.native_time_ns;
+
+                summary1
+            })
+            .context("we should have at least one summary")?;
+
+        summary.native_time_ns /= samples;
+        summary.casm_time_ns /= samples;
+
+        Ok(summary)
+    }
+}
+
+pub fn benchmark_compilation(
+    class_hash: ClassHash,
+    contract_class: ContractClass,
+) -> anyhow::Result<ClassBenchmarkSummary> {
+    let (sierra_version, _) =
+        version_id_from_serialized_sierra_program(&contract_class.sierra_program)?;
+
+    let mut statistics = Statistics::default();
+
+    info!(
+        "compiling native contract class {}",
+        class_hash.to_fixed_hex_string()
+    );
+
+    let pre_native_compilation_instant = Instant::now();
+    let _ = AotContractExecutor::new(
+        &contract_class.extract_sierra_program()?,
+        &contract_class.entry_points_by_type,
+        sierra_version,
+        OptLevel::Default,
+        Some(&mut statistics),
+    )?;
+    let native_time_ns = pre_native_compilation_instant.elapsed().as_nanos();
+
+    info!(
+        "compiling casm contract class {}",
+        class_hash.to_fixed_hex_string()
+    );
+
+    let pre_casm_compilation_instant = Instant::now();
+    let casm_contract_class =
+        CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+    let casm_time_ns = pre_casm_compilation_instant.elapsed().as_nanos();
+
+    let sierra_statement_count = statistics
+        .sierra_statement_count
+        .context("missing sierra_statement_count statistic")?;
+    let object_size_bytes = statistics
+        .object_size_bytes
+        .context("missing object_size_bytes statistic")?;
+
+    Ok(ClassBenchmarkSummary {
+        class_hash,
+        native_time_ns,
+        casm_time_ns,
+        sierra_statement_count,
+        object_size_bytes,
+        casm_bytecode_length: casm_contract_class.bytecode.len(),
+    })
 }
