@@ -180,9 +180,9 @@ pub struct ClassBenchmarkSummary {
     pub class_hash: ClassHash,
     pub native_time_ns: u128,
     pub casm_time_ns: u128,
-    pub sierra_size: usize,
-    pub object_size: usize,
-    pub casm_size: usize,
+    pub sierra_statement_count: usize,
+    pub object_size_bytes: usize,
+    pub casm_bytecode_length: usize,
 }
 
 impl ClassBenchmarkSummary {
@@ -193,9 +193,12 @@ impl ClassBenchmarkSummary {
             .into_iter()
             .reduce(|mut summary1, summary2| {
                 assert_eq!(summary1.class_hash, summary2.class_hash);
-                assert_eq!(summary1.sierra_size, summary2.sierra_size);
-                assert_eq!(summary1.object_size, summary2.object_size);
-                assert_eq!(summary1.casm_size, summary2.casm_size);
+                assert_eq!(
+                    summary1.sierra_statement_count,
+                    summary2.sierra_statement_count
+                );
+                assert_eq!(summary1.object_size_bytes, summary2.object_size_bytes);
+                assert_eq!(summary1.casm_bytecode_length, summary2.casm_bytecode_length);
 
                 summary1.native_time_ns += summary2.native_time_ns;
                 summary1.casm_time_ns += summary2.native_time_ns;
@@ -256,8 +259,8 @@ pub fn benchmark_compilation(
         class_hash,
         native_time_ns,
         casm_time_ns,
-        sierra_size: sierra_statement_count,
-        object_size: object_size_bytes,
-        casm_size: casm_contract_class.bytecode.len(),
+        sierra_statement_count,
+        object_size_bytes,
+        casm_bytecode_length: casm_contract_class.bytecode.len(),
     })
 }
