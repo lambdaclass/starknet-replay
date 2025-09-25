@@ -248,7 +248,7 @@ impl FullStateReader {
 
     pub fn get_contract_class(
         &self,
-        block_number: BlockId,
+        block_id: BlockId,
         class_hash: ClassHash,
     ) -> Result<ContractClass, StateReaderError> {
         // Check in memory cache.
@@ -265,7 +265,7 @@ impl FullStateReader {
             // If not found, read from remote and save to disk.
             let class = self
                 .remote_reader
-                .get_contract_class(block_number, &class_hash)?;
+                .get_contract_class(block_id, &class_hash)?;
             self.disk_reader.set_contract_class(class_hash, &class)?;
             class
         };
