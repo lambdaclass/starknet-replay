@@ -7,7 +7,7 @@ cat <<EOF
 Usage: $0 <start> <end> <net> <laps>
 
 Benches a block range
-- Saves output to native-<start>-<end>-<net> and vm-<start>-<end>-<net>
+- Saves output to bench_data/<start>-<end>-<net> directory
 - Prints speedup
 EOF
 }
