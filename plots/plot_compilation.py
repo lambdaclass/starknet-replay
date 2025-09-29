@@ -27,7 +27,6 @@ df = pd.read_csv(args.input)
 df["native_time_s"] = df["native_time_ns"] / 1e9
 df["casm_time_s"] = df["casm_time_ns"] / 1e9
 df["object_size_kb"] = df["object_size_bytes"] / 2**10
-print(df.info())
 
 _, ax = plt.subplots()
 sns.boxplot(df, ax=ax, x="native_time_s", showfliers=False)
