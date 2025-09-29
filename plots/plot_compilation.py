@@ -17,14 +17,16 @@ args = parser.parse_args()
 def save_artifact(metadata):
     slug = inflection.parameterize(metadata["title"])
 
-    plt.savefig(f"{slug}.svg")
-    with open(f"{slug}.meta.json", "w") as f:
+    plt.savefig(f"{args.output}/{slug}.svg")
+    with open(f"{args.output}/{slug}.meta.json", "w") as f:
         json.dump(metadata, f)
 
 
 nanosecond_to_second_formatter = matplotlib.ticker.FuncFormatter(
     lambda x, _: f"{x / 1e9}"
 )
+
+args.output.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(args.input)
 print(df.info())
