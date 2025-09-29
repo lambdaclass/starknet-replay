@@ -17,7 +17,7 @@ args = parser.parse_args()
 def save_artifact(metadata):
     slug = inflection.parameterize(metadata["title"])
 
-    plt.savefig(f"{slug}.pdf")
+    plt.savefig(f"{slug}.svg")
     with open(f"{slug}.meta.json", "w") as f:
         json.dump(metadata, f)
 
