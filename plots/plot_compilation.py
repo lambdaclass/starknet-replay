@@ -29,10 +29,11 @@ nanosecond_to_second_formatter = matplotlib.ticker.FuncFormatter(
 args.output.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(args.input)
+df["native_time_s"] = df["native_time_ns"] / 1e9
 print(df.info())
 
 _, ax = plt.subplots()
-sns.boxplot(df, ax=ax, x="native_time_ns", showfliers=False)
+sns.boxplot(df, ax=ax, x="native_time_s", showfliers=False)
 ax.xaxis.set_major_formatter(nanosecond_to_second_formatter)
 ax.xaxis.set_label_text("Time (s)")
 ax.set_title("Compilation Time Distribution")
@@ -40,6 +41,7 @@ save_artifact(
     {
         "title": "Compilation Time Distribution",
         "description": "Calculates the distribution of the contract compilation time.",
+        "statistics": df["native_time_s"].describe().to_dict(),
     }
 )
 
