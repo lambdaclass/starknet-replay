@@ -52,4 +52,17 @@ save_artifact(
     }
 )
 
+
+_, ax = plt.subplots()
+sns.regplot(df, ax=ax, x="sierra_statement_count", y="object_size_kb")
+ax.set_title("Sierra Size vs. Compiled Contract Size")
+ax.set_xlabel("Sierra Statement Count")
+ax.set_ylabel("Compiled Contract Size (KiB)")
+save_artifact(
+    {
+        "title": "Sierra Size vs. Compiled Contract Size",
+        "description": "Correlates the Sierra size with the compiled contract size.",
+    }
+)
+
 plt.show()
