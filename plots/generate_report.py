@@ -19,6 +19,7 @@ img {
 """
 
 parser = argparse.ArgumentParser()
+parser.add_argument("info", type=pathlib.Path)
 parser.add_argument("inputs", nargs="*", type=pathlib.Path)
 parser.add_argument("output", type=pathlib.Path)
 args = parser.parse_args()
@@ -33,9 +34,22 @@ def add_head():
 
 
 def add_body():
+    with open(f"{args.info}", "r") as f:
+        info = json.load(f)
+
     with tag("body"):
-        line("h1", "Report")
+        title = info.get("Title", "Benchmark")
+        line("h1", title)
+        add_dictionary(info)
         add_artifacts()
+
+
+def add_dictionary(data):
+    with tag("ul"):
+        for key, value in data.items():
+            with tag("li"):
+                line("b", f"{key}: ")
+                text(value)
 
 
 def add_artifacts():
@@ -55,11 +69,7 @@ def add_artifacts():
             with tag("p"):
                 line("b", "Statistics:")
 
-            with tag("ul"):
-                for key, value in metadata["statistics"].items():
-                    with tag("li"):
-                        line("b", f"{key}: ")
-                        text(value)
+            add_dictionary(metadata["statistics"])
 
         if artifact_path.suffix == ".svg":
             doc.stag("img", src=str(artifact_path))
