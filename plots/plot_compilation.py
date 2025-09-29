@@ -65,4 +65,16 @@ save_artifact(
     }
 )
 
+_, ax = plt.subplots()
+sns.regplot(df, ax=ax, x="sierra_statement_count", y="native_time_s")
+ax.set_title("Sierra Size vs. Compilation Time")
+ax.set_xlabel("Sierra Statement Count")
+ax.set_ylabel("Compilation Time (s)")
+save_artifact(
+    {
+        "title": "Sierra Size vs. Compilation Time",
+        "description": "Correlates the Sierra size with the compilation time.",
+    }
+)
+
 plt.show()
