@@ -25,6 +25,7 @@ args.output.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(args.input)
 df["native_time_s"] = df["native_time_ns"] / 1e9
+df["casm_time_s"] = df["casm_time_ns"] / 1e9
 df["object_size_kb"] = df["object_size_bytes"] / 2**10
 print(df.info())
 
@@ -74,6 +75,18 @@ save_artifact(
     {
         "title": "Sierra Size vs. Compilation Time",
         "description": "Correlates the Sierra size with the compilation time.",
+    }
+)
+
+_, ax = plt.subplots()
+sns.regplot(df, ax=ax, x="casm_time_s", y="native_time_s")
+ax.set_title("CASM Compilation Time vs. Native Compilation Time")
+ax.set_xlabel("CASM Compilation Time (s)")
+ax.set_ylabel("Native Compilation Time (s)")
+save_artifact(
+    {
+        "title": "CASM Compilation Time vs. Native Compilation Time",
+        "description": "Correlates the CASM compilation time with the Native compilation time.",
     }
 )
 
