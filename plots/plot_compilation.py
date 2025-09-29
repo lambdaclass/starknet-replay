@@ -37,6 +37,7 @@ ax.set_title("Compilation Time Distribution")
 save_artifact(
     {
         "title": "Compilation Time Distribution",
+        "description": "Calculates the distribution of the contract compilation time.",
     }
 )
 
