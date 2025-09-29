@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser()
 parser.add_argument("input", type=pathlib.Path)
 parser.add_argument("output", type=pathlib.Path)
+parser.add_argument("--show", action="store_true")
 args = parser.parse_args()
 
 
@@ -89,4 +90,5 @@ save_artifact(
     }
 )
 
-plt.show()
+if args.show:
+    plt.show()
