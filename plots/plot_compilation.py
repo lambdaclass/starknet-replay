@@ -30,7 +30,7 @@ print(df.info())
 
 _, ax = plt.subplots()
 sns.boxplot(df, ax=ax, x="native_time_s", showfliers=False)
-ax.xaxis.set_label_text("Time (s)")
+ax.set_xlabel("Time (s)")
 ax.set_title("Compilation Time Distribution")
 save_artifact(
     {
@@ -42,7 +42,7 @@ save_artifact(
 
 _, ax = plt.subplots()
 sns.boxplot(df, ax=ax, x="object_size_kb", showfliers=False)
-ax.xaxis.set_label_text("Size (KiB)")
+ax.set_xlabel("Size (KiB)")
 ax.set_title("Compiled Contract Size Distribution")
 save_artifact(
     {
