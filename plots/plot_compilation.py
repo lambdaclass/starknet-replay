@@ -6,7 +6,6 @@ import json
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.ticker
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input", type=pathlib.Path)
