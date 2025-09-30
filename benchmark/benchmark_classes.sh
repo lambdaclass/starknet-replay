@@ -9,6 +9,10 @@ usage() {
 cat >&2 <<EOF
 Usage: $0 [OPTIONS] <CLASSES>
 
+A helper script for benchmarking the compilation of contract classes. It also
+processes the benchmark data and generates a report. The full benchmark result
+is saved to a self-contained directory.
+
 Options:
   -h  Print help
   -n  Number of times to compile each class
@@ -56,16 +60,24 @@ BENCHMARK_REPORT_PATH="$BENCHMARK_DIR/report.html"
 mkdir -p "$BENCHMARK_DIR"
 cp "$CLASSES" "$BENCHMARK_DIR/classes.txt"
 
-cargo run --quiet --release --bin replay --features benchmark -- bench-compilation \
+number_of_classes="$(wc -l classes.txt | xargs | cut -f1 -d' ')"
+
+echo "Running benchmark for $number_of_classes classes"
+RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark -- bench-compilation \
 	--runs "$RUNS" --output "$BENCHMARK_DATA_PATH" "$CLASSES"
+echo "Saved benchmark data to" "$BENCHMARK_DATA_PATH"
 
+echo "Processing benchmark data"
 python benchmark/plot_compilation.py "$BENCHMARK_DATA_PATH" "$BENCHMARK_ARTIFACTS_PATH"
+echo "Saved benchmark artifacts to $BENCHMARK_ARTIFACTS_PATH"
 
+echo "Saving benchmark info to $BENCHMARK_INFO_PATH"
 python benchmark/gather_info.py | jq '{
 		"Title": "Compilation Benchmark",
 		"Native profile": "default"
 	} + .' > "$BENCHMARK_INFO_PATH"
 
+echo "Generating report to $BENCHMARK_REPORT_PATH"
 python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
 	"$BENCHMARK_ARTIFACTS_PATH/compilation-time-distribution.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/sierra-size-vs-compilation-time.svg" \
@@ -74,7 +86,7 @@ python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
 	"$BENCHMARK_ARTIFACTS_PATH/casm-compilation-time-vs-native-compilation-time.svg" \
 	"$BENCHMARK_REPORT_PATH"
 
-open "$BENCHMARK_REPORT_PATH"
+echo "Compressing benchmark to" "$BENCHMARK_ROOT/$BENCHMARK_NAME.zip"
+(cd "$BENCHMARK_ROOT" && zip -qr "$BENCHMARK_NAME.zip" "$BENCHMARK_NAME")
 
-(cd "$BENCHMARK_ROOT" && zip -r "$BENCHMARK_NAME.zip" "$BENCHMARK_NAME")
-
+echo "Saved full benchmark to" "$BENCHMARK_DIR"
