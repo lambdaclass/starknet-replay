@@ -2,6 +2,7 @@ import argparse
 import pathlib
 import json
 import yattag
+import base64
 
 STYLESHEET = """
 body {
@@ -22,6 +23,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("info", type=pathlib.Path)
 parser.add_argument("inputs", nargs="*", type=pathlib.Path)
 parser.add_argument("output", type=pathlib.Path)
+parser.add_argument("--self-contained", action="store_true")
 args = parser.parse_args()
 
 doc, tag, text, line = yattag.Doc().ttl()
@@ -79,8 +81,13 @@ def add_artifacts():
             add_dictionary(metadata["statistics"])
 
         if artifact_path.suffix == ".svg":
-            relative_artifact_path = artifact_path.relative_to(args.output.parent)
-            doc.stag("img", src=str(relative_artifact_path))
+            if args.self_contained:
+                artifact = artifact_path.read_bytes()
+                artifact_base64 = str(base64.b64encode(artifact), "utf-8")
+                doc.stag("img", src=f"data:image/svg+xml;base64,{artifact_base64}")
+            else:
+                relative_artifact_path = artifact_path.relative_to(args.output.parent)
+                doc.stag("img", src=str(relative_artifact_path))
 
 
 if __name__ == "__main__":
