@@ -1,0 +1,9 @@
+{
+    "Title": "Compilation Benchmark",
+    "Version of cairo-native": "bef81332f308b2fd63a04ff78a2cad8bc2b18184",
+    "Version of blockifier": "4f6b2b07285613cd2c3d9282fe41b9ca1354577d",
+    "Date": "2025-09-29",
+    "OS": "Darwin 24.6.0",
+    "Memory": "24.00 GiB",
+    "CPU": "Apple M4 Pro"
+}

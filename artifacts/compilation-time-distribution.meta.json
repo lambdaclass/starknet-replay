@@ -1,0 +1,1 @@
+{"title": "Compilation Time Distribution", "description": "Calculates the distribution of the contract compilation time.", "statistics": {"count": 500.0, "mean": 3.535520185596, "std": 6.269368760770941, "min": 0.228140084, "25%": 0.8254648545000001, "50%": 1.7320333335, "75%": 4.190616052, "max": 103.4710755}}
