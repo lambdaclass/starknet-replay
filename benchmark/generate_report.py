@@ -27,6 +27,13 @@ args = parser.parse_args()
 doc, tag, text, line = yattag.Doc().ttl()
 
 
+def add_document():
+    doc.asis("<!DOCTYPE html>")
+    with tag("html"):
+        add_head()
+        add_body()
+
+
 def add_head():
     with tag("head"):
         with tag("style"):
@@ -75,10 +82,7 @@ def add_artifacts():
             doc.stag("img", src=str(artifact_path))
 
 
-doc.asis("<!DOCTYPE html>")
-with tag("html"):
-    add_head()
-    add_body()
-
-with open(args.output, "w") as f:
-    f.write(yattag.indent(doc.getvalue()))
+if __name__ == "__main__":
+    add_document()
+    with open(args.output, "w") as f:
+        f.write(yattag.indent(doc.getvalue()))
