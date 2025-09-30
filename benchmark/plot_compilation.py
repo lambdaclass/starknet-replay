@@ -19,7 +19,7 @@ def save_artifact(metadata):
 
     plt.savefig(f"{args.output}/{slug}.svg")
     with open(f"{args.output}/{slug}.meta.json", "w") as f:
-        json.dump(metadata, f)
+        json.dump(metadata, f, indent=4)
 
 
 args.output.mkdir(parents=True, exist_ok=True)
