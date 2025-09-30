@@ -1,3 +1,7 @@
+"""
+Prints a JSON object containing general system information.
+"""
+
 import json
 import datetime
 import platform

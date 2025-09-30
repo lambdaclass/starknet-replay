@@ -3,6 +3,38 @@ import pathlib
 import json
 import yattag
 
+parser = argparse.ArgumentParser(
+    description="""
+        Combines all benchmarking artifacts into a single HTML report.
+    """,
+)
+parser.add_argument(
+    "info",
+    type=pathlib.Path,
+    help="""
+        Path to a JSON file containing general benchmark information.
+        This information will be included at the top of the report.
+    """,
+)
+parser.add_argument(
+    "artifacts",
+    nargs="*",
+    type=pathlib.Path,
+    help="""
+        Artifacts to be included in the report. For each artifact, a sidecar
+        metadata file with extension "meta.json" is expected. This sidecar file
+        includes information on the artifact, and how it should be presented.
+    """,
+)
+parser.add_argument(
+    "output",
+    type=pathlib.Path,
+    help="""
+        Output path for the generated HTML report.
+    """,
+)
+args = parser.parse_args()
+
 STYLESHEET = """
 body {
     margin: 40px auto;
@@ -17,12 +49,6 @@ img {
     margin: auto;
 }
 """
-
-parser = argparse.ArgumentParser()
-parser.add_argument("info", type=pathlib.Path)
-parser.add_argument("inputs", nargs="*", type=pathlib.Path)
-parser.add_argument("output", type=pathlib.Path)
-args = parser.parse_args()
 
 doc, tag, text, line = yattag.Doc().ttl()
 
@@ -60,7 +86,7 @@ def add_dictionary(data):
 
 
 def add_artifacts():
-    for artifact_path in args.inputs:
+    for artifact_path in args.artifacts:
         artifact_path: pathlib.Path = artifact_path
         metadata_path = artifact_path.with_suffix(".meta.json")
 
