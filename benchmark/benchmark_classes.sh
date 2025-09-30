@@ -13,6 +13,9 @@ A helper script for benchmarking the compilation of contract classes. It also
 processes the benchmark data and generates a report. The full benchmark result
 is saved to a self-contained directory.
 
+Arguments:
+  <CLASSES>  Path to read input classes from
+
 Options:
   -h  Print help
   -n  Number of times to compile each class
