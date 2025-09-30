@@ -79,7 +79,8 @@ def add_artifacts():
             add_dictionary(metadata["statistics"])
 
         if artifact_path.suffix == ".svg":
-            doc.stag("img", src=str(artifact_path))
+            relative_artifact_path = artifact_path.relative_to(args.output.parent)
+            doc.stag("img", src=str(relative_artifact_path))
 
 
 if __name__ == "__main__":
