@@ -50,7 +50,6 @@ def get_cpu():
             ["sysctl", "-n", "machdep.cpu.brand_string"], text=True
         ).strip()
     elif system == "Linux":
-        # TODO: I did not test it in
         with open("/proc/cpuinfo") as cpuinfo:
             for line in cpuinfo:
                 if "model name" in line:
