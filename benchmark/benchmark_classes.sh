@@ -34,7 +34,15 @@ if [[ $# -lt 1 ]]; then
 fi
 CLASSES="$1"
 
-DATE=$(date -zutc +"%FT%TZ")
+case $(uname) in
+  Darwin)
+		DATE=$(date -zutc +"%FT%TZ")
+  ;;
+  Linux)
+		DATE=$(date --utc +"%FT%TZ")
+  ;;
+  *) yell "unsupported platform" ;;
+esac
 
 BENCHMARK_ROOT="benchmark_data"
 BENCHMARK_NAME="compilation-$DATE"
