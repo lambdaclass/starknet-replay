@@ -18,3 +18,4 @@ corelib
 cairo-*.tar
 call_state_dumps
 cache
+benchmark_data
