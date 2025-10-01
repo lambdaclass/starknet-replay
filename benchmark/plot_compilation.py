@@ -42,6 +42,21 @@ parser.add_argument(
 args = parser.parse_args()
 
 
+def pretty_describe(row):
+    return row.describe().rename(
+        {
+            "count": "Number of Samples",
+            "mean": "Mean",
+            "std": "Standard Deviation",
+            "min": "Minimum",
+            "25%": "25th Percentile",
+            "50%": "50th Percentile",
+            "75%": "75th Percentile",
+            "max": "Maximum",
+        }
+    )
+
+
 def save_artifact(metadata):
     slug = inflection.parameterize(metadata["title"])
 
@@ -68,7 +83,7 @@ save_artifact(
     {
         "title": "Compilation Time Distribution",
         "description": "Calculates the distribution of the contract compilation time.",
-        "statistics": df["native_time_s"].describe().to_dict(),
+        "statistics": pretty_describe(df["native_time_s"]).to_dict(),
     }
 )
 
@@ -83,7 +98,7 @@ save_artifact(
     {
         "title": "Compiled Contract Size Distribution",
         "description": "Calculates the distribution of the compiled contract size.",
-        "statistics": df["object_size_kb"].describe().to_dict(),
+        "statistics": pretty_describe(df["object_size_kb"]).to_dict(),
     }
 )
 
