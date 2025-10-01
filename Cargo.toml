@@ -16,6 +16,8 @@ fs2 = "0.4.3"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native.git", rev = "bef81332f308b2fd63a04ff78a2cad8bc2b18184" }
 cairo-vm = "2.5.0"
 anyhow = "1.0"
+starknet-core = "0.16.0"
+state-reader = { path = "state-reader" }
 
 # Cairo Dependencies
 cairo-lang-starknet-classes = "~2.12.3"

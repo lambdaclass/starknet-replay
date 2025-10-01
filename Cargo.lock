@@ -9693,8 +9693,11 @@ dependencies = [
  "cairo-lang-starknet",
  "cairo-lang-starknet-classes",
  "cairo-native",
+ "cairo-vm",
  "clap",
  "serde_json",
+ "starknet-core",
+ "state-reader",
 ]
 
 [[package]]

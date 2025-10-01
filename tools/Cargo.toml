@@ -11,4 +11,7 @@ cairo-lang-starknet.workspace = true
 cairo-lang-compiler.workspace = true
 cairo-lang-sierra.workspace = true
 cairo-native.workspace = true
+starknet-core.workspace = true
 serde_json.workspace = true
+state-reader.workspace = true
+cairo-vm.workspace = true
