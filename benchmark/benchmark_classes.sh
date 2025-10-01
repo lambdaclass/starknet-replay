@@ -83,8 +83,8 @@ python benchmark/gather_info.py | jq '{
 echo "Generating report to $BENCHMARK_REPORT_PATH"
 python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
 	"$BENCHMARK_ARTIFACTS_PATH/compilation-time-distribution.svg" \
-	"$BENCHMARK_ARTIFACTS_PATH/sierra-size-vs-compilation-time.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/compiled-contract-size-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/sierra-size-vs-compilation-time.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/sierra-size-vs-compiled-contract-size.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/casm-compilation-time-vs-native-compilation-time.svg" \
 	"$BENCHMARK_REPORT_PATH"
