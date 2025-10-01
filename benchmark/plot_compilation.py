@@ -53,10 +53,13 @@ df["native_time_s"] = df["native_time_ns"] / 1e9
 df["casm_time_s"] = df["casm_time_ns"] / 1e9
 df["object_size_kb"] = df["object_size_bytes"] / 2**10
 
-_, ax = plt.subplots()
-sns.boxplot(df, ax=ax, x="native_time_s", showfliers=False)
-ax.set_xlabel("Time (s)")
-ax.set_title("Compilation Time Distribution")
+fig, ax = plt.subplots(2)
+sns.boxplot(df, ax=ax[0], x="native_time_s", showfliers=False)
+ax[0].set_xlabel("Time (s)")
+sns.stripplot(df, ax=ax[1], x="native_time_s", alpha=0.25, jitter=0.4)
+ax[1].set_xlabel("Time (s)")
+fig.subplots_adjust(hspace=0.30)
+fig.suptitle("Compilation Time Distribution")
 save_artifact(
     {
         "title": "Compilation Time Distribution",
@@ -65,10 +68,13 @@ save_artifact(
     }
 )
 
-_, ax = plt.subplots()
-sns.boxplot(df, ax=ax, x="object_size_kb", showfliers=False)
-ax.set_xlabel("Size (KiB)")
-ax.set_title("Compiled Contract Size Distribution")
+fig, ax = plt.subplots(2)
+sns.boxplot(df, ax=ax[0], x="object_size_kb", showfliers=False)
+ax[0].set_xlabel("Size (KiB)")
+sns.stripplot(df, ax=ax[1], x="object_size_kb", alpha=0.25, jitter=0.4)
+ax[1].set_xlabel("Size (KiB)")
+fig.subplots_adjust(hspace=0.30)
+fig.suptitle("Compiled Contract Size Distribution")
 save_artifact(
     {
         "title": "Compiled Contract Size Distribution",
