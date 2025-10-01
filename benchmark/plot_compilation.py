@@ -5,7 +5,11 @@ import json
 
 import pandas as pd
 import seaborn as sns
+import numpy as np
 import matplotlib.pyplot as plt
+import scipy
+
+from pandas import DataFrame
 
 parser = argparse.ArgumentParser(
     description="""
@@ -48,7 +52,7 @@ def save_artifact(metadata):
 
 args.output.mkdir(parents=True, exist_ok=True)
 
-df = pd.read_csv(args.input)
+df: DataFrame = pd.read_csv(args.input)
 df["native_time_s"] = df["native_time_ns"] / 1e9
 df["casm_time_s"] = df["casm_time_ns"] / 1e9
 df["object_size_kb"] = df["object_size_bytes"] / 2**10
@@ -83,6 +87,8 @@ save_artifact(
     }
 )
 
+zscores = np.abs(scipy.stats.zscore(df[["native_time_ns", "object_size_bytes"]]))
+df: DataFrame = df[(zscores < 3).all(axis=1)]  # type: ignore
 
 _, ax = plt.subplots()
 sns.regplot(df, ax=ax, x="sierra_statement_count", y="object_size_kb")
