@@ -112,6 +112,22 @@ fn main() {
                 "<cairo_vm::hint_processor::builtin_hint_processor::builtin_hint_processor_definition::BuiltinHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
                 "cairo_vm::BuiltinHintProcessor::execute_hint",
             ),
+            (
+                "<blockifier::execution::syscalls::hint_processor::SyscallHintProcessor as cairo_vm::hint_processor::hint_processor_definition::HintProcessorLogic>::execute_hint",
+                "blockifier::SyscallHintProcessor::execute_hint",
+            ),
+            (
+                "cairo_vm::vm::runners::builtin_runner::range_check::RangeCheckBuiltinRunner<_>::add_validation_rule::{{closure}}",
+                "cairo_vm::RangeCheckBuiltinRunner<_>::add_validation_rule",
+            ),
+            (
+                "<starknet_types_core::felt::Felt as core::convert::From<num_bigint::bigint::BigInt>>::from",
+                "<starknet_types_core::Felt::from::<BigInt>",
+            ),
+            (
+                "<starknet_types_core::felt::Felt as core::convert::From<&num_bigint::bigint::BigInt>>::from",
+                "<starknet_types_core::Felt::from::<&BigInt>",
+            ),
         ]);
         let funcs_and_names = profile.threads[0]
             .func_table
