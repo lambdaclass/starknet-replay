@@ -109,3 +109,32 @@ Given a sample, we can determine the crate it belongs to by looking at the symbo
 For the case of sierra contracts, we can't rely on symbol names, but instead rely on the library the current address corresponds to. In the case of our replay, these libraries contain the prefix "0x".
 
 With this knowledge, we can analyze each sample and determine where it belongs to, building a report like the ones exampled above.
+
+# Profiling Cairo VM
+
+We can also process profiles for a Cairo VM execution.
+
+## Obtaining a Profile
+
+First, build the replay crate:
+
+```bash
+cargo build --release --features benchmark,profiling,only_cairo_vm
+```
+
+Then, benchmark a transaction:
+
+```bash
+samply record --  target/release/replay bench-tx <hash> <chain> <block-number> <number-of-runs>
+```
+
+You can obtain a sample profile at: https://share.firefox.dev/477gP4Q.
+
+To make the profile more accurate, we suggest executing the transaction many times (with the `number-of-runs` argument).
+
+## Processing a Profile
+
+To process the samples, run:
+```bash
+cargo run --example cairo-vm sample.json
+```
