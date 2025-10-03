@@ -65,10 +65,14 @@ impl<'p> Tree<'p> {
         tree
     }
 
-    pub fn prune(&mut self, p: f64) {
+    /// Removes least significative subtrees
+    ///
+    /// Removes all subtrees that account for less than the given threshold
+    /// percentage, given as a decimal fraction (0 <= threshold <= 1).
+    pub fn prune(&mut self, threshold: f64) {
         let total = self.children.iter().map(|n| n.subtotal).sum::<u64>();
 
-        let minimum_subtotal_required = (total as f64 * p) as u64;
+        let minimum_subtotal_required = (total as f64 * threshold) as u64;
 
         fn inner(node: &mut Tree, minimum_subtotal_required: u64) -> u64 {
             let mut new_children = Vec::new();
