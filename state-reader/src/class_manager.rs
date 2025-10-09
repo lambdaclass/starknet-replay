@@ -85,18 +85,19 @@ impl ClassManager {
                         .map_err(StarknetSierraCompilationError::from)?;
 
                     let executor = if cfg!(feature = "with-sierra-emu") {
-                        let (sierra_version, _) = version_id_from_serialized_sierra_program(
-                            &contract_class.sierra_program,
-                        )
-                        .map_err(StarknetSierraCompilationError::from)?;
+                        todo!();
+                        // let (sierra_version, _) = version_id_from_serialized_sierra_program(
+                        //     &contract_class.sierra_program,
+                        // )
+                        // .map_err(StarknetSierraCompilationError::from)?;
 
-                        let program = Arc::new(program);
+                        // let program = Arc::new(program);
 
-                        ContractExecutor::Emu((
-                            program,
-                            contract_class.entry_points_by_type.clone(),
-                            sierra_version,
-                        ))
+                        // ContractExecutor::Emu((
+                        //     program,
+                        //     contract_class.entry_points_by_type.clone(),
+                        //     sierra_version,
+                        // ))
                     } else {
                         let native_executor =
                             self.compile_native_class(class_hash, &sierra_class)?;

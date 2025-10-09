@@ -269,15 +269,16 @@ fn compile_sierra_cc(
         RunnableCompiledClass::V1(casm_compiled_class)
     } else {
         let executor = if cfg!(feature = "with-sierra-emu") {
-            let (sierra_version, _) =
-                version_id_from_serialized_sierra_program(&sierra_cc.sierra_program).unwrap();
-            let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
+            todo!();
+            // let (sierra_version, _) =
+            //     version_id_from_serialized_sierra_program(&sierra_cc.sierra_program).unwrap();
+            // let program = Arc::new(sierra_cc.extract_sierra_program().unwrap());
 
-            ContractExecutor::Emu((
-                program,
-                sierra_cc.entry_points_by_type.clone(),
-                sierra_version,
-            ))
+            // ContractExecutor::Emu((
+            //     program,
+            //     sierra_cc.entry_points_by_type.clone(),
+            //     sierra_version,
+            // ))
         } else {
             #[cfg(any(feature = "with-trace-dump", feature = "with-libfunc-profiling"))]
             {
