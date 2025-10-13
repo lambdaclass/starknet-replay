@@ -2664,13 +2664,14 @@ dependencies = [
 
 [[package]]
 name = "cairo-vm"
-version = "3.0.0-rc.3"
+version = "2.5.0"
 dependencies = [
  "anyhow",
  "bincode",
  "bitvec",
  "generic-array",
  "hashbrown 0.15.4",
+ "hex",
  "indoc",
  "keccak",
  "lazy_static",
