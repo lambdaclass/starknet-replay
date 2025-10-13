@@ -2,8 +2,7 @@
 
 set -euo pipefail
 
-errcho() { echo "$@" >&2; }
-yell() { errcho "$0:" "$@"; }
+yell() { echo "$0:" "$@" >&2; }
 
 usage() {
 cat >&2 <<EOF
@@ -29,7 +28,7 @@ while getopts "hn:" opt; do
 	case $opt in
 		h) usage ;;
 		n) RUNS=$OPTARG;;
-		*) errcho; usage ;;
+		*) echo >&2; usage ;;
 	esac
 done
 # Skip optional flags from ARGS.
