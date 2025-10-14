@@ -141,6 +141,7 @@ status() {
 		done < <( echo "$logs" | tac ) >/dev/null 2>&1
 		if [ -z "${log:-}" ]; then
 			echo "Failed to find logs for session $name" >&2
+			printf "%s\t%s\t%s\t%s\t%s\n" "$status" "$name" "unknown" "unknown" "unknown"
 			continue
 		fi
 
