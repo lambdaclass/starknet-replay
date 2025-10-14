@@ -82,39 +82,82 @@ range() {
 status() {
 	{
 	echo -e "status\tname\tduration\tblock\tmessage"
-
-	tmux ls -F '#{session_id} #{session_name} #{session_created} #{pane_current_command}' |
+	tmux ls -F '#{session_id} #{session_name} #{session_created} #{pane_current_command}' 2>/dev/null |
 	while read -r _ name init_time command; do
 		if ! [[ $name == $NAME-* ]]; then
 	    continue;
 	  fi
 
-		if [[ $command == replay* ]]; then
-			status="RUNNING"
-		elif [[ $command == "bash" ]]; then
+		if [[ $command == "bash" ]]; then
 			status="STOPPED"
 		else
-			status="$command"
+			status="RUNNING"
 		fi
 
-		log=$(tmux capture-pane -pJt "$name" -S 0 -E 100)
-		last=$(echo "$log" | tail -n 1)
+		logs=$(tmux capture-pane -pJt "$name" -S 0 -E 100)
 
-		timestamp=$(echo "$last" | jq -r .timestamp 2>/dev/null | sed -E "s/\.[0-9]+//")
-		timestamp_s=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "+%s" "$timestamp")
+		# Find latest log line
+		while IFS= read -r line; do
+			if [ -n "$line" ] && echo "$line" | jq . ; then
+				log="$line"
+				break
+			fi
+		done < <( echo "$logs" | tail -r ) >/dev/null 2>&1
+		if [ -z "${log:-}" ]; then
+			echo "Failed to find logs for session $name" >&2
+			continue
+		fi
+
+		timestamp=$(echo "$log" | jq -r .timestamp | sed -E "s/\.[0-9]+//")
+		timestamp_s=$(date -ujf "%Y-%m-%dT%H:%M:%SZ" "+%s" "$timestamp")
 		duration_s=$(bc <<< "$timestamp_s-$init_time")
 		hours=$(bc <<< "$duration_s/3600")
 		minutes=$(bc <<< "($duration_s%3600)/60")
 		seconds=$(bc <<< "$duration_s%60")
 		duration="$hours:$minutes:$seconds"
 
-		block=$(echo "$last" | jq '.spans[] | select (.name=="block execution") | .block' 2>/dev/null)
-		message=$(echo "$last" | jq .fields.message)
+		# Not all logs contain the current block.
+		if ! block=$( echo "$log" | jq '.spans[] | select (.name=="block execution") | .block' ); then
+			block="unknown"
+		fi 2>/dev/null
+
+		message=$(echo "$log" | jq .fields.message)
 
 		printf "%s\t%s\t%s\t%s\t%s\n" "$status" "$name" "$duration" "$block" "$message"
 	done
 	} |
 	column -t -s $'\t'
+}
+
+stop() {
+	# Parse optional flags.
+	KILL_ALL=false
+	local OPTIND
+	while getopts "a" opt; do
+		case $opt in
+			a) KILL_ALL=true ;;
+			*) echo; usage ;;
+		esac
+	done
+
+	tmux ls -F '#{session_name} #{pane_current_command}' 2>/dev/null |
+	while read -r name command; do
+		if ! [[ $name == $NAME* ]]; then
+		  continue;
+		fi
+
+		if [[ $command != "bash" ]]; then
+			if [ $KILL_ALL = true ]; then
+				echo "Session $name is running, killing it"
+				tmux kill-session -t "$name"
+			else
+				echo "Session $name is running, skipping it"
+			fi
+		else
+			echo "Session $name has stopped, killing it"
+			tmux kill-session -t "$name"
+		fi
+	done
 }
 
 # Parse global optional flags.
@@ -136,5 +179,6 @@ fi
 case "$1" in
 	range) range "${@:2}";;
 	status) status "${@:2}";;
+	stop) stop "${@:2}";;
 	*) yell "unknown subcommand: $1" ;;
 esac
