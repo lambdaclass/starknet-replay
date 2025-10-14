@@ -28,6 +28,17 @@ spawn() {
 }
 
 range() {
+	# Parse optional flags.
+	SKIP=""
+	local OPTIND
+	while getopts "s:" opt; do
+		case $opt in
+			s) SKIP="$OPTARG" ;;
+			*) echo; usage ;;
+		esac
+	done
+	shift $((OPTIND - 1))
+
 	if [[ $# -lt 3 ]]; then
 		yell "range expects 3 positional argument\n"
 		usage
@@ -39,43 +50,51 @@ range() {
 	step_size=$(((RANGE_SIZE + N_WORKERS - 1) / N_WORKERS))
 	end_block=$((START_BLOCK + RANGE_SIZE - 1))
 
-	echo "Building replay for Cairo Native"
-	cargo build -q --release --features structured_logging,state_dump 2>/dev/null
-	cp ./target/release/replay ./target/release/replay-native
-	echo "Building replay for Cairo VM"
-	cargo build -q --release --features structured_logging,state_dump,only_cairo_vm 2>/dev/null
-	cp ./target/release/replay ./target/release/replay-vm
+	if [ "$SKIP" != "native" ]; then
+		echo "Building replay for Cairo Native"
+		cargo build --release --features structured_logging,state_dump 2>/dev/null
+		cp ./target/release/replay ./target/release/replay-native
+	fi
+	if [ "$SKIP" != "vm" ]; then
+		echo "Building replay for Cairo VM"
+		cargo build --release --features structured_logging,state_dump,only_cairo_vm 2>/dev/null
+		cp ./target/release/replay ./target/release/replay-vm
+	fi
 
 	for ((i = START_BLOCK ; i <= end_block ; i += step_size )); do
 		current_start_block="$i"
 		current_end_block=$((i + step_size - 1))
 		current_end_block=$((current_end_block > end_block ? end_block : current_end_block))
 
-		name="${NAME}-vm-${current_start_block}-${current_end_block}"
-		command=$(
-			cat <<- END
-				bash
-				source $ENVRC
-				time ./target/release/replay-vm \\
-					block-range $current_start_block $current_end_block mainnet
-			END
-		)
-		spawn "$name" "$command" && {
-			echo "Replaying block range $current_start_block-$current_end_block in session $name"
-	  }
+		if [ "$SKIP" != "vm" ]; then
+			name="${NAME}-vm-${current_start_block}-${current_end_block}"
+			command=$(
+				cat <<- END
+					bash
+					source $ENVRC
+					time ./target/release/replay-vm \\
+						block-range $current_start_block $current_end_block mainnet
+				END
+			)
+			spawn "$name" "$command" && {
+				echo "Replaying block range $current_start_block-$current_end_block in session $name"
+		  }
+		fi
 
-		name="${NAME}-native-${current_start_block}-${current_end_block}"
-		command=$(
-			cat <<- END
-				bash
-				source $ENVRC
-				time ./target/release/replay-native \\
-					block-range $current_start_block $current_end_block mainnet
-			END
-		)
-		spawn "$name" "$command" && {
-			echo "Replaying block range $current_start_block-$current_end_block in session $name"
-	  }
+		if [ "$SKIP" != "native" ]; then
+			name="${NAME}-native-${current_start_block}-${current_end_block}"
+			command=$(
+				cat <<- END
+					bash
+					source $ENVRC
+					time ./target/release/replay-native \\
+						block-range $current_start_block $current_end_block mainnet
+				END
+			)
+			spawn "$name" "$command" && {
+				echo "Replaying block range $current_start_block-$current_end_block in session $name"
+		  }
+		fi
 	done
 }
 
@@ -139,10 +158,11 @@ stop() {
 			*) echo; usage ;;
 		esac
 	done
+	shift $((OPTIND - 1))
 
 	tmux ls -F '#{session_name} #{pane_current_command}' 2>/dev/null |
 	while read -r name command; do
-		if ! [[ $name == $NAME* ]]; then
+		if ! [[ $name == $NAME-* ]]; then
 		  continue;
 		fi
 
