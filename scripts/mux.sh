@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Dependencies:
+#   tmux
+#   coreutils
+#   jq
 
 set -euo pipefail
 
