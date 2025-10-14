@@ -63,12 +63,12 @@ range() {
 	if [ "$SKIP" != "native" ]; then
 		echo "Building replay for Cairo Native"
 		cargo build --release --features structured_logging,state_dump 2>/dev/null
-		cp ./target/release/replay ./target/release/replay-native
+		mv ./target/release/replay ./target/release/replay-native
 	fi
 	if [ "$SKIP" != "vm" ]; then
 		echo "Building replay for Cairo VM"
 		cargo build --release --features structured_logging,state_dump,only_cairo_vm 2>/dev/null
-		cp ./target/release/replay ./target/release/replay-vm
+		mv ./target/release/replay ./target/release/replay-vm
 	fi
 
 	# Spawn executors.
