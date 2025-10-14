@@ -6,7 +6,35 @@ ENVRC=.envrc
 
 usage() {
 cat <<EOF
-Usage: $0
+Usage: $0 [OPTIONS] <COMMAND>
+
+A helper script for replaying blocks with both Cairo Native, and Cairo VM,
+inside of persistent tmux sessions.
+
+Note that optional flags always go before positional arguments.
+
+Options:
+  -n NAME  Prefix for the created/retrieved TMUX sessions. Default: "replay".
+
+Commands:
+  range [OPTIONS] <BLOCK> <N_BLOCKS> <N_WORKERS>
+
+    Replays N_BLOCKS contiguous blocks, starting from BLOCK, in N_WORKERS TMUX
+    sessions for each executor.
+
+    Options:
+      -s <EXECUTOR>  Skips the given executor (either native, or vm)
+
+  status
+
+    Shows the status of each TMUX session with the given prefix, as a table.
+
+  stop [OPTIONS]
+
+    Kills all stopped TMUX sessions with the given prefix.
+
+    Options:
+      -a  Kills all TMUX sessions, even if running.
 EOF
 exit 1
 }
