@@ -33,6 +33,17 @@ Commands:
     Options:
       -s <EXECUTOR>  Skips the given executor (either native, or vm)
 
+  block [OPTIONS] <NETWORK> <BLOCK ...>
+
+    Replays all BLOCKS, from NETWORK, each one in a different TMUX session, for
+    each executor.
+
+    For each session, an .envrc file in the current directory is sourced, which
+    should contain environment variables required for the execution.
+
+    Options:
+      -s <EXECUTOR>  Skips the given executor (either native, or vm)
+
   status
 
     Shows the status of each TMUX session with the given prefix, as a table.
