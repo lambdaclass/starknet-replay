@@ -175,6 +175,7 @@ status() {
 		logs=$(tmux capture-pane -pJt "$name" -S 0 -E 100)
 
 		# Find latest valid log line.
+		log=""
 		while IFS= read -r line; do
 			if [ -n "$line" ] && echo "$line" | jq . ; then
 				log="$line"
