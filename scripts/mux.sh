@@ -27,7 +27,7 @@ Commands:
     Replays N_BLOCKS contiguous blocks, starting at BLOCK from NETWORK, in
     N_WORKERS TMUX sessions for each executor.
 
-    For each session, an .envrc file in the current directory is sourced, which
+    For each session, an $ENVRC file in the current directory is sourced, which
     should contain environment variables required for the execution.
 
     Options:
@@ -93,8 +93,8 @@ range() {
 	RANGE_SIZE="$3"
 	N_WORKERS="$4"
 
-	if ! [[ -a ".envrc" ]]; then
-		yell "Failed to find .envrc file"
+	if ! [[ -a "$ENVRC" ]]; then
+		yell "Failed to find $ENVRC file"
 		exit 1
 	fi
 
