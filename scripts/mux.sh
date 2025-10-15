@@ -22,10 +22,13 @@ Options:
   -n NAME  Prefix for the created/retrieved TMUX sessions. Default: "replay".
 
 Commands:
-  range [OPTIONS] <BLOCK> <N_BLOCKS> <N_WORKERS>
+  range [OPTIONS] <NETWORK> <BLOCK> <N_BLOCKS> <N_WORKERS>
 
-    Replays N_BLOCKS contiguous blocks, starting from BLOCK, in N_WORKERS TMUX
-    sessions for each executor.
+    Replays N_BLOCKS contiguous blocks, starting at BLOCK from NETWORK, in
+    N_WORKERS TMUX sessions for each executor.
+
+    For each session, an .envrc file in the current directory is sourced, which
+    should contain environment variables required for the execution.
 
     Options:
       -s <EXECUTOR>  Skips the given executor (either native, or vm)
@@ -81,13 +84,19 @@ range() {
 	shift $((OPTIND - 1))
 
 	# Parse positional arguments.
-	if [[ $# -lt 3 ]]; then
-		yell "range expects 3 positional argument\n"
+	if [[ $# -lt 4 ]]; then
+		yell "range expects 4 positional argument\n"
 		usage
 	fi
-	START_BLOCK="$1"
-	RANGE_SIZE="$2"
-	N_WORKERS="$3"
+	NETWORK="$1"
+	START_BLOCK="$2"
+	RANGE_SIZE="$3"
+	N_WORKERS="$4"
+
+	if ! [[ -a ".envrc" ]]; then
+		yell "Failed to find .envrc file"
+		exit 1
+	fi
 
 	step_size=$(((RANGE_SIZE + N_WORKERS - 1) / N_WORKERS))
 	end_block=$((START_BLOCK + RANGE_SIZE - 1))
@@ -95,13 +104,13 @@ range() {
 	# Build binaries if required.
 	if [ "$SKIP" != "native" ]; then
 		echo "Building replay for Cairo Native"
-		cargo build --release --features structured_logging,state_dump 2>/dev/null
+		cargo build --quiet --release --features structured_logging,state_dump
 		rm ./target/release/replay-native
 		mv ./target/release/replay ./target/release/replay-native
 	fi
 	if [ "$SKIP" != "vm" ]; then
 		echo "Building replay for Cairo VM"
-		cargo build --release --features structured_logging,state_dump,only_cairo_vm 2>/dev/null
+		cargo build --quiet --release --features structured_logging,state_dump,only_cairo_vm
 		rm ./target/release/replay-vm
 		mv ./target/release/replay ./target/release/replay-vm
 	fi
@@ -114,33 +123,33 @@ range() {
 
 		# Spawn VM executor if required.
 		if [ "$SKIP" != "vm" ]; then
-			name="${NAME}-vm-${current_start_block}-${current_end_block}"
+			name="${NAME}-vm-${NETWORK}-${current_start_block}-${current_end_block}"
 			command=$(
 				cat <<- END
 					bash
 					source $ENVRC
 					time ./target/release/replay-vm \\
-						block-range $current_start_block $current_end_block mainnet
+						block-range $current_start_block $current_end_block $NETWORK
 				END
 			)
 			spawn "$name" "$command" && {
-				echo "Replaying block range $current_start_block-$current_end_block in session $name"
+				echo "Replaying $NETWORK block range $current_start_block-$current_end_block in session $name"
 		  }
 		fi
 
 		# Spawn Native executor if required.
 		if [ "$SKIP" != "native" ]; then
-			name="${NAME}-native-${current_start_block}-${current_end_block}"
+			name="${NAME}-native-${NETWORK}-${current_start_block}-${current_end_block}"
 			command=$(
 				cat <<- END
 					bash
 					source $ENVRC
 					time ./target/release/replay-native \\
-						block-range $current_start_block $current_end_block mainnet
+						block-range $current_start_block $current_end_block $NETWORK
 				END
 			)
 			spawn "$name" "$command" && {
-				echo "Replaying block range $current_start_block-$current_end_block in session $name"
+				echo "Replaying $NETWORK block range $current_start_block-$current_end_block in session $name"
 		  }
 		fi
 	done
