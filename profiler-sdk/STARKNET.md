@@ -130,7 +130,7 @@ samply record --  target/release/replay bench-tx <hash> <chain> <block-number> <
 
 You can obtain a sample profile at: https://share.firefox.dev/477gP4Q.
 
-To make the profile more accurate, we suggest executing the transaction many times (with the `number-of-runs` argument).
+To make the profile more accurate, we suggest executing the transaction many times (with the `number-of-runs` argument). When executing single transactions, a number around 1000 is usually fine. When profiling a full block range, the recommended number depends on the size of the block range. For a 10 block range, a number around 10 is usually fine.
 
 ## Processing a Profile
 
