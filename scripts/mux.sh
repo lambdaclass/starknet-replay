@@ -238,7 +238,7 @@ stop() {
 
 		# If the command executing is bash, then the execution has stopped.
 		if [[ $command != "bash" ]]; then
-			# Only kill stopped sessions if KILL_ALL is set.
+			# Only kill running sessions if KILL_ALL is set.
 			if [ $KILL_ALL = true ]; then
 				echo "Session $name is running, killing it"
 				tmux kill-session -t "$name"
