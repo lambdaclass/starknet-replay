@@ -73,13 +73,17 @@ pub fn execute_txs(
     let mut executions = vec![];
 
     for tx_hash in tx_hashes {
-        executions.push(execute_tx(
+        if let Ok(execution) = execute_tx(
             &mut state,
             reader,
             &block_context,
             tx_hash,
             execution_flags.clone(),
-        )?);
+        )
+        .inspect_err(|err| error!("failed to execute transaction: {}", err))
+        {
+            executions.push(execution);
+        }
     }
 
     Ok(executions)
@@ -100,8 +104,7 @@ pub fn execute_tx(
         block_context.block_info().block_number,
         tx_hash,
         execution_flags,
-    )
-    .inspect_err(|err| error!("failed to fetch transaction: {}", err))?;
+    )?;
 
     info!("starting transaction execution");
 

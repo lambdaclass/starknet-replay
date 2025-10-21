@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, mem};
 
 use crate::{model::Sample, schema::Profile};
 
@@ -63,6 +63,36 @@ impl<'p> Tree<'p> {
         }
 
         tree
+    }
+
+    /// Removes least significative subtrees
+    ///
+    /// Removes all subtrees that account for less than the given threshold
+    /// percentage, given as a decimal fraction (0 <= threshold <= 1).
+    pub fn prune(&mut self, threshold: f64) {
+        let total = self.children.iter().map(|n| n.subtotal).sum::<u64>();
+
+        let minimum_subtotal_required = (total as f64 * threshold) as u64;
+
+        fn inner(node: &mut Tree, minimum_subtotal_required: u64) -> u64 {
+            let mut new_children = Vec::new();
+            let mut samples_to_self = 0;
+
+            for mut child in mem::take(&mut node.children) {
+                if child.subtotal < minimum_subtotal_required {
+                    samples_to_self += child.subtotal
+                } else {
+                    let samples_to_child = inner(&mut child.subtree, minimum_subtotal_required);
+                    child.count += samples_to_child;
+                    new_children.push(child);
+                }
+            }
+            node.children = new_children;
+
+            samples_to_self
+        }
+
+        inner(self, minimum_subtotal_required);
     }
 }
 
