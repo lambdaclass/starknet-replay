@@ -20,7 +20,6 @@ use tracing::info;
 
 use crate::execution::TransactionExecution;
 
-#[derive(Serialize, Deserialize)]
 pub struct BenchData {
     pub transactions: Vec<TxBenchData>,
     pub calls: Vec<CallBenchData>,
@@ -28,23 +27,23 @@ pub struct BenchData {
 
 #[derive(Serialize, Deserialize)]
 pub struct CallBenchData {
-    tx_hash: TransactionHash,
-    class_hash: ClassHash,
-    selector: EntryPointSelector,
-    time_ns: u128,
-    gas_consumed: u64,
-    steps: u64,
-    cairo_native: bool,
+    pub tx_hash: TransactionHash,
+    pub class_hash: ClassHash,
+    pub selector: EntryPointSelector,
+    pub time_ns: u128,
+    pub gas: u64,
+    pub steps: u64,
+    pub cairo_native: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct TxBenchData {
-    tx_hash: TransactionHash,
-    block_number: BlockNumber,
-    time_ns: u128,
-    gas_consumed: u64,
-    steps: u64,
-    failed: bool,
+    pub tx_hash: TransactionHash,
+    pub block_number: BlockNumber,
+    pub time_ns: u128,
+    pub gas: u64,
+    pub steps: u64,
+    pub failed: bool,
 }
 
 impl BenchData {
@@ -70,22 +69,22 @@ impl BenchData {
                 .reduce(|(mut tx_data, mut calls), (other_tx_data, other_calls)| {
                     tx_data.time_ns += other_tx_data.time_ns;
                     tx_data.steps += other_tx_data.steps;
-                    tx_data.gas_consumed += other_tx_data.gas_consumed;
+                    tx_data.gas += other_tx_data.gas;
                     for (call, other_call) in calls.iter_mut().zip(other_calls.iter()) {
                         call.time_ns += other_call.time_ns;
                         call.steps += other_call.steps;
-                        call.gas_consumed += other_call.gas_consumed;
+                        call.gas += other_call.gas;
                     }
                     (tx_data, calls)
                 })
                 .expect("we should have at least one execution");
 
             tx_data.time_ns = tx_data.time_ns.div_ceil(execution_count as u128);
-            tx_data.gas_consumed = tx_data.gas_consumed.div_ceil(execution_count as u64);
+            tx_data.gas = tx_data.gas.div_ceil(execution_count as u64);
             tx_data.steps = tx_data.steps.div_ceil(execution_count as u64);
             for call in &mut calls {
                 call.time_ns = call.time_ns.div_ceil(execution_count as u128);
-                call.gas_consumed = call.gas_consumed.div_ceil(execution_count as u64);
+                call.gas = call.gas.div_ceil(execution_count as u64);
                 call.steps = call.steps.div_ceil(execution_count as u64);
             }
 
@@ -105,7 +104,7 @@ pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchDat
         tx_hash: tx.hash,
         block_number: tx.block_number,
         time_ns: tx.time.as_nanos(),
-        gas_consumed: 0,
+        gas: 0,
         steps: 0,
         failed: tx.result.is_err(),
     };
@@ -117,7 +116,7 @@ pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchDat
     let mut calls = Vec::new();
 
     for call_info in info.non_optional_call_infos() {
-        tx_data.gas_consumed += call_info.execution.gas_consumed;
+        tx_data.gas += call_info.execution.gas_consumed;
         tx_data.steps += call_info.resources.n_steps as u64;
 
         calls.append(&mut summarize_calls(tx.hash, call_info));
@@ -166,7 +165,7 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchDa
         selector: call.call.entry_point_selector,
         cairo_native: call.execution.cairo_native,
         time_ns: time.as_nanos(),
-        gas_consumed,
+        gas: gas_consumed,
         steps,
     };
 

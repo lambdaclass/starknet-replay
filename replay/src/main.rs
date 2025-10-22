@@ -104,8 +104,10 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_end: u64,
         chain: String,
         number_of_runs: usize,
-        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
-        output: PathBuf,
+        #[arg(short, long)]
+        tx_data: Option<PathBuf>,
+        #[arg(short, long)]
+        call_data: Option<PathBuf>,
     },
     #[cfg(feature = "benchmark")]
     #[clap(about = "Measures the time it takes to run a single transaction.
@@ -116,8 +118,10 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         chain: String,
         block: u64,
         number_of_runs: usize,
-        #[arg(short, long, default_value=PathBuf::from("data").into_os_string())]
-        output: PathBuf,
+        #[arg(short, long)]
+        tx_data: Option<PathBuf>,
+        #[arg(short, long)]
+        call_data: Option<PathBuf>,
     },
     #[cfg(feature = "benchmark")]
     /// Benchmarks the compilation of contract classes
@@ -260,7 +264,8 @@ fn main() {
             block_end,
             chain,
             number_of_runs,
-            output,
+            tx_data,
+            call_data,
         } => {
             let chain = parse_network(&chain);
             let full_reader = FullStateReader::new(chain);
@@ -313,8 +318,23 @@ fn main() {
 
             let benchmarking_data = benchmark::BenchData::aggregate(&executions);
 
-            let file = std::fs::File::create(output).unwrap();
-            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+            if let Some(tx_data) = tx_data {
+                let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
+                for summary in &benchmarking_data.transactions {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize tx bench data");
+                }
+            }
+            if let Some(call_data) = call_data {
+                let mut writer =
+                    csv::Writer::from_path(call_data).expect("failed to create writer");
+                for summary in &benchmarking_data.calls {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize tx bench data");
+                }
+            }
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchTx {
@@ -322,7 +342,8 @@ fn main() {
             block,
             chain,
             number_of_runs,
-            output,
+            tx_data,
+            call_data,
         } => {
             let chain = parse_network(&chain);
             let block_number = BlockNumber(block);
@@ -376,8 +397,23 @@ fn main() {
 
             let benchmarking_data = benchmark::BenchData::aggregate(&executions);
 
-            let file = std::fs::File::create(output).unwrap();
-            serde_json::to_writer_pretty(file, &benchmarking_data).unwrap();
+            if let Some(tx_data) = tx_data {
+                let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
+                for summary in &benchmarking_data.transactions {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize tx bench data");
+                }
+            }
+            if let Some(call_data) = call_data {
+                let mut writer =
+                    csv::Writer::from_path(call_data).expect("failed to create writer");
+                for summary in &benchmarking_data.calls {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize call bench data");
+                }
+            }
         }
         #[cfg(feature = "benchmark")]
         ReplayExecute::BenchCompilation {
