@@ -110,6 +110,7 @@ echo "Generating report to $BENCHMARK_REPORT_PATH"
 python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
 	"$BENCHMARK_ARTIFACTS_PATH/tx-speedup-distribution.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/contract-class-speedup-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/edge-contract-classes.csv" \
 	"$BENCHMARK_ARTIFACTS_PATH/native-throughput-distribution.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/vm-throughput-distribution.svg" \
 	"$BENCHMARK_REPORT_PATH"

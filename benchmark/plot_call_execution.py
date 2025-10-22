@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from pandas import DataFrame
+from pandas import DataFrame, Series
 
 parser = argparse.ArgumentParser(
     description="""
@@ -71,6 +71,13 @@ def save_artifact(metadata):
         json.dump(metadata, f, indent=4)
 
 
+def save_df_artifact(data: DataFrame | Series, metadata):
+    slug = inflection.parameterize(metadata["title"])
+    data.to_csv(f"{args.output}/{slug}.csv")
+    with open(f"{args.output}/{slug}.meta.json", "w") as f:
+        json.dump(metadata, f, indent=4)
+
+
 args.output.mkdir(parents=True, exist_ok=True)
 
 native_df: DataFrame = pd.read_csv(args.native_input)
@@ -82,10 +89,9 @@ native_df = native_df.drop("steps", axis=1)
 vm_df["gas"] += vm_df["steps"] * 100
 vm_df = vm_df.drop("steps", axis=1)
 
-class_speedup = (
-    vm_df.groupby("class_hash")["time_ns"].sum()
-    / native_df.groupby("class_hash")["time_ns"].sum()
-)  # type: ignore
+vm_class_time: Series = vm_df.groupby("class_hash")["time_ns"].sum()  # type: ignore
+native_class_time: Series = native_df.groupby("class_hash")["time_ns"].sum()  # type: ignore
+class_speedup: Series = vm_class_time.div(native_class_time)
 
 fig, ax = plt.subplots(2)
 sns.boxplot(ax=ax[0], x=class_speedup, showfliers=False)
@@ -101,6 +107,24 @@ save_artifact(
         "description": "Calculates the distribution of the contract class execution speedup. Note that it does not take into account the execution time of each contract class, so it does not relate with the total execution speedup.",
         "statistics": pretty_describe(class_speedup).to_dict(),
     }
+)
+
+edge_classes: Series = pd.concat(
+    [
+        class_speedup.nsmallest(10),
+        class_speedup.nlargest(10)[::-1],  # type: ignore
+    ]
+)
+edge_classes.index.name = "Class Hash"
+edge_classes.rename("Speedup", inplace=True)
+edge_classes = edge_classes.round(3)
+
+save_df_artifact(
+    edge_classes,
+    {
+        "title": "Edge Contract Classes",
+        "description": "Contract classes with highest or lowest speedup.",
+    },
 )
 
 if args.show:
