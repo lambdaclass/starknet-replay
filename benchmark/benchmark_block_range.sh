@@ -87,8 +87,12 @@ RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark,only_c
 echo "Saved tx benchmark data to $BENCHMARK_VM_TX_DATA_PATH" 
 echo "Saved call benchmark data to $BENCHMARK_VM_CALL_DATA_PATH" 
 
-echo "Processing benchmark data"
+echo "Processing tx benchmark data"
 python benchmark/plot_tx_execution.py "$BENCHMARK_NATIVE_TX_DATA_PATH" "$BENCHMARK_VM_TX_DATA_PATH" "$BENCHMARK_ARTIFACTS_PATH"
+echo "Saved benchmark artifacts to $BENCHMARK_ARTIFACTS_PATH"
+
+echo "Processing call benchmark data"
+python benchmark/plot_call_execution.py "$BENCHMARK_NATIVE_CALL_DATA_PATH" "$BENCHMARK_VM_CALL_DATA_PATH" "$BENCHMARK_ARTIFACTS_PATH"
 echo "Saved benchmark artifacts to $BENCHMARK_ARTIFACTS_PATH"
 
 echo "Saving benchmark info to $BENCHMARK_INFO_PATH"
@@ -105,6 +109,7 @@ python benchmark/gather_info.py | jq \
 echo "Generating report to $BENCHMARK_REPORT_PATH"
 python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
 	"$BENCHMARK_ARTIFACTS_PATH/tx-speedup-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/contract-class-speedup-distribution.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/native-throughput-distribution.svg" \
 	"$BENCHMARK_ARTIFACTS_PATH/vm-throughput-distribution.svg" \
 	"$BENCHMARK_REPORT_PATH"
