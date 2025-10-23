@@ -71,8 +71,8 @@ plot_distribution(
 )
 
 class_speedup.index.name = "Class Hash"
-class_speedup.rename("Speedup", inplace=True)
-class_speedup.round(3)
+class_speedup = class_speedup.rename("Speedup")
+class_speedup = class_speedup.round(2)
 
 save_edge_cases(
     args.output,
