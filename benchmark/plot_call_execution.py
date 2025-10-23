@@ -1,13 +1,11 @@
 import argparse
 import pathlib
-import inflection
-import json
 
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
-
 from pandas import DataFrame, Series
+
+from plot_utils import save_df_artifact, plot_distribution
 
 parser = argparse.ArgumentParser(
     description="""
@@ -48,36 +46,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def pretty_describe(row):
-    return row.describe().rename(
-        {
-            "count": "Number of Samples",
-            "mean": "Mean",
-            "std": "Standard Deviation",
-            "min": "Minimum",
-            "25%": "25th Percentile",
-            "50%": "50th Percentile",
-            "75%": "75th Percentile",
-            "max": "Maximum",
-        }
-    )
-
-
-def save_artifact(metadata):
-    slug = inflection.parameterize(metadata["title"])
-
-    plt.savefig(f"{args.output}/{slug}.svg")
-    with open(f"{args.output}/{slug}.meta.json", "w") as f:
-        json.dump(metadata, f, indent=4)
-
-
-def save_df_artifact(data, metadata):
-    slug = inflection.parameterize(metadata["title"])
-    data.to_csv(f"{args.output}/{slug}.csv")
-    with open(f"{args.output}/{slug}.meta.json", "w") as f:
-        json.dump(metadata, f, indent=4)
-
-
 args.output.mkdir(parents=True, exist_ok=True)
 
 native_df: DataFrame = pd.read_csv(args.native_input)
@@ -93,33 +61,24 @@ vm_class_time: Series = vm_df.groupby("class_hash")["time_ns"].sum()  # type: ig
 native_class_time: Series = native_df.groupby("class_hash")["time_ns"].sum()  # type: ignore
 class_speedup: Series = vm_class_time.div(native_class_time)
 
-fig, ax = plt.subplots(2)
-sns.boxplot(ax=ax[0], x=class_speedup, showfliers=False)
-ax[0].set_xlabel("Speedup")
-sns.stripplot(ax=ax[1], x=class_speedup, alpha=0.25, jitter=0.4)
-ax[1].set_xlabel("Speedup")
-ax[1].set_xscale("log", base=2)
-fig.subplots_adjust(hspace=0.30)
-fig.suptitle("Contract Class Speedup Distribution")
-save_artifact(
-    {
-        "title": "Contract Class Speedup Distribution",
-        "description": "Calculates the distribution of the contract class execution speedup. Note that it does not take into account the execution time of each contract class, so it does not relate with the total execution speedup.",
-        "statistics": pretty_describe(class_speedup).to_dict(),
-    }
+plot_distribution(
+    args.output,
+    class_speedup,
+    "Speedup",
+    "Contract Class Speedup Distribution",
+    "Calculates the distribution of the contract class execution speedup. Note that it does not take into account the execution time of each contract class, so it does not relate with the total execution speedup.",
+    log=True,
 )
 
-edge_classes: Series = pd.concat(
-    [
-        class_speedup.nsmallest(10),
-        class_speedup.nlargest(10)[::-1],  # type: ignore
-    ]
-)
+best_classes = class_speedup.nsmallest(10)
+worst_classes = class_speedup.nlargest(10)
+edge_classes = pd.concat([best_classes, worst_classes]).sort_values()
+
 edge_classes.index.name = "Class Hash"
 edge_classes.rename("Speedup", inplace=True)
 edge_classes = edge_classes.round(3)
-
 save_df_artifact(
+    args.output,
     edge_classes,
     {
         "title": "Edge Contract Classes",
