@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 
-from plot_utils import plot_distribution
+from plot_utils import plot_distribution, save_df_artifact
 
 parser = argparse.ArgumentParser(
     description="""
@@ -82,6 +82,28 @@ plot_distribution(
     "Throughput (Gigagas/s)",
     "VM Throughput Distribution",
     "Calculates the distribution of Cairo VM throughput.",
+)
+
+df = pd.DataFrame(
+    {
+        "tx_hash": native_df["tx_hash"],
+        "native_time_ns": native_df["time_ns"],
+        "vm_time_ns": vm_df["time_ns"],
+        "native_gas": native_df["gas"],
+        "vm_gas": vm_df["gas"],
+        "native_throughput": native_throughput,
+        "vm_throughput": vm_throughput,
+        "speedup": speedup,
+    }
+)
+save_df_artifact(
+    args.output,
+    df,
+    {
+        "title": "Cairo VM vs. Cairo Native",
+        "description": "Compares the execution of Cairo VM with Cairo Native.",
+    },
+    index=False,
 )
 
 if args.show:
