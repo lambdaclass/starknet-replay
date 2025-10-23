@@ -71,7 +71,7 @@ def save_artifact(metadata):
         json.dump(metadata, f, indent=4)
 
 
-def save_df_artifact(data: DataFrame | Series, metadata):
+def save_df_artifact(data, metadata):
     slug = inflection.parameterize(metadata["title"])
     data.to_csv(f"{args.output}/{slug}.csv")
     with open(f"{args.output}/{slug}.meta.json", "w") as f:

@@ -97,12 +97,12 @@ echo "Saved benchmark artifacts to $BENCHMARK_ARTIFACTS_PATH"
 
 echo "Saving benchmark info to $BENCHMARK_INFO_PATH"
 python benchmark/gather_info.py | jq \
-	--arg start "$START_BLOCK" \
-	--arg end "$end_block" \
+	--arg block_start "$START_BLOCK" \
+	--arg block_end "$end_block" \
 	'{
 		"Title": "Execution Benchmark",
-		"Start Block": $start,
-		"End Block": $end,
+		"Start Block": $block_start,
+		"End Block": $block_end,
 		"Native profile": "default"
 	} + .' > "$BENCHMARK_INFO_PATH"
 
