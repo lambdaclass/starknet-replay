@@ -1,13 +1,11 @@
 import argparse
 import pathlib
-import inflection
-import json
 
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
-
 from pandas import DataFrame
+
+from plot_utils import plot_distribution
 
 parser = argparse.ArgumentParser(
     description="""
@@ -47,38 +45,14 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-
-def pretty_describe(row):
-    return row.describe().rename(
-        {
-            "count": "Number of Samples",
-            "mean": "Mean",
-            "std": "Standard Deviation",
-            "min": "Minimum",
-            "25%": "25th Percentile",
-            "50%": "50th Percentile",
-            "75%": "75th Percentile",
-            "max": "Maximum",
-        }
-    )
-
-
-def save_artifact(metadata):
-    slug = inflection.parameterize(metadata["title"])
-
-    plt.savefig(f"{args.output}/{slug}.svg")
-    with open(f"{args.output}/{slug}.meta.json", "w") as f:
-        json.dump(metadata, f, indent=4)
-
-
 args.output.mkdir(parents=True, exist_ok=True)
+
 
 native_df: DataFrame = pd.read_csv(args.native_input)
 vm_df: DataFrame = pd.read_csv(args.vm_input)
 
 native_df["gas"] += native_df["steps"] * 100
 native_df = native_df.drop("steps", axis=1)
-
 vm_df["gas"] += vm_df["steps"] * 100
 vm_df = vm_df.drop("steps", axis=1)
 
@@ -86,49 +60,28 @@ speedup = vm_df["time_ns"] / native_df["time_ns"]
 native_throughput = native_df["gas"] / native_df["time_ns"]
 vm_throughput = vm_df["gas"] / vm_df["time_ns"]
 
-fig, ax = plt.subplots(2)
-sns.boxplot(ax=ax[0], x=speedup, showfliers=False)
-ax[0].set_xlabel("Speedup")
-sns.stripplot(ax=ax[1], x=speedup, alpha=0.25, jitter=0.4)
-ax[1].set_xlabel("Speedup")
-fig.subplots_adjust(hspace=0.30)
-fig.suptitle("Tx Speedup Distribution")
-save_artifact(
-    {
-        "title": "Tx Speedup Distribution",
-        "description": "Calculates the distribution of the transaction execution speedup.",
-        "statistics": pretty_describe(speedup).to_dict(),
-    }
+plot_distribution(
+    args.output,
+    speedup,
+    "Speedup",
+    "Tx Speedup Distribution",
+    "Calculates the distribution of the transaction execution speedup.",
 )
 
-fig, ax = plt.subplots(2)
-sns.boxplot(ax=ax[0], x=native_throughput, showfliers=False)
-ax[0].set_xlabel("Throughput (Gigagas/s)")
-sns.stripplot(ax=ax[1], x=native_throughput, alpha=0.25, jitter=0.4)
-ax[1].set_xlabel("Throughput (Gigagas/s)")
-fig.subplots_adjust(hspace=0.30)
-fig.suptitle("Native Throughput Distribution")
-save_artifact(
-    {
-        "title": "Native Throughput Distribution",
-        "description": "Calculates the distribution of Cairo Native throughput.",
-        "statistics": pretty_describe(speedup).to_dict(),
-    }
+plot_distribution(
+    args.output,
+    native_throughput,
+    "Throughput (Gigagas/s)",
+    "Native Throughput Distribution",
+    "Calculates the distribution of Cairo Native throughput.",
 )
 
-fig, ax = plt.subplots(2)
-sns.boxplot(ax=ax[0], x=vm_throughput, showfliers=False)
-ax[0].set_xlabel("Throughput (Gigagas/s)")
-sns.stripplot(ax=ax[1], x=vm_throughput, alpha=0.25, jitter=0.4)
-ax[1].set_xlabel("Throughput (Gigagas/s)")
-fig.subplots_adjust(hspace=0.30)
-fig.suptitle("VM Throughput Distribution")
-save_artifact(
-    {
-        "title": "VM Throughput Distribution",
-        "description": "Calculates the distribution of Cairo VM throughput.",
-        "statistics": pretty_describe(speedup).to_dict(),
-    }
+plot_distribution(
+    args.output,
+    native_throughput,
+    "Throughput (Gigagas/s)",
+    "VM Throughput Distribution",
+    "Calculates the distribution of Cairo VM throughput.",
 )
 
 if args.show:
