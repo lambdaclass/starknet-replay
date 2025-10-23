@@ -3,6 +3,7 @@ import json
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 
 def pretty_describe(row):
@@ -69,3 +70,18 @@ def plot_relation(artifact_dir, x_data, y_data, x_label, y_label, title, descrip
             "description": description,
         },
     )
+
+
+def save_edge_cases(artifacts_dir, data, title, description):
+    best = data.nsmallest(10)
+    worst = data.nlargest(10)
+    edge = pd.concat([best, worst]).sort_values()  # type: ignore
+    save_df_artifact(
+        artifacts_dir,
+        edge,
+        {
+            "title": title,
+            "description": description,
+        },
+    )
+    pass

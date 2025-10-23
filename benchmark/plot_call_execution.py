@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame, Series
 
-from plot_utils import save_df_artifact, plot_distribution
+from plot_utils import plot_distribution, save_edge_cases
 
 parser = argparse.ArgumentParser(
     description="""
@@ -70,20 +70,15 @@ plot_distribution(
     log=True,
 )
 
-best_classes = class_speedup.nsmallest(10)
-worst_classes = class_speedup.nlargest(10)
-edge_classes = pd.concat([best_classes, worst_classes]).sort_values()
+class_speedup.index.name = "Class Hash"
+class_speedup.rename("Speedup", inplace=True)
+class_speedup.round(3)
 
-edge_classes.index.name = "Class Hash"
-edge_classes.rename("Speedup", inplace=True)
-edge_classes = edge_classes.round(3)
-save_df_artifact(
+save_edge_cases(
     args.output,
-    edge_classes,
-    {
-        "title": "Edge Contract Classes",
-        "description": "Contract classes with highest or lowest speedup.",
-    },
+    class_speedup,
+    "Edge Contract Classes",
+    "Contract classes with highest or lowest speedup.",
 )
 
 if args.show:
