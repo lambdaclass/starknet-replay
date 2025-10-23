@@ -104,8 +104,10 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         block_end: u64,
         chain: String,
         number_of_runs: usize,
+        /// Output path for the transaction benchmark data, in CSV format.
         #[arg(short, long)]
         tx_data: Option<PathBuf>,
+        /// Output path for the contract call benchmark data, in CSV format.
         #[arg(short, long)]
         call_data: Option<PathBuf>,
     },
@@ -118,8 +120,10 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         chain: String,
         block: u64,
         number_of_runs: usize,
+        /// Output path for the transaction benchmark data, in CSV format.
         #[arg(short, long)]
         tx_data: Option<PathBuf>,
+        /// Output path for the contract call benchmark data, in CSV format.
         #[arg(short, long)]
         call_data: Option<PathBuf>,
     },
