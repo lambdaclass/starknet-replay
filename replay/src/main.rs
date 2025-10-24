@@ -95,14 +95,21 @@ enum ReplayExecute {
         charge_fee: bool,
     },
     #[cfg(feature = "benchmark")]
-    #[clap(
-        about = "Measures the time it takes to run all transactions in a given range of blocks.
-Caches all rpc data before the benchmark runs to provide accurate results"
-    )]
+    /// Benchmarks all transactions in the given block range.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
+    ///
+    /// If the transaction depends on a previous transaction of the same block,
+    /// the transaction execution will fail.
     BenchBlockRange {
+        /// Start block number.
         block_start: u64,
+        /// End block number (inclusive).
         block_end: u64,
+        /// Network, either mainnet or sepolia.
         chain: String,
+        /// Number of benchmark runs to execute. All laps are aggregated into a
+        /// single one to reduce noise.
         number_of_runs: usize,
         /// Output path for the transaction benchmark data, in CSV format.
         #[arg(short, long)]
@@ -112,13 +119,18 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         call_data: Option<PathBuf>,
     },
     #[cfg(feature = "benchmark")]
-    #[clap(about = "Measures the time it takes to run a single transaction.
-        Caches all rpc data before the benchmark runs to provide accurate results.
-        It only works if the transaction doesn't depend on another transaction in the same block")]
+    /// Benchmarks the given transaction.
+    ///
+    /// Before benchmarking, all state data is cached to provide accurate results.
     BenchTx {
+        /// Transaction hash.
         tx: String,
+        /// Network, either mainnet or sepolia.
         chain: String,
+        /// Transaction block number.
         block: u64,
+        /// Number of benchmark runs to execute. All laps are aggregated into a
+        /// single one to reduce noise.
         number_of_runs: usize,
         /// Output path for the transaction benchmark data, in CSV format.
         #[arg(short, long)]
