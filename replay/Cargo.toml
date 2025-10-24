@@ -38,7 +38,7 @@ cairo-lang-sierra = { workspace = true, optional = true }
 clap = { version = "4.5.18", features = ["derive"] }
 # logs
 tracing = { workspace = true }
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 # serialization
 serde.workspace = true
 serde_json.workspace = true
