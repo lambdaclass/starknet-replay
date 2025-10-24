@@ -27,9 +27,8 @@ replay bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f
 
 ### Benchmarking Compilation
 
-For benchmarking contract class compilation, you can use the `bench-classes` command.
+For benchmarking contract class compilation, you can use the `bench-classes` command. First create a file with the following content:
 
-First create a file with the following content:
 ```
 mainnet 0x00009e6d3abd4b649e6de59bf412ab99bc9609414bbe7ba86b83e09e96dcb120
 mainnet 0x0002a2838ed37071ced0a289a9bf87926c76b9da1973b5a2ecb5e487bef48b2b
@@ -38,6 +37,7 @@ mainnet 0x0005fd5fddec073a363f000b46a4639c1f8df79416778d315462d84072567461
 ```
 
 Then, you can benchmark the compilation of those classes by running:
+
 ```bash
 replay bench-classes classes.txt --output compilation.csv --runs 10
 ```
@@ -75,9 +75,7 @@ compilation-2025-09-30T18:14:49Z/
 └── report.html                  # Contains the benchmark report
 ```
 
-The directory is self-contained and can be zipped and sent to someone else.
-
-You can open the `report.html` with any browser.
+The directory is self-contained and can be zipped and sent to someone else. You can open the `report.html` with any browser.
 
 ## Benchmarking a Block Range
 
@@ -101,9 +99,7 @@ execution-2025-10-23T14:33:04Z/
 └── report.html                      # Contains the benchmark report 
 ```
 
-The directory is self-contained and can be zipped and sent to someone else.
-
-You can open the `report.html` with any browser.
+The directory is self-contained and can be zipped and sent to someone else. You can open the `report.html` with any browser.
 
 ## Benchmarking Standalone Transactions
 
@@ -121,9 +117,7 @@ Then run:
 bash benchmark/benchmark_txs.sh -n 100 txs.txt
 ```
 
-All the benchmark data will be saved to a self-contained directory and can be zipped and sent to someone else.
-
-At the end, it will also output a benchmark summary:
+All the benchmark data will be saved to a self-contained directory and can be zipped and sent to someone else. At the end, it will also output a benchmark summary:
 
 ```
 tx_hash                                                            speedup
