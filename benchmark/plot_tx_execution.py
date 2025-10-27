@@ -78,7 +78,7 @@ plot_distribution(
 
 plot_distribution(
     args.output,
-    native_throughput,
+    vm_throughput,
     "Throughput (Gigagas/s)",
     "VM Throughput Distribution",
     "Calculates the distribution of Cairo VM throughput.",
