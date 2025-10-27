@@ -37,6 +37,7 @@ use {
     state_reader::class_manager::processed_class_to_contract_class,
     std::collections::HashMap,
     std::io::{BufRead, BufReader},
+    std::path::Path,
 };
 
 #[cfg(feature = "profiling")]
@@ -132,6 +133,26 @@ enum ReplayExecute {
         /// Number of benchmark runs to execute. All laps are aggregated into a
         /// single one to reduce noise.
         number_of_runs: usize,
+        /// Output path for the transaction benchmark data, in CSV format.
+        #[arg(short, long)]
+        tx_data: Option<PathBuf>,
+        /// Output path for the contract call benchmark data, in CSV format.
+        #[arg(short, long)]
+        call_data: Option<PathBuf>,
+    },
+    #[cfg(feature = "benchmark")]
+    /// Benchmarks the execution of multiple standalone transactions
+    BenchTxs {
+        /// Path to read input transactions from.
+        ///
+        /// Each line should contain whitespace separated values:
+        /// - Network, either mainnet or testnet.
+        /// - Block number.
+        /// - Transaction hash.
+        #[clap(verbatim_doc_comment)]
+        input: PathBuf,
+        #[arg(short, long, default_value_t = 1)]
+        n_runs: usize,
         /// Output path for the transaction benchmark data, in CSV format.
         #[arg(short, long)]
         tx_data: Option<PathBuf>,
@@ -432,6 +453,93 @@ fn main() {
             }
         }
         #[cfg(feature = "benchmark")]
+        ReplayExecute::BenchTxs {
+            input,
+            n_runs,
+            tx_data,
+            call_data,
+        } => {
+            let transactions = read_transactions_to_execute(&input);
+            let state_readers = HashMap::from([
+                (ChainId::Mainnet, FullStateReader::new(ChainId::Mainnet)),
+                (ChainId::Sepolia, FullStateReader::new(ChainId::Sepolia)),
+            ]);
+
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: true,
+                validate: true,
+                strict_nonce_check: false,
+            };
+
+            // We execute the transactions once, to ensure that everything is cached.
+            for (chain_id, block_number, tx_hash) in &transactions {
+                let state_reder = state_readers
+                    .get(chain_id)
+                    .expect("failed to find state reader");
+                execute_txs(
+                    state_reder,
+                    *block_number,
+                    vec![*tx_hash],
+                    execution_flags.clone(),
+                )
+                .expect("failed to execute transaction");
+            }
+            for state_reader in state_readers.values() {
+                log_cache_statistics(state_reader);
+                state_reader.reset_counters();
+            }
+
+            // We pause the main thread to differentiate
+            // caching from benchmarking from within a profiler
+            #[cfg(feature = "profiling")]
+            thread::sleep(Duration::from_secs(1));
+
+            let mut executions = Vec::new();
+            for _ in 0..n_runs {
+                for (chain_id, block_number, tx_hash) in &transactions {
+                    let state_reader = state_readers
+                        .get(chain_id)
+                        .expect("failed to find state reader");
+
+                    let mut block_executions = execute_txs(
+                        state_reader,
+                        *block_number,
+                        vec![*tx_hash],
+                        execution_flags.clone(),
+                    )
+                    .expect("failed to execute transaction");
+
+                    assert_eq!(
+                        state_reader.get_miss_counter(),
+                        0,
+                        "cache miss during a benchmark"
+                    );
+
+                    executions.append(&mut block_executions);
+                }
+            }
+
+            let benchmarking_data = benchmark::BenchData::aggregate(&executions);
+            if let Some(tx_data) = tx_data {
+                let mut writer = csv::Writer::from_path(tx_data).expect("failed to create writer");
+                for summary in &benchmarking_data.transactions {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize tx bench data");
+                }
+            }
+            if let Some(call_data) = call_data {
+                let mut writer =
+                    csv::Writer::from_path(call_data).expect("failed to create writer");
+                for summary in &benchmarking_data.calls {
+                    writer
+                        .serialize(summary)
+                        .expect("failed to serialize call bench data");
+                }
+            }
+        }
+        #[cfg(feature = "benchmark")]
         ReplayExecute::BenchCompilation {
             input,
             output,
@@ -643,6 +751,40 @@ fn read_class_hashes_to_compile(path: PathBuf) -> Vec<(ChainId, ClassHash)> {
         class_hashes.push((network, class_hash));
     }
     class_hashes
+}
+
+/// Reads transactions to execute from a file.
+///
+/// Each line should contain whitespace separated values:
+/// - Network, either mainnet or testnet.
+/// - Block number.
+/// - Transaction hash.
+#[cfg(feature = "benchmark")]
+fn read_transactions_to_execute(path: &Path) -> Vec<(ChainId, BlockNumber, TransactionHash)> {
+    let mut transactions = Vec::new();
+    let input_reader = BufReader::new(File::open(path).expect("failed to open file"));
+    for line in input_reader.lines() {
+        let [network_str, block_number_str, tx_hash_str] = line
+            .as_ref()
+            .expect("failed to read line")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("expected 3 arguments per line");
+
+        let network = parse_network(network_str);
+        let block_number = BlockNumber(
+            block_number_str
+                .parse()
+                .expect("failed to parse block number"),
+        );
+        let tx_hash = TransactionHash(
+            StarkHash::from_hex(tx_hash_str).expect("failed to parse transaction hash"),
+        );
+
+        transactions.push((network, block_number, tx_hash));
+    }
+    transactions
 }
 
 /// Fetches the contract class for all the given classes.

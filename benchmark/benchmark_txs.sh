@@ -12,10 +12,10 @@ A helper script for benchmarking the execution of multiple standalone
 transactions. It also processes the benchmark data and generates a report. The
 full benchmark result is saved to a self-contained directory.
 
-Each line from the input line should contain three whitespace separated values:
+Each line should contain whitespace separated values:
 - Network, either mainnet or testnet.
-- Transaction Hash, in hexadecimal form.
 - Block number.
+- Transaction Hash.
 
 Argument:
   <TXS>  Path to read input transactions from
@@ -64,49 +64,20 @@ BENCHMARK_VM_TX_DATA_PATH="$BENCHMARK_DIR/vm-tx-data.csv"
 
 BENCHMARK_INFO_PATH="$BENCHMARK_DIR/info.json"
 BENCHMARK_ARTIFACTS_PATH="$BENCHMARK_DIR/artifacts"
+BENCHMARK_REPORT_PATH="$BENCHMARK_DIR/report.html"
 
 mkdir -p "$BENCHMARK_DIR"
 
-tmp_tx_bench_data=$(mktemp)
-
 echo "Benchmarking with Cairo Native"
-header=true
-while read -r network block tx; do
-	echo "- Transaction $tx"
-	RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark -- bench-tx \
-		"$tx" "$network" "$block" "$RUNS" \
-		--tx-data "$tmp_tx_bench_data"
-
-		if [ $header == true ]; then
-			cp "$tmp_tx_bench_data" "$BENCHMARK_NATIVE_TX_DATA_PATH"
-		else
-			tail -n +2 "$tmp_tx_bench_data" >> "$BENCHMARK_NATIVE_TX_DATA_PATH"
-		fi
-
-		header=false
-done < "$TXS"
-
+RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark -- \
+  bench-txs "$TXS" -n "$RUNS" --tx-data "$BENCHMARK_NATIVE_TX_DATA_PATH"
 echo "Saved tx benchmark data to $BENCHMARK_NATIVE_TX_DATA_PATH" 
-echo
 
 echo "Benchmarking with Cairo VM"
-header=true
-while read -r network block tx; do
-	echo "- Transaction $tx"
-	RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark,only_cairo_vm -- bench-tx \
-		"$tx" "$network" "$block" "$RUNS" \
-		--tx-data "$tmp_tx_bench_data"
-
-		if [ $header == true ]; then
-			cp "$tmp_tx_bench_data" "$BENCHMARK_VM_TX_DATA_PATH"
-		else
-			tail -n +2 "$tmp_tx_bench_data" >> "$BENCHMARK_VM_TX_DATA_PATH"
-		fi
-
-		header=false
-done < "$TXS"
-
+RUST_LOG="" cargo run --quiet --release --bin replay --features benchmark,only_cairo_vm -- \
+	bench-txs "$TXS" -n "$RUNS" --tx-data "$BENCHMARK_VM_TX_DATA_PATH"
 echo "Saved tx benchmark data to $BENCHMARK_VM_TX_DATA_PATH" 
+
 echo
 
 echo "Processing tx benchmark data"
@@ -119,6 +90,13 @@ python benchmark/gather_info.py | jq \
 		"Title": "Tx Execution Benchmark",
 		"Native profile": "default"
 	} + .' > "$BENCHMARK_INFO_PATH"
+
+echo "Generating report to $BENCHMARK_REPORT_PATH"
+python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
+	"$BENCHMARK_ARTIFACTS_PATH/tx-speedup-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/native-throughput-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/vm-throughput-distribution.svg" \
+	"$BENCHMARK_REPORT_PATH"
 
 echo "Compressing benchmark to" "$BENCHMARK_ROOT/$BENCHMARK_NAME.zip"
 (cd "$BENCHMARK_ROOT" && zip -qr "$BENCHMARK_NAME.zip" "$BENCHMARK_NAME")
