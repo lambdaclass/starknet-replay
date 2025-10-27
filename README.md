@@ -86,17 +86,6 @@ By setting both env vars, if any RPC request fails with a timeout, starknet-repl
 
 An exponential-backoff algorithm distributes the retries in time, reducing the amount of simultaneous RPC requests to avoid new timeouts. If the limit of retries is reached, a new request timeout will cease the retrail process and return an timeout error.
 
-### Benchmarks
-
-To run benchmarks with the replay crate, you can use either `bench-block-range` or `bench-tx` commands. These make sure to cache all needed information (including cairo native compilation) before the actual execution. To use it you must compile the binary under the benchmark flag.
-
-```bash
-* cargo run --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1
-* cargo run --features benchmark bench-block-range 90000 90002 mainnet 1
-```
-
-These commands are like `tx` and `block-range` commands, but with the number of runs to execute as their last argument.
-
 ### Logging
 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
@@ -158,76 +147,6 @@ The `state_dump` feature can be used to save the execution result to either
 - `call_state_dumps/native/{tx_hash}.json`
 - `call_state_dumps/vm/{tx_hash}.json`
 
-### Benchmarking
-
-First, build the benchmarking binaries.
-
-```bash
-make deps-bench
-```
-
-Then, you can benchmark a single transaction by running:
-```bash
-./scripts/benchmark_tx.sh <tx> <net> <block> <laps>
-```
-
-If you want to benchmark a full block, you could run:
-```bash
-./scripts/benchmark_block.sh <block-start> <block-end> <net> <laps>
-```
-
-If you just want to benchmarks a few different sample transactions, run:
-```bash
-./scripts/benchmark_txs.sh
-```
-
-This generates the following files in the `bench_data` directory:
-- `{native,vm}-data-*.json` - execution time of each contract call.
-- `{native,vm}-logs-*.json` - stdout from running the benchmark.
-
-At the end of the run, you can generate a report by executing:
-
-``` bash
-python plotting/plot_execution_time.py native-data vm-data --output-dir <output-dir> --no-display
-```
-
-The report will be generated to `<output-dir>/report.html`
-
-### Benchmarking Compilation
-
-You can benchmark the compilation of a block range by running:
-```bash
-./scripts/benchmark_compilation.sh <block-start> <block-end> <net>
-```
-This will save compilation data to `./bench_data/compilation-<block-start>-<block-end>-<net>.json`.
-
-At the end of the run, you can generate a report by running:
-``` bash
-python plotting/plot_compilation_stats.py <compilation-data> --output-dir <output-dir> --no-display
-```
-
-The report will be generated to `<output-dir>/report.html`
-
-### Benchmarking Compilation for Specific Classes
-
-To benchmark compilation of specific classes, you can use the `bench-compilation` replay command:
-
-```bash
-cargo run --bin replay --features benchmark -- bench-compilation classes.txt --output classes.csv
-```
-
-The input file has the following format:
-```
-mainnet 0x00009e6d3abd4b649e6de59bf412ab99bc9609414bbe7ba86b83e09e96dcb120
-mainnet 0x0002a2838ed37071ced0a289a9bf87926c76b9da1973b5a2ecb5e487bef48b2b
-...
-testnet 0x05c8f84d8a349fa68ea7ad46a3a6f62915750aa330fdaf326758636deee4a252
-...
-mainnet 0x00147eabaed02793e71cd7dc79da8bb6578e043abb38fd4e4790be813d10f06e
-```
-
-The output file is in CSV format, and contains a summary for both Cairo Native and CASM compilation.
-
 ## Block Composition
 You can check the average of txs, swaps, transfers (the last two in %) inside an average block, separeted by the day of execution. The results
 will be saved in a json file inside the floder `block_composition` as a vector of block execution where each of the is entrypoint call tree.
@@ -276,9 +195,4 @@ This will create a `libfunc_profiles/block<number>/<tx_hash>.json` for every tra
 
 In the `plotting` directory, you can find python scripts to plot relevant information.
 
-To run them, you must first execute the benchmarks to obtain both the execution data and the execution logs.
-
-- `python ./plotting/plot_execution_time.py native-data vm-data`: Plots the benchmark data of Native and VM.
-- `python ./plotting/plot_compilation_logs.py native-logs`: Plots the compilation logs for Native and VM.
-- `python ./plotting/plot_compilation_stats.py *.json`: Plots the compilation stats for Native.
 - `python ./plotting/plot_block_composition.py native-logs`: Average of txs, swaps, transfers inside an average block, separeted by the day of execution.
