@@ -64,6 +64,7 @@ BENCHMARK_VM_TX_DATA_PATH="$BENCHMARK_DIR/vm-tx-data.csv"
 
 BENCHMARK_INFO_PATH="$BENCHMARK_DIR/info.json"
 BENCHMARK_ARTIFACTS_PATH="$BENCHMARK_DIR/artifacts"
+BENCHMARK_REPORT_PATH="$BENCHMARK_DIR/report.html"
 
 mkdir -p "$BENCHMARK_DIR"
 
@@ -89,6 +90,13 @@ python benchmark/gather_info.py | jq \
 		"Title": "Tx Execution Benchmark",
 		"Native profile": "default"
 	} + .' > "$BENCHMARK_INFO_PATH"
+
+echo "Generating report to $BENCHMARK_REPORT_PATH"
+python benchmark/generate_report.py "$BENCHMARK_INFO_PATH" \
+	"$BENCHMARK_ARTIFACTS_PATH/tx-speedup-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/native-throughput-distribution.svg" \
+	"$BENCHMARK_ARTIFACTS_PATH/vm-throughput-distribution.svg" \
+	"$BENCHMARK_REPORT_PATH"
 
 echo "Compressing benchmark to" "$BENCHMARK_ROOT/$BENCHMARK_NAME.zip"
 (cd "$BENCHMARK_ROOT" && zip -qr "$BENCHMARK_NAME.zip" "$BENCHMARK_NAME")
