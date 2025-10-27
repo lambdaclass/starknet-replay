@@ -117,7 +117,7 @@ Then run:
 bash benchmark/benchmark_txs.sh -n 100 txs.txt
 ```
 
-All the benchmark data will be saved to a self-contained directory and can be zipped and sent to someone else. At the end, it will also output a benchmark summary:
+All the benchmark data will be saved to a self-contained directory and can be zipped and sent to someone else. You can open the `report.html` with any browser. At the end, it will also output a benchmark summary:
 
 ```
 tx_hash                                                            speedup
