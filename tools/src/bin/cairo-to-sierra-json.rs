@@ -22,7 +22,8 @@ fn main() {
         .build()
         .expect("failed to build database");
     let main_crate_ids = {
-        let main_crate_inputs = setup_project(&mut db, &args.cairo_path).expect("failed to setup project");
+        let main_crate_inputs =
+            setup_project(&mut db, &args.cairo_path).expect("failed to setup project");
         CrateInput::into_crate_ids(&db, main_crate_inputs)
     };
 
