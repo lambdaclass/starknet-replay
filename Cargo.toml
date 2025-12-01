@@ -13,7 +13,7 @@ serde_json = "1.0.135"
 serde_with = "3.12.0"
 serde = "=1.0.219"
 fs2 = "0.4.3"
-cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "87c0f389d0b8be037fdf13cab1b6f507f0e02601" }
+cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "2b58f417611986fe8b199e4cc40c26a69c170802" }
 cairo-vm = "2.5.0"
 anyhow = "1.0"
 
@@ -25,9 +25,9 @@ cairo-lang-compiler = "~2.14.0"
 cairo-lang-sierra = "~2.14.0"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "cb674a9ede8e851722be45fdd62e90d6e2ab8a40" } # main-v0.14.0
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "cb674a9ede8e851722be45fdd62e90d6e2ab8a40", features = [
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bc3349ec0099d0e2a968c52889c9ac5cfd441e76" } # main-v0.14.0
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bc3349ec0099d0e2a968c52889c9ac5cfd441e76", features = [
   "cairo_native",
 ] } # main-v0.14.0
-apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "cb674a9ede8e851722be45fdd62e90d6e2ab8a40" } # main-v0.14.0
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "cb674a9ede8e851722be45fdd62e90d6e2ab8a40" } # main-v0.14.0
+apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bc3349ec0099d0e2a968c52889c9ac5cfd441e76" } # main-v0.14.0
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "bc3349ec0099d0e2a968c52889c9ac5cfd441e76" } # main-v0.14.0
