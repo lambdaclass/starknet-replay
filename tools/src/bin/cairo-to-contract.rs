@@ -23,6 +23,7 @@ fn main() {
             diagnostics_reporter,
             ..CompilerConfig::default()
         }),
+        Default::default(),
         None,
     )
     .expect("failed to compile sierra");

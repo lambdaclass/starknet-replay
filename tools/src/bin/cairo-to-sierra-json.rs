@@ -3,6 +3,7 @@ use std::{io::stdout, path::PathBuf};
 use cairo_lang_compiler::{
     CompilerConfig, compile_prepared_db, db::RootDatabase, project::setup_project,
 };
+use cairo_lang_filesystem::ids::CrateInput;
 use clap::Parser;
 
 /// Compiles a Cairo program to sierra json
@@ -20,7 +21,11 @@ fn main() {
         .detect_corelib()
         .build()
         .expect("failed to build database");
-    let main_crate_ids = setup_project(&mut db, &args.cairo_path).expect("failed to setup project");
+    let main_crate_ids = {
+        let main_crate_inputs =
+            setup_project(&mut db, &args.cairo_path).expect("failed to setup project");
+        CrateInput::into_crate_ids(&db, main_crate_inputs)
+    };
 
     let program = compile_prepared_db(
         &db,
