@@ -1,11 +1,14 @@
 {
   "charged_resources": {
     "vm_resources": {
-      "n_steps": 0,
-      "n_memory_holes": 0,
-      "builtin_instance_counter": {}
+      "n_steps": 3289,
+      "n_memory_holes": 30,
+      "builtin_instance_counter": {
+        "range_check_builtin": 81,
+        "pedersen_builtin": 4
+      }
     },
-    "gas_consumed": 462630
+    "gas_consumed": 0
   },
   "executed_class_hashes": [
     "0x1a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003",
@@ -14,7 +17,11 @@
   "visited_storage_entries": [
     [
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34d00"
+      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34cff"
+    ],
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0x21f2d3566861264d79a5fc7cca193273112adf9de2ce727d8804de773690e53"
     ],
     [
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
@@ -22,11 +29,7 @@
     ],
     [
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34cff"
-    ],
-    [
-      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "0x21f2d3566861264d79a5fc7cca193273112adf9de2ce727d8804de773690e53"
+      "0x508963fff9e2733649bf1b784700bf6d021c426c4caf9188c1400f6a9f34d00"
     ]
   ],
   "l2_to_l1_payload_lengths": [],
