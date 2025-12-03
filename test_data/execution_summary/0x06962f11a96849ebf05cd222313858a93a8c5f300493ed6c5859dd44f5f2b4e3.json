@@ -1,11 +1,14 @@
 {
   "charged_resources": {
     "vm_resources": {
-      "n_steps": 0,
-      "n_memory_holes": 0,
-      "builtin_instance_counter": {}
+      "n_steps": 3289,
+      "n_memory_holes": 30,
+      "builtin_instance_counter": {
+        "pedersen_builtin": 4,
+        "range_check_builtin": 81
+      }
     },
-    "gas_consumed": 462630
+    "gas_consumed": 0
   },
   "executed_class_hashes": [
     "0x4ad3c1dc8413453db314497945b6903e1c766495a1e60492d44da9c2a986e4b",
