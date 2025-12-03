@@ -20,6 +20,7 @@ use starknet_api::{
     core::{ContractAddress, PatriciaKey},
     test_utils::MAX_FEE,
     transaction::{Transaction, TransactionHash},
+    versioned_constants_logic::VersionedConstantsTrait,
 };
 use starknet_core::types::{BlockWithTxHashes, Felt};
 use state_reader::{

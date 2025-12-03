@@ -8,6 +8,7 @@ use blockifier::{
     execution::{
         call_info::{CallExecution, CallInfo, MessageToL1, OrderedEvent, OrderedL2ToL1Message},
         entry_point::{CallEntryPoint, CallType},
+        syscalls::vm_syscall_utils::{SyscallSelector, SyscallUsage},
     },
     fee::{
         receipt::TransactionReceipt,
@@ -233,6 +234,8 @@ struct SerializableCallInfo {
     pub read_class_hash_values: Vec<ClassHash>,
     // Convert HashSet to vector to avoid random order
     pub accessed_contract_addresses: Vec<ContractAddress>,
+    // Convert HashMap to vector to avoid random order
+    pub syscalls_usage: Vec<(SyscallSelector, SyscallUsage)>,
     pub call_counter: usize,
     pub builtin_stats: Vec<(BuiltinName, usize)>,
 }
@@ -249,6 +252,7 @@ impl From<&CallInfo> for SerializableCallInfo {
             time: _time,
             builtin_counters,
             call_counter,
+            syscalls_usage,
         } = value;
 
         let accessed_storage_keys = {
@@ -298,6 +302,15 @@ impl From<&CallInfo> for SerializableCallInfo {
             })
             .collect();
 
+        let syscalls_usage = {
+            let mut syscalls_usage = syscalls_usage
+                .iter()
+                .map(|(v1, v2)| (*v1, v2.clone()))
+                .collect::<Vec<_>>();
+            syscalls_usage.sort_by_key(|x| x.0 as u8);
+            syscalls_usage
+        };
+
         Self {
             call: SerializableCallEntryPoint::from(call),
             execution: CallExecution {
@@ -313,6 +326,7 @@ impl From<&CallInfo> for SerializableCallInfo {
             accessed_storage_keys,
             read_class_hash_values: storage_access_tracker.read_class_hash_values.clone(),
             accessed_contract_addresses,
+            syscalls_usage,
             builtin_stats,
             call_counter: *call_counter,
         }
