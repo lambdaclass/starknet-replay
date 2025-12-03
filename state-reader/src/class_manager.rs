@@ -117,7 +117,7 @@ impl ClassManager {
                         }
                     };
 
-                    RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
+                    RunnableCompiledClass::V1Native(NativeCompiledClassV1::new_2(
                         executor, casm_class,
                     ))
                 }
