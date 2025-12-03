@@ -65,8 +65,19 @@ impl StateReader for BlockStateReader<'_> {
             .get_compiled_class(self.block_number, class_hash)?)
     }
 
-    fn get_compiled_class_hash(&self, _: ClassHash) -> StateResult<CompiledClassHash> {
-        todo!()
+    fn get_compiled_class_hash(&self, class_hash: ClassHash) -> StateResult<CompiledClassHash> {
+        Ok(self
+            .reader
+            .get_compiled_class_hash(self.block_number, class_hash)?)
+    }
+    fn get_compiled_class_hash_v2(
+        &self,
+        class_hash: ClassHash,
+        _compiled_class: &RunnableCompiledClass,
+    ) -> StateResult<CompiledClassHash> {
+        Ok(self
+            .reader
+            .get_compiled_class_hash_v2(self.block_number, class_hash)?)
     }
 }
 
