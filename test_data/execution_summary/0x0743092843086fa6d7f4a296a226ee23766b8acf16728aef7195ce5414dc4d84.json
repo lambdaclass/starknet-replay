@@ -4,30 +4,30 @@
       "n_steps": 39734,
       "n_memory_holes": 118,
       "builtin_instance_counter": {
-        "pedersen_builtin": 9,
-        "range_check_builtin": 1246
+        "range_check_builtin": 1246,
+        "pedersen_builtin": 9
       }
     },
     "gas_consumed": 0
   },
   "executed_class_hashes": [
-    "0x7f7125c5958bf48de9d6a3ad045f845095d9572dc1a4b77da365f358c478cce",
     "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
     "0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
-    "0x4572af1cd59b8b91055ebb78df8f1d11c59f5270018b291366ba4585d4cdff0"
+    "0x4572af1cd59b8b91055ebb78df8f1d11c59f5270018b291366ba4585d4cdff0",
+    "0x7f7125c5958bf48de9d6a3ad045f845095d9572dc1a4b77da365f358c478cce"
   ],
   "visited_storage_entries": [
     [
       "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
-      "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"
-    ],
-    [
-      "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
-      "0x31b2db582739d919e49855d464d4ef21e6bfd0aa6db07d6f4cf006bf32ec7e8"
-    ],
-    [
-      "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
       "0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d73"
+    ],
+    [
+      "0x8819d617fb205534ef545e2fcd15db7b2f43e98e65e242dad41ca4fe7d5256",
+      "0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"
+    ],
+    [
+      "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
+      "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455b"
     ],
     [
       "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
@@ -38,12 +38,12 @@
       "0x64adb0d4dfddace954f8460d8327cb16ec952a7221eaab02a02294c5aad7a63"
     ],
     [
-      "0x8819d617fb205534ef545e2fcd15db7b2f43e98e65e242dad41ca4fe7d5256",
-      "0xf920571b9f85bdd92a867cfdc73319d0f8836f0e69e06e4c5566b6203f75cc"
+      "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
+      "0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d72"
     ],
     [
       "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",
-      "0x28bbddb888b5f48fac1bfff91a9c86f45de0488d1418b204a4a77fddbf13d72"
+      "0x31b2db582739d919e49855d464d4ef21e6bfd0aa6db07d6f4cf006bf32ec7e8"
     ],
     [
       "0x6a05844a03bb9e744479e3298f54705a35966ab04140d3d8dd797c1f6dc49d0",

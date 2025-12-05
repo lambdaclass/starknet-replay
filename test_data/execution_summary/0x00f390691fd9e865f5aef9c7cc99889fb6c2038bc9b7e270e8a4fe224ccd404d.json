@@ -1,18 +1,26 @@
 {
   "charged_resources": {
     "vm_resources": {
-      "n_steps": 0,
-      "n_memory_holes": 0,
-      "builtin_instance_counter": {}
+      "n_steps": 8717,
+      "n_memory_holes": 530,
+      "builtin_instance_counter": {
+        "poseidon_builtin": 12,
+        "range_check_builtin": 296,
+        "pedersen_builtin": 2
+      }
     },
-    "gas_consumed": 1118320
+    "gas_consumed": 0
   },
   "executed_class_hashes": [
-    "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
     "0x5dde112c893e2f5ed85b92a08d93cfa5579ce95d27afb34e47b7e7aad59c1c0",
-    "0x7992c30dd1dc4ce93b44e37e3c48b37635ca31f16c8518e88e15ff5686face"
+    "0x7992c30dd1dc4ce93b44e37e3c48b37635ca31f16c8518e88e15ff5686face",
+    "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f"
   ],
   "visited_storage_entries": [
+    [
+      "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
+      "0x2beaf2e8b7530dd16f321fa0163c1c0877bde847adf94f6a3c43bf777507941"
+    ],
     [
       "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
       "0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7230"
@@ -27,7 +35,11 @@
     ],
     [
       "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
-      "0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7231"
+      "0x3117bb5a3b11d2eb8edb4980b76562d25525d1fcfa8f4873c0a2737a8e05ab6"
+    ],
+    [
+      "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
+      "0x5046041b2f3c48f2f3b7ed44f3d4233fd85427a20ac2dd9e7b23da551e06d2b"
     ],
     [
       "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
@@ -39,15 +51,7 @@
     ],
     [
       "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
-      "0x2beaf2e8b7530dd16f321fa0163c1c0877bde847adf94f6a3c43bf777507941"
-    ],
-    [
-      "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
-      "0x5046041b2f3c48f2f3b7ed44f3d4233fd85427a20ac2dd9e7b23da551e06d2b"
-    ],
-    [
-      "0x422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4",
-      "0x3117bb5a3b11d2eb8edb4980b76562d25525d1fcfa8f4873c0a2737a8e05ab6"
+      "0x79cd4284246c43115a8376850d14c1f78570cde561a096ad209a50f653d7231"
     ]
   ],
   "l2_to_l1_payload_lengths": [],

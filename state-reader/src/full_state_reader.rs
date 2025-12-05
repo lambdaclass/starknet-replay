@@ -9,10 +9,15 @@ use std::collections::hash_map::Entry;
 
 use crate::cache::{BlockState, StateCache};
 use crate::class_manager::ClassManager;
+use crate::disk_state_reader::DiskStateReader;
 use crate::error::StateReaderError;
 use crate::objects::RpcTransactionReceipt;
+
 use crate::remote_state_reader::{url_from_env, RemoteStateReader};
+use blockifier::execution::contract_class::RunnableCompiledClass;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use starknet_api::contract_class::compiled_class_hash::{self, HashableCompiledClass};
+use starknet_api::core::CompiledClassHash;
 use starknet_api::{
     block::BlockNumber,
     contract_class::ClassInfo,
@@ -20,12 +25,8 @@ use starknet_api::{
     state::StorageKey,
     transaction::{Transaction, TransactionHash},
 };
-
 use starknet_core::types::{BlockId, BlockWithTxHashes, ContractClass};
 use starknet_types_core::felt::Felt;
-
-use crate::disk_state_reader::DiskStateReader;
-use blockifier::execution::contract_class::RunnableCompiledClass;
 
 /// Reader and cache for a Starknet node's state.
 ///
@@ -297,6 +298,42 @@ impl FullStateReader {
         self.class_manager
             .borrow_mut()
             .compile_runnable_class(&class_hash, contract_class)
+    }
+
+    pub fn get_compiled_class_hash(
+        &self,
+        block_number: BlockNumber,
+        class_hash: ClassHash,
+    ) -> Result<CompiledClassHash, StateReaderError> {
+        let class = self.get_compiled_class(block_number, class_hash)?;
+
+        let compiled_class_hash = match class {
+            RunnableCompiledClass::V0(_) => CompiledClassHash::default(),
+            RunnableCompiledClass::V1(class) => class.hash(&compiled_class_hash::HashVersion::V1),
+            RunnableCompiledClass::V1Native(class) => {
+                class.hash(&compiled_class_hash::HashVersion::V1)
+            }
+        };
+
+        Ok(compiled_class_hash)
+    }
+
+    pub fn get_compiled_class_hash_v2(
+        &self,
+        block_number: BlockNumber,
+        class_hash: ClassHash,
+    ) -> Result<CompiledClassHash, StateReaderError> {
+        let class = self.get_compiled_class(block_number, class_hash)?;
+
+        let compiled_class_hash = match class {
+            RunnableCompiledClass::V0(_) => CompiledClassHash::default(),
+            RunnableCompiledClass::V1(class) => class.hash(&compiled_class_hash::HashVersion::V2),
+            RunnableCompiledClass::V1Native(class) => {
+                class.hash(&compiled_class_hash::HashVersion::V2)
+            }
+        };
+
+        Ok(compiled_class_hash)
     }
 
     pub fn get_class_info(

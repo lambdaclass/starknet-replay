@@ -35,7 +35,7 @@ pub enum StateReaderError {
     #[error("contract address not found")]
     ContractAddressNotFound,
     #[error("invalid params: {0:?}")]
-    InvalidRpcParams(RpcErrorResponse),
+    InvalidRpcParams(Box<RpcErrorResponse>),
     #[error("bad status: {0}")]
     BadHttpStatusCode(StatusCode),
     #[error("unexpected error code: {0}")]

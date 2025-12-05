@@ -129,9 +129,9 @@ impl RemoteStateReader {
                     Err(StateReaderError::ContractAddressNotFound)
                 }
                 RPC_CLASS_HASH_NOT_FOUND => Err(StateReaderError::ClassHashNotFound),
-                RPC_ERROR_INVALID_PARAMS => {
-                    Err(StateReaderError::InvalidRpcParams(rpc_error_response))
-                }
+                RPC_ERROR_INVALID_PARAMS => Err(StateReaderError::InvalidRpcParams(Box::new(
+                    rpc_error_response,
+                ))),
                 _ => Err(StateReaderError::UnexpectedRpcErrorCode(
                     rpc_error_response.error.code,
                 )),
