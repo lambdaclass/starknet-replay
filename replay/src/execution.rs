@@ -154,7 +154,7 @@ pub fn execute_tx(
 
 /// Validates the transaction execution with the network receipt,
 /// and logs the result
-fn validate_tx_with_receipt(
+pub fn validate_tx_with_receipt(
     execution_info: &TransactionExecutionInfo,
     receipt: RpcTransactionReceipt,
 ) {
