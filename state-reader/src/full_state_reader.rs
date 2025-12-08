@@ -46,6 +46,20 @@ pub struct FullStateReader {
 }
 
 impl FullStateReader {
+    pub fn new_with_cache(chain_id: ChainId, cache: StateCache) -> Self {
+        let remote_url = url_from_env(&chain_id);
+        let remote_reader = RemoteStateReader::new(remote_url);
+        Self {
+            remote_reader,
+            cache: RefCell::new(cache),
+            disk_reader: DiskStateReader::new(chain_id.clone()),
+            class_manager: RefCell::new(ClassManager::new()),
+            hit_counter: Cell::new(0),
+            miss_counter: Cell::new(0),
+            chain_id,
+        }
+    }
+
     pub fn new(chain_id: ChainId) -> Self {
         let remote_url = url_from_env(&chain_id);
         let remote_reader = RemoteStateReader::new(remote_url);

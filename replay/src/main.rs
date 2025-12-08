@@ -11,14 +11,23 @@ use blockifier::execution::execution_utils::execute_entry_point_call;
 use blockifier::state::cached_state::CachedState;
 use blockifier::state::state_api::StateReader as _;
 use blockifier::transaction::account_transaction::ExecutionFlags;
+use blockifier::transaction::transaction_execution::Transaction as BlockifierTransaction;
+use blockifier::transaction::transactions::ExecutableTransaction;
+use blockifier_reexecution::state_reader::offline_state_reader::OfflineConsecutiveStateReaders;
+use blockifier_reexecution::state_reader::reexecution_state_reader::ConsecutiveReexecutionStateReaders;
+use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
 use clap::{Parser, Subcommand};
 use execution::{execute_block, execute_txs, get_block_context, get_blockifier_transaction};
+use serde_json::Value;
 use starknet_api::block::BlockNumber;
 use starknet_api::core::ChainId;
 use starknet_api::execution_resources::GasAmount;
 use starknet_api::felt;
-use starknet_api::transaction::TransactionHash;
+use starknet_api::test_utils::MAX_FEE;
+use starknet_api::transaction::{Transaction, TransactionHash};
+use starknet_core::types::BlockId;
 use state_reader::block_state_reader::BlockStateReader;
+use state_reader::cache::StateCache;
 use state_reader::full_state_reader::FullStateReader;
 use tracing::{error, info};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
@@ -32,8 +41,8 @@ use {
     crate::benchmark::ClassBenchmarkSummary,
     cairo_lang_starknet_classes::contract_class::ContractClass,
     starknet_api::{core::ClassHash, hash::StarkHash},
+    starknet_core::types::BlockTag,
     starknet_core::types::ContractClass as ProcessedContractClass,
-    starknet_core::types::{BlockId, BlockTag},
     state_reader::class_manager::processed_class_to_contract_class,
     std::collections::HashMap,
     std::io::{BufRead, BufReader},
@@ -149,6 +158,14 @@ Caches all rpc data before the benchmark runs to provide accurate results"
         call_path: PathBuf,
         tx: String,
         block_number: u64,
+        chain: String,
+    },
+    Simulate {
+        request_path: PathBuf,
+        chain: String,
+    },
+    Mock {
+        request_path: PathBuf,
         chain: String,
     },
 }
@@ -562,6 +579,169 @@ fn main() {
             {
                 state_dump::create_call_state_dump(&mut state, &tx, &call_info).unwrap();
             }
+        }
+        ReplayExecute::Simulate {
+            request_path,
+            chain,
+        } => {
+            let request_file = File::open(request_path).unwrap();
+            let request: Value = serde_json::from_reader(request_file).unwrap();
+
+            assert_eq!(
+                request.get("method").unwrap().as_str().unwrap(),
+                "starknet_simulateTransactions"
+            );
+
+            let params = request.get("params").unwrap().as_object().unwrap();
+
+            let block_id = params.get("block_id").unwrap();
+            let block_id: BlockId = serde_json::from_value(block_id.clone()).unwrap();
+
+            let transactions = params
+                .get("transactions")
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|tx| deserialize_transaction_json_to_starknet_api_tx(tx.clone()).unwrap())
+                .collect::<Vec<_>>();
+
+            let chain = parse_network(&chain);
+            let offline_reader = OfflineConsecutiveStateReaders::new_from_file("/Users/franco/Documents/Projects/sequencer/potc_mock_block_540235/block_540235/reexecution_data.json").unwrap();
+            let cache = StateCache::from(offline_reader);
+            let reader = FullStateReader::new_with_cache(ChainId::Sepolia, cache);
+            // let reader = FullStateReader::new_with_cache(chain.clone());
+
+            let execution_flags = ExecutionFlags {
+                only_query: false,
+                charge_fee: false,
+                validate: false,
+                strict_nonce_check: false,
+            };
+
+            let BlockId::Number(block_number) = block_id else {
+                panic!("expected block id as number")
+            };
+
+            let mut state = CachedState::new(BlockStateReader::new(
+                BlockNumber(block_number - 1),
+                &reader,
+            ));
+            let block_context = get_block_context(&reader, BlockNumber(block_number)).unwrap();
+
+            for tx in transactions.iter() {
+                let tx_hash = tx.calculate_transaction_hash(&chain).unwrap();
+                let tx = {
+                    let class_info = if let Transaction::Declare(declare_tx) = &tx {
+                        Some(
+                            reader
+                                .get_class_info(BlockNumber(block_number), declare_tx.class_hash())
+                                .unwrap(),
+                        )
+                    } else {
+                        None
+                    };
+
+                    let fee = if let Transaction::L1Handler(_) = tx {
+                        Some(MAX_FEE)
+                    } else {
+                        None
+                    };
+
+                    BlockifierTransaction::from_api(
+                        tx.clone(),
+                        tx_hash,
+                        class_info,
+                        fee,
+                        None,
+                        execution_flags.clone(),
+                    )
+                    .unwrap()
+                };
+
+                let execution_result = tx.execute(&mut state, &block_context);
+
+                match &execution_result {
+                    Ok(execution_info) => {
+                        let result_string = execution_info
+                            .revert_error
+                            .as_ref()
+                            .map(|err| err.to_string())
+                            .unwrap_or("ok".to_string());
+
+                        info!("transaction execution finished: {}", result_string);
+                    }
+                    Err(err) => error!("transaction execution failed: {err}"),
+                }
+            }
+
+            log_cache_statistics(&reader);
+        }
+        ReplayExecute::Mock {
+            request_path,
+            chain,
+        } => {
+            todo!()
+            //     request_path,
+            //     chain,
+            // } => {
+            //     let offline_reader = OfflineConsecutiveStateReaders::new_from_file("../../../sequencer/potc_mock_block_540235/block_540235/reexecution_data.json").unwrap();
+            //     let cache = StateCache::from(offline_reader);
+            //     let reader = FullStateReader::new_with_cache(ChainId::Sepolia, cache);
+            //     let transactions = offline_reader.get_next_block_txs().unwrap();
+            //     let mut state = CachedState::new(BlockStateReader::new(
+            //         BlockNumber(block_number - 1),
+            //         &reader,
+            //     ));
+            //     let block_context = get_block_context(&reader, BlockNumber(block_number)).unwrap();
+
+            //     for tx in transactions {
+            //         let tx_hash = tx.calculate_transaction_hash(&chain).unwrap();
+            //         let tx = {
+            //             let class_info = if let Transaction::Declare(declare_tx) = &tx {
+            //                 Some(
+            //                     reader
+            //                         .get_class_info(BlockNumber(block_number), declare_tx.class_hash())
+            //                         .unwrap(),
+            //                 )
+            //             } else {
+            //                 None
+            //             };
+
+            //             let fee = if let Transaction::L1Handler(_) = tx {
+            //                 Some(MAX_FEE)
+            //             } else {
+            //                 None
+            //             };
+
+            //             BlockifierTransaction::from_api(
+            //                 tx,
+            //                 tx_hash,
+            //                 class_info,
+            //                 fee,
+            //                 None,
+            //                 execution_flags.clone(),
+            //             )
+            //             .unwrap()
+            //         };
+
+            //         let execution_result = tx.execute(&mut state, &block_context);
+
+            //         match &execution_result {
+            //             Ok(execution_info) => {
+            //                 let result_string = execution_info
+            //                     .revert_error
+            //                     .as_ref()
+            //                     .map(|err| err.to_string())
+            //                     .unwrap_or("ok".to_string());
+
+            //                 info!("transaction execution finished: {}", result_string);
+            //             }
+            //             Err(err) => error!("transaction execution failed: {err}"),
+            //         }
+            //     }
+
+            //     log_cache_statistics(&reader);
         }
     }
 }

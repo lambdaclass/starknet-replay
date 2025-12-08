@@ -25,7 +25,7 @@ cairo-lang-compiler = "~2.14.0"
 cairo-lang-sierra = "~2.14.0"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a8b02584891d84052c2e22e3a233024fc4fada51" } # main-v0.14.1
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a8b02584891d84052c2e22e3a233024fc4fada51", features = [ "cairo_native", ] } # main-v0.14.1
-apollo_gateway = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a8b02584891d84052c2e22e3a233024fc4fada51" } # main-v0.14.1
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "a8b02584891d84052c2e22e3a233024fc4fada51" } # main-v0.14.1
+starknet_api = { path = "../sequencer/crates/starknet_api" } # main-v0.14.1
+blockifier = { path = "../sequencer/crates/blockifier", features = [ "cairo_native", ] } # main-v0.14.1
+apollo_gateway = { path = "../sequencer/crates/apollo_gateway" } # main-v0.14.1
+blockifier_reexecution = { path = "../sequencer/crates/blockifier_reexecution" } # main-v0.14.1
