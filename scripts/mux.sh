@@ -81,14 +81,14 @@ spawn() {
 build_native() {
 	echo "Building replay for Cairo Native"
 	cargo build --quiet --release --features structured_logging,state_dump
-	rm ./target/release/replay-native
+	rm -f ./target/release/replay-native
 	mv ./target/release/replay ./target/release/replay-native
 }
 
 build_vm() {
 	echo "Building replay for Cairo VM"
 	cargo build --quiet --release --features structured_logging,state_dump,only_cairo_vm
-	rm ./target/release/replay-vm
+	rm -f ./target/release/replay-vm
 	mv ./target/release/replay ./target/release/replay-vm
 }
 
