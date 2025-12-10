@@ -76,28 +76,46 @@ pub fn execute_txs(
     let mut executions = vec![];
 
     for tx_hash in tx_hashes {
-        let mut state = TransactionalState::create_transactional(&mut state);
-        let execution_result = execute_tx(
+        executions.push(execute_and_process_tx(
             &mut state,
             reader,
             &block_context,
             tx_hash,
-            execution_flags.clone(),
-        );
-        log_execution_result(&execution_result, reader.get_tx_receipt(tx_hash).ok());
-        #[cfg(feature = "state_dump")]
-        crate::state_dump::save_execution_result(
-            &execution_result,
-            &mut state,
             block_number,
-            tx_hash,
-        );
-
-        executions.push(execution_result);
-        state.commit();
+            execution_flags.clone(),
+        ));
     }
 
     Ok(executions)
+}
+
+pub fn execute_and_process_tx(
+    state: &mut CachedState<impl StateReader>,
+    reader: &FullStateReader,
+    block_context: &BlockContext,
+    tx_hash: TransactionHash,
+    block_number: BlockNumber,
+    execution_flags: ExecutionFlags,
+) -> anyhow::Result<TransactionExecution> {
+    let mut state = TransactionalState::create_transactional(state);
+    let execution_result = execute_tx(
+        &mut state,
+        reader,
+        block_context,
+        tx_hash,
+        execution_flags.clone(),
+    );
+
+    log_execution_result(&execution_result, reader.get_tx_receipt(tx_hash).ok());
+
+    #[cfg(feature = "state_dump")]
+    crate::state_dump::save_execution_result(&execution_result, &mut state, block_number, tx_hash);
+
+    #[cfg(feature = "with-libfunc-profiling")]
+    crate::libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
+
+    state.commit();
+    execution_result
 }
 
 pub fn execute_tx(
