@@ -5,7 +5,10 @@ use blockifier::{
     blockifier_versioned_constants::VersionedConstants,
     bouncer::BouncerConfig,
     context::BlockContext,
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::{
+        cached_state::{CachedState, TransactionalState},
+        state_api::StateReader,
+    },
     transaction::{
         account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockifierTransaction,
@@ -73,6 +76,7 @@ pub fn execute_txs(
     let mut executions = vec![];
 
     for tx_hash in tx_hashes {
+        let mut state = TransactionalState::create_transactional(&mut state);
         let execution_result = execute_tx(
             &mut state,
             reader,
@@ -90,6 +94,7 @@ pub fn execute_txs(
         );
 
         executions.push(execution_result);
+        state.commit();
     }
 
     Ok(executions)
