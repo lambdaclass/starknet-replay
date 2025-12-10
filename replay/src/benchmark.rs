@@ -44,7 +44,6 @@ pub struct TxBenchData {
     time_ns: u128,
     gas_consumed: u64,
     steps: u64,
-    failed: bool,
 }
 
 impl BenchData {
@@ -107,16 +106,11 @@ pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchDat
         time_ns: tx.time.as_nanos(),
         gas_consumed: 0,
         steps: 0,
-        failed: tx.result.is_err(),
-    };
-
-    let Ok(info) = &tx.result else {
-        return (tx_data, vec![]);
     };
 
     let mut calls = Vec::new();
 
-    for call_info in info.non_optional_call_infos() {
+    for call_info in tx.info.non_optional_call_infos() {
         tx_data.gas_consumed += call_info.execution.gas_consumed;
         tx_data.steps += call_info.resources.n_steps as u64;
 
