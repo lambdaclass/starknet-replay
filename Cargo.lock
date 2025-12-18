@@ -1126,7 +1126,7 @@ dependencies = [
  "apollo_storage",
  "blockifier",
  "cairo-lang-starknet-classes",
- "cairo-vm 3.0.0",
+ "cairo-vm",
  "indexmap 2.11.1",
  "itertools 0.12.1",
  "lazy_static",
@@ -2061,7 +2061,7 @@ dependencies = [
  "cairo-lang-starknet-classes",
  "cairo-lang-utils",
  "cairo-native",
- "cairo-vm 3.0.0",
+ "cairo-vm",
  "dashmap",
  "derive_more 0.99.20",
  "indexmap 2.11.1",
@@ -2543,7 +2543,7 @@ dependencies = [
  "cairo-lang-sierra-to-casm",
  "cairo-lang-sierra-type-size",
  "cairo-lang-utils",
- "cairo-vm 3.0.0",
+ "cairo-vm",
  "itertools 0.14.0",
  "thiserror 2.0.16",
 ]
@@ -2565,7 +2565,7 @@ dependencies = [
  "cairo-lang-sierra-to-casm",
  "cairo-lang-starknet",
  "cairo-lang-utils",
- "cairo-vm 3.0.0",
+ "cairo-vm",
  "clap",
  "itertools 0.14.0",
  "keccak",
@@ -2915,38 +2915,6 @@ dependencies = [
  "thiserror 2.0.16",
  "tracing",
  "utf8_iter",
-]
-
-[[package]]
-name = "cairo-vm"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c21cacdf4e290ab5f0018f24d6bf97f8d3a8809bd09568550669270e7f9ed534"
-dependencies = [
- "anyhow",
- "bincode",
- "bitvec",
- "generic-array",
- "hashbrown 0.15.5",
- "hex",
- "indoc",
- "keccak",
- "lazy_static",
- "nom",
- "num-bigint",
- "num-integer",
- "num-prime",
- "num-traits",
- "rand 0.8.5",
- "rust_decimal",
- "serde",
- "serde_json",
- "sha2",
- "sha3",
- "starknet-crypto",
- "starknet-types-core",
- "thiserror 2.0.16",
- "zip",
 ]
 
 [[package]]
@@ -8087,7 +8055,7 @@ dependencies = [
  "cairo-lang-sierra",
  "cairo-lang-starknet-classes",
  "cairo-native",
- "cairo-vm 3.0.0",
+ "cairo-vm",
  "chrono",
  "clap",
  "csv",
@@ -9380,7 +9348,7 @@ dependencies = [
  "blockifier_reexecution",
  "cairo-lang-starknet-classes",
  "cairo-native",
- "cairo-vm 2.5.0",
+ "cairo-vm",
  "flate2",
  "hex",
  "lockfile",
