@@ -18,29 +18,33 @@ use blockifier::{
         cached_state::{CachedState, StateMaps, StorageEntry},
         state_api::StateReader,
     },
-    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
+    transaction::objects::TransactionExecutionInfo,
 };
 use cairo_vm::types::builtin_name::BuiltinName;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
+    block::BlockNumber,
     contract_class::EntryPointType,
     core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce},
     execution_resources::{GasAmount, GasVector},
     state::StorageKey,
-    transaction::fields::{Calldata, Fee},
+    transaction::{
+        fields::{Calldata, Fee},
+        TransactionHash,
+    },
 };
 use starknet_types_core::felt::Felt;
 use tracing::error;
 
-pub fn create_state_dump(
-    state: &mut CachedState<impl StateReader>,
-    block_number: u64,
-    tx_hash_str: &str,
-    execution_info_result: &Result<TransactionExecutionInfo, TransactionExecutionError>,
-) {
-    use std::path::Path;
+use crate::execution::TransactionExecution;
 
+pub fn save_execution_result(
+    execution_result: &anyhow::Result<TransactionExecution>,
+    state: &mut CachedState<impl StateReader>,
+    block_number: BlockNumber,
+    tx_hash: TransactionHash,
+) {
     let root = if cfg!(feature = "only_cairo_vm") {
         Path::new("state_dumps/vm")
     } else if cfg!(feature = "with-sierra-emu") {
@@ -52,12 +56,12 @@ pub fn create_state_dump(
 
     std::fs::create_dir_all(&root).ok();
 
-    let mut path = root.join(tx_hash_str);
+    let mut path = root.join(tx_hash.to_fixed_hex_string());
     path.set_extension("json");
 
-    match execution_info_result {
-        Ok(execution_info) => {
-            dump_state_diff(state, execution_info, &path)
+    match execution_result {
+        Ok(execution) => {
+            dump_state_diff(state, &execution.info, &path)
                 .inspect_err(|err| error!("failed to dump state diff: {err}"))
                 .ok();
         }
@@ -98,7 +102,7 @@ fn dump_state_diff(
     Ok(())
 }
 
-fn dump_error(err: &TransactionExecutionError, path: &Path) -> anyhow::Result<()> {
+fn dump_error(err: &anyhow::Error, path: &Path) -> anyhow::Result<()> {
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }

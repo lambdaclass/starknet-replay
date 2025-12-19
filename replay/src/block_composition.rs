@@ -4,17 +4,14 @@ use std::{
     path::Path,
 };
 
-use blockifier::{
-    execution::call_info::CallInfo,
-    transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
-};
+use blockifier::{execution::call_info::CallInfo, transaction::objects::TransactionExecutionInfo};
 use serde::Serialize;
 use starknet_api::core::{ClassHash, EntryPointSelector};
 
 type BlockExecutionInfo = Vec<(
     u64,    // block number
     String, // block timestamp
-    Vec<Result<TransactionExecutionInfo, TransactionExecutionError>>,
+    Vec<TransactionExecutionInfo>,
 )>;
 
 #[derive(Debug, Serialize)]
@@ -57,8 +54,7 @@ pub fn save_entry_point_execution(
     for (block_number, block_timestamp, executions) in executions {
         let entrypoints = executions
             .into_iter()
-            .map(|execution_rst| {
-                let execution = execution_rst.unwrap();
+            .map(|execution| {
                 let mut block_entry_point = TxEntryPoint {
                     validate_call_info: None,
                     execute_call_info: None,

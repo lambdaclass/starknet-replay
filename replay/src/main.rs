@@ -294,7 +294,7 @@ fn main() {
 
             for _ in 0..number_of_runs {
                 for block_number in block_start..=block_end {
-                    let mut block_executions = execute_block(
+                    let block_executions = execute_block(
                         &full_reader,
                         BlockNumber(block_number),
                         execution_flags.clone(),
@@ -306,8 +306,7 @@ fn main() {
                         0,
                         "cache miss during a benchmark"
                     );
-
-                    executions.append(&mut block_executions);
+                    executions.extend(block_executions.into_iter().filter_map(Result::ok));
                 }
             }
 
@@ -357,7 +356,7 @@ fn main() {
             let mut executions = Vec::new();
 
             for _ in 0..number_of_runs {
-                let mut block_executions = execute_txs(
+                let block_executions = execute_txs(
                     &full_reader,
                     block_number,
                     vec![tx_hash],
@@ -370,8 +369,7 @@ fn main() {
                     0,
                     "cache miss during a benchmark"
                 );
-
-                executions.append(&mut block_executions);
+                executions.extend(block_executions.into_iter().filter_map(Result::ok));
             }
 
             let benchmarking_data = benchmark::BenchData::aggregate(&executions);
@@ -449,7 +447,11 @@ fn main() {
                 )
                 .expect("failed to execute block");
 
-                let entrypoints = executions.into_iter().map(|tx| tx.result).collect();
+                let entrypoints = executions
+                    .into_iter()
+                    .filter_map(Result::ok)
+                    .map(|x| x.info)
+                    .collect();
 
                 block_executions.push((block_number, block_timestamp, entrypoints));
             }

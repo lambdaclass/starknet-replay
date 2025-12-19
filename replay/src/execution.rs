@@ -5,10 +5,12 @@ use blockifier::{
     blockifier_versioned_constants::VersionedConstants,
     bouncer::BouncerConfig,
     context::BlockContext,
-    state::{cached_state::CachedState, state_api::StateReader},
+    state::{
+        cached_state::{CachedState, TransactionalState},
+        state_api::StateReader,
+    },
     transaction::{
-        account_transaction::ExecutionFlags,
-        objects::{TransactionExecutionInfo, TransactionExecutionResult},
+        account_transaction::ExecutionFlags, objects::TransactionExecutionInfo,
         transaction_execution::Transaction as BlockifierTransaction,
         transactions::ExecutableTransaction,
     },
@@ -33,7 +35,7 @@ use tracing::{error, info, info_span};
 // so we allow dead code to silence warnings.
 #[allow(dead_code)]
 pub struct TransactionExecution {
-    pub result: TransactionExecutionResult<TransactionExecutionInfo>,
+    pub info: TransactionExecutionInfo,
     pub time: Duration,
     pub hash: TransactionHash,
     pub block_number: BlockNumber,
@@ -43,7 +45,7 @@ pub fn execute_block(
     reader: &FullStateReader,
     block_number: BlockNumber,
     execution_flags: ExecutionFlags,
-) -> anyhow::Result<Vec<TransactionExecution>> {
+) -> anyhow::Result<Vec<anyhow::Result<TransactionExecution>>> {
     let _block_execution_span = info_span!("block execution", block = block_number.0).entered();
 
     let block = reader.get_block(block_number)?;
@@ -61,7 +63,7 @@ pub fn execute_txs(
     block_number: BlockNumber,
     tx_hashes: Vec<TransactionHash>,
     execution_flags: ExecutionFlags,
-) -> anyhow::Result<Vec<TransactionExecution>> {
+) -> anyhow::Result<Vec<anyhow::Result<TransactionExecution>>> {
     let block_reader = BlockStateReader::new(
         block_number
             .prev()
@@ -74,20 +76,46 @@ pub fn execute_txs(
     let mut executions = vec![];
 
     for tx_hash in tx_hashes {
-        if let Ok(execution) = execute_tx(
+        executions.push(execute_and_process_tx(
             &mut state,
             reader,
             &block_context,
             tx_hash,
+            block_number,
             execution_flags.clone(),
-        )
-        .inspect_err(|err| error!("failed to execute transaction: {}", err))
-        {
-            executions.push(execution);
-        }
+        ));
     }
 
     Ok(executions)
+}
+
+pub fn execute_and_process_tx(
+    state: &mut CachedState<impl StateReader>,
+    reader: &FullStateReader,
+    block_context: &BlockContext,
+    tx_hash: TransactionHash,
+    block_number: BlockNumber,
+    execution_flags: ExecutionFlags,
+) -> anyhow::Result<TransactionExecution> {
+    let mut state = TransactionalState::create_transactional(state);
+    let execution_result = execute_tx(
+        &mut state,
+        reader,
+        block_context,
+        tx_hash,
+        execution_flags.clone(),
+    );
+
+    log_execution_result(&execution_result, reader.get_tx_receipt(tx_hash).ok());
+
+    #[cfg(feature = "state_dump")]
+    crate::state_dump::save_execution_result(&execution_result, &mut state, block_number, tx_hash);
+
+    #[cfg(feature = "with-libfunc-profiling")]
+    crate::libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
+
+    state.commit();
+    execution_result
 }
 
 pub fn execute_tx(
@@ -110,27 +138,25 @@ pub fn execute_tx(
     info!("starting transaction execution");
 
     let pre_execute_instant = Instant::now();
-    let execution_result = tx.execute(state, block_context);
+    let execution_info = tx.execute(state, block_context)?;
     let execution_time = pre_execute_instant.elapsed();
 
-    // TODO: Move this to the caller.
-    // This function should only execute the transaction and return relevant information.
-    #[cfg(feature = "state_dump")]
-    crate::state_dump::create_state_dump(
-        state,
-        block_context.block_info().block_number.0,
-        &tx_hash.to_hex_string(),
-        &execution_result,
-    );
+    Ok(TransactionExecution {
+        info: execution_info,
+        time: execution_time,
+        hash: tx_hash,
+        block_number: block_context.block_info().block_number,
+    })
+}
 
-    // TODO: Move this to the caller.
-    // This function should only execute the transaction and return relevant information.
-    #[cfg(feature = "with-libfunc-profiling")]
-    crate::libfunc_profile::create_libfunc_profile(tx_hash.to_hex_string());
-
-    match &execution_result {
+fn log_execution_result(
+    execution_result: &anyhow::Result<TransactionExecution>,
+    rpc_receipt: Option<RpcTransactionReceipt>,
+) {
+    match execution_result {
         Ok(execution_info) => {
             let result_string = execution_info
+                .info
                 .revert_error
                 .as_ref()
                 .map(|err| err.to_string())
@@ -138,18 +164,14 @@ pub fn execute_tx(
 
             info!("transaction execution finished: {}", result_string);
 
-            let receipt = reader.get_tx_receipt(tx_hash)?;
-            validate_tx_with_receipt(execution_info, receipt);
+            if let Some(rpc_receipt) = rpc_receipt {
+                validate_tx_with_receipt(&execution_info.info, rpc_receipt);
+            }
         }
-        Err(err) => error!("transaction execution failed: {err}"),
+        Err(err) => {
+            error!("transaction execution failed: {}", err)
+        }
     }
-
-    Ok(TransactionExecution {
-        result: execution_result,
-        time: execution_time,
-        hash: tx_hash,
-        block_number: block_context.block_info().block_number,
-    })
 }
 
 /// Validates the transaction execution with the network receipt,
@@ -517,8 +539,7 @@ mod tests {
         };
         let mut execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
             .expect("failed to execute transaction")
-            .result
-            .expect("transaction execution failed");
+            .info;
 
         normalize_execution_info(&mut execution);
         let summary = execution.summarize(block_context.versioned_constants());
@@ -568,8 +589,7 @@ mod tests {
         };
         let execution = execute_tx(&mut state, &full_reader, &block_context, tx_hash, flags)
             .expect("failed to execute transaction")
-            .result
-            .expect("transaction execution failed");
+            .info;
 
         assert!(execution.is_reverted())
     }
