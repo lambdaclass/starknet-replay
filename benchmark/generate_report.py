@@ -2,6 +2,7 @@ import argparse
 import pathlib
 import json
 import yattag
+import csv
 
 parser = argparse.ArgumentParser(
     description="""
@@ -47,6 +48,16 @@ img {
     max-width: 100%;
     height: auto;
     margin: auto;
+}
+table {
+  margin: 1em 1em;
+  width: 100%;
+  border-collapse: collapse;
+  border-style: hidden;
+}
+table td, table th {
+  border: 1px solid black;
+  padding: 0.3em;
 }
 """
 
@@ -107,6 +118,22 @@ def add_artifacts():
         if artifact_path.suffix == ".svg":
             relative_artifact_path = artifact_path.relative_to(args.output.parent)
             doc.stag("img", src=str(relative_artifact_path))
+
+        if artifact_path.suffix == ".csv":
+            with open(artifact_path) as artifact_file:
+                artifact_reader = csv.reader(artifact_file)
+                artifact_headers = next(artifact_reader)
+                artifact_rows = list(artifact_reader)
+
+            with tag("table"):
+                with tag("tr"):
+                    for header in artifact_headers:
+                        line("th", header)
+
+                for row in artifact_rows:
+                    with tag("tr"):
+                        for value in row:
+                            line("td", value)
 
 
 if __name__ == "__main__":
