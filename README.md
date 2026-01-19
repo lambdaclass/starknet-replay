@@ -86,17 +86,6 @@ By setting both env vars, if any RPC request fails with a timeout, starknet-repl
 
 An exponential-backoff algorithm distributes the retries in time, reducing the amount of simultaneous RPC requests to avoid new timeouts. If the limit of retries is reached, a new request timeout will cease the retrail process and return an timeout error.
 
-### Benchmarks
-
-To run benchmarks with the replay crate, you can use either `bench-block-range` or `bench-tx` commands. These make sure to cache all needed information (including cairo native compilation) before the actual execution. To use it you must compile the binary under the benchmark flag.
-
-```bash
-* cargo run --features benchmark bench-tx 0x04ba569a40a866fd1cbb2f3d3ba37ef68fb91267a4931a377d6acc6e5a854f9a mainnet 648461 1
-* cargo run --features benchmark bench-block-range 90000 90002 mainnet 1
-```
-
-These commands are like `tx` and `block-range` commands, but with the number of runs to execute as their last argument.
-
 ### Logging
 
 This projects uses tracing with env-filter, so logging can be modified by the RUST_LOG environment variable. By default, only info events from the replay crate are shown.
@@ -158,7 +147,7 @@ The `state_dump` feature can be used to save the execution result to either
 - `call_state_dumps/native/{tx_hash}.json`
 - `call_state_dumps/vm/{tx_hash}.json`
 
-### Benchmarking
+### Benchmarks
 
 First, build the benchmarking binaries.
 
@@ -193,7 +182,7 @@ python plotting/plot_execution_time.py native-data vm-data --output-dir <output-
 
 The report will be generated to `<output-dir>/report.html`
 
-### Benchmarking Compilation
+#### Benchmarking Compilation
 
 You can benchmark the compilation of a block range by running:
 ```bash
@@ -208,7 +197,7 @@ python plotting/plot_compilation_stats.py <compilation-data> --output-dir <outpu
 
 The report will be generated to `<output-dir>/report.html`
 
-### Benchmarking Compilation for Specific Classes
+#### Benchmarking Compilation for Specific Classes
 
 To benchmark compilation of specific classes, you can use the `bench-compilation` replay command:
 
