@@ -28,9 +28,9 @@ def save_fig_artifact(dir, fig, metadata):
         json.dump(metadata, f, indent=4)
 
 
-def save_df_artifact(dir, data, metadata):
+def save_df_artifact(dir, data, metadata, index=True):
     slug = inflection.parameterize(metadata["title"])
-    data.to_csv(f"{dir}/{slug}.csv")
+    data.to_csv(f"{dir}/{slug}.csv", index=index)
     with open(f"{dir}/{slug}.meta.json", "w") as f:
         json.dump(metadata, f, indent=4)
 
