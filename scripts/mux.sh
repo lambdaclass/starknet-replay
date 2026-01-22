@@ -96,20 +96,20 @@ replay_range() {
 	EXE="$1"
 	NAME="$2"
 	NETWORK="$3"
-	START="$4"
-	END="$5"
+	START_BLOCK="$4"
+	END_BLOCK="$5"
 
-	name="${NAME}-$EXE-${NETWORK}-${START}-${END}"
+	name="${NAME}-$EXE-${NETWORK}-${START_BLOCK}-${END_BLOCK}"
 	command=$(
-		cat <<- END
+		cat <<- EOF
 			bash
 			source $ENVRC
 			time ./target/release/replay-$EXE \\
-				block-range $START $END $NETWORK
-		END
+				block-range $START_BLOCK $END_BLOCK $NETWORK
+		EOF
 	)
 	spawn "$name" "$command" && {
-		echo "Replaying $NETWORK block range $START-$END in session $name"
+		echo "Replaying $NETWORK block range $START_BLOCK-$END_BLOCK in session $name"
   }
   return 0
 }
@@ -122,12 +122,12 @@ replay_block() {
 
 	name="${NAME}-$EXE-${NETWORK}-${BLOCK}"
 	command=$(
-		cat <<- END
+		cat <<- EOF
 			bash
 			source $ENVRC
 			time ./target/release/replay-$EXE \\
 				block $NETWORK $BLOCK
-		END
+		EOF
 	)
 	spawn "$name" "$command" && {
 		echo "Replaying $NETWORK block $BLOCK in session $name"
