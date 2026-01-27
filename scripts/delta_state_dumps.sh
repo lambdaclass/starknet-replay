@@ -30,8 +30,8 @@ for block in state_dumps/vm/*/; do
     fi
 
     if cmp -s \
-      <(sed '/"revert_error": /d' "$native_tx") \
-      <(sed '/"revert_error": /d' "$vm_tx")
+      <(sed '/"revert_error": /d; /cairo_native/d' "$native_tx") \
+      <(sed '/"revert_error": /d; /cairo_native/d' "$vm_tx")
     then
       continue
     fi
