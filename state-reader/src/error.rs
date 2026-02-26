@@ -1,6 +1,6 @@
 use std::{io, string::FromUtf8Error};
 
-use apollo_gateway::rpc_objects::{RpcErrorCode, RpcErrorResponse};
+use blockifier_reexecution::state_reader::rpc_objects::{RpcErrorCode, RpcErrorResponse};
 use cairo_lang_starknet_classes::casm_contract_class::StarknetSierraCompilationError;
 use cairo_vm::types::errors::program_errors::ProgramError;
 use reqwest::StatusCode;
@@ -26,6 +26,8 @@ pub enum StateReaderError {
     StarknetApiError(#[from] starknet_api::StarknetApiError),
     #[error(transparent)]
     StarknetSierraCompilationError(#[from] StarknetSierraCompilationError),
+    #[error("felt252 serde error: {0}")]
+    Felt252SerdeError(String),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
     #[error("block not found")]
