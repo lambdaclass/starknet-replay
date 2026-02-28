@@ -280,7 +280,7 @@ impl From<&CallInfo> for SerializableCallInfo {
 
         let mut builtin_stats = builtin_counters
             .iter()
-            .map(|(b, c)| (*b, *c))
+            .map(|(b, c)| (b.clone(), *c))
             .collect::<Vec<_>>();
         builtin_stats.sort_by_key(|(k, _)| k.clone());
 
