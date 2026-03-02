@@ -6,7 +6,10 @@ use std::{
 
 use blockifier::{
     execution::{
-        call_info::{CallExecution, CallInfo, MessageToL1, OrderedEvent, OrderedL2ToL1Message},
+        call_info::{
+            CairoPrimitiveName, CallExecution, CallInfo, MessageToL1, OrderedEvent,
+            OrderedL2ToL1Message,
+        },
         entry_point::{CallEntryPoint, CallType},
         syscalls::vm_syscall_utils::{SyscallSelector, SyscallUsage},
     },
@@ -20,7 +23,6 @@ use blockifier::{
     },
     transaction::{errors::TransactionExecutionError, objects::TransactionExecutionInfo},
 };
-use cairo_vm::types::builtin_name::BuiltinName;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use starknet_api::{
@@ -237,7 +239,7 @@ struct SerializableCallInfo {
     // Convert HashMap to vector to avoid random order
     pub syscalls_usage: Vec<(SyscallSelector, SyscallUsage)>,
     pub call_counter: usize,
-    pub builtin_stats: Vec<(BuiltinName, usize)>,
+    pub builtin_stats: Vec<(CairoPrimitiveName, usize)>,
 }
 
 impl From<&CallInfo> for SerializableCallInfo {
@@ -278,9 +280,9 @@ impl From<&CallInfo> for SerializableCallInfo {
 
         let mut builtin_stats = builtin_counters
             .iter()
-            .map(|(b, c)| (*b, *c))
+            .map(|(b, c)| (b.clone(), *c))
             .collect::<Vec<_>>();
-        builtin_stats.sort_by_key(|(k, _)| k.to_str());
+        builtin_stats.sort_by_key(|(k, _)| k.clone());
 
         let events = execution
             .events
@@ -405,7 +407,7 @@ impl From<&TransactionReceipt> for SerializableTransactionReceipt {
                     starknet_resources,
                     computation:
                         ComputationResources {
-                            tx_vm_resources: _,
+                            tx_extended_vm_resources: _,
                             os_vm_resources: _,
                             n_reverted_steps,
                             sierra_gas,

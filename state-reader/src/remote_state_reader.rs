@@ -6,11 +6,11 @@
 
 use std::{cell::Cell, env, time::Duration};
 
-use apollo_gateway::rpc_objects::{
+use blockifier_reexecution::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
+use blockifier_reexecution::state_reader::rpc_objects::{
     RpcResponse, RPC_CLASS_HASH_NOT_FOUND, RPC_ERROR_BLOCK_NOT_FOUND,
     RPC_ERROR_CONTRACT_ADDRESS_NOT_FOUND, RPC_ERROR_INVALID_PARAMS,
 };
-use blockifier_reexecution::state_reader::serde_utils::deserialize_transaction_json_to_starknet_api_tx;
 use reqwest::{blocking::Client, StatusCode};
 use serde_json::{json, Value};
 use starknet_api::{

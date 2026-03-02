@@ -20,8 +20,8 @@ fn main() {
         serde_json::from_reader(contract_file).expect("failed to parse contract");
 
     let sierra = contract
-        .extract_sierra_program()
+        .extract_sierra_program(false)
         .expect("failed to extract sierra program");
 
-    print!("{}", sierra);
+    print!("{}", sierra.program);
 }
