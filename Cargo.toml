@@ -25,6 +25,6 @@ cairo-lang-compiler = "~2.16.0"
 cairo-lang-sierra = "~2.16.0"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde" } # update_native
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde", features = [ "cairo_native", ] } # update_native
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde" } # update_native
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f" } # update_native
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f", features = [ "cairo_native", ] } # update_native
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f" } # update_native
