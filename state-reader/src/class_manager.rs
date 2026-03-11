@@ -38,7 +38,7 @@ use starknet_core::types::{
 };
 
 use cairo_lang_starknet_classes::{
-    casm_contract_class::{CasmContractClass, StarknetSierraCompilationError},
+    casm_contract_class::CasmContractClass,
     contract_class::{version_id_from_serialized_sierra_program, ContractClass},
 };
 
@@ -80,17 +80,17 @@ impl ClassManager {
                 } else {
                     let contract_class = processed_class_to_contract_class(&sierra_class)?;
 
-                    let program = contract_class
-                        .extract_sierra_program()
-                        .map_err(StarknetSierraCompilationError::from)?;
+                    let extracted = contract_class
+                        .extract_sierra_program(false)
+                        .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
 
                     let executor = if cfg!(feature = "with-sierra-emu") {
                         let (sierra_version, _) = version_id_from_serialized_sierra_program(
                             &contract_class.sierra_program,
                         )
-                        .map_err(StarknetSierraCompilationError::from)?;
+                        .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
 
-                        let program = Arc::new(program);
+                        let program = Arc::new(extracted.program);
 
                         ContractExecutor::Emu((
                             program,
@@ -106,7 +106,7 @@ impl ClassManager {
                             feature = "with-libfunc-profiling"
                         ))]
                         {
-                            ContractExecutor::AotWithProgram((native_executor, program))
+                            ContractExecutor::AotWithProgram((native_executor, extracted.program))
                         }
                         #[cfg(not(any(
                             feature = "with-trace-dump",
@@ -156,7 +156,11 @@ impl ClassManager {
             .map(|felt| felt.value.clone())
             .collect::<Vec<_>>();
         let sierra_version = SierraVersion::extract_from_program(&sierra_program_values)?;
-        let casm_class = CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+        let extracted = contract_class
+            .extract_sierra_program(false)
+            .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
+        let casm_class =
+            CasmContractClass::from_contract_class(contract_class, extracted, false, usize::MAX)?;
         let versioned_casm_class = (casm_class, sierra_version);
 
         // Cache it for the next time.
@@ -190,7 +194,7 @@ impl ClassManager {
 
         let (sierra_version, _) =
             version_id_from_serialized_sierra_program(&contract_class.sierra_program)
-                .map_err(StarknetSierraCompilationError::from)?;
+                .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
 
         let native_executor = loop {
             // If the native compiled class already exists. Try to load it
@@ -214,8 +218,9 @@ impl ClassManager {
 
             match AotContractExecutor::new_into(
                 &contract_class
-                    .extract_sierra_program()
-                    .map_err(StarknetSierraCompilationError::from)?,
+                    .extract_sierra_program(false)
+                    .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?
+                    .program,
                 &contract_class.entry_points_by_type,
                 sierra_version,
                 &cache_path,
@@ -315,9 +320,13 @@ pub fn compile_v1_class(class: ContractClass) -> Result<VersionedCasm, StateRead
 
     let sierra_version = SierraVersion::extract_from_program(&sierra_program_values)?;
 
+    let extracted = class
+        .extract_sierra_program(false)
+        .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
     let casm_class =
         cairo_lang_starknet_classes::casm_contract_class::CasmContractClass::from_contract_class(
             class,
+            extracted,
             false,
             usize::MAX,
         )?;

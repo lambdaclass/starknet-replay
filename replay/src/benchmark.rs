@@ -117,7 +117,7 @@ pub fn summarize_tx(tx: &TransactionExecution) -> (TxBenchData, Vec<CallBenchDat
 
     for call_info in info.non_optional_call_infos() {
         tx_data.gas += call_info.execution.gas_consumed;
-        tx_data.steps += call_info.resources.n_steps as u64;
+        tx_data.steps += call_info.resources.vm_resources.n_steps as u64;
 
         calls.append(&mut summarize_calls(tx.hash, call_info));
     }
@@ -139,7 +139,7 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchDa
         .flat_map(|call| {
             inner_time += call.time;
             inner_gas_consumed += call.execution.gas_consumed;
-            inner_steps += call.resources.n_steps as u64;
+            inner_steps += call.resources.vm_resources.n_steps as u64;
             summarize_calls(tx_hash, call)
         })
         .collect::<Vec<_>>();
@@ -155,7 +155,7 @@ fn summarize_calls(tx_hash: TransactionHash, call: &CallInfo) -> Vec<CallBenchDa
         .checked_sub(inner_gas_consumed)
         .expect("gas cannot be negative");
 
-    let steps = (call.resources.n_steps as u64)
+    let steps = (call.resources.vm_resources.n_steps as u64)
         .checked_sub(inner_steps)
         .expect("gas cannot be negative");
 
@@ -227,9 +227,11 @@ pub fn benchmark_compilation(
         class_hash.to_fixed_hex_string()
     );
 
+    let extracted = contract_class.extract_sierra_program(false)?;
+
     let pre_native_compilation_instant = Instant::now();
     let _ = AotContractExecutor::new(
-        &contract_class.extract_sierra_program()?,
+        &extracted.program,
         &contract_class.entry_points_by_type,
         sierra_version,
         OptLevel::Default,
@@ -244,7 +246,7 @@ pub fn benchmark_compilation(
 
     let pre_casm_compilation_instant = Instant::now();
     let casm_contract_class =
-        CasmContractClass::from_contract_class(contract_class, false, usize::MAX)?;
+        CasmContractClass::from_contract_class(contract_class, extracted, false, usize::MAX)?;
     let casm_time_ns = pre_casm_compilation_instant.elapsed().as_nanos();
 
     let sierra_statement_count = statistics

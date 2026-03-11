@@ -23,7 +23,6 @@ serde_with.workspace = true
 serde.workspace = true
 thiserror = "2.0.12"
 starknet-core = "0.16.0"
-apollo_gateway.workspace = true
 flate2 = "1.0.25"
 cairo-vm.workspace = true
 hex = "0.4.3"
