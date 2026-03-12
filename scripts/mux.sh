@@ -78,6 +78,15 @@ spawn() {
 	fi
 }
 
+clean_stale_locks() {
+	local count
+	count=$(find cache/contract_class/ -name '*.lock' 2>/dev/null | wc -l)
+	if [ "$count" -gt 0 ]; then
+		echo "Removing $count stale lock file(s) from cache/contract_class/"
+		find cache/contract_class/ -name '*.lock' -delete
+	fi
+}
+
 build_native() {
 	echo "Building replay for Cairo Native"
 	cargo build --quiet --release --features structured_logging,state_dump
@@ -177,6 +186,8 @@ range() {
 		build_vm
 	fi
 
+	clean_stale_locks
+
 	# Spawn executors.
 	for ((i = START_BLOCK ; i <= end_block ; i += step_size )); do
 		current_start_block="$i"
@@ -221,6 +232,8 @@ block() {
 	if [ "$SKIP" != "vm" ]; then
 		build_vm
 	fi
+
+	clean_stale_locks
 
 	for block in "${@:2}"; do
 		# Spawn VM executor if required.

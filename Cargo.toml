@@ -14,7 +14,7 @@ serde_with = "3.12.0"
 serde = "1.0.219"
 fs2 = "0.4.3"
 cairo-native = { git = "https://github.com/lambdaclass/cairo_native", rev = "b3fea26c8a3f3a48d0f1b473d7439435c6389083" }
-cairo-vm = "3.0.1"
+cairo-vm = "3.1.0"
 anyhow = "1.0"
 
 # Cairo Dependencies
@@ -25,6 +25,9 @@ cairo-lang-compiler = "~2.16.0"
 cairo-lang-sierra = "~2.16.0"
 
 # Sequencer Dependencies
-starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde" } # update_native
-blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde", features = [ "cairo_native", ] } # update_native
-blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "995d850b31ff942058e400b69e853a437bbbedde" } # update_native
+starknet_api = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f" } # update_native
+blockifier = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f", features = [ "cairo_native", ] } # update_native
+blockifier_reexecution = { git = "https://github.com/lambdaclass/sequencer.git", rev = "594e2e2a1d5258c4310b77796f42b39ef567523f" } # update_native
+
+[patch.crates-io]
+cairo-vm = { git = "https://github.com/avivg-starkware/cairo-vm", rev = "2ad6d5fba6df67da62309bb64d1482a47ad54132" }
