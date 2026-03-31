@@ -1,6 +1,6 @@
 use std::{fs::File, path::PathBuf};
 
-use blockifier::execution::native::executor::{
+use blockifier::execution::native::profiling::{
     EntrypointProfile, TransactionProfile, LIBFUNC_PROFILES_MAP,
 };
 use cairo_lang_sierra::{

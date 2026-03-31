@@ -10,14 +10,13 @@ use std::{
     fs::{self, File},
     io::{self, Read},
     path::PathBuf,
-    sync::Arc,
     thread::sleep,
     time::Duration,
 };
 
 use blockifier::execution::{
     contract_class::{CompiledClassV0, CompiledClassV1, RunnableCompiledClass},
-    native::{contract_class::NativeCompiledClassV1, executor::ContractExecutor},
+    native::contract_class::NativeCompiledClassV1,
 };
 use cairo_native::{executor::AotContractExecutor, statistics::Statistics, OptLevel};
 use serde::Serialize;
@@ -78,47 +77,11 @@ impl ClassManager {
                 if cfg!(feature = "only-casm") {
                     RunnableCompiledClass::V1(casm_class)
                 } else {
-                    let contract_class = processed_class_to_contract_class(&sierra_class)?;
+                    let native_executor = self.compile_native_class(class_hash, &sierra_class)?;
 
-                    let extracted = contract_class
-                        .extract_sierra_program(false)
-                        .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
-
-                    let executor = if cfg!(feature = "with-sierra-emu") {
-                        let (sierra_version, _) = version_id_from_serialized_sierra_program(
-                            &contract_class.sierra_program,
-                        )
-                        .map_err(|e| StateReaderError::Felt252SerdeError(e.to_string()))?;
-
-                        let program = Arc::new(extracted.program);
-
-                        ContractExecutor::Emu((
-                            program,
-                            contract_class.entry_points_by_type.clone(),
-                            sierra_version,
-                        ))
-                    } else {
-                        let native_executor =
-                            self.compile_native_class(class_hash, &sierra_class)?;
-
-                        #[cfg(any(
-                            feature = "with-trace-dump",
-                            feature = "with-libfunc-profiling"
-                        ))]
-                        {
-                            ContractExecutor::AotWithProgram((native_executor, extracted.program))
-                        }
-                        #[cfg(not(any(
-                            feature = "with-trace-dump",
-                            feature = "with-libfunc-profiling"
-                        )))]
-                        {
-                            ContractExecutor::Aot(native_executor)
-                        }
-                    };
-
-                    RunnableCompiledClass::V1Native(NativeCompiledClassV1::new_2(
-                        executor, casm_class,
+                    RunnableCompiledClass::V1Native(NativeCompiledClassV1::new(
+                        native_executor,
+                        casm_class,
                     ))
                 }
             }

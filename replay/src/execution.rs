@@ -1,7 +1,6 @@
 use std::time::{Duration, Instant};
 
 use blockifier::{
-    blockifier::block::validated_gas_prices,
     blockifier_versioned_constants::VersionedConstants,
     bouncer::BouncerConfig,
     context::BlockContext,
@@ -16,7 +15,10 @@ use blockifier::{
 use blockifier_reexecution::utils::get_chain_info;
 use serde::Serialize;
 use starknet_api::{
-    block::{BlockInfo, BlockNumber, BlockTimestamp, GasPrice, NonzeroGasPrice, StarknetVersion},
+    block::{
+        BlockInfo, BlockNumber, BlockTimestamp, GasPrice, GasPriceVector, GasPrices,
+        NonzeroGasPrice, StarknetVersion,
+    },
     core::{ContractAddress, PatriciaKey},
     test_utils::MAX_FEE,
     transaction::{Transaction, TransactionHash},
@@ -274,14 +276,18 @@ pub fn get_block_info(block: &BlockWithTxHashes) -> anyhow::Result<BlockInfo> {
         sequencer_address: ContractAddress(PatriciaKey::try_from(block.sequencer_address)?),
         block_timestamp: BlockTimestamp(block.timestamp),
         starknet_version: StarknetVersion::default(),
-        gas_prices: validated_gas_prices(
-            parse_gas_price(block.l1_gas_price.price_in_wei)?,
-            parse_gas_price(block.l1_gas_price.price_in_fri)?,
-            parse_gas_price(block.l1_data_gas_price.price_in_wei)?,
-            parse_gas_price(block.l1_data_gas_price.price_in_fri)?,
-            parse_gas_price(block.l2_gas_price.price_in_wei)?,
-            parse_gas_price(block.l2_gas_price.price_in_fri)?,
-        ),
+        gas_prices: GasPrices {
+            eth_gas_prices: GasPriceVector {
+                l1_gas_price: parse_gas_price(block.l1_gas_price.price_in_wei)?,
+                l1_data_gas_price: parse_gas_price(block.l1_data_gas_price.price_in_wei)?,
+                l2_gas_price: parse_gas_price(block.l2_gas_price.price_in_wei)?,
+            },
+            strk_gas_prices: GasPriceVector {
+                l1_gas_price: parse_gas_price(block.l1_gas_price.price_in_fri)?,
+                l1_data_gas_price: parse_gas_price(block.l1_data_gas_price.price_in_fri)?,
+                l2_gas_price: parse_gas_price(block.l2_gas_price.price_in_fri)?,
+            },
+        },
         use_kzg_da: true,
     })
 }
