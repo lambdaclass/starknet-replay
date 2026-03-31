@@ -1,3 +1,8 @@
+compile_error!(
+    "The `with-libfunc-profiling` feature is not supported with the upstream starkware-libs/sequencer. \
+     It requires the lambdaclass/sequencer fork which exports profiling types from blockifier."
+);
+
 use std::{fs::File, path::PathBuf};
 
 use blockifier::execution::native::executor::{

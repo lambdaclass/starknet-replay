@@ -1,7 +1,7 @@
 {
   "charged_resources": {
     "extended_vm_resources": {
-      "n_steps": 529,
+      "n_steps": 1235,
       "n_memory_holes": 0,
       "builtin_instance_counter": {
         "range_check_builtin": 8,

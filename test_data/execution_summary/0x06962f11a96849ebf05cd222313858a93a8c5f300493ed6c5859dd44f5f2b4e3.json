@@ -4,8 +4,8 @@
       "n_steps": 3289,
       "n_memory_holes": 30,
       "builtin_instance_counter": {
-        "pedersen_builtin": 4,
-        "range_check_builtin": 81
+        "range_check_builtin": 81,
+        "pedersen_builtin": 4
       }
     },
     "gas_consumed": 0
@@ -21,15 +21,15 @@
     ],
     [
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44d"
+    ],
+    [
+      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       "0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350c"
     ],
     [
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       "0x26e662f47f90b15254e3da267636a7893da2164e73385b47acdf2605d70350b"
-    ],
-    [
-      "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "0xb1c927d569cd996d8f1c1b677ccee5bc7fe8e0f97f706d1cce28f5fd17b44d"
     ]
   ],
   "l2_to_l1_payload_lengths": [],

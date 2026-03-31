@@ -330,7 +330,7 @@ mod tests {
         let ContractClass::Legacy(contract_class) = contract_class else {
             panic!("expected legacy contract class");
         };
-        assert_eq!(contract_class.program.len(), 66175);
+        assert_eq!(contract_class.program.len(), 98075);
     }
 
     #[test]

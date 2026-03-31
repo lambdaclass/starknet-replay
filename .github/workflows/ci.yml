@@ -7,9 +7,6 @@ on:
   merge_group:
     types: [checks_requested]
 
-env:
-  CAIRO_NATIVE_REF: e9151aa8420a138f70febb721f8979d3dd2f7223
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -151,18 +148,6 @@ jobs:
       - run: sudo apt-get update && sudo apt-get upgrade -y
       - name: Install LLVM
         run: sudo apt-get install llvm-19 llvm-19-dev llvm-19-runtime clang-19 clang-tools-19 lld-19 libpolly-19-dev libmlir-19-dev mlir-19-tools
-      - name: Checkout cairo_native
-        uses: actions/checkout@v4
-        with:
-          repository: lambdaclass/cairo_native
-          ref:  ${{ env.CAIRO_NATIVE_REF }}
-          path: cairo_native
-      - name: Build Cairo Native Runtime Library
-        shell: bash
-        run: |
-          cd cairo_native
-          make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
         run: cargo test
 
@@ -188,16 +173,5 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install LLVM
         run: brew install llvm@19 --quiet
-      - name: Checkout cairo_native
-        uses: actions/checkout@v4
-        with:
-          repository: lambdaclass/cairo_native
-          ref:  ${{ env.CAIRO_NATIVE_REF }}
-          path: cairo_native
-      - name: Build Cairo Native Runtime Library
-        run: |
-          cd cairo_native
-          make runtime
-          echo "CAIRO_NATIVE_RUNTIME_LIBRARY=$(pwd)/libcairo_native_runtime.a" > $GITHUB_ENV
       - name: Test
         run: cargo test

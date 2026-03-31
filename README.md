@@ -45,7 +45,7 @@ make test
 
 ### Cairo Native Setup
 
-Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/lambdaclass/cairo_native), which makes the execution of sierra programs possible through native machine code. To use it, the following needs to be setup:
+Starknet Replay is currenlty integrated with [Cairo Native](https://github.com/starkware-libs/cairo_native), which makes the execution of sierra programs possible through native machine code. To use it, the following needs to be setup:
 
 - On mac with brew, running `make deps` should have installed LLVM 19 with MLIR, otherwise, you must install it manually. On Debian, you can use `apt.llvm.org`, or build it from source.
 
