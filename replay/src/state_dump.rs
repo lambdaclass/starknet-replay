@@ -238,7 +238,6 @@ struct SerializableCallInfo {
     pub accessed_contract_addresses: Vec<ContractAddress>,
     // Convert HashMap to vector to avoid random order
     pub syscalls_usage: Vec<(SyscallSelector, SyscallUsage)>,
-    pub call_counter: usize,
     pub builtin_stats: Vec<(CairoPrimitiveName, usize)>,
 }
 
@@ -253,7 +252,6 @@ impl From<&CallInfo> for SerializableCallInfo {
             tracked_resource: _tracked_resource,
             time: _time,
             builtin_counters,
-            call_counter,
             syscalls_usage,
         } = value;
 
@@ -330,7 +328,6 @@ impl From<&CallInfo> for SerializableCallInfo {
             accessed_contract_addresses,
             syscalls_usage,
             builtin_stats,
-            call_counter: *call_counter,
         }
     }
 }
